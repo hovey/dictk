@@ -45,6 +45,11 @@ mdbook build docs/userguide
 mdbook serve docs/userguide  # live preview at http://localhost:3000
 ```
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, testing,
+docs, and release instructions.
+
 ## License
 
 GPL-3.0-or-later. See [LICENSE](LICENSE).
