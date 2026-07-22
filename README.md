@@ -1,5 +1,8 @@
 # dictk
 
+[![CI](https://github.com/hovey/dictk/actions/workflows/ci.yml/badge.svg)](https://github.com/hovey/dictk/actions/workflows/ci.yml)
+[![Docs](https://img.shields.io/badge/docs-user%20guide-blue)](https://hovey.github.io/dictk/)
+
 Digital Image Correlation Toolkit
 
 `dictk` is a Python library for digital image correlation (DIC) — comparing
@@ -8,8 +11,6 @@ and strain fields.
 
 This is an early-stage skeleton: a small, real, tested primitive
 (zero-normalized cross-correlation) rather than a full DIC pipeline.
-
-**User guide:** https://hovey.github.io/dictk/
 
 ## Installation
 
