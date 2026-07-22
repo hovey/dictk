@@ -68,21 +68,39 @@ uv run ruff check           # lint
 ### Building the docs
 
 Documentation is an [mdBook](https://rust-lang.github.io/mdBook/) under
-`docs/userguide/`. Building it requires the `mdbook` binary (not a Python
-dependency):
+`docs/userguide/`, with the
+[mdbook-cmdrun](https://github.com/FauconFan/mdbook-cmdrun) preprocessor
+enabled so pages can embed live, always-accurate command output (see the
+"Image Generation" page for an example) instead of pasted-by-hand output.
+Neither is a Python dependency:
 
 ```bash
-# macOS
-brew install mdbook
-
-# or via cargo
-cargo install mdbook
+# mdbook must be pinned to 0.4.52: mdbook-cmdrun depends on the mdbook
+# crate's 0.4.x preprocessor JSON schema, which changed in mdbook 0.5 and
+# broke compatibility (https://github.com/FauconFan/mdbook-cmdrun/issues/22,
+# open as of this writing). Do not `brew install mdbook` or
+# `cargo install mdbook` without a --version pin, or cmdrun pages will fail
+# to build with "Unable to parse the input".
+cargo install mdbook --version 0.4.52
+cargo install mdbook-cmdrun
 ```
+
+If you already have a newer `mdbook` from Homebrew or elsewhere on your
+`PATH`, make sure `~/.cargo/bin` comes first (or check `mdbook --version`
+reports `0.4.52` before building).
 
 ```bash
-mdbook build docs/userguide          # build once, output in docs/userguide/book/
-mdbook serve docs/userguide          # live preview at http://localhost:3000
+# mdbook-cmdrun resolves each cmdrun command's working directory relative
+# to the process's cwd, so you must `cd` into docs/userguide first — running
+# `mdbook build docs/userguide` from the repo root will fail with
+# "Fail to run shell".
+cd docs/userguide
+uv run mdbook build           # build once, output in docs/userguide/book/
+uv run mdbook serve           # live preview at http://localhost:3000
 ```
+
+`uv run` puts dictk's own CLI on `PATH` for the build, since some
+`cmdrun` directives invoke `dictk` directly.
 
 ### Before pushing
 
@@ -94,7 +112,7 @@ the checks manually:
 uv run ruff format --check
 uv run ruff check
 uv run pytest --cov=src/dictk
-mdbook build docs/userguide
+(cd docs/userguide && uv run mdbook build)
 ```
 
 These are exactly the checks the `test` and `docs` jobs run in CI.
@@ -108,9 +126,11 @@ three jobs:
   with `uv sync`, runs `uv build` as a build sanity check, `ruff format
   --check`, `ruff check`, and `pytest --cov`. Uploads the coverage report as
   a build artifact.
-- **`docs`** — runs only on pushes to `main`, after `test` passes. Builds
-  the mdBook user guide and deploys it to the `gh-pages` branch (published
-  via GitHub Pages).
+- **`docs`** — runs only on pushes to `main`, after `test` passes. Installs
+  the pinned `mdbook` 0.4.52 and `mdbook-cmdrun` (cached via
+  `actions/cache`), builds the mdBook user guide with dictk's own CLI on
+  `PATH`, and deploys it to the `gh-pages` branch (published via GitHub
+  Pages).
 - **`release`** — runs only on pushes to `main`, after `test` passes, and
   only if the pushed commit's message contains `[testpypi]` or `[pypi]`.
   Publishes the built package to TestPyPI or PyPI respectively. See

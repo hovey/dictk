@@ -74,6 +74,10 @@ docs/_build/
 # mdBook documentation
 docs/userguide/book/
 
+# mdbook-cmdrun generated images (regenerated deterministically on every build)
+docs/userguide/src/getting_started/*.tiff
+docs/userguide/src/getting_started/*.png
+
 # PyBuilder
 .pybuilder/
 target/

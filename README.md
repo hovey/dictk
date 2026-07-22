@@ -42,12 +42,9 @@ uv run ruff check
 ```
 
 Documentation (mdBook) lives in `docs/userguide/` and is published at
-https://hovey.github.io/dictk/ on every push to `main`:
-
-```bash
-mdbook build docs/userguide
-mdbook serve docs/userguide  # live preview at http://localhost:3000
-```
+https://hovey.github.io/dictk/ on every push to `main`. See
+[CONTRIBUTING.md](CONTRIBUTING.md#building-the-docs) for the exact
+(version-pinned) build instructions.
 
 ## Contributing
 

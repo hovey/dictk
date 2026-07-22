@@ -7,3 +7,5 @@ language = "en"
 
 [output.html]
 git-repository-url = "https://github.com/hovey/dictk"
+
+[preprocessor.cmdrun]
