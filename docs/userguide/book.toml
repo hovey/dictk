@@ -1,0 +1,9 @@
+[book]
+title = "dictk User Guide"
+description = "Digital Image Correlation Toolkit"
+authors = ["Chad Hovey"]
+src = "src"
+language = "en"
+
+[output.html]
+git-repository-url = "https://github.com/hovey/dictk"

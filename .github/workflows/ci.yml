@@ -1,0 +1,113 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Lint, format check, test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.11"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Build check
+        run: uv build
+
+      - name: Run ruff format check
+        run: uv run ruff format --check
+
+      - name: Run ruff lint check
+        run: uv run ruff check
+
+      - name: Run pytest with coverage
+        run: uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: report-coverage
+          path: |
+            htmlcov/
+            coverage.xml
+
+  docs:
+    name: Build and deploy mdBook
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    concurrency:
+      group: gh-pages-deploy
+      cancel-in-progress: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install mdBook
+        uses: peaceiris/actions-mdbook@v2
+        with:
+          mdbook-version: "latest"
+
+      - name: Build user guide
+        run: mdbook build docs/userguide
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/userguide/book
+
+  release:
+    name: Publish release
+    needs: test
+    runs-on: ubuntu-latest
+    if: |
+      github.ref == 'refs/heads/main' &&
+      (contains(github.event.head_commit.message, '[pypi]') ||
+       contains(github.event.head_commit.message, '[testpypi]'))
+    permissions:
+      id-token: write
+    environment:
+      name: ${{ contains(github.event.head_commit.message, '[pypi]') && 'pypi' || 'testpypi' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.11"
+
+      - name: Build distribution
+        run: uv build
+
+      - name: Publish to TestPyPI
+        if: contains(github.event.head_commit.message, '[testpypi]') && !contains(github.event.head_commit.message, '[pypi]')
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+      - name: Publish to PyPI
+        if: contains(github.event.head_commit.message, '[pypi]')
+        uses: pypa/gh-action-pypi-publish@release/v1
