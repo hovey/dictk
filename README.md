@@ -9,6 +9,8 @@ and strain fields.
 This is an early-stage skeleton: a small, real, tested primitive
 (zero-normalized cross-correlation) rather than a full DIC pipeline.
 
+**User guide:** https://hovey.github.io/dictk/
+
 ## Installation
 
 ```bash
@@ -38,7 +40,8 @@ uv run ruff format --check
 uv run ruff check
 ```
 
-Documentation (mdBook) lives in `docs/userguide/`:
+Documentation (mdBook) lives in `docs/userguide/` and is published at
+https://hovey.github.io/dictk/ on every push to `main`:
 
 ```bash
 mdbook build docs/userguide
