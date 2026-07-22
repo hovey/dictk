@@ -3,8 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>dictk User Guide</title>
-        <meta name="robots" content="noindex">
+        <title>Image Generation - dictk User Guide</title>
 
 
         <!-- Custom HTML head -->
@@ -13,34 +12,34 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="favicon.svg">
-        <link rel="shortcut icon" href="favicon.png">
-        <link rel="stylesheet" href="css/variables.css">
-        <link rel="stylesheet" href="css/general.css">
-        <link rel="stylesheet" href="css/chrome.css">
-        <link rel="stylesheet" href="css/print.css" media="print">
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="fonts/fonts.css">
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="ayu-highlight.css">
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
 
 
         <!-- Provide site root and default themes to javascript -->
         <script>
-            const path_to_root = "";
+            const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex.js";
+            window.path_to_searchindex_js = "../searchindex.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc.js"></script>
+        <script src="../toc.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -107,7 +106,7 @@
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
-                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -142,7 +141,7 @@
                     <h1 class="menu-title">dictk User Guide</h1>
 
                     <div class="right-buttons">
-                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
                         <a href="https://github.com/hovey/dictk" title="Git repository" aria-label="Git repository">
@@ -179,29 +178,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
-<p><code>dictk</code> (Digital Image Correlation Toolkit) is a Python library for digital
-image correlation (DIC) — comparing images of a specimen before and after
-deformation to measure displacement and strain fields.</p>
-<p>This guide is a work in progress. For now, it covers the one primitive the
-toolkit ships with.</p>
-<h2 id="installation"><a class="header" href="#installation">Installation</a></h2>
-<pre><code class="language-bash">pip install dictk
-</code></pre>
-<h2 id="getting-started"><a class="header" href="#getting-started">Getting started</a></h2>
-<p><code>dictk</code> currently provides a single building block: zero-normalized
-cross-correlation (ZNCC), the similarity metric DIC template matching is
-built on.</p>
-<pre><code class="language-python">import numpy as np
-from dictk import zero_normalized_cross_correlation
-
-a = np.array([[1.0, 2.0], [3.0, 4.0]])
-b = np.array([[2.0, 4.0], [6.0, 8.0]])
-
-score = zero_normalized_cross_correlation(a, b)
-print(score)  # 1.0 -- correlated up to a brightness/contrast rescale
-</code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="image-generation"><a class="header" href="#image-generation">Image Generation</a></h1>
+                        <h1 id="image-generation"><a class="header" href="#image-generation">Image Generation</a></h1>
 <blockquote>
 <p>The source for the commands on this page is <code>dictk</code>'s own <code>rosta</code> and
 <code>checkerboard</code> subcommands — see <code>dictk --help</code>.</p>
@@ -268,7 +245,7 @@ options:
 </code></pre>
 <p>The result:</p>
 <figure>
-    <img src="getting_started/rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png"
+    <img src="rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png"
     alt="rosta speckle pattern" />
     <figcaption>Synthetic speckle pattern, 200x200 pixels.</figcaption>
 </figure>
@@ -280,7 +257,7 @@ pattern, <code>dictk</code> can also generate a checkerboard test image:</p>
 <pre><code class="language-text">Saved image: checkerboard_200w_by_200h_8x8.png
 </code></pre>
 <figure>
-    <img src="getting_started/checkerboard_200w_by_200h_8x8.png" alt="checkerboard" />
+    <img src="checkerboard_200w_by_200h_8x8.png" alt="checkerboard" />
     <figcaption>Checkerboard test image, 200x200 pixels, 8x8 squares.</figcaption>
 </figure>
 <h2 id="combining-into-a-reference-image"><a class="header" href="#combining-into-a-reference-image">Combining into a reference image</a></h2>
@@ -297,7 +274,7 @@ write_image(i0, "i0.png")
 <pre><code class="language-text">Saved image: i0.png
 </code></pre>
 <figure>
-    <img src="getting_started/i0.png" alt="reference image i0" />
+    <img src="i0.png" alt="reference image i0" />
     <figcaption>Reference image i0, 200x200 pixels.</figcaption>
 </figure>
 <p>Because both inputs are averaged and rescaled together, the checkerboard's
@@ -316,172 +293,20 @@ checkerboard combinations.</p>
 <pre><code class="language-text">Saved histograms: rosta_histogram.png, checkerboard_histogram.png, i0_histogram.png
 </code></pre>
 <div class="table-wrapper"><table><thead><tr><th>rosta</th><th>checkerboard</th><th>i0</th></tr></thead><tbody>
-<tr><td><img src="getting_started/rosta_histogram.png" alt="rosta histogram" /></td><td><img src="getting_started/checkerboard_histogram.png" alt="checkerboard histogram" /></td><td><img src="getting_started/i0_histogram.png" alt="i0 histogram" /></td></tr>
+<tr><td><img src="rosta_histogram.png" alt="rosta histogram" /></td><td><img src="checkerboard_histogram.png" alt="checkerboard histogram" /></td><td><img src="i0_histogram.png" alt="i0 histogram" /></td></tr>
 </tbody></table>
-</div><div style="break-before: page; page-break-before: always;"></div><h1 id="contributing-to-dictk"><a class="header" href="#contributing-to-dictk">Contributing to dictk</a></h1>
-<h2 id="getting-the-source-code"><a class="header" href="#getting-the-source-code">Getting the source code</a></h2>
-<pre><code class="language-bash">git clone git@github.com:hovey/dictk.git
-cd dictk
-</code></pre>
-<h2 id="installation-1"><a class="header" href="#installation-1">Installation</a></h2>
-<h3 id="using-uv-recommended"><a class="header" href="#using-uv-recommended">Using <code>uv</code> (recommended)</a></h3>
-<p>Install <a href="https://docs.astral.sh/uv/">uv</a> if you don't already have it:</p>
-<pre><code class="language-bash"># macOS / Linux
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# or via Homebrew
-brew install uv
-</code></pre>
-<p>Then, from the repository root:</p>
-<pre><code class="language-bash">uv sync --all-extras --dev
-</code></pre>
-<p>This creates a <code>.venv</code> and installs <code>dictk</code> plus its dev dependencies
-(<code>pytest</code>, <code>pytest-cov</code>, <code>ruff</code>). Run commands inside that environment with
-the <code>uv run</code> prefix, e.g. <code>uv run pytest</code>.</p>
-<h3 id="using-venv-and-pip-alternative"><a class="header" href="#using-venv-and-pip-alternative">Using <code>venv</code> and <code>pip</code> (alternative)</a></h3>
-<pre><code class="language-bash">python3 -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -e ".[dev]"
-</code></pre>
-<h2 id="development-workflow"><a class="header" href="#development-workflow">Development workflow</a></h2>
-<h3 id="running-tests"><a class="header" href="#running-tests">Running tests</a></h3>
-<pre><code class="language-bash">uv run pytest
-</code></pre>
-<p>With coverage (matches what CI runs):</p>
-<pre><code class="language-bash">uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html
-</code></pre>
-<p>Coverage HTML report is written to <code>htmlcov/index.html</code>.</p>
-<h3 id="linting-and-formatting"><a class="header" href="#linting-and-formatting">Linting and formatting</a></h3>
-<p><a href="https://docs.astral.sh/ruff/">ruff</a> handles both formatting and linting.</p>
-<pre><code class="language-bash">uv run ruff format          # auto-format
-uv run ruff format --check  # verify formatting without changing files (CI runs this)
-uv run ruff check           # lint
-</code></pre>
-<h3 id="building-the-docs"><a class="header" href="#building-the-docs">Building the docs</a></h3>
-<p>Documentation is an <a href="https://rust-lang.github.io/mdBook/">mdBook</a> under
-<code>docs/userguide/</code>, with the
-<a href="https://github.com/FauconFan/mdbook-cmdrun">mdbook-cmdrun</a> preprocessor
-enabled so pages can embed live, always-accurate command output (see the
-"Image Generation" page for an example) instead of pasted-by-hand output.
-Neither is a Python dependency:</p>
-<pre><code class="language-bash"># mdbook must be pinned to 0.4.52: mdbook-cmdrun depends on the mdbook
-# crate's 0.4.x preprocessor JSON schema, which changed in mdbook 0.5 and
-# broke compatibility (https://github.com/FauconFan/mdbook-cmdrun/issues/22,
-# open as of this writing). Do not `brew install mdbook` or
-# `cargo install mdbook` without a --version pin, or cmdrun pages will fail
-# to build with "Unable to parse the input".
-cargo install mdbook --version 0.4.52
-cargo install mdbook-cmdrun
-</code></pre>
-<p>If you already have a newer <code>mdbook</code> from Homebrew or elsewhere on your
-<code>PATH</code>, make sure <code>~/.cargo/bin</code> comes first (or check <code>mdbook --version</code>
-reports <code>0.4.52</code> before building).</p>
-<pre><code class="language-bash"># mdbook-cmdrun resolves each cmdrun command's working directory relative
-# to the process's cwd, so you must `cd` into docs/userguide first — running
-# `mdbook build docs/userguide` from the repo root will fail with
-# "Fail to run shell".
-cd docs/userguide
-uv run mdbook build           # build once, output in docs/userguide/book/
-uv run mdbook serve           # live preview at http://localhost:3000
-</code></pre>
-<p><code>uv run</code> puts dictk's own CLI on <code>PATH</code> for the build, since some
-<code>cmdrun</code> directives invoke <code>dictk</code> directly.</p>
-<h3 id="before-pushing"><a class="header" href="#before-pushing">Before pushing</a></h3>
-<p>There's no <code>preflight</code> command yet (see rattlesnake-vibration-controller's
-<code>preflight.py</code> for an example of what that could grow into) — for now, run
-the checks manually:</p>
-<pre><code class="language-bash">uv run ruff format --check
-uv run ruff check
-uv run pytest --cov=src/dictk
-(cd docs/userguide &amp;&amp; uv run mdbook build)
-</code></pre>
-<p>These are exactly the checks the <code>test</code> and <code>docs</code> jobs run in CI.</p>
-<h2 id="cicd-architecture"><a class="header" href="#cicd-architecture">CI/CD architecture</a></h2>
-<p>Everything lives in a single workflow, <code>.github/workflows/ci.yml</code>, with
-three jobs:</p>
-<ul>
-<li><strong><code>test</code></strong> — runs on every push and pull request. Installs dependencies
-with <code>uv sync</code>, runs <code>uv build</code> as a build sanity check, <code>ruff format --check</code>, <code>ruff check</code>, and <code>pytest --cov</code>. Uploads the coverage report as
-a build artifact.</li>
-<li><strong><code>docs</code></strong> — runs only on pushes to <code>main</code>, after <code>test</code> passes. Installs
-the pinned <code>mdbook</code> 0.4.52 and <code>mdbook-cmdrun</code> (cached via
-<code>actions/cache</code>), builds the mdBook user guide with dictk's own CLI on
-<code>PATH</code>, and deploys it to the <code>gh-pages</code> branch (published via GitHub
-Pages).</li>
-<li><strong><code>release</code></strong> — runs only on pushes to <code>main</code>, after <code>test</code> passes, and
-only if the pushed commit's message contains <code>[testpypi]</code> or <code>[pypi]</code>.
-Publishes the built package to TestPyPI or PyPI respectively. See
-"Releasing" below.</li>
-</ul>
-<p>This is intentionally a minimal setup — no matrix OS/Python testing, no
-containerized builds, no lint/coverage badge generation, no dashboard page.
-pytribeam's <code>ci.yml</code> and rattlesnake-vibration-controller's <code>ci.yml</code>/
-<code>release.yml</code> are useful references for growing any of this out later.</p>
-<h2 id="versioning"><a class="header" href="#versioning">Versioning</a></h2>
-<p>Versions are derived automatically from git tags via
-<a href="https://github.com/ofek/hatch-vcs">hatch-vcs</a> — there is no hand-maintained
-version string anywhere in the source. Tag format is a <code>v</code>-prefixed
-<a href="https://peps.python.org/pep-0440/">PEP 440</a> version, e.g. <code>v0.1.0</code>.</p>
-<p>If the current commit isn't exactly at a tag (or the working tree is dirty),
-<code>hatch-vcs</code> appends a local version segment (e.g. <code>0.1.dev1+gd975d09</code>).
-<strong>PyPI and TestPyPI reject uploads with a local version segment</strong>, so a
-publishable commit must be exactly the tagged commit.</p>
-<h2 id="releasing"><a class="header" href="#releasing">Releasing</a></h2>
-<p>Releases are triggered by pushing a commit to <code>main</code> whose message contains
-a keyword — <code>[testpypi]</code> for a TestPyPI release, <code>[pypi]</code> for a real PyPI
-release. If a commit message contains both, <code>[pypi]</code> takes priority. Because
-the release job builds whatever <code>hatch-vcs</code> resolves at that commit, the tag
-for the version you want to publish must point at that exact commit.</p>
-<h3 id="one-time-setup-already-done-for-this-repo"><a class="header" href="#one-time-setup-already-done-for-this-repo">One-time setup (already done for this repo)</a></h3>
-<ol>
-<li>GitHub → repo Settings → Environments: create <code>testpypi</code> and <code>pypi</code>
-environments. (Optional but recommended: add "Required reviewers" on the
-<code>pypi</code> environment so a real release needs manual approval before
-publishing — TestPyPI doesn't need this.)</li>
-<li>On <a href="https://test.pypi.org">test.pypi.org</a> and
-<a href="https://pypi.org">pypi.org</a>, under the <code>dictk</code> project's "Publishing"
-settings, add a trusted publisher: owner <code>hovey</code>, repository <code>dictk</code>,
-workflow file <code>ci.yml</code>, environment name <code>testpypi</code> (for TestPyPI) or
-<code>pypi</code> (for PyPI).</li>
-</ol>
-<p>No API tokens are stored anywhere — publishing uses OIDC trusted publishing
-via the <code>id-token: write</code> permission.</p>
-<h3 id="publishing-a-release"><a class="header" href="#publishing-a-release">Publishing a release</a></h3>
-<pre><code class="language-bash"># Make sure your working tree is clean and you're on main, up to date
-git checkout main
-git pull
-
-# Commit the release (an empty commit is fine if there's nothing else to land)
-git commit --allow-empty -m "chore: release v0.1.0 [testpypi]"
-
-# Tag that exact commit
-git tag v0.1.0
-
-# Push the tag before the branch, so it's visible when CI checks out the repo
-git push origin v0.1.0
-git push origin main
-</code></pre>
-<p>Watch the Actions tab: <code>test</code> → <code>release</code> job, under the <code>testpypi</code>
-environment. Once it succeeds, check
-<code>https://test.pypi.org/project/dictk/</code> for the new version.</p>
-<p>For a real PyPI release, repeat with <code>[pypi]</code> instead of <code>[testpypi]</code> and a
-new tag/version (PyPI and TestPyPI are independent indexes, but reusing a
-version number across a test and a real release invites confusion — prefer
-a fresh version, e.g. <code>v0.1.1</code>, for the real release):</p>
-<pre><code class="language-bash">git commit --allow-empty -m "chore: release v0.1.1 [pypi]"
-git tag v0.1.1
-git push origin v0.1.1
-git push origin main
-</code></pre>
-<p>Uploads to PyPI (and TestPyPI) are permanent — a given version's files can
-never be re-uploaded or deleted, only "yanked". Prefer testing on TestPyPI
-first, as with <code>v0.1.0</code> above, before publishing the same content to PyPI.</p>
-
+</div>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../introduction.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
 
+                            <a rel="next prefetch" href="../contributing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -489,7 +314,13 @@ first, as with <code>v0.1.0</code> above, before publishing the same content to 
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../introduction.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
 
+                    <a rel="next prefetch" href="../contributing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
             </nav>
 
         </div>
@@ -502,21 +333,16 @@ first, as with <code>v0.1.0</code> above, before publishing the same content to 
         </script>
 
 
-        <script src="elasticlunr.min.js"></script>
-        <script src="mark.min.js"></script>
-        <script src="searcher.js"></script>
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
 
-        <script src="clipboard.min.js"></script>
-        <script src="highlight.js"></script>
-        <script src="book.js"></script>
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
 
         <!-- Custom JS scripts -->
 
-        <script>
-        window.addEventListener('load', function() {
-            window.setTimeout(window.print, 100);
-        });
-        </script>
 
 
     </div>
