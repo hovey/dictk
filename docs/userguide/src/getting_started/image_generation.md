@@ -279,3 +279,7 @@ write_image(astronaut0, "astronaut0.png")
     <img src="astronaut0.png" alt="reference image astronaut0: rosta speckle over the astronaut photo" />
     <figcaption>Reference image astronaut0: rosta speckle pattern combined with the astronaut photo, 300x300 pixels.</figcaption>
 </figure>
+
+Both `checkerboard0.png` and `astronaut0.png` are also bundled in
+`src/dictk/data/`, alongside the source `astronaut.png`, so later examples
+can reuse them without regenerating from scratch each time.
