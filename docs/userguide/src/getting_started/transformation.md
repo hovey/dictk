@@ -138,6 +138,67 @@ Original | ![original](astronaut_compress_original.png)
 -5% (factor_y=0.95) | ![-5% y-axis compression](astronaut_compress_y_neg5pct.png)
 -50% (factor_y=0.50) | ![-50% y-axis compression](astronaut_compress_y_neg50pct.png)
 
+## Simple Shear
+
+A shear deformation with γ = 0.5, where horizontal planes slide relative
+to each other by an amount proportional to their y-coordinate — the
+higher up a row of pixels, the further it shifts sideways.
+[`dictk.imaging.shear`](../api/dictk/imaging.html#shear) pivots on the
+image's top-left corner (0, 0), consistent with the other transform
+functions in this codebase.
+
+```python
+import dictk
+from dictk.imaging import shear, write_image
+
+photo = dictk.astronaut(300, 300)
+write_image(photo, "astronaut_shear_original.png")
+
+sheared = shear(photo, shear_x=0.5)
+write_image(sheared, "astronaut_shear_x_0.5.png")
+```
+
+```text
+<!-- cmdrun python3 -c "import dictk; from dictk.imaging import shear, write_image; photo = dictk.astronaut(300, 300); write_image(photo, 'astronaut_shear_original.png'); sheared = shear(photo, shear_x=0.5); write_image(sheared, 'astronaut_shear_x_0.5.png'); print('Saved: astronaut_shear_original.png, astronaut_shear_x_0.5.png')" -->
+```
+
+Shear | Image
+--- | ---
+Original | ![original](astronaut_shear_original.png)
+γ = 0.5 (shear_x=0.5) | ![simple shear](astronaut_shear_x_0.5.png)
+
+## Complex Deformation
+
+Combines rotation (15°) with anisotropic stretching (1.3x in x, 0.8x in
+y) — realistic loading scenarios where materials experience multiple
+simultaneous deformation modes, typically the hardest case for
+correlation algorithms.
+[`dictk.imaging.complex_deform`](../api/dictk/imaging.html#complex_deform)
+composes the two into a single deformation gradient (stretch applied
+first, then rotation) and applies it in one backward-mapping pass, so
+the result isn't blurred by interpolating twice as calling `stretch`
+and then `rotate` separately would.
+
+```python
+import dictk
+from dictk.imaging import complex_deform, write_image
+
+photo = dictk.astronaut(300, 300)
+write_image(photo, "astronaut_complex_original.png")
+
+combined = complex_deform(photo, factor_x=1.3, factor_y=0.8, angle=15.0)
+write_image(combined, "astronaut_complex_deform.png")
+```
+
+```text
+<!-- cmdrun python3 -c "import dictk; from dictk.imaging import complex_deform, write_image; photo = dictk.astronaut(300, 300); write_image(photo, 'astronaut_complex_original.png'); combined = complex_deform(photo, factor_x=1.3, factor_y=0.8, angle=15.0); write_image(combined, 'astronaut_complex_deform.png'); print('Saved: astronaut_complex_original.png, astronaut_complex_deform.png')" -->
+```
+
+Composed Deformation | Image
+--- | ---
+Original | ![original](astronaut_complex_original.png)
+factor_x=1.3, factor_y=0.8, angle=15° | ![composed deformation](astronaut_complex_deform.png)
+
 ## References
 
 [^Szeliski_2022]: Szeliski R. Computer vision: algorithms and applications, 2nd Edition, Springer Nature; 2022 Jan 3. [download](https://1drv.ms/b/c/3cc1bee5e2795295/IQBSP0s8pYRBRJArjzAAx3PbAcZ0PUh149lv7Z85uiBp-ms?e=FUynzc) (43 MB)

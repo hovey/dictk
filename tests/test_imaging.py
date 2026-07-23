@@ -8,11 +8,13 @@ from dictk.imaging import (
     brightness,
     checkerboard,
     combine_images,
+    complex_deform,
     contrast,
     describe_image,
     read_image,
     rgba_to_gray,
     rotate,
+    shear,
     stretch,
     translate,
     write_image,
@@ -268,6 +270,79 @@ def test_rotate_introduces_black_fill():
     arr = np.full((30, 30), 200, dtype=np.uint8)
     result = rotate(arr, 30.0)
     assert result.min() == 0
+
+
+def test_shear_identity_at_zero_factors():
+    arr = np.arange(1600, dtype=np.uint8).reshape(40, 40)
+    assert np.array_equal(shear(arr), arr)
+
+
+def test_shear_preserves_shape_and_dtype():
+    arr = np.full((30, 40), 100, dtype=np.uint8)
+    result = shear(arr, shear_x=0.5)
+    assert result.shape == arr.shape
+    assert result.dtype == np.uint8
+
+
+def test_shear_x_moves_marker_proportional_to_y():
+    # Forward shear: x_dest = x_source + shear_x * y_source. A marker at
+    # (x=10, y=20) under shear_x=0.5 should land at x=10+0.5*20=20, y=20.
+    arr = np.zeros((40, 40), dtype=np.uint8)
+    arr[20, 10] = 255
+    result = shear(arr, shear_x=0.5)
+    row, col = np.unravel_index(np.argmax(result), result.shape)
+    assert (row, col) == (20, 20)
+
+
+def test_shear_singular_gradient_raises():
+    arr = np.full((10, 10), 100, dtype=np.uint8)
+    with pytest.raises(ValueError):
+        shear(arr, shear_x=2.0, shear_y=0.5)
+
+
+def test_complex_deform_identity_at_defaults():
+    arr = np.arange(900, dtype=np.uint8).reshape(30, 30)
+    assert np.array_equal(complex_deform(arr), arr)
+
+
+def test_complex_deform_preserves_shape_and_dtype():
+    arr = np.full((30, 40), 100, dtype=np.uint8)
+    result = complex_deform(arr, factor_x=1.3, factor_y=0.8, angle=15.0)
+    assert result.shape == arr.shape
+    assert result.dtype == np.uint8
+
+
+def test_complex_deform_matches_stretch_when_angle_zero():
+    arr = np.arange(900, dtype=np.uint8).reshape(30, 30)
+    assert np.array_equal(
+        complex_deform(arr, factor_x=1.3, factor_y=0.8, angle=0.0),
+        stretch(arr, factor_x=1.3, factor_y=0.8),
+    )
+
+
+def test_complex_deform_single_pass_differs_from_sequential_calls():
+    # complex_deform composes the matrices algebraically and interpolates
+    # once; calling rotate(stretch(...)) interpolates twice, compounding
+    # blur. The two should differ measurably, not just at rounding noise.
+    arr = np.arange(900, dtype=np.uint8).reshape(30, 30)
+    combined = complex_deform(arr, factor_x=1.3, factor_y=0.8, angle=15.0)
+    sequential = rotate(stretch(arr, factor_x=1.3, factor_y=0.8), 15.0)
+    diff = np.abs(combined.astype(np.float64) - sequential.astype(np.float64))
+    assert diff.mean() > 1.0
+
+
+@pytest.mark.parametrize("factor_x", [0, -1])
+def test_complex_deform_invalid_factor_x_raises(factor_x):
+    arr = np.full((10, 10), 100, dtype=np.uint8)
+    with pytest.raises(ValueError):
+        complex_deform(arr, factor_x=factor_x)
+
+
+@pytest.mark.parametrize("factor_y", [0, -1])
+def test_complex_deform_invalid_factor_y_raises(factor_y):
+    arr = np.full((10, 10), 100, dtype=np.uint8)
+    with pytest.raises(ValueError):
+        complex_deform(arr, factor_y=factor_y)
 
 
 def test_rgba_to_gray_passthrough_for_2d():

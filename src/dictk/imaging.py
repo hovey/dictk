@@ -336,6 +336,106 @@ def rotate(arr: np.ndarray, angle: float) -> np.ndarray:
     return _backward_map(arr, xs_source, ys_source)
 
 
+def shear(arr: np.ndarray, shear_x: float = 0.0, shear_y: float = 0.0) -> np.ndarray:
+    """Apply a simple shear, pivoting on the image origin.
+
+    Mimics a continuum-mechanics shear deformation gradient
+    [[1, shear_x], [shear_y, 1]], anchored at the image's top-left corner
+    (x=0, y=0), consistent with `stretch`, `translate`, and `rotate`'s
+    pivot choice in this codebase: horizontal planes slide relative to
+    each other by an amount proportional to their y-coordinate
+    (shear_x), and/or vertical planes slide by an amount proportional to
+    their x-coordinate (shear_y). Uses the same backward-mapping approach
+    as the other transform functions, so non-integer source coordinates
+    are bilinearly interpolated, and any pixel with no corresponding
+    source coordinate within `arr`'s bounds is filled with black (fill
+    value 0).
+
+    Args:
+        arr: A 2D grayscale image array.
+        shear_x: Horizontal shear factor.
+        shear_y: Vertical shear factor.
+
+    Returns:
+        A 2D uint8 array, same shape as `arr`.
+
+    Raises:
+        ValueError: If shear_x * shear_y == 1, which makes the
+            deformation gradient singular (non-invertible).
+    """
+    determinant = 1.0 - shear_x * shear_y
+    if determinant == 0:
+        raise ValueError(
+            f"shear_x {shear_x} and shear_y {shear_y} produce a singular "
+            "deformation gradient (shear_x * shear_y == 1)"
+        )
+
+    height, width = arr.shape
+    xs, ys = np.meshgrid(np.arange(width), np.arange(height))
+
+    # Backward mapping: invert the shear deformation gradient
+    # [[1, shear_x], [shear_y, 1]] to find each output pixel's source.
+    xs_source = (xs - shear_x * ys) / determinant
+    ys_source = (-shear_y * xs + ys) / determinant
+
+    return _backward_map(arr, xs_source, ys_source)
+
+
+def complex_deform(
+    arr: np.ndarray, factor_x: float = 1.0, factor_y: float = 1.0, angle: float = 0.0
+) -> np.ndarray:
+    """Apply an anisotropic stretch composed with a rotation, in one pass.
+
+    Composes a stretch (deformation gradient diag(factor_x, factor_y))
+    with a rotation (`angle` degrees, counterclockwise): the combined
+    deformation gradient is F = R(angle) @ diag(factor_x, factor_y), i.e.
+    the stretch is applied first and the rotation second. Applying both
+    in a single backward-mapping pass (rather than calling `stretch` and
+    then `rotate` separately) avoids the extra blur of interpolating
+    twice. Represents realistic loading scenarios where materials
+    experience multiple simultaneous deformation modes — typically the
+    hardest case for correlation algorithms. Pivots on the image's
+    top-left corner (0, 0), consistent with `stretch`, `translate`,
+    `rotate`, and `shear`'s pivot choice in this codebase.
+
+    Args:
+        arr: A 2D grayscale image array.
+        factor_x: Stretch factor along the x-axis, applied before the
+            rotation. Must be > 0.
+        factor_y: Stretch factor along the y-axis, applied before the
+            rotation. Must be > 0.
+        angle: Rotation angle in degrees, applied after the stretch;
+            positive is counterclockwise.
+
+    Returns:
+        A 2D uint8 array, same shape as `arr`.
+
+    Raises:
+        ValueError: If factor_x or factor_y is <= 0.
+    """
+    if factor_x <= 0:
+        raise ValueError(f"factor_x {factor_x} must be > 0")
+    if factor_y <= 0:
+        raise ValueError(f"factor_y {factor_y} must be > 0")
+
+    height, width = arr.shape
+    xs, ys = np.meshgrid(np.arange(width), np.arange(height))
+
+    theta = np.deg2rad(angle)
+    cos_theta = np.cos(theta)
+    sin_theta = np.sin(theta)
+
+    # Backward mapping for F = R(angle) @ diag(factor_x, factor_y):
+    # F_inv = diag(1/factor_x, 1/factor_y) @ R(-angle), applied to each
+    # output coordinate to find its source. Un-rotate first, then unscale.
+    xs_rotated = cos_theta * xs + sin_theta * ys
+    ys_rotated = -sin_theta * xs + cos_theta * ys
+    xs_source = xs_rotated / factor_x
+    ys_source = ys_rotated / factor_y
+
+    return _backward_map(arr, xs_source, ys_source)
+
+
 def read_image(path: Path) -> np.ndarray:
     """Read an image file into a NumPy array.
 
