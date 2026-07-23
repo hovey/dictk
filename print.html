@@ -445,6 +445,25 @@ updates on pushes to <code>main</code> — same cadence as the Docs and API badg
 per-PR. Both <code>coverage-badge.svg</code> and the full <code>htmlcov/</code> report are staged
 into the deployed site (<code>/badges/coverage.svg</code> and <code>/coverage/</code>
 respectively) — see "CI/CD architecture" below.</p>
+<h3 id="building-the-lintformat-badge"><a class="header" href="#building-the-lintformat-badge">Building the lint/format badge</a></h3>
+<p>The README's lint badge reflects ruff's actual violation count, not a
+hardcoded label. There's no genbadge support for ruff specifically (it only
+knows flake8's <code>flake8stats.txt</code> format), so this counts violations from
+ruff's own JSON output and fetches a matching badge from shields.io:</p>
+<pre><code class="language-bash">issues=$(uv run ruff check --output-format=json | uv run python -c "import json, sys; print(len(json.load(sys.stdin)))")
+if [ "$issues" -eq 0 ]; then
+  curl -s -o lint-badge.svg "https://img.shields.io/badge/ruff-clean-brightgreen.svg"
+else
+  curl -s -o lint-badge.svg "https://img.shields.io/badge/ruff-${issues}%20issues-red.svg"
+fi
+</code></pre>
+<p>Since the <code>docs</code> job needs <code>test</code> (which already runs <code>ruff format --check</code>
+and <code>ruff check</code> and fails the whole workflow on any violation), <code>issues</code> is
+effectively always <code>0</code> by the time this badge is generated — a red badge
+would mean <code>ruff check</code> and <code>ruff format --check</code> disagree on something odd,
+which is worth investigating rather than expected. <code>lint-badge.svg</code> is
+staged into the deployed site at <code>/badges/lint.svg</code>, same cadence as the
+other gh-pages badges (updates on pushes to <code>main</code> only).</p>
 <h3 id="before-pushing"><a class="header" href="#before-pushing">Before pushing</a></h3>
 <p>There's no <code>preflight</code> command yet (see rattlesnake-vibration-controller's
 <code>preflight.py</code> for an example of what that could grow into) — for now, run
@@ -469,14 +488,15 @@ the pinned <code>mdbook</code> 0.4.52 and <code>mdbook-cmdrun</code> (cached via
 <code>actions/cache</code>), downloads the <code>test</code> job's coverage artifact, builds the
 mdBook user guide with dictk's own CLI on <code>PATH</code>, builds the pdoc API
 reference, generates a coverage badge from <code>coverage.xml</code> with
-<a href="https://smarie.github.io/python-genbadge/">genbadge</a>, stages all of it
-into one directory (user guide at the root, API reference under <code>/api/</code>,
-coverage badge under <code>/badges/coverage.svg</code>, full HTML coverage report
-under <code>/coverage/</code>), and deploys the combined site to the <code>gh-pages</code>
-branch (published via GitHub Pages). Everything is staged together because
-<code>peaceiris/actions-gh-pages</code> replaces the whole <code>publish_dir</code> on each
-deploy — publishing pieces separately would have each deploy wipe out the
-last.</li>
+<a href="https://smarie.github.io/python-genbadge/">genbadge</a>, generates a
+lint/format badge from a fresh <code>ruff check</code> violation count (fetched from
+shields.io), stages all of it into one directory (user guide at the root,
+API reference under <code>/api/</code>, badges under <code>/badges/coverage.svg</code> and
+<code>/badges/lint.svg</code>, full HTML coverage report under <code>/coverage/</code>), and
+deploys the combined site to the <code>gh-pages</code> branch (published via GitHub
+Pages). Everything is staged together because <code>peaceiris/actions-gh-pages</code>
+replaces the whole <code>publish_dir</code> on each deploy — publishing pieces
+separately would have each deploy wipe out the last.</li>
 <li><strong><code>release</code></strong> — runs only on pushes to <code>main</code>, after <code>test</code> passes, and
 only if the pushed commit's message contains <code>[testpypi]</code> or <code>[pypi]</code>.
 Publishes the built package to TestPyPI or PyPI respectively. See
