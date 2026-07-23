@@ -436,6 +436,43 @@ def complex_deform(
     return _backward_map(arr, xs_source, ys_source)
 
 
+def crack_dislocation(arr: np.ndarray, offset: float = 8.0) -> np.ndarray:
+    """Apply a discontinuous vertical-crack displacement field.
+
+    Splits the image with a vertical crack at x = width / 2: the left
+    half shifts down by `offset` pixels and the right half shifts up by
+    `offset` pixels, producing a displacement field that jumps
+    discontinuously across the crack line — unlike every other transform
+    in this module, which varies smoothly. Standard DIC assumes smooth
+    displacements and cannot capture this jump; cases like this motivate
+    the Heaviside finite-element formulation. Uses the same backward
+    mapping as the other transform functions, just with a piecewise
+    (rather than single-matrix) displacement field, so non-integer
+    source coordinates are bilinearly interpolated, and any pixel with
+    no corresponding source coordinate within `arr`'s bounds is filled
+    with black (fill value 0).
+
+    Args:
+        arr: A 2D grayscale image array.
+        offset: Displacement in pixels; the left half (x < width / 2)
+            shifts down by this amount, the right half shifts up by it.
+
+    Returns:
+        A 2D uint8 array, same shape as `arr`.
+    """
+    height, width = arr.shape
+    xs, ys = np.meshgrid(np.arange(width), np.arange(height))
+
+    xs_source = xs.astype(np.float64)
+    ys_source = ys.astype(np.float64)
+
+    left_half = xs < (width / 2)
+    ys_source[left_half] -= offset
+    ys_source[~left_half] += offset
+
+    return _backward_map(arr, xs_source, ys_source)
+
+
 def read_image(path: Path) -> np.ndarray:
     """Read an image file into a NumPy array.
 

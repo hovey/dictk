@@ -199,6 +199,42 @@ Composed Deformation | Image
 Original | ![original](astronaut_complex_original.png)
 factor_x=1.3, factor_y=0.8, angle=15° | ![composed deformation](astronaut_complex_deform.png)
 
+## Crack Dislocation
+
+A vertical crack splits the image at x = width/2: the left half shifts
+down 8 pixels and the right half shifts up 8 pixels, producing a
+displacement field that jumps discontinuously across the crack line —
+unlike every other example on this page, which deforms smoothly.
+Standard DIC assumes smooth displacements and cannot capture this jump;
+cases like this motivate the Heaviside finite-element formulation.
+
+This is where a speckle pattern earns its keep: on a plain photograph,
+an 8-pixel jump is subtle, but overlaid with
+[`dictk.rosta`](../api/dictk.html#rosta) it's immediately visible as a
+misaligned speckle field across the crack.
+
+```python
+import dictk
+from dictk.imaging import combine_images, crack_dislocation, write_image
+
+photo = dictk.astronaut(300, 300)
+speckle = dictk.rosta(300, 300, density=0.5)
+reference = combine_images(speckle, photo)
+write_image(reference, "astronaut_crack_original.png")
+
+cracked = crack_dislocation(reference, offset=8.0)
+write_image(cracked, "astronaut_crack_dislocation.png")
+```
+
+```text
+<!-- cmdrun python3 -c "import dictk; from dictk.imaging import combine_images, crack_dislocation, write_image; photo = dictk.astronaut(300, 300); speckle = dictk.rosta(300, 300, density=0.5); reference = combine_images(speckle, photo); write_image(reference, 'astronaut_crack_original.png'); cracked = crack_dislocation(reference, offset=8.0); write_image(cracked, 'astronaut_crack_dislocation.png'); print('Saved: astronaut_crack_original.png, astronaut_crack_dislocation.png')" -->
+```
+
+Crack Dislocation | Image
+--- | ---
+Original (speckle + astronaut) | ![original](astronaut_crack_original.png)
+offset=8 pixels | ![crack dislocation](astronaut_crack_dislocation.png)
+
 ## References
 
 [^Szeliski_2022]: Szeliski R. Computer vision: algorithms and applications, 2nd Edition, Springer Nature; 2022 Jan 3. [download](https://1drv.ms/b/c/3cc1bee5e2795295/IQBSP0s8pYRBRJArjzAAx3PbAcZ0PUh149lv7Z85uiBp-ms?e=FUynzc) (43 MB)

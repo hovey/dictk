@@ -10,6 +10,7 @@ from dictk.imaging import (
     combine_images,
     complex_deform,
     contrast,
+    crack_dislocation,
     describe_image,
     read_image,
     rgba_to_gray,
@@ -343,6 +344,34 @@ def test_complex_deform_invalid_factor_y_raises(factor_y):
     arr = np.full((10, 10), 100, dtype=np.uint8)
     with pytest.raises(ValueError):
         complex_deform(arr, factor_y=factor_y)
+
+
+def test_crack_dislocation_identity_at_zero_offset():
+    arr = np.arange(1600, dtype=np.uint8).reshape(40, 40)
+    assert np.array_equal(crack_dislocation(arr, offset=0.0), arr)
+
+
+def test_crack_dislocation_preserves_shape_and_dtype():
+    arr = np.full((40, 40), 100, dtype=np.uint8)
+    result = crack_dislocation(arr, offset=8.0)
+    assert result.shape == arr.shape
+    assert result.dtype == np.uint8
+
+
+def test_crack_dislocation_left_half_shifts_down():
+    arr = np.zeros((40, 40), dtype=np.uint8)
+    arr[10, 5] = 255  # left half: x=5 < width/2=20
+    result = crack_dislocation(arr, offset=8.0)
+    row, col = np.unravel_index(np.argmax(result), result.shape)
+    assert (row, col) == (18, 5)
+
+
+def test_crack_dislocation_right_half_shifts_up():
+    arr = np.zeros((40, 40), dtype=np.uint8)
+    arr[10, 30] = 255  # right half: x=30 >= width/2=20
+    result = crack_dislocation(arr, offset=8.0)
+    row, col = np.unravel_index(np.argmax(result), result.shape)
+    assert (row, col) == (2, 30)
 
 
 def test_rgba_to_gray_passthrough_for_2d():
