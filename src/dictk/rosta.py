@@ -94,3 +94,43 @@ def rosta_pattern(rp: RostaParameters) -> np.ndarray:
     pattern = gaussian_filter(input=clipped, sigma=blur_sigma) * -1.0 + 1.0
 
     return pattern
+
+
+def rosta(
+    width: int = 200,
+    height: int = 200,
+    *,
+    dot_size: float = 4.0,
+    density: float = 0.32,
+    smoothness: float = 2.0,
+    random_seed: int = 42,
+) -> np.ndarray:
+    """Generate a Rosta speckle pattern as a uint8 grayscale image array.
+
+    Same parameters and pixel values as the `dictk rosta` CLI command, minus
+    the file write — see the `dictk` package docstring for why the API
+    layer stops at the array.
+
+    Args:
+        width: Image width in pixels.
+        height: Image height in pixels.
+        dot_size: Size factor for pattern dots (0.0 to 100.0).
+        density: Density of pattern elements (0.0 to 1.0).
+        smoothness: Smoothness factor for final blur (0.0 to 100.0).
+        random_seed: Seed for reproducible random number generation.
+
+    Returns:
+        A 2D uint8 array of shape (height, width), grayscale in [0, 255].
+
+    Raises:
+        ValueError: If dot_size, density, or smoothness is out of range.
+    """
+    rp = RostaParameters(
+        image_size=ImageSize(width=width, height=height),
+        dot_size=dot_size,
+        density=density,
+        smoothness=smoothness,
+        random_seed=random_seed,
+    )
+    pattern = rosta_pattern(rp)
+    return (pattern * 255).astype(np.uint8)

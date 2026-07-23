@@ -22,6 +22,17 @@
 > uncompressed format conventionally used for DIC and other
 > scientific-imaging workflows.
 
+> **CLI vs. API:** the subcommands on this page (`dictk rosta`,
+> `dictk checkerboard`) write an image file to disk — that's their whole
+> job. The corresponding Python functions, `dictk.rosta` and
+> `dictk.checkerboard`, take the same parameters but perform no file I/O:
+> they return a NumPy array only. That keeps the Python API composable in
+> a functional style — arrays can be piped through further functions
+> (e.g. `combine_images` below) before anything touches disk — and callers
+> who do want a file call `dictk.imaging.write_image` explicitly, as a
+> separate step. See each function's docstring (rendered in the API
+> reference) for details.
+
 We create a synthetic example speckle pattern with the built-in `rosta`
 image generator. It implements the Rosta algorithm described by
 [Olufsen](https://doi.org/10.1016/j.softx.2019.100391) (Olufsen SN,
@@ -59,6 +70,19 @@ The result:
     <figcaption>Synthetic speckle pattern, 200x200 pixels.</figcaption>
 </figure>
 
+The Python equivalent returns the same pixel data as a NumPy array, with no
+file written:
+
+```python
+import dictk
+
+pattern = dictk.rosta(200, 200, density=0.5)
+```
+
+```text
+<!-- cmdrun python3 -c "import dictk; pattern = dictk.rosta(200, 200, density=0.5); print(f'shape={pattern.shape}, dtype={pattern.dtype}')" -->
+```
+
 ## Checkerboard
 
 To make it easier to manually identify discrete points in the speckle
@@ -76,6 +100,18 @@ dictk checkerboard 200 200 --format png -o .
     <img src="checkerboard_200w_by_200h_8x8.png" alt="checkerboard" />
     <figcaption>Checkerboard test image, 200x200 pixels, 8x8 squares.</figcaption>
 </figure>
+
+The Python equivalent, again returning an array with no file written:
+
+```python
+import dictk
+
+board = dictk.checkerboard(200, 200)
+```
+
+```text
+<!-- cmdrun python3 -c "import dictk; board = dictk.checkerboard(200, 200); print(f'shape={board.shape}, dtype={board.dtype}')" -->
+```
 
 ## Combining into a reference image
 

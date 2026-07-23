@@ -102,6 +102,32 @@ uv run mdbook serve           # live preview at http://localhost:3000
 `uv run` puts dictk's own CLI on `PATH` for the build, since some
 `cmdrun` directives invoke `dictk` directly.
 
+### Building the API docs
+
+Python API reference docs (function signatures, docstrings) are generated
+from source with [pdoc](https://pdoc.dev/), a dev dependency:
+
+```bash
+uv run pdoc dictk dictk.core dictk.imaging dictk.cli -o docs/api
+```
+
+`dictk.rosta` doesn't need to be listed explicitly — pdoc's submodule
+discovery respects a package's `__all__`, and `rosta` is exported there (see
+below), so it's picked up automatically. The other submodules (`core`,
+`imaging`, `cli`) aren't in `__all__` — `dictk/__init__.py` only lists the
+individual functions it re-exports, not module names — so pdoc's automatic
+package walk skips them unless named explicitly on the command line, per
+[pdoc's `__all__` handling](https://pdoc.dev/docs/pdoc.html#what-objects-are-documented). If you add a new top-level submodule, add it to this
+command too, or it will silently go undocumented.
+
+```bash
+uv run pdoc dictk dictk.core dictk.imaging dictk.cli   # live preview, serves on localhost
+```
+
+Output goes to `docs/api/` (gitignored, regenerated on demand). CI builds
+this too and publishes it alongside the mdBook user guide — see "CI/CD
+architecture" below.
+
 ### Before pushing
 
 There's no `preflight` command yet (see rattlesnake-vibration-controller's
@@ -113,6 +139,7 @@ uv run ruff format --check
 uv run ruff check
 uv run pytest --cov=src/dictk
 (cd docs/userguide && uv run mdbook build)
+uv run pdoc dictk dictk.core dictk.imaging dictk.cli -o docs/api
 ```
 
 These are exactly the checks the `test` and `docs` jobs run in CI.
@@ -129,8 +156,12 @@ three jobs:
 - **`docs`** — runs only on pushes to `main`, after `test` passes. Installs
   the pinned `mdbook` 0.4.52 and `mdbook-cmdrun` (cached via
   `actions/cache`), builds the mdBook user guide with dictk's own CLI on
-  `PATH`, and deploys it to the `gh-pages` branch (published via GitHub
-  Pages).
+  `PATH`, builds the pdoc API reference, stages both into one directory (user
+  guide at the root, API reference under `/api/`), and deploys the combined
+  site to the `gh-pages` branch (published via GitHub Pages). Both are staged
+  together because `peaceiris/actions-gh-pages` replaces the whole
+  `publish_dir` on each deploy — publishing them separately would have the
+  second deploy wipe out the first.
 - **`release`** — runs only on pushes to `main`, after `test` passes, and
   only if the pushed commit's message contains `[testpypi]` or `[pypi]`.
   Publishes the built package to TestPyPI or PyPI respectively. See

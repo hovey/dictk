@@ -13,6 +13,10 @@ def checkerboard(
 ) -> np.ndarray:
     """Generate a black-and-white checkerboard test image.
 
+    Same parameters and pixel values as the `dictk checkerboard` CLI
+    command, minus the file write — see the `dictk` package docstring for
+    why the API layer stops at the array.
+
     Args:
         width: Image width in pixels.
         height: Image height in pixels.

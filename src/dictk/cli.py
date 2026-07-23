@@ -1,19 +1,31 @@
-"""Command-line interface for dictk."""
+"""Command-line interface for dictk.
+
+Each subcommand is a thin wrapper around the corresponding `dictk` API
+function: it calls the array-returning API function, then writes the result
+to disk. See the `dictk` package docstring for the CLI/API split.
+"""
 
 import argparse
 from pathlib import Path
 import sys
 
 from dictk.imaging import checkerboard, write_image
-from dictk.rosta import ImageSize, RostaParameters, rosta_pattern
+from dictk.rosta import rosta
 
 IMAGE_FORMATS = ("tiff", "png", "jpg", "svg")
 
 
-def _rosta_filename(rp: RostaParameters, image_format: str) -> str:
+def _rosta_filename(
+    width: int,
+    height: int,
+    dot_size: float,
+    density: float,
+    smoothness: float,
+    image_format: str,
+) -> str:
     return (
-        f"{rp.name}_{rp.image_size.width}w_by_{rp.image_size.height}h"
-        f"_dot_{rp.dot_size}_den_{rp.density}_smo_{rp.smoothness}.{image_format}"
+        f"rosta_{width}w_by_{height}h"
+        f"_dot_{dot_size}_den_{density}_smo_{smoothness}.{image_format}"
     )
 
 
@@ -25,8 +37,9 @@ def _checkerboard_filename(
 
 def _rosta_create(args: argparse.Namespace) -> int:
     try:
-        rp = RostaParameters(
-            image_size=ImageSize(width=args.width, height=args.height),
+        arr = rosta(
+            width=args.width,
+            height=args.height,
             dot_size=args.dot_size,
             density=args.density,
             smoothness=args.smoothness,
@@ -36,13 +49,17 @@ def _rosta_create(args: argparse.Namespace) -> int:
         print(f"error: {e}", file=sys.stderr)
         return 1
 
-    pattern = rosta_pattern(rp)
-    grayscale = (pattern * 255).astype("uint8")
-
     output_dir = args.output if args.output else Path.cwd()
     output_dir.mkdir(parents=True, exist_ok=True)
-    path = output_dir / _rosta_filename(rp, args.format)
-    write_image(grayscale, path)
+    path = output_dir / _rosta_filename(
+        args.width,
+        args.height,
+        args.dot_size,
+        args.density,
+        args.smoothness,
+        args.format,
+    )
+    write_image(arr, path)
     print(f"Saved image: {path}")
     return 0
 

@@ -31,6 +31,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "ruff",
+    "pdoc",
 ]
 
 [tool.hatch.version]

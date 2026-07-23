@@ -48,7 +48,7 @@ jobs:
             coverage.xml
 
   docs:
-    name: Build and deploy mdBook
+    name: Build and deploy docs (mdBook + pdoc)
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
@@ -96,11 +96,28 @@ jobs:
         # `mdbook build docs/userguide` from the repo root.
         run: cd docs/userguide && uv run --project ../.. mdbook build
 
+      - name: Build API docs
+        # dictk.core/imaging/cli must be listed explicitly: pdoc's automatic
+        # submodule discovery respects a package's __all__, and only rosta
+        # is exported there — see CONTRIBUTING.md#building-the-api-docs.
+        run: uv run pdoc dictk dictk.core dictk.imaging dictk.cli -o docs/api
+
+      - name: Assemble combined site
+        # mdBook and pdoc each produce a self-contained site; peaceiris/actions-gh-pages
+        # replaces the whole publish_dir contents on deploy, so both must be staged
+        # under one directory (API docs at /api/) rather than deployed separately,
+        # or the second deploy would wipe out the first.
+        run: |
+          mkdir -p site
+          cp -r docs/userguide/book/. site/
+          mkdir -p site/api
+          cp -r docs/api/. site/api/
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: docs/userguide/book
+          publish_dir: site
 
   release:
     name: Publish release

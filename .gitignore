@@ -78,6 +78,9 @@ docs/userguide/book/
 docs/userguide/src/getting_started/*.tiff
 docs/userguide/src/getting_started/*.png
 
+# pdoc API documentation
+docs/api/
+
 # PyBuilder
 .pybuilder/
 target/
