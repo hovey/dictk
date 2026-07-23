@@ -264,15 +264,29 @@ command too, or it will silently go undocumented.</p>
 <p>Output goes to <code>docs/api/</code> (gitignored, regenerated on demand). CI builds
 this too and publishes it alongside the mdBook user guide — see "CI/CD
 architecture" below.</p>
+<h3 id="building-the-coverage-badge"><a class="header" href="#building-the-coverage-badge">Building the coverage badge</a></h3>
+<p>The README's coverage badge is a real SVG generated from <code>coverage.xml</code> with
+<a href="https://smarie.github.io/python-genbadge/">genbadge</a>, a dev dependency —
+not a static label:</p>
+<pre><code class="language-bash">uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html
+uv run genbadge coverage -i coverage.xml -o coverage-badge.svg
+</code></pre>
+<p>In CI this runs in the <code>docs</code> job (not <code>test</code>) using the coverage.xml
+produced by the <code>test</code> job's <code>report-coverage</code> artifact, so the badge only
+updates on pushes to <code>main</code> — same cadence as the Docs and API badges, not
+per-PR. Both <code>coverage-badge.svg</code> and the full <code>htmlcov/</code> report are staged
+into the deployed site (<code>/badges/coverage.svg</code> and <code>/coverage/</code>
+respectively) — see "CI/CD architecture" below.</p>
 <h3 id="before-pushing"><a class="header" href="#before-pushing">Before pushing</a></h3>
 <p>There's no <code>preflight</code> command yet (see rattlesnake-vibration-controller's
 <code>preflight.py</code> for an example of what that could grow into) — for now, run
 the checks manually:</p>
 <pre><code class="language-bash">uv run ruff format --check
 uv run ruff check
-uv run pytest --cov=src/dictk
+uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html
 (cd docs/userguide &amp;&amp; uv run mdbook build)
 uv run pdoc dictk dictk.core dictk.imaging dictk.cli -o docs/api
+uv run genbadge coverage -i coverage.xml -o coverage-badge.svg
 </code></pre>
 <p>These are exactly the checks the <code>test</code> and <code>docs</code> jobs run in CI.</p>
 <h2 id="cicd-architecture"><a class="header" href="#cicd-architecture">CI/CD architecture</a></h2>
@@ -284,22 +298,26 @@ with <code>uv sync</code>, runs <code>uv build</code> as a build sanity check, <
 a build artifact.</li>
 <li><strong><code>docs</code></strong> — runs only on pushes to <code>main</code>, after <code>test</code> passes. Installs
 the pinned <code>mdbook</code> 0.4.52 and <code>mdbook-cmdrun</code> (cached via
-<code>actions/cache</code>), builds the mdBook user guide with dictk's own CLI on
-<code>PATH</code>, builds the pdoc API reference, stages both into one directory (user
-guide at the root, API reference under <code>/api/</code>), and deploys the combined
-site to the <code>gh-pages</code> branch (published via GitHub Pages). Both are staged
-together because <code>peaceiris/actions-gh-pages</code> replaces the whole
-<code>publish_dir</code> on each deploy — publishing them separately would have the
-second deploy wipe out the first.</li>
+<code>actions/cache</code>), downloads the <code>test</code> job's coverage artifact, builds the
+mdBook user guide with dictk's own CLI on <code>PATH</code>, builds the pdoc API
+reference, generates a coverage badge from <code>coverage.xml</code> with
+<a href="https://smarie.github.io/python-genbadge/">genbadge</a>, stages all of it
+into one directory (user guide at the root, API reference under <code>/api/</code>,
+coverage badge under <code>/badges/coverage.svg</code>, full HTML coverage report
+under <code>/coverage/</code>), and deploys the combined site to the <code>gh-pages</code>
+branch (published via GitHub Pages). Everything is staged together because
+<code>peaceiris/actions-gh-pages</code> replaces the whole <code>publish_dir</code> on each
+deploy — publishing pieces separately would have each deploy wipe out the
+last.</li>
 <li><strong><code>release</code></strong> — runs only on pushes to <code>main</code>, after <code>test</code> passes, and
 only if the pushed commit's message contains <code>[testpypi]</code> or <code>[pypi]</code>.
 Publishes the built package to TestPyPI or PyPI respectively. See
 "Releasing" below.</li>
 </ul>
 <p>This is intentionally a minimal setup — no matrix OS/Python testing, no
-containerized builds, no lint/coverage badge generation, no dashboard page.
-pytribeam's <code>ci.yml</code> and rattlesnake-vibration-controller's <code>ci.yml</code>/
-<code>release.yml</code> are useful references for growing any of this out later.</p>
+containerized builds, no lint badge or dashboard page. pytribeam's <code>ci.yml</code>
+and rattlesnake-vibration-controller's <code>ci.yml</code>/<code>release.yml</code> are useful
+references for growing any of this out later.</p>
 <h2 id="versioning"><a class="header" href="#versioning">Versioning</a></h2>
 <p>Versions are derived automatically from git tags via
 <a href="https://github.com/ofek/hatch-vcs">hatch-vcs</a> — there is no hand-maintained
