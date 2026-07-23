@@ -87,6 +87,7 @@ docs/api/
 
 # CI's combined-site staging directory (mdBook + pdoc + coverage, see ci.yml)
 /site/
+/dashboard.html
 
 # PyBuilder
 .pybuilder/

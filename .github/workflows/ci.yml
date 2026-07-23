@@ -139,13 +139,24 @@ jobs:
         # is exported there — see CONTRIBUTING.md#building-the-api-docs.
         run: uv run pdoc dictk dictk.core dictk.imaging dictk.cli -o docs/api
 
+      - name: Generate status dashboard
+        run: |
+          uv run python .github/scripts/render_dashboard.py \
+            --github-repo "${{ github.repository }}" \
+            --run-id "${{ github.run_id }}" \
+            --sha "${{ github.sha }}" \
+            --ref-name "${{ github.ref_name }}" \
+            --timestamp "$(date -u +"%Y-%m-%d %H:%M:%S UTC")" \
+            --output dashboard.html
+
       - name: Assemble combined site
         # mdBook, pdoc, the coverage report, and the pylint report each produce
         # standalone output; peaceiris/actions-gh-pages replaces the whole
         # publish_dir contents on deploy, so all of them must be staged under
         # one directory (API docs at /api/, badges at /badges/, coverage report
-        # at /coverage/, lint report at /reports/lint/) rather than deployed
-        # separately, or each deploy would wipe out the previous one.
+        # at /coverage/, lint report at /reports/lint/, dashboard at
+        # /dashboard/) rather than deployed separately, or each deploy would
+        # wipe out the previous one.
         run: |
           mkdir -p site
           cp -r docs/userguide/book/. site/
@@ -158,6 +169,8 @@ jobs:
           cp -r coverage-report/htmlcov/. site/coverage/
           mkdir -p site/reports/lint
           cp pylint-report.html site/reports/lint/index.html
+          mkdir -p site/dashboard
+          cp dashboard.html site/dashboard/index.html
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
