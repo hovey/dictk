@@ -31,6 +31,18 @@ def test_rosta_create_invalid_density_fails_cleanly(tmp_path: Path, capsys):
     assert list(tmp_path.glob("rosta_*.tiff")) == []
 
 
+def test_rosta_create_unwritable_output_fails_cleanly(tmp_path: Path, capsys):
+    unwritable = tmp_path / "unwritable"
+    unwritable.mkdir()
+    unwritable.chmod(0o000)
+    try:
+        exit_code = main(["rosta", "20", "16", "-o", str(unwritable / "sub")])
+        assert exit_code == 1
+        assert "error" in capsys.readouterr().err
+    finally:
+        unwritable.chmod(0o755)
+
+
 def test_checkerboard_create_writes_file(tmp_path: Path):
     exit_code = main(["checkerboard", "20", "16", "-o", str(tmp_path)])
     assert exit_code == 0
@@ -40,6 +52,18 @@ def test_checkerboard_create_writes_file(tmp_path: Path):
 
     image = read_image(files[0])
     assert image.shape == (16, 20)
+
+
+def test_checkerboard_create_unwritable_output_fails_cleanly(tmp_path: Path, capsys):
+    unwritable = tmp_path / "unwritable"
+    unwritable.mkdir()
+    unwritable.chmod(0o000)
+    try:
+        exit_code = main(["checkerboard", "20", "16", "-o", str(unwritable / "sub")])
+        assert exit_code == 1
+        assert "error" in capsys.readouterr().err
+    finally:
+        unwritable.chmod(0o755)
 
 
 @pytest.mark.parametrize("image_format", ["tiff", "png", "jpg", "svg"])

@@ -9,6 +9,8 @@ import argparse
 from pathlib import Path
 import sys
 
+import numpy as np
+
 from dictk.imaging import checkerboard, write_image
 from dictk.rosta import rosta
 
@@ -35,6 +37,19 @@ def _checkerboard_filename(
     return f"checkerboard_{width}w_by_{height}h_{squares_x}x{squares_y}.{image_format}"
 
 
+def _write_output(arr: np.ndarray, output: Path | None, filename: str) -> int:
+    output_dir = output if output else Path.cwd()
+    try:
+        output_dir.mkdir(parents=True, exist_ok=True)
+        path = output_dir / filename
+        write_image(arr, path)
+    except OSError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 1
+    print(f"Saved image: {path}")
+    return 0
+
+
 def _rosta_create(args: argparse.Namespace) -> int:
     try:
         arr = rosta(
@@ -49,9 +64,7 @@ def _rosta_create(args: argparse.Namespace) -> int:
         print(f"error: {e}", file=sys.stderr)
         return 1
 
-    output_dir = args.output if args.output else Path.cwd()
-    output_dir.mkdir(parents=True, exist_ok=True)
-    path = output_dir / _rosta_filename(
+    filename = _rosta_filename(
         args.width,
         args.height,
         args.dot_size,
@@ -59,9 +72,7 @@ def _rosta_create(args: argparse.Namespace) -> int:
         args.smoothness,
         args.format,
     )
-    write_image(arr, path)
-    print(f"Saved image: {path}")
-    return 0
+    return _write_output(arr, args.output, filename)
 
 
 def _checkerboard_create(args: argparse.Namespace) -> int:
@@ -72,14 +83,10 @@ def _checkerboard_create(args: argparse.Namespace) -> int:
         squares_y=args.squares_y,
     )
 
-    output_dir = args.output if args.output else Path.cwd()
-    output_dir.mkdir(parents=True, exist_ok=True)
-    path = output_dir / _checkerboard_filename(
+    filename = _checkerboard_filename(
         args.width, args.height, args.squares_x, args.squares_y, args.format
     )
-    write_image(arr, path)
-    print(f"Saved image: {path}")
-    return 0
+    return _write_output(arr, args.output, filename)
 
 
 def build_parser() -> argparse.ArgumentParser:
