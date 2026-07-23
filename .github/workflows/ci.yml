@@ -79,6 +79,19 @@ jobs:
       - name: Generate coverage badge
         run: uv run genbadge coverage -i coverage-report/coverage.xml -o coverage-badge.svg
 
+      - name: Generate lint/format badge
+        # ruff format --check and ruff check both already gated this job (it
+        # needs: test, which runs them); re-run ruff check --output-format=json
+        # here only to get a fresh violation count for the badge text, since
+        # genbadge has no ruff-specific badge type to read that count from.
+        run: |
+          issues=$(uv run ruff check --output-format=json | uv run python -c "import json, sys; print(len(json.load(sys.stdin)))")
+          if [ "$issues" -eq 0 ]; then
+            curl -s -o lint-badge.svg "https://img.shields.io/badge/ruff-clean-brightgreen.svg"
+          else
+            curl -s -o lint-badge.svg "https://img.shields.io/badge/ruff-${issues}%20issues-red.svg"
+          fi
+
       - name: Install mdBook
         uses: peaceiris/actions-mdbook@v2
         with:
@@ -127,6 +140,7 @@ jobs:
           cp -r docs/api/. site/api/
           mkdir -p site/badges
           cp coverage-badge.svg site/badges/coverage.svg
+          cp lint-badge.svg site/badges/lint.svg
           mkdir -p site/coverage
           cp -r coverage-report/htmlcov/. site/coverage/
 

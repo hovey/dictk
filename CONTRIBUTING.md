@@ -146,6 +146,30 @@ per-PR. Both `coverage-badge.svg` and the full `htmlcov/` report are staged
 into the deployed site (`/badges/coverage.svg` and `/coverage/`
 respectively) — see "CI/CD architecture" below.
 
+### Building the lint/format badge
+
+The README's lint badge reflects ruff's actual violation count, not a
+hardcoded label. There's no genbadge support for ruff specifically (it only
+knows flake8's `flake8stats.txt` format), so this counts violations from
+ruff's own JSON output and fetches a matching badge from shields.io:
+
+```bash
+issues=$(uv run ruff check --output-format=json | uv run python -c "import json, sys; print(len(json.load(sys.stdin)))")
+if [ "$issues" -eq 0 ]; then
+  curl -s -o lint-badge.svg "https://img.shields.io/badge/ruff-clean-brightgreen.svg"
+else
+  curl -s -o lint-badge.svg "https://img.shields.io/badge/ruff-${issues}%20issues-red.svg"
+fi
+```
+
+Since the `docs` job needs `test` (which already runs `ruff format --check`
+and `ruff check` and fails the whole workflow on any violation), `issues` is
+effectively always `0` by the time this badge is generated — a red badge
+would mean `ruff check` and `ruff format --check` disagree on something odd,
+which is worth investigating rather than expected. `lint-badge.svg` is
+staged into the deployed site at `/badges/lint.svg`, same cadence as the
+other gh-pages badges (updates on pushes to `main` only).
+
 ### Before pushing
 
 There's no `preflight` command yet (see rattlesnake-vibration-controller's
@@ -177,14 +201,15 @@ three jobs:
   `actions/cache`), downloads the `test` job's coverage artifact, builds the
   mdBook user guide with dictk's own CLI on `PATH`, builds the pdoc API
   reference, generates a coverage badge from `coverage.xml` with
-  [genbadge](https://smarie.github.io/python-genbadge/), stages all of it
-  into one directory (user guide at the root, API reference under `/api/`,
-  coverage badge under `/badges/coverage.svg`, full HTML coverage report
-  under `/coverage/`), and deploys the combined site to the `gh-pages`
-  branch (published via GitHub Pages). Everything is staged together because
-  `peaceiris/actions-gh-pages` replaces the whole `publish_dir` on each
-  deploy — publishing pieces separately would have each deploy wipe out the
-  last.
+  [genbadge](https://smarie.github.io/python-genbadge/), generates a
+  lint/format badge from a fresh `ruff check` violation count (fetched from
+  shields.io), stages all of it into one directory (user guide at the root,
+  API reference under `/api/`, badges under `/badges/coverage.svg` and
+  `/badges/lint.svg`, full HTML coverage report under `/coverage/`), and
+  deploys the combined site to the `gh-pages` branch (published via GitHub
+  Pages). Everything is staged together because `peaceiris/actions-gh-pages`
+  replaces the whole `publish_dir` on each deploy — publishing pieces
+  separately would have each deploy wipe out the last.
 - **`release`** — runs only on pushes to `main`, after `test` passes, and
   only if the pushed commit's message contains `[testpypi]` or `[pypi]`.
   Publishes the built package to TestPyPI or PyPI respectively. See

@@ -39,6 +39,7 @@ pip-delete-this-directory.txt
 # Unit test / coverage reports
 htmlcov/
 coverage-badge.svg
+lint-badge.svg
 .tox/
 .nox/
 .coverage
