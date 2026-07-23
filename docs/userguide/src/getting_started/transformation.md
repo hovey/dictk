@@ -11,6 +11,18 @@ below:
     </figcaption>
 </figure>
 
+Each category preserves a different, nested set of geometric properties
+— every property a more restrictive category preserves is also
+preserved by every category to its left:
+
+Property | Translation | Euclidean | Similarity | Affine | Projective
+--- | --- | --- | --- | --- | ---
+Straight lines stay straight | Yes | Yes | Yes | Yes | Yes
+Parallel lines stay parallel | Yes | Yes | Yes | Yes | No
+Angles preserved | Yes | Yes | Yes | No | No
+Lengths/distances preserved | Yes | Yes | No | No | No
+Absolute orientation preserved (no rotation) | Yes | No | No | No | No
+
 ## Pure Translation (Rigid Body Motion)
 
 As the simplest of the categories above — no change in shape or size —
@@ -202,38 +214,31 @@ factor_x=1.3, factor_y=0.8, angle=15° | ![composed deformation](astronaut_compl
 ## Crack Dislocation
 
 A vertical crack splits the image at x = width/2: the left half shifts
-down 8 pixels and the right half shifts up 8 pixels, producing a
+down 4 pixels and the right half shifts up 4 pixels, producing a
 displacement field that jumps discontinuously across the crack line —
 unlike every other example on this page, which deforms smoothly.
 Standard DIC assumes smooth displacements and cannot capture this jump;
 cases like this motivate the Heaviside finite-element formulation.
 
-This is where a speckle pattern earns its keep: on a plain photograph,
-an 8-pixel jump is subtle, but overlaid with
-[`dictk.rosta`](../api/dictk.html#rosta) it's immediately visible as a
-misaligned speckle field across the crack.
-
 ```python
 import dictk
-from dictk.imaging import combine_images, crack_dislocation, write_image
+from dictk.imaging import crack_dislocation, write_image
 
 photo = dictk.astronaut(300, 300)
-speckle = dictk.rosta(300, 300, density=0.5)
-reference = combine_images(speckle, photo)
-write_image(reference, "astronaut_crack_original.png")
+write_image(photo, "astronaut_crack_plain_original.png")
 
-cracked = crack_dislocation(reference, offset=8.0)
-write_image(cracked, "astronaut_crack_dislocation.png")
+cracked_plain = crack_dislocation(photo, offset=4.0)
+write_image(cracked_plain, "astronaut_crack_plain_dislocation.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.imaging import combine_images, crack_dislocation, write_image; photo = dictk.astronaut(300, 300); speckle = dictk.rosta(300, 300, density=0.5); reference = combine_images(speckle, photo); write_image(reference, 'astronaut_crack_original.png'); cracked = crack_dislocation(reference, offset=8.0); write_image(cracked, 'astronaut_crack_dislocation.png'); print('Saved: astronaut_crack_original.png, astronaut_crack_dislocation.png')" -->
+<!-- cmdrun python3 -c "import dictk; from dictk.imaging import crack_dislocation, write_image; photo = dictk.astronaut(300, 300); write_image(photo, 'astronaut_crack_plain_original.png'); cracked_plain = crack_dislocation(photo, offset=4.0); write_image(cracked_plain, 'astronaut_crack_plain_dislocation.png'); print('Saved: astronaut_crack_plain_original.png, astronaut_crack_plain_dislocation.png')" -->
 ```
 
 Crack Dislocation | Image
 --- | ---
-Original (speckle + astronaut) | ![original](astronaut_crack_original.png)
-offset=8 pixels | ![crack dislocation](astronaut_crack_dislocation.png)
+Original | ![original](astronaut_crack_plain_original.png)
+offset=4 pixels | ![crack dislocation](astronaut_crack_plain_dislocation.png)
 
 ## References
 
