@@ -4,7 +4,7 @@
 [![Docs](https://img.shields.io/badge/docs-user%20guide-blue)](https://hovey.github.io/dictk/)
 [![API](https://img.shields.io/badge/docs-API%20reference-blue)](https://hovey.github.io/dictk/api/dictk.html)
 [![Coverage](https://hovey.github.io/dictk/badges/coverage.svg)](https://hovey.github.io/dictk/coverage/)
-[![Lint](https://hovey.github.io/dictk/badges/lint.svg)](CONTRIBUTING.md#linting-and-formatting)
+[![Lint](https://hovey.github.io/dictk/badges/lint.svg)](https://hovey.github.io/dictk/reports/lint/)
 
 Digital Image Correlation Toolkit
 
@@ -49,7 +49,10 @@ https://hovey.github.io/dictk/ on every push to `main`. The Python API
 reference is generated from docstrings with [pdoc](https://pdoc.dev/) and
 published alongside it at https://hovey.github.io/dictk/api/dictk.html. The
 full HTML coverage report from the same run is published at
-https://hovey.github.io/dictk/coverage/. See
+https://hovey.github.io/dictk/coverage/. The lint badge's score comes from
+[pylint](https://pylint.readthedocs.io/), run informationally alongside
+[ruff](https://docs.astral.sh/ruff/) (which actually gates CI); its full
+report is published at https://hovey.github.io/dictk/reports/lint/. See
 [CONTRIBUTING.md](CONTRIBUTING.md#building-the-docs) for the exact
 (version-pinned) build instructions.
 

@@ -146,29 +146,31 @@ per-PR. Both `coverage-badge.svg` and the full `htmlcov/` report are staged
 into the deployed site (`/badges/coverage.svg` and `/coverage/`
 respectively) — see "CI/CD architecture" below.
 
-### Building the lint/format badge
+### Running pylint (informational)
 
-The README's lint badge reflects ruff's actual violation count, not a
-hardcoded label. There's no genbadge support for ruff specifically (it only
-knows flake8's `flake8stats.txt` format), so this counts violations from
-ruff's own JSON output and fetches a matching badge from shields.io:
+ruff (`ruff format --check` and `ruff check`) is what actually gates CI —
+see "Linting and formatting" above. [pylint](https://pylint.readthedocs.io/)
+also runs, but only in the `docs` job, and only informationally: it can't
+fail the build. It exists purely because ruff has no equivalent of pylint's
+`Your code has been rated at X.XX/10` score, and the README's lint badge
+wants a score, not just a pass/fail (which the CI badge already covers).
+Since pylint and ruff check overlapping-but-different rule sets, expect
+pylint to flag a few things ruff doesn't (and vice versa) — that's expected
+duplication from running two linters, not a bug in either.
 
 ```bash
-issues=$(uv run ruff check --output-format=json | uv run python -c "import json, sys; print(len(json.load(sys.stdin)))")
-if [ "$issues" -eq 0 ]; then
-  curl -s -o lint-badge.svg "https://img.shields.io/badge/ruff-clean-brightgreen.svg"
-else
-  curl -s -o lint-badge.svg "https://img.shields.io/badge/ruff-${issues}%20issues-red.svg"
-fi
+uv run pylint src/dictk --output-format=text --reports=yes > pylint-report.txt
+uv run python .github/scripts/render_pylint_report.py \
+  --input pylint-report.txt --output pylint-report.html
 ```
 
-Since the `docs` job needs `test` (which already runs `ruff format --check`
-and `ruff check` and fails the whole workflow on any violation), `issues` is
-effectively always `0` by the time this badge is generated — a red badge
-would mean `ruff check` and `ruff format --check` disagree on something odd,
-which is worth investigating rather than expected. `lint-badge.svg` is
-staged into the deployed site at `/badges/lint.svg`, same cadence as the
-other gh-pages badges (updates on pushes to `main` only).
+The badge itself is built by extracting the score from that output and
+requesting a matching badge from shields.io — see the "Run pylint
+(informational) and generate lint badge/report" step in `ci.yml` for the
+exact score-extraction and color-threshold logic. `pylint-report.html` is
+staged into the deployed site at `/reports/lint/`, and the badge at
+`/badges/lint.svg` — same cadence as the other gh-pages badges (updates on
+pushes to `main` only).
 
 ### Before pushing
 
@@ -183,6 +185,7 @@ uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html
 (cd docs/userguide && uv run mdbook build)
 uv run pdoc dictk dictk.core dictk.imaging dictk.cli -o docs/api
 uv run genbadge coverage -i coverage.xml -o coverage-badge.svg
+uv run pylint src/dictk --output-format=text --reports=yes
 ```
 
 These are exactly the checks the `test` and `docs` jobs run in CI.
@@ -201,15 +204,16 @@ three jobs:
   `actions/cache`), downloads the `test` job's coverage artifact, builds the
   mdBook user guide with dictk's own CLI on `PATH`, builds the pdoc API
   reference, generates a coverage badge from `coverage.xml` with
-  [genbadge](https://smarie.github.io/python-genbadge/), generates a
-  lint/format badge from a fresh `ruff check` violation count (fetched from
-  shields.io), stages all of it into one directory (user guide at the root,
-  API reference under `/api/`, badges under `/badges/coverage.svg` and
-  `/badges/lint.svg`, full HTML coverage report under `/coverage/`), and
-  deploys the combined site to the `gh-pages` branch (published via GitHub
-  Pages). Everything is staged together because `peaceiris/actions-gh-pages`
-  replaces the whole `publish_dir` on each deploy — publishing pieces
-  separately would have each deploy wipe out the last.
+  [genbadge](https://smarie.github.io/python-genbadge/), runs pylint
+  informationally to get a 0-10 score (fetched as a shields.io badge) and a
+  full findings report, stages all of it into one directory (user guide at
+  the root, API reference under `/api/`, badges under `/badges/coverage.svg`
+  and `/badges/lint.svg`, full HTML coverage report under `/coverage/`, full
+  pylint report under `/reports/lint/`), and deploys the combined site to
+  the `gh-pages` branch (published via GitHub Pages). Everything is staged
+  together because `peaceiris/actions-gh-pages` replaces the whole
+  `publish_dir` on each deploy — publishing pieces separately would have
+  each deploy wipe out the last.
 - **`release`** — runs only on pushes to `main`, after `test` passes, and
   only if the pushed commit's message contains `[testpypi]` or `[pypi]`.
   Publishes the built package to TestPyPI or PyPI respectively. See

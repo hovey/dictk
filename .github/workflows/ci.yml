@@ -79,18 +79,30 @@ jobs:
       - name: Generate coverage badge
         run: uv run genbadge coverage -i coverage-report/coverage.xml -o coverage-badge.svg
 
-      - name: Generate lint/format badge
-        # ruff format --check and ruff check both already gated this job (it
-        # needs: test, which runs them); re-run ruff check --output-format=json
-        # here only to get a fresh violation count for the badge text, since
-        # genbadge has no ruff-specific badge type to read that count from.
+      - name: Run pylint (informational) and generate lint badge/report
+        # pylint is not a CI gate — ruff (format + lint) already gated this
+        # job via needs: test. pylint runs here purely to produce a 0-10
+        # score (a metric ruff has no equivalent of) for the README badge,
+        # plus a full findings report. `|| true`: a nonzero pylint exit code
+        # (e.g. any convention/refactor finding) must not fail this job.
         run: |
-          issues=$(uv run ruff check --output-format=json | uv run python -c "import json, sys; print(len(json.load(sys.stdin)))")
-          if [ "$issues" -eq 0 ]; then
-            curl -s -o lint-badge.svg "https://img.shields.io/badge/ruff-clean-brightgreen.svg"
-          else
-            curl -s -o lint-badge.svg "https://img.shields.io/badge/ruff-${issues}%20issues-red.svg"
-          fi
+          LINT_OUTPUT=$(uv run pylint src/dictk --output-format=text --reports=yes || true)
+          echo "$LINT_OUTPUT" > pylint-report.txt
+          SCORE=$(echo "$LINT_OUTPUT" | grep "Your code has been rated at" | awk '{print $7}' | cut -d'/' -f1)
+          echo "pylint score: ${SCORE}/10"
+
+          COLOR=$(awk -v s="$SCORE" 'BEGIN {
+            if (s >= 9) print "brightgreen";
+            else if (s >= 7) print "green";
+            else if (s >= 5) print "yellowgreen";
+            else if (s >= 3) print "yellow";
+            else if (s >= 1) print "orange";
+            else print "red";
+          }')
+          curl -s -o lint-badge.svg "https://img.shields.io/badge/pylint-${SCORE}%2F10-${COLOR}.svg"
+
+          uv run python .github/scripts/render_pylint_report.py \
+            --input pylint-report.txt --output pylint-report.html
 
       - name: Install mdBook
         uses: peaceiris/actions-mdbook@v2
@@ -128,11 +140,12 @@ jobs:
         run: uv run pdoc dictk dictk.core dictk.imaging dictk.cli -o docs/api
 
       - name: Assemble combined site
-        # mdBook, pdoc, and the coverage report each produce standalone output;
-        # peaceiris/actions-gh-pages replaces the whole publish_dir contents on
-        # deploy, so all of them must be staged under one directory (API docs at
-        # /api/, coverage badge/report at /badges/ and /coverage/) rather than
-        # deployed separately, or each deploy would wipe out the previous one.
+        # mdBook, pdoc, the coverage report, and the pylint report each produce
+        # standalone output; peaceiris/actions-gh-pages replaces the whole
+        # publish_dir contents on deploy, so all of them must be staged under
+        # one directory (API docs at /api/, badges at /badges/, coverage report
+        # at /coverage/, lint report at /reports/lint/) rather than deployed
+        # separately, or each deploy would wipe out the previous one.
         run: |
           mkdir -p site
           cp -r docs/userguide/book/. site/
@@ -143,6 +156,8 @@ jobs:
           cp lint-badge.svg site/badges/lint.svg
           mkdir -p site/coverage
           cp -r coverage-report/htmlcov/. site/coverage/
+          mkdir -p site/reports/lint
+          cp pylint-report.html site/reports/lint/index.html
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4

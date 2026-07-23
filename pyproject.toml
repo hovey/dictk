@@ -33,6 +33,7 @@ dev = [
     "ruff",
     "pdoc",
     "genbadge[coverage]",
+    "pylint",
 ]
 
 [tool.hatch.version]

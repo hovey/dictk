@@ -40,6 +40,8 @@ pip-delete-this-directory.txt
 htmlcov/
 coverage-badge.svg
 lint-badge.svg
+pylint-report.txt
+pylint-report.html
 .tox/
 .nox/
 .coverage
