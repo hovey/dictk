@@ -150,6 +150,51 @@ def combine_images(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     return (combined / combined.max() * 255).astype(np.uint8)
 
 
+def brightness(arr: np.ndarray, factor: float) -> np.ndarray:
+    """Adjust image brightness by an additive shift, clipped to [0, 255].
+
+    Brightness *translates* the pixel-intensity histogram: every pixel is
+    shifted by the same amount, so dark areas lighten right along with
+    bright ones (unlike a multiplicative scale, where a black pixel would
+    stay exactly black). factor=1.0 leaves the image unchanged; factor=1.5
+    shifts every pixel by +127.5*0.5 = +63.75, factor=2.0 by +127.5.
+
+    Args:
+        arr: A 2D grayscale image array.
+        factor: Brightness factor. 1.0 is unchanged; > 1.0 brightens
+            (shifts toward white); < 1.0 darkens (shifts toward black).
+
+    Returns:
+        A 2D uint8 array, same shape as `arr`.
+    """
+    max_pixel_value = 255.0
+    offset = (factor - 1.0) * (max_pixel_value / 2.0)
+    shifted = arr.astype(np.float64) + offset
+    return np.clip(shifted, 0, max_pixel_value).astype(np.uint8)
+
+
+def contrast(arr: np.ndarray, factor: float) -> np.ndarray:
+    """Adjust image contrast by scaling around the mean, clipped to [0, 255].
+
+    Contrast *stretches* the pixel-intensity histogram outward from its own
+    mean, rather than shifting it: the mean stays roughly the same, while
+    values spread further from it. factor=1.0 leaves the image unchanged;
+    factor=0.0 collapses every pixel to the mean (a flat gray image);
+    factor > 1.0 pushes values further toward 0 and 255.
+
+    Args:
+        arr: A 2D grayscale image array.
+        factor: Contrast factor. 1.0 is unchanged; > 1.0 increases
+            contrast; between 0.0 and 1.0 decreases it.
+
+    Returns:
+        A 2D uint8 array, same shape as `arr`.
+    """
+    mean = arr.astype(np.float64).mean()
+    stretched = (arr.astype(np.float64) - mean) * factor + mean
+    return np.clip(stretched, 0, 255).astype(np.uint8)
+
+
 def read_image(path: Path) -> np.ndarray:
     """Read an image file into a NumPy array.
 

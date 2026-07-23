@@ -5,8 +5,10 @@ import pytest
 
 from dictk.imaging import (
     astronaut,
+    brightness,
     checkerboard,
     combine_images,
+    contrast,
     describe_image,
     read_image,
     rgba_to_gray,
@@ -73,6 +75,90 @@ def test_astronaut_invalid_width_raises(width):
 def test_astronaut_invalid_height_raises(height):
     with pytest.raises(ValueError):
         astronaut(width=40, height=height)
+
+
+def test_brightness_identity_at_factor_1():
+    arr = np.array([[0, 60, 128, 200, 255]], dtype=np.uint8)
+    assert np.array_equal(brightness(arr, 1.0), arr)
+
+
+def test_brightness_shifts_mean_up():
+    arr = np.full((10, 10), 100, dtype=np.uint8)
+    result = brightness(arr, 1.5)
+    assert result.mean() > arr.mean()
+
+
+def test_brightness_shifts_mean_down():
+    arr = np.full((10, 10), 100, dtype=np.uint8)
+    result = brightness(arr, 0.5)
+    assert result.mean() < arr.mean()
+
+
+def test_brightness_lightens_black_pixels():
+    # An additive shift must lighten even a pure-black pixel; a
+    # multiplicative scale (0 * anything) could not.
+    arr = np.zeros((4, 4), dtype=np.uint8)
+    result = brightness(arr, 2.0)
+    assert np.all(result > 0)
+
+
+def test_brightness_clips_to_valid_range():
+    arr = np.array([[0, 255]], dtype=np.uint8)
+    result = brightness(arr, 5.0)
+    assert result.min() >= 0
+    assert result.max() <= 255
+    assert result.dtype == np.uint8
+
+
+def test_brightness_preserves_shape_and_dtype():
+    arr = np.full((10, 20), 100, dtype=np.uint8)
+    result = brightness(arr, 1.2)
+    assert result.shape == arr.shape
+    assert result.dtype == np.uint8
+
+
+def test_contrast_identity_at_factor_1():
+    arr = np.array([[0, 60, 128, 200, 255]], dtype=np.uint8)
+    assert np.array_equal(contrast(arr, 1.0), arr)
+
+
+def test_contrast_zero_factor_collapses_to_mean():
+    arr = np.array([[0, 50, 100, 150, 200, 255]], dtype=np.uint8)
+    result = contrast(arr, 0.0)
+    assert len(np.unique(result)) == 1
+
+
+def test_contrast_increases_spread():
+    arr = np.array([[50, 100, 150, 200]], dtype=np.uint8)
+    result = contrast(arr, 1.5)
+    assert result.astype(np.float64).std() > arr.astype(np.float64).std()
+
+
+def test_contrast_decreases_spread():
+    arr = np.array([[50, 100, 150, 200]], dtype=np.uint8)
+    result = contrast(arr, 0.5)
+    assert result.astype(np.float64).std() < arr.astype(np.float64).std()
+
+
+def test_contrast_preserves_mean_approximately():
+    arr = np.array([[50, 100, 150, 200]], dtype=np.uint8)
+    result = contrast(arr, 1.5)
+    assert abs(float(result.mean()) - float(arr.mean())) < 5.0
+
+
+def test_contrast_clips_to_valid_range():
+    arr = np.array([[0, 255]], dtype=np.uint8)
+    result = contrast(arr, 5.0)
+    assert result.min() >= 0
+    assert result.max() <= 255
+    assert result.dtype == np.uint8
+
+
+def test_contrast_preserves_shape_and_dtype():
+    arr = np.full((10, 20), 100, dtype=np.uint8)
+    result = contrast(arr, 1.2)
+    assert result.shape == arr.shape
+    assert result.dtype == np.uint8
 
 
 def test_rgba_to_gray_passthrough_for_2d():
