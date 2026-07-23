@@ -556,6 +556,17 @@ below:</p>
         Figure: Categories of 2D planar transformations from Szeliski.
     </figcaption>
 </figure>
+<p>Each category preserves a different, nested set of geometric properties
+— every property a more restrictive category preserves is also
+preserved by every category to its left:</p>
+<div class="table-wrapper"><table><thead><tr><th>Property</th><th>Translation</th><th>Euclidean</th><th>Similarity</th><th>Affine</th><th>Projective</th></tr></thead><tbody>
+<tr><td>Straight lines stay straight</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>Parallel lines stay parallel</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td><td>No</td></tr>
+<tr><td>Angles preserved</td><td>Yes</td><td>Yes</td><td>Yes</td><td>No</td><td>No</td></tr>
+<tr><td>Lengths/distances preserved</td><td>Yes</td><td>Yes</td><td>No</td><td>No</td><td>No</td></tr>
+<tr><td>Absolute orientation preserved (no rotation)</td><td>Yes</td><td>No</td><td>No</td><td>No</td><td>No</td></tr>
+</tbody></table>
+</div>
 <h2 id="pure-translation-rigid-body-motion"><a class="header" href="#pure-translation-rigid-body-motion">Pure Translation (Rigid Body Motion)</a></h2>
 <p>As the simplest of the categories above — no change in shape or size —
 <a href="getting_started/../api/dictk/imaging.html#translate"><code>dictk.imaging.translate</code></a> shifts
@@ -710,31 +721,25 @@ write_image(combined, "astronaut_complex_deform.png")
 </div>
 <h2 id="crack-dislocation"><a class="header" href="#crack-dislocation">Crack Dislocation</a></h2>
 <p>A vertical crack splits the image at x = width/2: the left half shifts
-down 8 pixels and the right half shifts up 8 pixels, producing a
+down 4 pixels and the right half shifts up 4 pixels, producing a
 displacement field that jumps discontinuously across the crack line —
 unlike every other example on this page, which deforms smoothly.
 Standard DIC assumes smooth displacements and cannot capture this jump;
 cases like this motivate the Heaviside finite-element formulation.</p>
-<p>This is where a speckle pattern earns its keep: on a plain photograph,
-an 8-pixel jump is subtle, but overlaid with
-<a href="getting_started/../api/dictk.html#rosta"><code>dictk.rosta</code></a> it's immediately visible as a
-misaligned speckle field across the crack.</p>
 <pre><code class="language-python">import dictk
-from dictk.imaging import combine_images, crack_dislocation, write_image
+from dictk.imaging import crack_dislocation, write_image
 
 photo = dictk.astronaut(300, 300)
-speckle = dictk.rosta(300, 300, density=0.5)
-reference = combine_images(speckle, photo)
-write_image(reference, "astronaut_crack_original.png")
+write_image(photo, "astronaut_crack_plain_original.png")
 
-cracked = crack_dislocation(reference, offset=8.0)
-write_image(cracked, "astronaut_crack_dislocation.png")
+cracked_plain = crack_dislocation(photo, offset=4.0)
+write_image(cracked_plain, "astronaut_crack_plain_dislocation.png")
 </code></pre>
-<pre><code class="language-text">Saved: astronaut_crack_original.png, astronaut_crack_dislocation.png
+<pre><code class="language-text">Saved: astronaut_crack_plain_original.png, astronaut_crack_plain_dislocation.png
 </code></pre>
 <div class="table-wrapper"><table><thead><tr><th>Crack Dislocation</th><th>Image</th></tr></thead><tbody>
-<tr><td>Original (speckle + astronaut)</td><td><img src="getting_started/astronaut_crack_original.png" alt="original" /></td></tr>
-<tr><td>offset=8 pixels</td><td><img src="getting_started/astronaut_crack_dislocation.png" alt="crack dislocation" /></td></tr>
+<tr><td>Original</td><td><img src="getting_started/astronaut_crack_plain_original.png" alt="original" /></td></tr>
+<tr><td>offset=4 pixels</td><td><img src="getting_started/astronaut_crack_plain_dislocation.png" alt="crack dislocation" /></td></tr>
 </tbody></table>
 </div>
 <h2 id="references"><a class="header" href="#references">References</a></h2>
