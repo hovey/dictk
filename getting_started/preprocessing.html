@@ -185,10 +185,11 @@ image. This page covers two of them, using the <a href="./image_generation.html#
 image</a> from the previous page as an
 example.</p>
 <h2 id="brightness"><a class="header" href="#brightness">Brightness</a></h2>
-<p><strong>Brightness</strong> shifts the entire pixel-intensity histogram up or down by a
-constant amount — the whole image gets lighter or darker together, dark
-areas included. Pushed too far, dark regions wash out to a flat gray and
-highlights clip at pure white (255), permanently losing detail.</p>
+<p><a href="../api/dictk/imaging.html#brightness"><strong>Brightness</strong></a> shifts the entire
+pixel-intensity histogram up or down by a constant amount — the whole
+image gets lighter or darker together, dark areas included. Pushed too
+far, dark regions wash out to a flat gray and highlights clip at pure
+white (255), permanently losing detail.</p>
 <pre><code class="language-python">import dictk
 from dictk.imaging import brightness, save_histogram, write_image
 
@@ -220,9 +221,10 @@ pixels pile up at that 255 ceiling, visible as a tall spike at the
 histogram's right edge: real detail that's been clipped away and can't be
 recovered.</p>
 <h2 id="contrast"><a class="header" href="#contrast">Contrast</a></h2>
-<p><strong>Contrast</strong> is the spread between an image's darkest and lightest pixels.
-Increasing contrast stretches the histogram outward from its own mean —
-darks get darker, lights get lighter — while the mean itself stays roughly
+<p><a href="../api/dictk/imaging.html#contrast"><strong>Contrast</strong></a> is the spread between
+an image's darkest and lightest pixels. Increasing contrast stretches the
+histogram outward from its own mean — darks get darker, lights get
+lighter — while the mean itself stays roughly
 where it was.</p>
 <pre><code class="language-python">import dictk
 from dictk.imaging import contrast, save_histogram, write_image

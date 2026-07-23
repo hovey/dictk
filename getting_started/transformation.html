@@ -188,15 +188,62 @@ below:</p>
         Figure: Categories of 2D planar transformations from Szeliski.
     </figcaption>
 </figure>
-<h2 id="x-axis-stretch"><a class="header" href="#x-axis-stretch">X-Axis Stretch</a></h2>
+<h2 id="pure-translation-rigid-body-motion"><a class="header" href="#pure-translation-rigid-body-motion">Pure Translation (Rigid Body Motion)</a></h2>
+<p>As the simplest of the categories above — no change in shape or size —
+<a href="../api/dictk/imaging.html#translate"><code>dictk.imaging.translate</code></a> shifts
+every pixel by a fixed displacement. This example shifts the image by
+dx=-60 pixels in x and dy=+80 pixels in y, representing rigid body
+motion where the material moves without deforming.</p>
+<pre><code class="language-python">import dictk
+from dictk.imaging import translate, write_image
+
+photo = dictk.astronaut(300, 300)
+write_image(photo, "astronaut_translate_original.png")
+
+translated = translate(photo, dx=-60, dy=80)
+write_image(translated, "astronaut_translate_rigid_body.png")
+</code></pre>
+<pre><code class="language-text">Saved: astronaut_translate_original.png, astronaut_translate_rigid_body.png
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>Translation</th><th>Image</th></tr></thead><tbody>
+<tr><td>Original</td><td><img src="astronaut_translate_original.png" alt="original" /></td></tr>
+<tr><td>dx=-60, dy=+80</td><td><img src="astronaut_translate_rigid_body.png" alt="rigid body translation" /></td></tr>
+</tbody></table>
+</div>
+<h2 id="pure-rotation"><a class="header" href="#pure-rotation">Pure Rotation</a></h2>
+<p>A 30° counterclockwise rotation, another rigid body motion that preserves
+distances and angles.
+<a href="../api/dictk/imaging.html#rotate"><code>dictk.imaging.rotate</code></a> pivots on the
+image's top-left corner (0, 0), consistent with <code>stretch</code> and
+<code>translate</code>'s pivot choice in this codebase — unlike the more typical
+"object spins in place" rotation about the center, most content swings
+away from that fixed corner, similar to a door on a hinge.</p>
+<pre><code class="language-python">import dictk
+from dictk.imaging import rotate, write_image
+
+photo = dictk.astronaut(300, 300)
+write_image(photo, "astronaut_rotate_original.png")
+
+rotated = rotate(photo, 30.0)
+write_image(rotated, "astronaut_rotate_30deg.png")
+</code></pre>
+<pre><code class="language-text">Saved: astronaut_rotate_original.png, astronaut_rotate_30deg.png
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>Rotation</th><th>Image</th></tr></thead><tbody>
+<tr><td>Original</td><td><img src="astronaut_rotate_original.png" alt="original" /></td></tr>
+<tr><td>30° (origin-pivoted)</td><td><img src="astronaut_rotate_30deg.png" alt="30 degree rotation" /></td></tr>
+</tbody></table>
+</div>
+<h2 id="x-axis-stretch-extension"><a class="header" href="#x-axis-stretch-extension">X-Axis Stretch (Extension)</a></h2>
 <p>As a concrete example of the <em>similarity</em> category above,
 <a href="../api/dictk/imaging.html#stretch"><code>dictk.imaging.stretch</code></a> applies a
 uniaxial stretch along the x-axis: the image's top-left corner (x=0, y=0)
 stays fixed, and content grows away from it, using backward mapping with
 bilinear interpolation so the result has no gaps (unlike naively moving
-each source pixel forward, which can leave holes). The four stretches
+each source pixel forward, which can leave holes). The two stretches
 below range from a small, realistic deformation (5%, similar in magnitude
-to a modest tensile strain in a materials test) up to a doubling (100%).</p>
+to a modest tensile strain in a materials test) up to a much larger one
+(50%).</p>
 <pre><code class="language-python">import dictk
 from dictk.imaging import stretch, write_image
 
@@ -206,23 +253,91 @@ write_image(photo, "astronaut_stretch_original.png")
 stretch_5pct = stretch(photo, factor_x=1.05)
 write_image(stretch_5pct, "astronaut_stretch_x_5pct.png")
 
-stretch_10pct = stretch(photo, factor_x=1.10)
-write_image(stretch_10pct, "astronaut_stretch_x_10pct.png")
-
 stretch_50pct = stretch(photo, factor_x=1.50)
 write_image(stretch_50pct, "astronaut_stretch_x_50pct.png")
-
-stretch_100pct = stretch(photo, factor_x=2.00)
-write_image(stretch_100pct, "astronaut_stretch_x_100pct.png")
 </code></pre>
-<pre><code class="language-text">Saved: astronaut_stretch_original.png, astronaut_stretch_x_5pct.png, astronaut_stretch_x_10pct.png, astronaut_stretch_x_50pct.png, astronaut_stretch_x_100pct.png
+<pre><code class="language-text">Saved: astronaut_stretch_original.png, astronaut_stretch_x_5pct.png, astronaut_stretch_x_50pct.png
 </code></pre>
 <div class="table-wrapper"><table><thead><tr><th>Stretch</th><th>Image</th></tr></thead><tbody>
 <tr><td>Original</td><td><img src="astronaut_stretch_original.png" alt="original" /></td></tr>
 <tr><td>5% (factor_x=1.05)</td><td><img src="astronaut_stretch_x_5pct.png" alt="5% x-axis stretch" /></td></tr>
-<tr><td>10% (factor_x=1.10)</td><td><img src="astronaut_stretch_x_10pct.png" alt="10% x-axis stretch" /></td></tr>
 <tr><td>50% (factor_x=1.50)</td><td><img src="astronaut_stretch_x_50pct.png" alt="50% x-axis stretch" /></td></tr>
-<tr><td>100% (factor_x=2.00)</td><td><img src="astronaut_stretch_x_100pct.png" alt="100% x-axis stretch" /></td></tr>
+</tbody></table>
+</div>
+<h2 id="y-axis-stretch-compression"><a class="header" href="#y-axis-stretch-compression">Y-Axis Stretch (Compression)</a></h2>
+<p>The same <a href="../api/dictk/imaging.html#stretch"><code>dictk.imaging.stretch</code></a>
+function compresses along the y-axis with <code>factor_y &lt; 1.0</code>. Pivoting on
+the origin means the top edge (y=0) stays fixed while content shrinks
+toward it, leaving a black margin along the bottom — the mirror image of
+the x-axis stretch case, where growth away from the origin never leaves a
+gap.</p>
+<pre><code class="language-python">import dictk
+from dictk.imaging import stretch, write_image
+
+photo = dictk.astronaut(300, 300)
+write_image(photo, "astronaut_compress_original.png")
+
+compress_neg5pct = stretch(photo, factor_y=0.95)
+write_image(compress_neg5pct, "astronaut_compress_y_neg5pct.png")
+
+compress_neg50pct = stretch(photo, factor_y=0.50)
+write_image(compress_neg50pct, "astronaut_compress_y_neg50pct.png")
+</code></pre>
+<pre><code class="language-text">Saved: astronaut_compress_original.png, astronaut_compress_y_neg5pct.png, astronaut_compress_y_neg50pct.png
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>Compression</th><th>Image</th></tr></thead><tbody>
+<tr><td>Original</td><td><img src="astronaut_compress_original.png" alt="original" /></td></tr>
+<tr><td>-5% (factor_y=0.95)</td><td><img src="astronaut_compress_y_neg5pct.png" alt="-5% y-axis compression" /></td></tr>
+<tr><td>-50% (factor_y=0.50)</td><td><img src="astronaut_compress_y_neg50pct.png" alt="-50% y-axis compression" /></td></tr>
+</tbody></table>
+</div>
+<h2 id="simple-shear"><a class="header" href="#simple-shear">Simple Shear</a></h2>
+<p>A shear deformation with γ = 0.5, where horizontal planes slide relative
+to each other by an amount proportional to their y-coordinate — the
+higher up a row of pixels, the further it shifts sideways.
+<a href="../api/dictk/imaging.html#shear"><code>dictk.imaging.shear</code></a> pivots on the
+image's top-left corner (0, 0), consistent with the other transform
+functions in this codebase.</p>
+<pre><code class="language-python">import dictk
+from dictk.imaging import shear, write_image
+
+photo = dictk.astronaut(300, 300)
+write_image(photo, "astronaut_shear_original.png")
+
+sheared = shear(photo, shear_x=0.5)
+write_image(sheared, "astronaut_shear_x_0.5.png")
+</code></pre>
+<pre><code class="language-text">Saved: astronaut_shear_original.png, astronaut_shear_x_0.5.png
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>Shear</th><th>Image</th></tr></thead><tbody>
+<tr><td>Original</td><td><img src="astronaut_shear_original.png" alt="original" /></td></tr>
+<tr><td>γ = 0.5 (shear_x=0.5)</td><td><img src="astronaut_shear_x_0.5.png" alt="simple shear" /></td></tr>
+</tbody></table>
+</div>
+<h2 id="complex-deformation"><a class="header" href="#complex-deformation">Complex Deformation</a></h2>
+<p>Combines rotation (15°) with anisotropic stretching (1.3x in x, 0.8x in
+y) — realistic loading scenarios where materials experience multiple
+simultaneous deformation modes, typically the hardest case for
+correlation algorithms.
+<a href="../api/dictk/imaging.html#complex_deform"><code>dictk.imaging.complex_deform</code></a>
+composes the two into a single deformation gradient (stretch applied
+first, then rotation) and applies it in one backward-mapping pass, so
+the result isn't blurred by interpolating twice as calling <code>stretch</code>
+and then <code>rotate</code> separately would.</p>
+<pre><code class="language-python">import dictk
+from dictk.imaging import complex_deform, write_image
+
+photo = dictk.astronaut(300, 300)
+write_image(photo, "astronaut_complex_original.png")
+
+combined = complex_deform(photo, factor_x=1.3, factor_y=0.8, angle=15.0)
+write_image(combined, "astronaut_complex_deform.png")
+</code></pre>
+<pre><code class="language-text">Saved: astronaut_complex_original.png, astronaut_complex_deform.png
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>Composed Deformation</th><th>Image</th></tr></thead><tbody>
+<tr><td>Original</td><td><img src="astronaut_complex_original.png" alt="original" /></td></tr>
+<tr><td>factor_x=1.3, factor_y=0.8, angle=15°</td><td><img src="astronaut_complex_deform.png" alt="composed deformation" /></td></tr>
 </tbody></table>
 </div>
 <h2 id="references"><a class="header" href="#references">References</a></h2>
