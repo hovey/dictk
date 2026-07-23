@@ -25,13 +25,17 @@
 > **CLI vs. API:** the Command Line Interface (CLI) subcommands on this page
 > (`dictk rosta`, `dictk checkerboard`, `dictk astronaut`) write an image
 > file to disk — that's their whole job. The corresponding Python
-> functions, `dictk.rosta`, `dictk.checkerboard`, and `dictk.astronaut`,
-> take the same parameters but perform no file I/O: they return a NumPy
-> array only. That keeps the Python API composable in a functional style —
-> arrays can be piped through further functions (e.g. `combine_images`
-> below) before anything touches disk — and callers who do want a file
-> call `dictk.imaging.write_image` explicitly, as a separate step. See
-> each function's docstring (rendered in the API reference) for details.
+> functions, [`dictk.rosta`](../api/dictk.html#rosta),
+> [`dictk.checkerboard`](../api/dictk.html#checkerboard), and
+> [`dictk.astronaut`](../api/dictk.html#astronaut), take the same
+> parameters but perform no file I/O: they return a NumPy array only. That
+> keeps the Python API composable in a functional style — arrays can be
+> piped through further functions (e.g.
+> [`combine_images`](../api/dictk/imaging.html#combine_images) below)
+> before anything touches disk — and callers who do want a file call
+> [`dictk.imaging.write_image`](../api/dictk/imaging.html#write_image)
+> explicitly, as a separate step. See each function's docstring (rendered
+> in the API reference) for details.
 
 ## Rosta
 
@@ -185,8 +189,9 @@ photo = dictk.astronaut(300, 300)
 
 ## Combining into a reference image
 
-`combine_images` works on any two grayscale images of the same shape, so
-it isn't limited to combining the two synthetic images below —
+[`combine_images`](../api/dictk/imaging.html#combine_images) works on any
+two grayscale images of the same shape, so it isn't limited to combining
+the two synthetic images below —
 [Speckle + Astronaut](#speckle--astronaut) further down combines `rosta`
 with a real photograph instead.
 
@@ -257,9 +262,10 @@ the `astronaut` photo instead of the checkerboard is closer to that: a
 speckle pattern overlaid on a realistic, non-uniform grayscale image.
 
 This time the two source images are never written to disk at all — both
-`dictk.rosta` and `dictk.astronaut` return arrays directly, which
-`combine_images` accepts as-is, so only the combined result `astronaut0`
-is saved:
+[`dictk.rosta`](../api/dictk.html#rosta) and
+[`dictk.astronaut`](../api/dictk.html#astronaut) return arrays directly,
+which [`combine_images`](../api/dictk/imaging.html#combine_images) accepts
+as-is, so only the combined result `astronaut0` is saved:
 
 ```python
 import dictk

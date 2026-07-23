@@ -12,7 +12,9 @@ from dictk.imaging import (
     describe_image,
     read_image,
     rgba_to_gray,
+    rotate,
     stretch,
+    translate,
     write_image,
 )
 
@@ -204,6 +206,68 @@ def test_stretch_invalid_factor_y_raises(factor_y):
     arr = np.full((10, 10), 100, dtype=np.uint8)
     with pytest.raises(ValueError):
         stretch(arr, factor_y=factor_y)
+
+
+def test_translate_identity_at_zero_displacement():
+    arr = np.arange(400, dtype=np.uint8).reshape(20, 20)
+    assert np.array_equal(translate(arr), arr)
+
+
+def test_translate_preserves_shape_and_dtype():
+    arr = np.full((20, 30), 100, dtype=np.uint8)
+    result = translate(arr, dx=5, dy=-3)
+    assert result.shape == arr.shape
+    assert result.dtype == np.uint8
+
+
+def test_translate_shifts_content_right():
+    arr = np.zeros((20, 20), dtype=np.uint8)
+    arr[10, 5] = 255
+    result = translate(arr, dx=4, dy=0)
+    assert result[10, 9] == 255
+
+
+def test_translate_shifts_content_down():
+    arr = np.zeros((20, 20), dtype=np.uint8)
+    arr[5, 10] = 255
+    result = translate(arr, dx=0, dy=4)
+    assert result[9, 10] == 255
+
+
+def test_translate_introduces_black_margin():
+    arr = np.full((20, 20), 200, dtype=np.uint8)
+    result = translate(arr, dx=5, dy=0)
+    assert result[10, 0] == 0
+    assert result[10, 19] > 0
+
+
+def test_rotate_identity_at_zero_angle():
+    arr = np.arange(900, dtype=np.uint8).reshape(30, 30)
+    assert np.array_equal(rotate(arr, 0.0), arr)
+
+
+def test_rotate_preserves_shape_and_dtype():
+    arr = np.full((20, 30), 100, dtype=np.uint8)
+    result = rotate(arr, 15.0)
+    assert result.shape == arr.shape
+    assert result.dtype == np.uint8
+
+
+def test_rotate_90_degrees_moves_marker_to_expected_pixel():
+    arr = np.zeros((30, 30), dtype=np.uint8)
+    arr[0, 10] = 255  # row=0 (y=0), col=10 (x=10)
+    result = rotate(arr, 90.0)
+    row, col = np.unravel_index(np.argmax(result), result.shape)
+    assert (row, col) == (10, 0)
+    assert result[10, 0] > 250
+
+
+def test_rotate_introduces_black_fill():
+    # Pivoting on the origin means a nonzero rotation swings most content
+    # away from the fixed corner, leaving pixels with no source in bounds.
+    arr = np.full((30, 30), 200, dtype=np.uint8)
+    result = rotate(arr, 30.0)
+    assert result.min() == 0
 
 
 def test_rgba_to_gray_passthrough_for_2d():

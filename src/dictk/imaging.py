@@ -196,6 +196,38 @@ def contrast(arr: np.ndarray, factor: float) -> np.ndarray:
     return np.clip(stretched, 0, 255).astype(np.uint8)
 
 
+def _backward_map(
+    arr: np.ndarray, xs_source: np.ndarray, ys_source: np.ndarray
+) -> np.ndarray:
+    """Sample `arr` via bilinear interpolation at (xs_source, ys_source).
+
+    Shared by geometric-transform functions (`stretch`, `translate`, ...):
+    each computes where every output pixel's source coordinate falls under
+    its own inverse transform, then hands the resulting coordinate grids
+    here to do the actual sampling. Coordinates outside `arr`'s bounds are
+    filled with black (0).
+
+    Args:
+        arr: A 2D grayscale image array.
+        xs_source: Source x-coordinate for each output pixel, shape (height, width).
+        ys_source: Source y-coordinate for each output pixel, shape (height, width).
+
+    Returns:
+        A 2D uint8 array, same shape as `arr`.
+    """
+    height, width = arr.shape
+    interpolator = RegularGridInterpolator(
+        points=(np.arange(height), np.arange(width)),
+        values=arr.astype(np.float64),
+        method="linear",
+        bounds_error=False,
+        fill_value=0.0,
+    )
+    points = np.stack((ys_source.ravel(), xs_source.ravel()), axis=1)
+    deformed = interpolator(points).reshape(arr.shape)
+    return np.clip(deformed, 0, 255).astype(np.uint8)
+
+
 def stretch(
     arr: np.ndarray, factor_x: float = 1.0, factor_y: float = 1.0
 ) -> np.ndarray:
@@ -237,17 +269,71 @@ def stretch(
     xs_source = xs / factor_x
     ys_source = ys / factor_y
 
-    interpolator = RegularGridInterpolator(
-        points=(np.arange(height), np.arange(width)),
-        values=arr.astype(np.float64),
-        method="linear",
-        bounds_error=False,
-        fill_value=0.0,
-    )
-    points = np.stack((ys_source.ravel(), xs_source.ravel()), axis=1)
-    deformed = interpolator(points).reshape(arr.shape)
+    return _backward_map(arr, xs_source, ys_source)
 
-    return np.clip(deformed, 0, 255).astype(np.uint8)
+
+def translate(arr: np.ndarray, dx: float = 0.0, dy: float = 0.0) -> np.ndarray:
+    """Apply a rigid-body translation: every pixel shifts by (dx, dy).
+
+    A pure displacement, with no change in shape or size — the simplest
+    transformation category. Uses the same backward-mapping approach as
+    `stretch`, so non-integer displacements are handled with bilinear
+    interpolation rather than rounding. Content shifted in from outside
+    the original bounds is filled with black (fill value 0).
+
+    Args:
+        arr: A 2D grayscale image array.
+        dx: Displacement in pixels along the x-axis; positive moves
+            content right.
+        dy: Displacement in pixels along the y-axis; positive moves
+            content down.
+
+    Returns:
+        A 2D uint8 array, same shape as `arr`.
+    """
+    height, width = arr.shape
+    xs, ys = np.meshgrid(np.arange(width), np.arange(height))
+
+    # Backward mapping: the source of output pixel (x, y) is (x - dx, y - dy).
+    xs_source = xs - dx
+    ys_source = ys - dy
+
+    return _backward_map(arr, xs_source, ys_source)
+
+
+def rotate(arr: np.ndarray, angle: float) -> np.ndarray:
+    """Apply a rigid-body rotation, pivoting on the image origin.
+
+    Rotates content by `angle` degrees, positive counterclockwise,
+    pivoting on the image's top-left corner (0, 0) rather than its
+    center — consistent with `stretch` and `translate`'s pivot choice in
+    this codebase, but unlike a typical "object spins in place" rotation
+    example: most content swings away from that fixed corner, similar to
+    a door on a hinge. Uses the same backward-mapping approach as
+    `stretch` and `translate`, so non-integer source coordinates are
+    bilinearly interpolated, and any pixel with no corresponding source
+    coordinate within `arr`'s bounds is filled with black (fill value 0).
+
+    Args:
+        arr: A 2D grayscale image array.
+        angle: Rotation angle in degrees; positive is counterclockwise.
+
+    Returns:
+        A 2D uint8 array, same shape as `arr`.
+    """
+    height, width = arr.shape
+    xs, ys = np.meshgrid(np.arange(width), np.arange(height))
+
+    theta = np.deg2rad(angle)
+    cos_theta = np.cos(theta)
+    sin_theta = np.sin(theta)
+
+    # Backward mapping: applying the inverse (-angle) rotation to each
+    # output coordinate gives the coordinate to sample from.
+    xs_source = cos_theta * xs + sin_theta * ys
+    ys_source = -sin_theta * xs + cos_theta * ys
+
+    return _backward_map(arr, xs_source, ys_source)
 
 
 def read_image(path: Path) -> np.ndarray:

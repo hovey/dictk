@@ -11,6 +11,64 @@ below:
     </figcaption>
 </figure>
 
+## Pure Translation (Rigid Body Motion)
+
+As the simplest of the categories above — no change in shape or size —
+[`dictk.imaging.translate`](../api/dictk/imaging.html#translate) shifts
+every pixel by a fixed displacement. This example shifts the image by
+dx=-60 pixels in x and dy=+80 pixels in y, representing rigid body
+motion where the material moves without deforming.
+
+```python
+import dictk
+from dictk.imaging import translate, write_image
+
+photo = dictk.astronaut(300, 300)
+write_image(photo, "astronaut_translate_original.png")
+
+translated = translate(photo, dx=-60, dy=80)
+write_image(translated, "astronaut_translate_rigid_body.png")
+```
+
+```text
+<!-- cmdrun python3 -c "import dictk; from dictk.imaging import translate, write_image; photo = dictk.astronaut(300, 300); write_image(photo, 'astronaut_translate_original.png'); translated = translate(photo, dx=-60, dy=80); write_image(translated, 'astronaut_translate_rigid_body.png'); print('Saved: astronaut_translate_original.png, astronaut_translate_rigid_body.png')" -->
+```
+
+Translation | Image
+--- | ---
+Original | ![original](astronaut_translate_original.png)
+dx=-60, dy=+80 | ![rigid body translation](astronaut_translate_rigid_body.png)
+
+## Pure Rotation
+
+A 30° counterclockwise rotation, another rigid body motion that preserves
+distances and angles.
+[`dictk.imaging.rotate`](../api/dictk/imaging.html#rotate) pivots on the
+image's top-left corner (0, 0), consistent with `stretch` and
+`translate`'s pivot choice in this codebase — unlike the more typical
+"object spins in place" rotation about the center, most content swings
+away from that fixed corner, similar to a door on a hinge.
+
+```python
+import dictk
+from dictk.imaging import rotate, write_image
+
+photo = dictk.astronaut(300, 300)
+write_image(photo, "astronaut_rotate_original.png")
+
+rotated = rotate(photo, 30.0)
+write_image(rotated, "astronaut_rotate_30deg.png")
+```
+
+```text
+<!-- cmdrun python3 -c "import dictk; from dictk.imaging import rotate, write_image; photo = dictk.astronaut(300, 300); write_image(photo, 'astronaut_rotate_original.png'); rotated = rotate(photo, 30.0); write_image(rotated, 'astronaut_rotate_30deg.png'); print('Saved: astronaut_rotate_original.png, astronaut_rotate_30deg.png')" -->
+```
+
+Rotation | Image
+--- | ---
+Original | ![original](astronaut_rotate_original.png)
+30° (origin-pivoted) | ![30 degree rotation](astronaut_rotate_30deg.png)
+
 ## X-Axis Stretch
 
 As a concrete example of the *similarity* category above,
@@ -53,6 +111,39 @@ Original | ![original](astronaut_stretch_original.png)
 10% (factor_x=1.10) | ![10% x-axis stretch](astronaut_stretch_x_10pct.png)
 50% (factor_x=1.50) | ![50% x-axis stretch](astronaut_stretch_x_50pct.png)
 100% (factor_x=2.00) | ![100% x-axis stretch](astronaut_stretch_x_100pct.png)
+
+## Y-Axis Compression
+
+The same [`dictk.imaging.stretch`](../api/dictk/imaging.html#stretch)
+function compresses along the y-axis with `factor_y < 1.0`. Pivoting on
+the origin means the top edge (y=0) stays fixed while content shrinks
+toward it, leaving a black margin along the bottom — the mirror image of
+the x-axis stretch case, where growth away from the origin never leaves a
+gap.
+
+```python
+import dictk
+from dictk.imaging import stretch, write_image
+
+photo = dictk.astronaut(300, 300)
+write_image(photo, "astronaut_compress_original.png")
+
+compress_neg5pct = stretch(photo, factor_y=0.95)
+write_image(compress_neg5pct, "astronaut_compress_y_neg5pct.png")
+
+compress_neg50pct = stretch(photo, factor_y=0.50)
+write_image(compress_neg50pct, "astronaut_compress_y_neg50pct.png")
+```
+
+```text
+<!-- cmdrun python3 -c "import dictk; from dictk.imaging import stretch, write_image; photo = dictk.astronaut(300, 300); write_image(photo, 'astronaut_compress_original.png'); write_image(stretch(photo, factor_y=0.95), 'astronaut_compress_y_neg5pct.png'); write_image(stretch(photo, factor_y=0.50), 'astronaut_compress_y_neg50pct.png'); print('Saved: astronaut_compress_original.png, astronaut_compress_y_neg5pct.png, astronaut_compress_y_neg50pct.png')" -->
+```
+
+Compression | Image
+--- | ---
+Original | ![original](astronaut_compress_original.png)
+-5% (factor_y=0.95) | ![-5% y-axis compression](astronaut_compress_y_neg5pct.png)
+-50% (factor_y=0.50) | ![-50% y-axis compression](astronaut_compress_y_neg50pct.png)
 
 ## References
 

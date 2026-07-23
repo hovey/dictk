@@ -8,10 +8,11 @@ example.
 
 ## Brightness
 
-**Brightness** shifts the entire pixel-intensity histogram up or down by a
-constant amount — the whole image gets lighter or darker together, dark
-areas included. Pushed too far, dark regions wash out to a flat gray and
-highlights clip at pure white (255), permanently losing detail.
+[**Brightness**](../api/dictk/imaging.html#brightness) shifts the entire
+pixel-intensity histogram up or down by a constant amount — the whole
+image gets lighter or darker together, dark areas included. Pushed too
+far, dark regions wash out to a flat gray and highlights clip at pure
+white (255), permanently losing detail.
 
 ```python
 import dictk
@@ -51,9 +52,10 @@ recovered.
 
 ## Contrast
 
-**Contrast** is the spread between an image's darkest and lightest pixels.
-Increasing contrast stretches the histogram outward from its own mean —
-darks get darker, lights get lighter — while the mean itself stays roughly
+[**Contrast**](../api/dictk/imaging.html#contrast) is the spread between
+an image's darkest and lightest pixels. Increasing contrast stretches the
+histogram outward from its own mean — darks get darker, lights get
+lighter — while the mean itself stays roughly
 where it was.
 
 ```python
