@@ -85,6 +85,69 @@ def test_checkerboard_create_unwritable_output_fails_cleanly(tmp_path: Path, cap
         unwritable.chmod(0o755)
 
 
+def test_astronaut_create_writes_file(tmp_path: Path):
+    exit_code = main(["astronaut", "40", "20", "-o", str(tmp_path)])
+    assert exit_code == 0
+
+    files = list(tmp_path.glob("astronaut_*.tiff"))
+    assert len(files) == 1
+
+    image = read_image(files[0])
+    assert image.shape == (20, 40)
+
+
+def test_astronaut_create_invalid_width_fails_cleanly(tmp_path: Path, capsys):
+    exit_code = main(["astronaut", "0", "20", "-o", str(tmp_path)])
+    assert exit_code == 1
+    assert "error" in capsys.readouterr().err
+    assert list(tmp_path.glob("astronaut_*.tiff")) == []
+
+
+def test_astronaut_create_unwritable_output_fails_cleanly(tmp_path: Path, capsys):
+    unwritable = tmp_path / "unwritable"
+    unwritable.mkdir()
+    unwritable.chmod(0o000)
+    try:
+        exit_code = main(["astronaut", "40", "20", "-o", str(unwritable / "sub")])
+        assert exit_code == 1
+        assert "error" in capsys.readouterr().err
+    finally:
+        unwritable.chmod(0o755)
+
+
+def test_astronaut_defaults_to_512x512(tmp_path: Path):
+    exit_code = main(["astronaut", "-o", str(tmp_path)])
+    assert exit_code == 0
+
+    files = list(tmp_path.glob("astronaut_512w_by_512h.tiff"))
+    assert len(files) == 1
+
+    image = read_image(files[0])
+    assert image.shape == (512, 512)
+
+
+def test_astronaut_positional_width_only_defaults_height(tmp_path: Path):
+    exit_code = main(["astronaut", "300", "-o", str(tmp_path)])
+    assert exit_code == 0
+
+    files = list(tmp_path.glob("astronaut_300w_by_512h.tiff"))
+    assert len(files) == 1
+
+    image = read_image(files[0])
+    assert image.shape == (512, 300)
+
+
+@pytest.mark.parametrize("image_format", ["tiff", "png", "jpg", "svg"])
+def test_astronaut_create_respects_format(tmp_path: Path, image_format: str):
+    exit_code = main(
+        ["astronaut", "40", "20", "-o", str(tmp_path), "--format", image_format]
+    )
+    assert exit_code == 0
+
+    files = list(tmp_path.glob(f"astronaut_*.{image_format}"))
+    assert len(files) == 1
+
+
 @pytest.mark.parametrize("image_format", ["tiff", "png", "jpg", "svg"])
 def test_rosta_create_respects_format(tmp_path: Path, image_format: str):
     exit_code = main(

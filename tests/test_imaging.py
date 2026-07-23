@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from dictk.imaging import (
+    astronaut,
     checkerboard,
     combine_images,
     describe_image,
@@ -43,6 +44,35 @@ def test_checkerboard_invalid_count_x_raises(count_x):
 def test_checkerboard_invalid_count_y_raises(count_y):
     with pytest.raises(ValueError):
         checkerboard(width=40, height=40, count_y=count_y)
+
+
+def test_astronaut_default_shape_and_dtype():
+    arr = astronaut()
+    assert arr.shape == (512, 512)
+    assert arr.dtype == np.uint8
+
+
+def test_astronaut_is_grayscale():
+    arr = astronaut()
+    assert arr.ndim == 2
+
+
+def test_astronaut_resizes():
+    arr = astronaut(width=40, height=20)
+    assert arr.shape == (20, 40)
+    assert arr.dtype == np.uint8
+
+
+@pytest.mark.parametrize("width", [0, -1])
+def test_astronaut_invalid_width_raises(width):
+    with pytest.raises(ValueError):
+        astronaut(width=width, height=40)
+
+
+@pytest.mark.parametrize("height", [0, -1])
+def test_astronaut_invalid_height_raises(height):
+    with pytest.raises(ValueError):
+        astronaut(width=40, height=height)
 
 
 def test_rgba_to_gray_passthrough_for_2d():

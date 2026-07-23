@@ -11,7 +11,7 @@ import sys
 
 import numpy as np
 
-from dictk.imaging import checkerboard, write_image
+from dictk.imaging import astronaut, checkerboard, write_image
 from dictk.rosta import rosta
 
 IMAGE_FORMATS = ("tiff", "png", "jpg", "svg")
@@ -35,6 +35,10 @@ def _checkerboard_filename(
     width: int, height: int, count_x: int, count_y: int, image_format: str
 ) -> str:
     return f"checkerboard_{width}w_by_{height}h_{count_x}x{count_y}.{image_format}"
+
+
+def _astronaut_filename(width: int, height: int, image_format: str) -> str:
+    return f"astronaut_{width}w_by_{height}h.{image_format}"
 
 
 def _write_output(arr: np.ndarray, output: Path | None, filename: str) -> int:
@@ -90,6 +94,17 @@ def _checkerboard_create(args: argparse.Namespace) -> int:
     filename = _checkerboard_filename(
         args.width, args.height, args.count_x, args.count_y, args.format
     )
+    return _write_output(arr, args.output, filename)
+
+
+def _astronaut_create(args: argparse.Namespace) -> int:
+    try:
+        arr = astronaut(width=args.width, height=args.height)
+    except ValueError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 1
+
+    filename = _astronaut_filename(args.width, args.height, args.format)
     return _write_output(arr, args.output, filename)
 
 
@@ -208,6 +223,40 @@ def build_parser() -> argparse.ArgumentParser:
         help="Output image format (str), default: %(default)s.",
     )
     checkerboard_parser.set_defaults(func=_checkerboard_create)
+
+    astronaut_parser = subparsers.add_parser(
+        "astronaut",
+        help="Save a bundled real-world grayscale reference image as a TIFF image.",
+    )
+    astronaut_parser.add_argument(
+        "width",
+        type=int,
+        nargs="?",
+        default=512,
+        help="Image width in pixels (int), default: %(default)s.",
+    )
+    astronaut_parser.add_argument(
+        "height",
+        type=int,
+        nargs="?",
+        default=512,
+        help="Image height in pixels (int), default: %(default)s.",
+    )
+    astronaut_parser.add_argument(
+        "--output",
+        "-o",
+        type=Path,
+        default=None,
+        help="Output directory (path), default: current directory.",
+    )
+    astronaut_parser.add_argument(
+        "--format",
+        "-f",
+        choices=IMAGE_FORMATS,
+        default="tiff",
+        help="Output image format (str), default: %(default)s.",
+    )
+    astronaut_parser.set_defaults(func=_astronaut_create)
 
     return parser
 

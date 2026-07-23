@@ -1,11 +1,13 @@
 """Image I/O, grayscale conversion, combination, and inspection utilities."""
 
 import base64
+import importlib.resources
 from pathlib import Path
 
 import imageio.v3 as iio
 import numpy as np
 from matplotlib import pyplot as plt
+from scipy.ndimage import zoom
 
 
 def checkerboard(
@@ -41,6 +43,50 @@ def checkerboard(
     cols = (np.arange(width) * count_x // width) % 2
     pattern = np.logical_xor(rows[:, None], cols[None, :])
     return (pattern * 255).astype(np.uint8)
+
+
+def astronaut(width: int = 512, height: int = 512) -> np.ndarray:
+    """Load a bundled real-world grayscale reference image.
+
+    Same parameters and pixel values as the `dictk astronaut` CLI
+    command, minus the file write — see the `dictk` package docstring for
+    why the API layer stops at the array.
+
+    The source is a NASA portrait of astronaut Eileen Collins, from the
+    NASA Great Images database ("No known copyright restrictions, released
+    into the public domain."). It's bundled as a color image and converted
+    with `rgba_to_gray`; unlike `rosta` and `checkerboard`, it isn't
+    procedurally generated, so `width`/`height` other than the native
+    512x512 resize the source image (via `scipy.ndimage.zoom`) rather than
+    computing a fresh pattern at that size.
+
+    Args:
+        width: Image width in pixels. Must be >= 1.
+        height: Image height in pixels. Must be >= 1.
+
+    Returns:
+        A 2D uint8 array of shape (height, width).
+
+    Raises:
+        ValueError: If width or height is less than 1.
+    """
+    if width < 1:
+        raise ValueError(f"width {width} must be >= 1")
+    if height < 1:
+        raise ValueError(f"height {height} must be >= 1")
+
+    asset_path = importlib.resources.files("dictk") / "data" / "astronaut.png"
+    with importlib.resources.as_file(asset_path) as path:
+        color = read_image(path)
+    gray = rgba_to_gray(color)
+
+    native_height, native_width = gray.shape
+    if (width, height) == (native_width, native_height):
+        return gray
+
+    zoom_factors = (height / native_height, width / native_width)
+    resized = zoom(gray.astype(np.float64), zoom_factors, order=3)
+    return np.clip(resized, 0, 255).astype(np.uint8)
 
 
 def is_rgba(arr: np.ndarray) -> bool:

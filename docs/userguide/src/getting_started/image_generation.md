@@ -1,7 +1,7 @@
 # Image Generation
 
-> The source for the commands on this page is `dictk`'s own `rosta` and
-> `checkerboard` subcommands — see `dictk --help`.
+> The source for the commands on this page is `dictk`'s own `rosta`,
+> `checkerboard`, and `astronaut` subcommands — see `dictk --help`.
 
 > **Note:** the images embedded on this page are rendered as PNG
 > (`--format png`), not `dictk`'s default TIFF. Browsers don't natively
@@ -22,16 +22,16 @@
 > uncompressed format conventionally used for DIC and other
 > scientific-imaging workflows.
 
-> **CLI vs. API:** the Command Line Interface (CLI) on this page (`dictk rosta`,
-> `dictk checkerboard`) write an image file to disk — that's their whole
-> job. The corresponding Python functions, `dictk.rosta` and
-> `dictk.checkerboard`, take the same parameters but perform no file I/O:
-> they return a NumPy array only. That keeps the Python API composable in
-> a functional style — arrays can be piped through further functions
-> (e.g. `combine_images` below) before anything touches disk — and callers
-> who do want a file call `dictk.imaging.write_image` explicitly, as a
-> separate step. See each function's docstring (rendered in the API
-> reference) for details.
+> **CLI vs. API:** the Command Line Interface (CLI) subcommands on this page
+> (`dictk rosta`, `dictk checkerboard`, `dictk astronaut`) write an image
+> file to disk — that's their whole job. The corresponding Python
+> functions, `dictk.rosta`, `dictk.checkerboard`, and `dictk.astronaut`,
+> take the same parameters but perform no file I/O: they return a NumPy
+> array only. That keeps the Python API composable in a functional style —
+> arrays can be piped through further functions (e.g. `combine_images`
+> below) before anything touches disk — and callers who do want a file
+> call `dictk.imaging.write_image` explicitly, as a separate step. See
+> each function's docstring (rendered in the API reference) for details.
 
 ## Rosta
 
@@ -129,6 +129,58 @@ board = dictk.checkerboard(200, 200)
 
 ```text
 <!-- cmdrun python3 -c "import dictk; board = dictk.checkerboard(200, 200); print(f'shape={board.shape}, dtype={board.dtype}')" -->
+```
+
+## Astronaut
+
+Unlike `rosta` and `checkerboard`, which procedurally generate a fresh
+synthetic pattern from parameters, `astronaut` loads a bundled real-world
+photograph and converts it to grayscale — useful for exercising `dictk`'s
+imaging utilities against something other than a synthetic pattern. The
+source is a NASA portrait of astronaut Eileen Collins, from the NASA Great
+Images database ("No known copyright restrictions, released into the
+public domain."). Its native resolution is 512x512; passing `width`/
+`height` other than that resizes the source image rather than generating a
+new one at that size.
+
+The help text for `astronaut`:
+
+```sh
+dictk astronaut --help
+```
+
+returns
+
+```text
+<!-- cmdrun dictk astronaut --help -->
+```
+
+Save it at 200 by 200 pixels, matching the size of the other images on
+this page:
+
+```sh
+dictk astronaut 200 200 --format png -o .
+```
+
+```text
+<!-- cmdrun dictk astronaut 200 200 --format png -o . -->
+```
+
+<figure>
+    <img src="astronaut_200w_by_200h.png" alt="astronaut" />
+    <figcaption>NASA portrait of astronaut Eileen Collins, resized to 200x200 pixels.</figcaption>
+</figure>
+
+The Python equivalent, again returning an array with no file written:
+
+```python
+import dictk
+
+photo = dictk.astronaut(200, 200)
+```
+
+```text
+<!-- cmdrun python3 -c "import dictk; photo = dictk.astronaut(200, 200); print(f'shape={photo.shape}, dtype={photo.dtype}')" -->
 ```
 
 ## Combining into a reference image
