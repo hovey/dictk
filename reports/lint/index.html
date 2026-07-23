@@ -18,8 +18,6 @@ src/dictk/rosta.py:99:0: R0913: Too many arguments (6/5) (too-many-arguments)
 ************* Module dictk.cli
 src/dictk/cli.py:18:0: R0913: Too many arguments (6/5) (too-many-arguments)
 src/dictk/cli.py:18:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
-src/dictk/cli.py:85:0: C0116: Missing function or method docstring (missing-function-docstring)
-src/dictk/cli.py:201:0: C0116: Missing function or method docstring (missing-function-docstring)
 
 
 Report
@@ -38,7 +36,7 @@ Statistics by type
 +---------+-------+-----------+-----------+------------+---------+
 |method   |1      |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
-|function |18     |NC         |NC         |88.89       |0.00     |
+|function |18     |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
 
 
@@ -57,7 +55,7 @@ External dependencies
 
 
 
-618 lines have been analyzed
+620 lines have been analyzed
 
 Raw metrics
 -----------
@@ -65,13 +63,13 @@ Raw metrics
 +----------+-------+------+---------+-----------+
 |type      |number |%     |previous |difference |
 +==========+=======+======+=========+===========+
-|code      |307    |49.68 |NC       |NC         |
+|code      |307    |49.52 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|docstring |225    |36.41 |NC       |NC         |
+|docstring |227    |36.61 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|comment   |3      |0.49  |NC       |NC         |
+|comment   |3      |0.48  |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|empty     |83     |13.43 |NC       |NC         |
+|empty     |83     |13.39 |NC       |NC         |
 +----------+-------+------+---------+-----------+
 
 
@@ -95,7 +93,7 @@ Messages by category
 +-----------+-------+---------+-----------+
 |type       |number |previous |difference |
 +===========+=======+=========+===========+
-|convention |2      |NC       |NC         |
+|convention |0      |NC       |NC         |
 +-----------+-------+---------+-----------+
 |refactor   |3      |NC       |NC         |
 +-----------+-------+---------+-----------+
@@ -112,7 +110,7 @@ Messages by category
 +------------+------+--------+---------+-----------+
 |module      |error |warning |refactor |convention |
 +============+======+========+=========+===========+
-|dictk.cli   |0.00  |0.00    |66.67    |100.00     |
+|dictk.cli   |0.00  |0.00    |66.67    |0.00       |
 +------------+------+--------+---------+-----------+
 |dictk.rosta |0.00  |0.00    |33.33    |0.00       |
 +------------+------+--------+---------+-----------+
@@ -127,8 +125,6 @@ Messages
 +==============================+============+
 |too-many-arguments            |2           |
 +------------------------------+------------+
-|missing-function-docstring    |2           |
-+------------------------------+------------+
 |too-many-positional-arguments |1           |
 +------------------------------+------------+
 
@@ -136,7 +132,7 @@ Messages
 
 
 -----------------------------------
-Your code has been rated at 9.71/10
+Your code has been rated at 9.83/10
 </pre>
 </body>
 </html>
