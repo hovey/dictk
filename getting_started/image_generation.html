@@ -201,6 +201,18 @@ to 809 bytes here — roughly double the raw PNG for no rendering benefit.</p>
 uncompressed format conventionally used for DIC and other
 scientific-imaging workflows.</p>
 </blockquote>
+<blockquote>
+<p><strong>CLI vs. API:</strong> the subcommands on this page (<code>dictk rosta</code>,
+<code>dictk checkerboard</code>) write an image file to disk — that's their whole
+job. The corresponding Python functions, <code>dictk.rosta</code> and
+<code>dictk.checkerboard</code>, take the same parameters but perform no file I/O:
+they return a NumPy array only. That keeps the Python API composable in
+a functional style — arrays can be piped through further functions
+(e.g. <code>combine_images</code> below) before anything touches disk — and callers
+who do want a file call <code>dictk.imaging.write_image</code> explicitly, as a
+separate step. See each function's docstring (rendered in the API
+reference) for details.</p>
+</blockquote>
 <p>We create a synthetic example speckle pattern with the built-in <code>rosta</code>
 image generator. It implements the Rosta algorithm described by
 <a href="https://doi.org/10.1016/j.softx.2019.100391">Olufsen</a> (Olufsen SN,
@@ -249,6 +261,14 @@ options:
     alt="rosta speckle pattern" />
     <figcaption>Synthetic speckle pattern, 200x200 pixels.</figcaption>
 </figure>
+<p>The Python equivalent returns the same pixel data as a NumPy array, with no
+file written:</p>
+<pre><code class="language-python">import dictk
+
+pattern = dictk.rosta(200, 200, density=0.5)
+</code></pre>
+<pre><code class="language-text">shape=(200, 200), dtype=uint8
+</code></pre>
 <h2 id="checkerboard"><a class="header" href="#checkerboard">Checkerboard</a></h2>
 <p>To make it easier to manually identify discrete points in the speckle
 pattern, <code>dictk</code> can also generate a checkerboard test image:</p>
@@ -260,6 +280,13 @@ pattern, <code>dictk</code> can also generate a checkerboard test image:</p>
     <img src="checkerboard_200w_by_200h_8x8.png" alt="checkerboard" />
     <figcaption>Checkerboard test image, 200x200 pixels, 8x8 squares.</figcaption>
 </figure>
+<p>The Python equivalent, again returning an array with no file written:</p>
+<pre><code class="language-python">import dictk
+
+board = dictk.checkerboard(200, 200)
+</code></pre>
+<pre><code class="language-text">shape=(200, 200), dtype=uint8
+</code></pre>
 <h2 id="combining-into-a-reference-image"><a class="header" href="#combining-into-a-reference-image">Combining into a reference image</a></h2>
 <p>We combine the <code>rosta</code> speckle pattern with the checkerboard into a
 <strong>reference image</strong> <code>i0</code> by averaging their pixel values and normalizing

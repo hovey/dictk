@@ -246,6 +246,24 @@ uv run mdbook serve           # live preview at http://localhost:3000
 </code></pre>
 <p><code>uv run</code> puts dictk's own CLI on <code>PATH</code> for the build, since some
 <code>cmdrun</code> directives invoke <code>dictk</code> directly.</p>
+<h3 id="building-the-api-docs"><a class="header" href="#building-the-api-docs">Building the API docs</a></h3>
+<p>Python API reference docs (function signatures, docstrings) are generated
+from source with <a href="https://pdoc.dev/">pdoc</a>, a dev dependency:</p>
+<pre><code class="language-bash">uv run pdoc dictk dictk.core dictk.imaging dictk.cli -o docs/api
+</code></pre>
+<p><code>dictk.rosta</code> doesn't need to be listed explicitly — pdoc's submodule
+discovery respects a package's <code>__all__</code>, and <code>rosta</code> is exported there (see
+below), so it's picked up automatically. The other submodules (<code>core</code>,
+<code>imaging</code>, <code>cli</code>) aren't in <code>__all__</code> — <code>dictk/__init__.py</code> only lists the
+individual functions it re-exports, not module names — so pdoc's automatic
+package walk skips them unless named explicitly on the command line, per
+<a href="https://pdoc.dev/docs/pdoc.html#what-objects-are-documented">pdoc's <code>__all__</code> handling</a>. If you add a new top-level submodule, add it to this
+command too, or it will silently go undocumented.</p>
+<pre><code class="language-bash">uv run pdoc dictk dictk.core dictk.imaging dictk.cli   # live preview, serves on localhost
+</code></pre>
+<p>Output goes to <code>docs/api/</code> (gitignored, regenerated on demand). CI builds
+this too and publishes it alongside the mdBook user guide — see "CI/CD
+architecture" below.</p>
 <h3 id="before-pushing"><a class="header" href="#before-pushing">Before pushing</a></h3>
 <p>There's no <code>preflight</code> command yet (see rattlesnake-vibration-controller's
 <code>preflight.py</code> for an example of what that could grow into) — for now, run
@@ -254,6 +272,7 @@ the checks manually:</p>
 uv run ruff check
 uv run pytest --cov=src/dictk
 (cd docs/userguide &amp;&amp; uv run mdbook build)
+uv run pdoc dictk dictk.core dictk.imaging dictk.cli -o docs/api
 </code></pre>
 <p>These are exactly the checks the <code>test</code> and <code>docs</code> jobs run in CI.</p>
 <h2 id="cicd-architecture"><a class="header" href="#cicd-architecture">CI/CD architecture</a></h2>
@@ -266,8 +285,12 @@ a build artifact.</li>
 <li><strong><code>docs</code></strong> — runs only on pushes to <code>main</code>, after <code>test</code> passes. Installs
 the pinned <code>mdbook</code> 0.4.52 and <code>mdbook-cmdrun</code> (cached via
 <code>actions/cache</code>), builds the mdBook user guide with dictk's own CLI on
-<code>PATH</code>, and deploys it to the <code>gh-pages</code> branch (published via GitHub
-Pages).</li>
+<code>PATH</code>, builds the pdoc API reference, stages both into one directory (user
+guide at the root, API reference under <code>/api/</code>), and deploys the combined
+site to the <code>gh-pages</code> branch (published via GitHub Pages). Both are staged
+together because <code>peaceiris/actions-gh-pages</code> replaces the whole
+<code>publish_dir</code> on each deploy — publishing them separately would have the
+second deploy wipe out the first.</li>
 <li><strong><code>release</code></strong> — runs only on pushes to <code>main</code>, after <code>test</code> passes, and
 only if the pushed commit's message contains <code>[testpypi]</code> or <code>[pypi]</code>.
 Publishes the built package to TestPyPI or PyPI respectively. See
