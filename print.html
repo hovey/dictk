@@ -203,8 +203,8 @@ print(score)  # 1.0 -- correlated up to a brightness/contrast rescale
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="image-generation"><a class="header" href="#image-generation">Image Generation</a></h1>
 <blockquote>
-<p>The source for the commands on this page is <code>dictk</code>'s own <code>rosta</code> and
-<code>checkerboard</code> subcommands — see <code>dictk --help</code>.</p>
+<p>The source for the commands on this page is <code>dictk</code>'s own <code>rosta</code>,
+<code>checkerboard</code>, and <code>astronaut</code> subcommands — see <code>dictk --help</code>.</p>
 </blockquote>
 <blockquote>
 <p><strong>Note:</strong> the images embedded on this page are rendered as PNG
@@ -225,16 +225,16 @@ uncompressed format conventionally used for DIC and other
 scientific-imaging workflows.</p>
 </blockquote>
 <blockquote>
-<p><strong>CLI vs. API:</strong> the Command Line Interface (CLI) on this page (<code>dictk rosta</code>,
-<code>dictk checkerboard</code>) write an image file to disk — that's their whole
-job. The corresponding Python functions, <code>dictk.rosta</code> and
-<code>dictk.checkerboard</code>, take the same parameters but perform no file I/O:
-they return a NumPy array only. That keeps the Python API composable in
-a functional style — arrays can be piped through further functions
-(e.g. <code>combine_images</code> below) before anything touches disk — and callers
-who do want a file call <code>dictk.imaging.write_image</code> explicitly, as a
-separate step. See each function's docstring (rendered in the API
-reference) for details.</p>
+<p><strong>CLI vs. API:</strong> the Command Line Interface (CLI) subcommands on this page
+(<code>dictk rosta</code>, <code>dictk checkerboard</code>, <code>dictk astronaut</code>) write an image
+file to disk — that's their whole job. The corresponding Python
+functions, <code>dictk.rosta</code>, <code>dictk.checkerboard</code>, and <code>dictk.astronaut</code>,
+take the same parameters but perform no file I/O: they return a NumPy
+array only. That keeps the Python API composable in a functional style —
+arrays can be piped through further functions (e.g. <code>combine_images</code>
+below) before anything touches disk — and callers who do want a file
+call <code>dictk.imaging.write_image</code> explicitly, as a separate step. See
+each function's docstring (rendered in the API reference) for details.</p>
 </blockquote>
 <h2 id="rosta"><a class="header" href="#rosta">Rosta</a></h2>
 <p>We create a synthetic example speckle pattern with the built-in <code>rosta</code>
@@ -338,22 +338,72 @@ board = dictk.checkerboard(200, 200)
 </code></pre>
 <pre><code class="language-text">shape=(200, 200), dtype=uint8
 </code></pre>
+<h2 id="astronaut"><a class="header" href="#astronaut">Astronaut</a></h2>
+<p>Unlike <code>rosta</code> and <code>checkerboard</code>, which procedurally generate a fresh
+synthetic pattern from parameters, <code>astronaut</code> loads a bundled real-world
+photograph and converts it to grayscale — useful for exercising <code>dictk</code>'s
+imaging utilities against something other than a synthetic pattern. The
+source is a NASA portrait of astronaut Eileen Collins, from the NASA Great
+Images database ("No known copyright restrictions, released into the
+public domain."). Its native resolution is 512x512; passing <code>width</code>/
+<code>height</code> other than that resizes the source image rather than generating a
+new one at that size.</p>
+<p>The help text for <code>astronaut</code>:</p>
+<pre><code class="language-sh">dictk astronaut --help
+</code></pre>
+<p>returns</p>
+<pre><code class="language-text">usage: dictk astronaut [-h] [--output OUTPUT] [--format {tiff,png,jpg,svg}]
+                       [width] [height]
+
+positional arguments:
+  width                 Image width in pixels (int), default: 512.
+  height                Image height in pixels (int), default: 512.
+
+options:
+  -h, --help            show this help message and exit
+  --output OUTPUT, -o OUTPUT
+                        Output directory (path), default: current directory.
+  --format {tiff,png,jpg,svg}, -f {tiff,png,jpg,svg}
+                        Output image format (str), default: tiff.
+</code></pre>
+<p>Save it at 300 by 300 pixels — smaller downscales from the native 512x512
+start to lose too much detail:</p>
+<pre><code class="language-sh">dictk astronaut 300 300 --format png -o .
+</code></pre>
+<pre><code class="language-text">Saved image: astronaut_300w_by_300h.png
+</code></pre>
+<figure>
+    <img src="getting_started/astronaut_300w_by_300h.png" alt="astronaut" />
+    <figcaption>NASA portrait of astronaut Eileen Collins, resized to 300x300 pixels.</figcaption>
+</figure>
+<p>The Python equivalent, again returning an array with no file written:</p>
+<pre><code class="language-python">import dictk
+
+photo = dictk.astronaut(300, 300)
+</code></pre>
+<pre><code class="language-text">shape=(300, 300), dtype=uint8
+</code></pre>
 <h2 id="combining-into-a-reference-image"><a class="header" href="#combining-into-a-reference-image">Combining into a reference image</a></h2>
+<p><code>combine_images</code> works on any two grayscale images of the same shape, so
+it isn't limited to combining the two synthetic images below —
+<a href="getting_started/image_generation.html#speckle--astronaut">Speckle + Astronaut</a> further down combines <code>rosta</code>
+with a real photograph instead.</p>
+<h3 id="speckle--checkerboard"><a class="header" href="#speckle--checkerboard">Speckle + Checkerboard</a></h3>
 <p>We combine the <code>rosta</code> speckle pattern with the checkerboard into a
-<strong>reference image</strong> <code>i0</code> by averaging their pixel values and normalizing
-back to <code>uint8</code>:</p>
+<strong>reference image</strong> <code>checkerboard0</code> by averaging their pixel values and
+normalizing back to <code>uint8</code>:</p>
 <pre><code class="language-python">from dictk.imaging import combine_images, read_image, write_image
 
 speckle = read_image("rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
 checker = read_image("checkerboard_200w_by_200h_8x8.png")
-i0 = combine_images(speckle, checker)
-write_image(i0, "i0.png")
+checkerboard0 = combine_images(speckle, checker)
+write_image(checkerboard0, "checkerboard0.png")
 </code></pre>
-<pre><code class="language-text">Saved image: i0.png
+<pre><code class="language-text">Saved image: checkerboard0.png
 </code></pre>
 <figure>
-    <img src="getting_started/i0.png" alt="reference image i0" />
-    <figcaption>Reference image i0, 200x200 pixels.</figcaption>
+    <img src="getting_started/checkerboard0.png" alt="reference image checkerboard0" />
+    <figcaption>Reference image checkerboard0, 200x200 pixels.</figcaption>
 </figure>
 <p>Because both inputs are averaged and rescaled together, the checkerboard's
 squares stay clearly black or white while the speckle pattern shows up as
@@ -365,25 +415,50 @@ black stays black.</li>
 white stays white.</li>
 </ul>
 <p>That trimodal structure is visible in the pixel-intensity histograms below:
-speckle and checkerboard are both roughly bimodal (dark/light), while <code>i0</code>
-picks up a distinct middle hump from the black/white-speckle-on-opposite
-checkerboard combinations.</p>
+speckle and checkerboard are both roughly bimodal (dark/light), while
+<code>checkerboard0</code> picks up a distinct middle hump from the
+black/white-speckle-on-opposite checkerboard combinations.</p>
 <pre><code class="language-python">from dictk.imaging import read_image, save_histogram
 
 speckle = read_image("rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
 checker = read_image("checkerboard_200w_by_200h_8x8.png")
-i0 = read_image("i0.png")
+checkerboard0 = read_image("checkerboard0.png")
 
 save_histogram(speckle, "rosta_histogram.png")
 save_histogram(checker, "checkerboard_histogram.png")
-save_histogram(i0, "i0_histogram.png")
+save_histogram(checkerboard0, "checkerboard0_histogram.png")
 </code></pre>
-<pre><code class="language-text">Saved histograms: rosta_histogram.png, checkerboard_histogram.png, i0_histogram.png
+<pre><code class="language-text">Saved histograms: rosta_histogram.png, checkerboard_histogram.png, checkerboard0_histogram.png
 </code></pre>
-<div class="table-wrapper"><table><thead><tr><th>rosta</th><th>checkerboard</th><th>i0</th></tr></thead><tbody>
-<tr><td><img src="getting_started/rosta_histogram.png" alt="rosta histogram" /></td><td><img src="getting_started/checkerboard_histogram.png" alt="checkerboard histogram" /></td><td><img src="getting_started/i0_histogram.png" alt="i0 histogram" /></td></tr>
+<div class="table-wrapper"><table><thead><tr><th>rosta</th><th>checkerboard</th><th>checkerboard0</th></tr></thead><tbody>
+<tr><td><img src="getting_started/rosta_histogram.png" alt="rosta histogram" /></td><td><img src="getting_started/checkerboard_histogram.png" alt="checkerboard histogram" /></td><td><img src="getting_started/checkerboard0_histogram.png" alt="checkerboard0 histogram" /></td></tr>
 </tbody></table>
-</div><div style="break-before: page; page-break-before: always;"></div><h1 id="contributing-to-dictk"><a class="header" href="#contributing-to-dictk">Contributing to dictk</a></h1>
+</div>
+<h3 id="speckle--astronaut"><a class="header" href="#speckle--astronaut">Speckle + Astronaut</a></h3>
+<p>The checkerboard above is a stand-in for an actual specimen — in a real
+DIC setup, the speckle pattern is applied directly to the surface being
+measured, not swapped in from another generator. Combining <code>rosta</code> with
+the <code>astronaut</code> photo instead of the checkerboard is closer to that: a
+speckle pattern overlaid on a realistic, non-uniform grayscale image.</p>
+<p>This time the two source images are never written to disk at all — both
+<code>dictk.rosta</code> and <code>dictk.astronaut</code> return arrays directly, which
+<code>combine_images</code> accepts as-is, so only the combined result <code>astronaut0</code>
+is saved:</p>
+<pre><code class="language-python">import dictk
+from dictk.imaging import combine_images, write_image
+
+speckle = dictk.rosta(300, 300, density=0.5)
+photo = dictk.astronaut(300, 300)
+astronaut0 = combine_images(speckle, photo)
+write_image(astronaut0, "astronaut0.png")
+</code></pre>
+<pre><code class="language-text">Saved image: astronaut0.png
+</code></pre>
+<figure>
+    <img src="getting_started/astronaut0.png" alt="reference image astronaut0: rosta speckle over the astronaut photo" />
+    <figcaption>Reference image astronaut0: rosta speckle pattern combined with the astronaut photo, 300x300 pixels.</figcaption>
+</figure>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contributing-to-dictk"><a class="header" href="#contributing-to-dictk">Contributing to dictk</a></h1>
 <h2 id="getting-the-source-code"><a class="header" href="#getting-the-source-code">Getting the source code</a></h2>
 <pre><code class="language-bash">git clone git@github.com:hovey/dictk.git
 cd dictk

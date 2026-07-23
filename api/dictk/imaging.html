@@ -34,6 +34,9 @@
                     <a class="function" href="#checkerboard">checkerboard</a>
             </li>
             <li>
+                    <a class="function" href="#astronaut">astronaut</a>
+            </li>
+            <li>
                     <a class="function" href="#is_rgba">is_rgba</a>
             </li>
             <li>
@@ -83,210 +86,256 @@
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="sd">&quot;&quot;&quot;Image I/O, grayscale conversion, combination, and inspection utilities.&quot;&quot;&quot;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">base64</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">imageio.v3</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">iio</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a>
-</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="k">def</span><span class="w"> </span><span class="nf">checkerboard</span><span class="p">(</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">count_x</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span> <span class="n">count_y</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a black-and-white checkerboard test image.</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>
-</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="sd">    Same parameters and pixel values as the `dictk checkerboard` CLI</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="sd">    command, minus the file write — see the `dictk` package docstring for</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="sd">    why the API layer stops at the array. count_x and count_y are named for</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="sd">    the rectangles they divide the image into, not &quot;squares&quot;: unequal</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="sd">    counts (or a width/height ratio that doesn&#39;t match count_x/count_y)</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="sd">    produce rectangular cells, not square ones.</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>
-</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="sd">    Args:</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="sd">        width: Image width in pixels.</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="sd">        height: Image height in pixels.</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="sd">        count_x: Number of rectangles along the width. Must be &gt;= 1.</span>
-</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="sd">        count_y: Number of rectangles along the height. Must be &gt;= 1.</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a>
-</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a><span class="sd">    Returns:</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a><span class="sd">        A 2D uint8 array of shape (height, width) with values 0 or 255.</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a>
-</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a><span class="sd">    Raises:</span>
-</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a><span class="sd">        ValueError: If count_x or count_y is less than 1.</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a>    <span class="k">if</span> <span class="n">count_x</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;count_x </span><span class="si">{</span><span class="n">count_x</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a>    <span class="k">if</span> <span class="n">count_y</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;count_y </span><span class="si">{</span><span class="n">count_y</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
-</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a>
-</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a>    <span class="n">rows</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">height</span><span class="p">)</span> <span class="o">*</span> <span class="n">count_y</span> <span class="o">//</span> <span class="n">height</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>    <span class="n">cols</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">width</span><span class="p">)</span> <span class="o">*</span> <span class="n">count_x</span> <span class="o">//</span> <span class="n">width</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span>
-</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>    <span class="n">pattern</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_xor</span><span class="p">(</span><span class="n">rows</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">cols</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])</span>
-</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a>    <span class="k">return</span> <span class="p">(</span><span class="n">pattern</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a>
-</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>
-</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a><span class="k">def</span><span class="w"> </span><span class="nf">is_rgba</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Check whether an image array is in RGB or RGBA format.</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a>
-</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a><span class="sd">    Args:</span>
-</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a><span class="sd">        arr: Input image array.</span>
-</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a>
-</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="sd">    Returns:</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a><span class="sd">        True if the array is 3D with 3 or 4 channels, False otherwise.</span>
-</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>    <span class="k">return</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
-</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a>
-</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>
-</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="k">def</span><span class="w"> </span><span class="nf">rgba_to_gray</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert an RGB(A) image to grayscale by averaging the RGB channels.</span>
-</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>
-</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="sd">    Args:</span>
-</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a><span class="sd">        arr: Input image array, either 2D (grayscale) or 3D (color).</span>
-</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>
-</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a><span class="sd">    Returns:</span>
-</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a><span class="sd">        A 2D grayscale image array. If the input is already 2D, it is</span>
-</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a><span class="sd">        returned unchanged.</span>
-</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>
-</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="sd">    Raises:</span>
-</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a><span class="sd">        ValueError: If the array is neither 2D nor a 3-or-4-channel 3D array.</span>
-</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>    <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>        <span class="k">return</span> <span class="n">arr</span>
-</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>
-</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>    <span class="k">if</span> <span class="n">is_rgba</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
-</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">arr</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
-</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>
-</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>        <span class="s2">&quot;Input array must be either 2D (grayscale) or 3D with 3 or 4 channels (color).&quot;</span>
-</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>    <span class="p">)</span>
-</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>
-</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>
-</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="k">def</span><span class="w"> </span><span class="nf">combine_images</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Combine two images by averaging their pixel values.</span>
-</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>
-</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a><span class="sd">    Args:</span>
-</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a><span class="sd">        a: First image, 2D grayscale or 3D color.</span>
-</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a><span class="sd">        b: Second image, same shape as `a` once converted to grayscale.</span>
-</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>
-</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a><span class="sd">    Returns:</span>
-</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a><span class="sd">        A 2D uint8 array, normalized to the range [0, 255].</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">importlib.resources</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">imageio.v3</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">iio</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">scipy.ndimage</span><span class="w"> </span><span class="kn">import</span> <span class="n">zoom</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>
+</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="k">def</span><span class="w"> </span><span class="nf">checkerboard</span><span class="p">(</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">count_x</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span> <span class="n">count_y</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a black-and-white checkerboard test image.</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>
+</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="sd">    Same parameters and pixel values as the `dictk checkerboard` CLI</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="sd">    command, minus the file write — see the `dictk` package docstring for</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="sd">    why the API layer stops at the array. count_x and count_y are named for</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="sd">    the rectangles they divide the image into, not &quot;squares&quot;: unequal</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="sd">    counts (or a width/height ratio that doesn&#39;t match count_x/count_y)</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="sd">    produce rectangular cells, not square ones.</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>
+</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="sd">    Args:</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="sd">        width: Image width in pixels.</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="sd">        height: Image height in pixels.</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="sd">        count_x: Number of rectangles along the width. Must be &gt;= 1.</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a><span class="sd">        count_y: Number of rectangles along the height. Must be &gt;= 1.</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a>
+</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a><span class="sd">    Returns:</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a><span class="sd">        A 2D uint8 array of shape (height, width) with values 0 or 255.</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a>
+</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a><span class="sd">    Raises:</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a><span class="sd">        ValueError: If count_x or count_y is less than 1.</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a>    <span class="k">if</span> <span class="n">count_x</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;count_x </span><span class="si">{</span><span class="n">count_x</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a>    <span class="k">if</span> <span class="n">count_y</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;count_y </span><span class="si">{</span><span class="n">count_y</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>
+</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>    <span class="n">rows</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">height</span><span class="p">)</span> <span class="o">*</span> <span class="n">count_y</span> <span class="o">//</span> <span class="n">height</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a>    <span class="n">cols</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">width</span><span class="p">)</span> <span class="o">*</span> <span class="n">count_x</span> <span class="o">//</span> <span class="n">width</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a>    <span class="n">pattern</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_xor</span><span class="p">(</span><span class="n">rows</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">cols</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>    <span class="k">return</span> <span class="p">(</span><span class="n">pattern</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a>
+</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>
+</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a><span class="k">def</span><span class="w"> </span><span class="nf">astronaut</span><span class="p">(</span><span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Load a bundled real-world grayscale reference image.</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>
+</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a><span class="sd">    Same parameters and pixel values as the `dictk astronaut` CLI</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="sd">    command, minus the file write — see the `dictk` package docstring for</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a><span class="sd">    why the API layer stops at the array.</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>
+</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a><span class="sd">    The source is a NASA portrait of astronaut Eileen Collins, from the</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="sd">    NASA Great Images database (&quot;No known copyright restrictions, released</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="sd">    into the public domain.&quot;). It&#39;s bundled as a color image and converted</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="sd">    with `rgba_to_gray`; unlike `rosta` and `checkerboard`, it isn&#39;t</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a><span class="sd">    procedurally generated, so `width`/`height` other than the native</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a><span class="sd">    512x512 resize the source image (via `scipy.ndimage.zoom`) rather than</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="sd">    computing a fresh pattern at that size.</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>
+</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a><span class="sd">    Args:</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a><span class="sd">        width: Image width in pixels. Must be &gt;= 1.</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a><span class="sd">        height: Image height in pixels. Must be &gt;= 1.</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>
+</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a><span class="sd">    Returns:</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="sd">        A 2D uint8 array of shape (height, width).</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>
+</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a><span class="sd">    Raises:</span>
+</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a><span class="sd">        ValueError: If width or height is less than 1.</span>
+</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>    <span class="k">if</span> <span class="n">width</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;width </span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
+</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>    <span class="k">if</span> <span class="n">height</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;height </span><span class="si">{</span><span class="n">height</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
+</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>
+</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>    <span class="n">asset_path</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">resources</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="s2">&quot;dictk&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;data&quot;</span> <span class="o">/</span> <span class="s2">&quot;astronaut.png&quot;</span>
+</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>    <span class="k">with</span> <span class="n">importlib</span><span class="o">.</span><span class="n">resources</span><span class="o">.</span><span class="n">as_file</span><span class="p">(</span><span class="n">asset_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">path</span><span class="p">:</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>        <span class="n">color</span> <span class="o">=</span> <span class="n">read_image</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>    <span class="n">gray</span> <span class="o">=</span> <span class="n">rgba_to_gray</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>    <span class="n">native_height</span><span class="p">,</span> <span class="n">native_width</span> <span class="o">=</span> <span class="n">gray</span><span class="o">.</span><span class="n">shape</span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>    <span class="k">if</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">native_width</span><span class="p">,</span> <span class="n">native_height</span><span class="p">):</span>
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>        <span class="k">return</span> <span class="n">gray</span>
+</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>
+</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>    <span class="n">zoom_factors</span> <span class="o">=</span> <span class="p">(</span><span class="n">height</span> <span class="o">/</span> <span class="n">native_height</span><span class="p">,</span> <span class="n">width</span> <span class="o">/</span> <span class="n">native_width</span><span class="p">)</span>
+</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>    <span class="n">resized</span> <span class="o">=</span> <span class="n">zoom</span><span class="p">(</span><span class="n">gray</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="n">zoom_factors</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">resized</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>
 </span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>
-</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a><span class="sd">    Raises:</span>
-</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a><span class="sd">        ValueError: If the grayscale-converted images don&#39;t share a shape.</span>
-</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>    <span class="n">gray_a</span> <span class="o">=</span> <span class="n">rgba_to_gray</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>    <span class="n">gray_b</span> <span class="o">=</span> <span class="n">rgba_to_gray</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a><span class="k">def</span><span class="w"> </span><span class="nf">is_rgba</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Check whether an image array is in RGB or RGBA format.</span>
+</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>
+</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a><span class="sd">    Args:</span>
+</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a><span class="sd">        arr: Input image array.</span>
 </span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>
-</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>    <span class="k">if</span> <span class="n">gray_a</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">gray_b</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
-</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>            <span class="sa">f</span><span class="s2">&quot;shape mismatch: a.shape=</span><span class="si">{</span><span class="n">gray_a</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, b.shape=</span><span class="si">{</span><span class="n">gray_b</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>        <span class="p">)</span>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a><span class="sd">    Returns:</span>
+</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a><span class="sd">        True if the array is 3D with 3 or 4 channels, False otherwise.</span>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>    <span class="k">return</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
 </span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>
-</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>    <span class="n">combined</span> <span class="o">=</span> <span class="n">gray_a</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="o">+</span> <span class="n">gray_b</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>    <span class="k">return</span> <span class="p">(</span><span class="n">combined</span> <span class="o">/</span> <span class="n">combined</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
-</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a><span class="k">def</span><span class="w"> </span><span class="nf">rgba_to_gray</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert an RGB(A) image to grayscale by averaging the RGB channels.</span>
 </span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>
-</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a><span class="k">def</span><span class="w"> </span><span class="nf">read_image</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Read an image file into a NumPy array.</span>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a><span class="sd">    Args:</span>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a><span class="sd">        arr: Input image array, either 2D (grayscale) or 3D (color).</span>
 </span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>
-</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a><span class="sd">    Args:</span>
-</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a><span class="sd">        path: Path to the image file.</span>
-</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>
-</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a><span class="sd">    Returns:</span>
-</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a><span class="sd">        The image as a NumPy array.</span>
-</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>    <span class="k">return</span> <span class="n">iio</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>
-</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>
-</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a><span class="k">def</span><span class="w"> </span><span class="nf">write_svg</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Write a NumPy array to an SVG file.</span>
-</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>
-</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a><span class="sd">    SVG is a vector format with no native pixel-grid concept, so the array</span>
-</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a><span class="sd">    is PNG-encoded and embedded as a base64 data URI inside a minimal SVG</span>
-</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a><span class="sd">    wrapper (the standard way to carry raster data in SVG) rather than</span>
-</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a><span class="sd">    traced into vector shapes.</span>
+</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a><span class="sd">    Returns:</span>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a><span class="sd">        A 2D grayscale image array. If the input is already 2D, it is</span>
+</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a><span class="sd">        returned unchanged.</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a><span class="sd">    Raises:</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="sd">        ValueError: If the array is neither 2D nor a 3-or-4-channel 3D array.</span>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>    <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>        <span class="k">return</span> <span class="n">arr</span>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>
+</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>    <span class="k">if</span> <span class="n">is_rgba</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">arr</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>        <span class="s2">&quot;Input array must be either 2D (grayscale) or 3D with 3 or 4 channels (color).&quot;</span>
+</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>    <span class="p">)</span>
 </span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>
-</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a><span class="sd">    Args:</span>
-</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a><span class="sd">        arr: The image array to save.</span>
-</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a><span class="sd">        path: The output file path.</span>
-</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>    <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
-</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>    <span class="n">png_bytes</span> <span class="o">=</span> <span class="n">iio</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="s2">&quot;&lt;bytes&gt;&quot;</span><span class="p">,</span> <span class="n">arr</span><span class="p">,</span> <span class="n">extension</span><span class="o">=</span><span class="s2">&quot;.png&quot;</span><span class="p">)</span>
-</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>    <span class="n">encoded</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">png_bytes</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a><span class="k">def</span><span class="w"> </span><span class="nf">combine_images</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Combine two images by averaging their pixel values.</span>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>
+</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a><span class="sd">    Args:</span>
+</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a><span class="sd">        a: First image, 2D grayscale or 3D color.</span>
+</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a><span class="sd">        b: Second image, same shape as `a` once converted to grayscale.</span>
 </span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>
-</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>    <span class="n">svg</span> <span class="o">=</span> <span class="p">(</span>
-</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>        <span class="s1">&#39;&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span><span class="se">\n</span><span class="s1">&#39;</span>
-</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>        <span class="sa">f</span><span class="s1">&#39;&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; &#39;</span>
-</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>        <span class="sa">f</span><span class="s1">&#39;xmlns:xlink=&quot;http://www.w3.org/1999/xlink&quot; &#39;</span>
-</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>        <span class="sa">f</span><span class="s1">&#39;width=&quot;</span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s1">&quot; height=&quot;</span><span class="si">{</span><span class="n">height</span><span class="si">}</span><span class="s1">&quot; viewBox=&quot;0 0 </span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">height</span><span class="si">}</span><span class="s1">&quot;&gt;</span><span class="se">\n</span><span class="s1">&#39;</span>
-</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>        <span class="sa">f</span><span class="s1">&#39;  &lt;image width=&quot;</span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s1">&quot; height=&quot;</span><span class="si">{</span><span class="n">height</span><span class="si">}</span><span class="s1">&quot; &#39;</span>
-</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>        <span class="sa">f</span><span class="s1">&#39;xlink:href=&quot;data:image/png;base64,</span><span class="si">{</span><span class="n">encoded</span><span class="si">}</span><span class="s1">&quot;/&gt;</span><span class="se">\n</span><span class="s1">&#39;</span>
-</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>        <span class="s2">&quot;&lt;/svg&gt;</span><span class="se">\n</span><span class="s2">&quot;</span>
-</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>    <span class="p">)</span>
-</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>    <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">svg</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span>
-</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a>
-</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>
-</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a><span class="k">def</span><span class="w"> </span><span class="nf">write_image</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Write a NumPy array to an image file.</span>
-</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>
-</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a><span class="sd">    Dispatches on the file extension: `.svg` is handled by `write_svg`</span>
-</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a><span class="sd">    (embedding a raster PNG in an SVG wrapper); every other extension</span>
-</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a><span class="sd">    (`.tiff`, `.png`, `.jpg`, ...) is handled by imageio directly.</span>
-</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a>
-</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a><span class="sd">    Args:</span>
-</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a><span class="sd">        arr: The image array to save.</span>
-</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a><span class="sd">        path: The output file path.</span>
-</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>    <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;.svg&quot;</span><span class="p">:</span>
-</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>        <span class="n">write_svg</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
-</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a>        <span class="k">return</span>
-</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a>
-</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a>    <span class="n">iio</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">arr</span><span class="p">)</span>
+</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a><span class="sd">    Returns:</span>
+</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a><span class="sd">        A 2D uint8 array, normalized to the range [0, 255].</span>
+</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>
+</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a><span class="sd">    Raises:</span>
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a><span class="sd">        ValueError: If the grayscale-converted images don&#39;t share a shape.</span>
+</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>    <span class="n">gray_a</span> <span class="o">=</span> <span class="n">rgba_to_gray</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>    <span class="n">gray_b</span> <span class="o">=</span> <span class="n">rgba_to_gray</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>
+</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>    <span class="k">if</span> <span class="n">gray_a</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">gray_b</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>            <span class="sa">f</span><span class="s2">&quot;shape mismatch: a.shape=</span><span class="si">{</span><span class="n">gray_a</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, b.shape=</span><span class="si">{</span><span class="n">gray_b</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a>        <span class="p">)</span>
+</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>
+</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>    <span class="n">combined</span> <span class="o">=</span> <span class="n">gray_a</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="o">+</span> <span class="n">gray_b</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a>    <span class="k">return</span> <span class="p">(</span><span class="n">combined</span> <span class="o">/</span> <span class="n">combined</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>
+</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>
+</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a><span class="k">def</span><span class="w"> </span><span class="nf">read_image</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Read an image file into a NumPy array.</span>
+</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a>
+</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a><span class="sd">    Args:</span>
+</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a><span class="sd">        path: Path to the image file.</span>
+</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>
+</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a><span class="sd">    Returns:</span>
+</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a><span class="sd">        The image as a NumPy array.</span>
+</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a>    <span class="k">return</span> <span class="n">iio</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 </span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a>
 </span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a>
-</span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a><span class="k">def</span><span class="w"> </span><span class="nf">describe_image</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-</span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Format a description of an image array&#39;s type, shape, and color format.</span>
+</span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a><span class="k">def</span><span class="w"> </span><span class="nf">write_svg</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Write a NumPy array to an SVG file.</span>
 </span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a>
-</span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a><span class="sd">    Args:</span>
-</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a><span class="sd">        arr: The image array to describe.</span>
-</span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a>
-</span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a><span class="sd">    Returns:</span>
-</span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a><span class="sd">        A multi-line description string.</span>
-</span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a>    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
-</span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a>        <span class="sa">f</span><span class="s2">&quot;Type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-</span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a>        <span class="sa">f</span><span class="s2">&quot;Shape: </span><span class="si">{</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-</span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a>        <span class="sa">f</span><span class="s2">&quot;Dtype: </span><span class="si">{</span><span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-</span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a>    <span class="p">]</span>
-</span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a>
-</span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a>    <span class="k">match</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
-</span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a>        <span class="k">case</span> <span class="p">(</span><span class="n">_height</span><span class="p">,</span> <span class="n">_width</span><span class="p">):</span>
-</span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a>            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;The image is grayscale.&quot;</span><span class="p">)</span>
-</span><span id="L-183"><a href="#L-183"><span class="linenos">183</span></a>        <span class="k">case</span> <span class="p">(</span><span class="n">_height</span><span class="p">,</span> <span class="n">_width</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
-</span><span id="L-184"><a href="#L-184"><span class="linenos">184</span></a>            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;The image is color (RGB).&quot;</span><span class="p">)</span>
-</span><span id="L-185"><a href="#L-185"><span class="linenos">185</span></a>        <span class="k">case</span> <span class="p">(</span><span class="n">_height</span><span class="p">,</span> <span class="n">_width</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span>
-</span><span id="L-186"><a href="#L-186"><span class="linenos">186</span></a>            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;The image is color (RGBA, includes alpha channel).&quot;</span><span class="p">)</span>
-</span><span id="L-187"><a href="#L-187"><span class="linenos">187</span></a>        <span class="k">case</span><span class="w"> </span><span class="k">_</span><span class="p">:</span>
-</span><span id="L-188"><a href="#L-188"><span class="linenos">188</span></a>            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;The image has an unsupported format.&quot;</span><span class="p">)</span>
-</span><span id="L-189"><a href="#L-189"><span class="linenos">189</span></a>
-</span><span id="L-190"><a href="#L-190"><span class="linenos">190</span></a>    <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+</span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a><span class="sd">    SVG is a vector format with no native pixel-grid concept, so the array</span>
+</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a><span class="sd">    is PNG-encoded and embedded as a base64 data URI inside a minimal SVG</span>
+</span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a><span class="sd">    wrapper (the standard way to carry raster data in SVG) rather than</span>
+</span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a><span class="sd">    traced into vector shapes.</span>
+</span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a>
+</span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a><span class="sd">    Args:</span>
+</span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a><span class="sd">        arr: The image array to save.</span>
+</span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a><span class="sd">        path: The output file path.</span>
+</span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a>    <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+</span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a>    <span class="n">png_bytes</span> <span class="o">=</span> <span class="n">iio</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="s2">&quot;&lt;bytes&gt;&quot;</span><span class="p">,</span> <span class="n">arr</span><span class="p">,</span> <span class="n">extension</span><span class="o">=</span><span class="s2">&quot;.png&quot;</span><span class="p">)</span>
+</span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a>    <span class="n">encoded</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">png_bytes</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span>
+</span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a>
+</span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a>    <span class="n">svg</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a>        <span class="s1">&#39;&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span><span class="se">\n</span><span class="s1">&#39;</span>
+</span><span id="L-183"><a href="#L-183"><span class="linenos">183</span></a>        <span class="sa">f</span><span class="s1">&#39;&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; &#39;</span>
+</span><span id="L-184"><a href="#L-184"><span class="linenos">184</span></a>        <span class="sa">f</span><span class="s1">&#39;xmlns:xlink=&quot;http://www.w3.org/1999/xlink&quot; &#39;</span>
+</span><span id="L-185"><a href="#L-185"><span class="linenos">185</span></a>        <span class="sa">f</span><span class="s1">&#39;width=&quot;</span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s1">&quot; height=&quot;</span><span class="si">{</span><span class="n">height</span><span class="si">}</span><span class="s1">&quot; viewBox=&quot;0 0 </span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">height</span><span class="si">}</span><span class="s1">&quot;&gt;</span><span class="se">\n</span><span class="s1">&#39;</span>
+</span><span id="L-186"><a href="#L-186"><span class="linenos">186</span></a>        <span class="sa">f</span><span class="s1">&#39;  &lt;image width=&quot;</span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s1">&quot; height=&quot;</span><span class="si">{</span><span class="n">height</span><span class="si">}</span><span class="s1">&quot; &#39;</span>
+</span><span id="L-187"><a href="#L-187"><span class="linenos">187</span></a>        <span class="sa">f</span><span class="s1">&#39;xlink:href=&quot;data:image/png;base64,</span><span class="si">{</span><span class="n">encoded</span><span class="si">}</span><span class="s1">&quot;/&gt;</span><span class="se">\n</span><span class="s1">&#39;</span>
+</span><span id="L-188"><a href="#L-188"><span class="linenos">188</span></a>        <span class="s2">&quot;&lt;/svg&gt;</span><span class="se">\n</span><span class="s2">&quot;</span>
+</span><span id="L-189"><a href="#L-189"><span class="linenos">189</span></a>    <span class="p">)</span>
+</span><span id="L-190"><a href="#L-190"><span class="linenos">190</span></a>    <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">svg</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span>
 </span><span id="L-191"><a href="#L-191"><span class="linenos">191</span></a>
 </span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a>
-</span><span id="L-193"><a href="#L-193"><span class="linenos">193</span></a><span class="k">def</span><span class="w"> </span><span class="nf">save_histogram</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">dpi</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">300</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Save a histogram of pixel intensities [0, 255] for a grayscale image.</span>
+</span><span id="L-193"><a href="#L-193"><span class="linenos">193</span></a><span class="k">def</span><span class="w"> </span><span class="nf">write_image</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Write a NumPy array to an image file.</span>
 </span><span id="L-195"><a href="#L-195"><span class="linenos">195</span></a>
-</span><span id="L-196"><a href="#L-196"><span class="linenos">196</span></a><span class="sd">    Args:</span>
-</span><span id="L-197"><a href="#L-197"><span class="linenos">197</span></a><span class="sd">        arr: The 2D grayscale image array, expected type uint8, range [0, 255].</span>
-</span><span id="L-198"><a href="#L-198"><span class="linenos">198</span></a><span class="sd">        path: The output file path for the histogram image.</span>
-</span><span id="L-199"><a href="#L-199"><span class="linenos">199</span></a><span class="sd">        dpi: Resolution of the saved figure.</span>
-</span><span id="L-200"><a href="#L-200"><span class="linenos">200</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-201"><a href="#L-201"><span class="linenos">201</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
-</span><span id="L-202"><a href="#L-202"><span class="linenos">202</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">bins</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
-</span><span id="L-203"><a href="#L-203"><span class="linenos">203</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;pixel histogram intensity</span><span class="se">\n</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
-</span><span id="L-204"><a href="#L-204"><span class="linenos">204</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;pixel intensity (0-255)&quot;</span><span class="p">)</span>
-</span><span id="L-205"><a href="#L-205"><span class="linenos">205</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;frequency&quot;</span><span class="p">)</span>
-</span><span id="L-206"><a href="#L-206"><span class="linenos">206</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
-</span><span id="L-207"><a href="#L-207"><span class="linenos">207</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span id="L-196"><a href="#L-196"><span class="linenos">196</span></a><span class="sd">    Dispatches on the file extension: `.svg` is handled by `write_svg`</span>
+</span><span id="L-197"><a href="#L-197"><span class="linenos">197</span></a><span class="sd">    (embedding a raster PNG in an SVG wrapper); every other extension</span>
+</span><span id="L-198"><a href="#L-198"><span class="linenos">198</span></a><span class="sd">    (`.tiff`, `.png`, `.jpg`, ...) is handled by imageio directly.</span>
+</span><span id="L-199"><a href="#L-199"><span class="linenos">199</span></a>
+</span><span id="L-200"><a href="#L-200"><span class="linenos">200</span></a><span class="sd">    Args:</span>
+</span><span id="L-201"><a href="#L-201"><span class="linenos">201</span></a><span class="sd">        arr: The image array to save.</span>
+</span><span id="L-202"><a href="#L-202"><span class="linenos">202</span></a><span class="sd">        path: The output file path.</span>
+</span><span id="L-203"><a href="#L-203"><span class="linenos">203</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-204"><a href="#L-204"><span class="linenos">204</span></a>    <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;.svg&quot;</span><span class="p">:</span>
+</span><span id="L-205"><a href="#L-205"><span class="linenos">205</span></a>        <span class="n">write_svg</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+</span><span id="L-206"><a href="#L-206"><span class="linenos">206</span></a>        <span class="k">return</span>
+</span><span id="L-207"><a href="#L-207"><span class="linenos">207</span></a>
+</span><span id="L-208"><a href="#L-208"><span class="linenos">208</span></a>    <span class="n">iio</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">arr</span><span class="p">)</span>
+</span><span id="L-209"><a href="#L-209"><span class="linenos">209</span></a>
+</span><span id="L-210"><a href="#L-210"><span class="linenos">210</span></a>
+</span><span id="L-211"><a href="#L-211"><span class="linenos">211</span></a><span class="k">def</span><span class="w"> </span><span class="nf">describe_image</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="L-212"><a href="#L-212"><span class="linenos">212</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Format a description of an image array&#39;s type, shape, and color format.</span>
+</span><span id="L-213"><a href="#L-213"><span class="linenos">213</span></a>
+</span><span id="L-214"><a href="#L-214"><span class="linenos">214</span></a><span class="sd">    Args:</span>
+</span><span id="L-215"><a href="#L-215"><span class="linenos">215</span></a><span class="sd">        arr: The image array to describe.</span>
+</span><span id="L-216"><a href="#L-216"><span class="linenos">216</span></a>
+</span><span id="L-217"><a href="#L-217"><span class="linenos">217</span></a><span class="sd">    Returns:</span>
+</span><span id="L-218"><a href="#L-218"><span class="linenos">218</span></a><span class="sd">        A multi-line description string.</span>
+</span><span id="L-219"><a href="#L-219"><span class="linenos">219</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-220"><a href="#L-220"><span class="linenos">220</span></a>    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
+</span><span id="L-221"><a href="#L-221"><span class="linenos">221</span></a>        <span class="sa">f</span><span class="s2">&quot;Type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+</span><span id="L-222"><a href="#L-222"><span class="linenos">222</span></a>        <span class="sa">f</span><span class="s2">&quot;Shape: </span><span class="si">{</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+</span><span id="L-223"><a href="#L-223"><span class="linenos">223</span></a>        <span class="sa">f</span><span class="s2">&quot;Dtype: </span><span class="si">{</span><span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+</span><span id="L-224"><a href="#L-224"><span class="linenos">224</span></a>    <span class="p">]</span>
+</span><span id="L-225"><a href="#L-225"><span class="linenos">225</span></a>
+</span><span id="L-226"><a href="#L-226"><span class="linenos">226</span></a>    <span class="k">match</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+</span><span id="L-227"><a href="#L-227"><span class="linenos">227</span></a>        <span class="k">case</span> <span class="p">(</span><span class="n">_height</span><span class="p">,</span> <span class="n">_width</span><span class="p">):</span>
+</span><span id="L-228"><a href="#L-228"><span class="linenos">228</span></a>            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;The image is grayscale.&quot;</span><span class="p">)</span>
+</span><span id="L-229"><a href="#L-229"><span class="linenos">229</span></a>        <span class="k">case</span> <span class="p">(</span><span class="n">_height</span><span class="p">,</span> <span class="n">_width</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+</span><span id="L-230"><a href="#L-230"><span class="linenos">230</span></a>            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;The image is color (RGB).&quot;</span><span class="p">)</span>
+</span><span id="L-231"><a href="#L-231"><span class="linenos">231</span></a>        <span class="k">case</span> <span class="p">(</span><span class="n">_height</span><span class="p">,</span> <span class="n">_width</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span>
+</span><span id="L-232"><a href="#L-232"><span class="linenos">232</span></a>            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;The image is color (RGBA, includes alpha channel).&quot;</span><span class="p">)</span>
+</span><span id="L-233"><a href="#L-233"><span class="linenos">233</span></a>        <span class="k">case</span><span class="w"> </span><span class="k">_</span><span class="p">:</span>
+</span><span id="L-234"><a href="#L-234"><span class="linenos">234</span></a>            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;The image has an unsupported format.&quot;</span><span class="p">)</span>
+</span><span id="L-235"><a href="#L-235"><span class="linenos">235</span></a>
+</span><span id="L-236"><a href="#L-236"><span class="linenos">236</span></a>    <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+</span><span id="L-237"><a href="#L-237"><span class="linenos">237</span></a>
+</span><span id="L-238"><a href="#L-238"><span class="linenos">238</span></a>
+</span><span id="L-239"><a href="#L-239"><span class="linenos">239</span></a><span class="k">def</span><span class="w"> </span><span class="nf">save_histogram</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">dpi</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">300</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-240"><a href="#L-240"><span class="linenos">240</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Save a histogram of pixel intensities [0, 255] for a grayscale image.</span>
+</span><span id="L-241"><a href="#L-241"><span class="linenos">241</span></a>
+</span><span id="L-242"><a href="#L-242"><span class="linenos">242</span></a><span class="sd">    Args:</span>
+</span><span id="L-243"><a href="#L-243"><span class="linenos">243</span></a><span class="sd">        arr: The 2D grayscale image array, expected type uint8, range [0, 255].</span>
+</span><span id="L-244"><a href="#L-244"><span class="linenos">244</span></a><span class="sd">        path: The output file path for the histogram image.</span>
+</span><span id="L-245"><a href="#L-245"><span class="linenos">245</span></a><span class="sd">        dpi: Resolution of the saved figure.</span>
+</span><span id="L-246"><a href="#L-246"><span class="linenos">246</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-247"><a href="#L-247"><span class="linenos">247</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+</span><span id="L-248"><a href="#L-248"><span class="linenos">248</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">bins</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+</span><span id="L-249"><a href="#L-249"><span class="linenos">249</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;pixel histogram intensity</span><span class="se">\n</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+</span><span id="L-250"><a href="#L-250"><span class="linenos">250</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;pixel intensity (0-255)&quot;</span><span class="p">)</span>
+</span><span id="L-251"><a href="#L-251"><span class="linenos">251</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;frequency&quot;</span><span class="p">)</span>
+</span><span id="L-252"><a href="#L-252"><span class="linenos">252</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
+</span><span id="L-253"><a href="#L-253"><span class="linenos">253</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </span></pre></div>
 
 
@@ -302,39 +351,39 @@
 
     </div>
     <a class="headerlink" href="#checkerboard"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="checkerboard-12"><a href="#checkerboard-12"><span class="linenos">12</span></a><span class="k">def</span><span class="w"> </span><span class="nf">checkerboard</span><span class="p">(</span>
-</span><span id="checkerboard-13"><a href="#checkerboard-13"><span class="linenos">13</span></a>    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">count_x</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span> <span class="n">count_y</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span>
-</span><span id="checkerboard-14"><a href="#checkerboard-14"><span class="linenos">14</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-</span><span id="checkerboard-15"><a href="#checkerboard-15"><span class="linenos">15</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a black-and-white checkerboard test image.</span>
-</span><span id="checkerboard-16"><a href="#checkerboard-16"><span class="linenos">16</span></a>
-</span><span id="checkerboard-17"><a href="#checkerboard-17"><span class="linenos">17</span></a><span class="sd">    Same parameters and pixel values as the `dictk checkerboard` CLI</span>
-</span><span id="checkerboard-18"><a href="#checkerboard-18"><span class="linenos">18</span></a><span class="sd">    command, minus the file write — see the `dictk` package docstring for</span>
-</span><span id="checkerboard-19"><a href="#checkerboard-19"><span class="linenos">19</span></a><span class="sd">    why the API layer stops at the array. count_x and count_y are named for</span>
-</span><span id="checkerboard-20"><a href="#checkerboard-20"><span class="linenos">20</span></a><span class="sd">    the rectangles they divide the image into, not &quot;squares&quot;: unequal</span>
-</span><span id="checkerboard-21"><a href="#checkerboard-21"><span class="linenos">21</span></a><span class="sd">    counts (or a width/height ratio that doesn&#39;t match count_x/count_y)</span>
-</span><span id="checkerboard-22"><a href="#checkerboard-22"><span class="linenos">22</span></a><span class="sd">    produce rectangular cells, not square ones.</span>
-</span><span id="checkerboard-23"><a href="#checkerboard-23"><span class="linenos">23</span></a>
-</span><span id="checkerboard-24"><a href="#checkerboard-24"><span class="linenos">24</span></a><span class="sd">    Args:</span>
-</span><span id="checkerboard-25"><a href="#checkerboard-25"><span class="linenos">25</span></a><span class="sd">        width: Image width in pixels.</span>
-</span><span id="checkerboard-26"><a href="#checkerboard-26"><span class="linenos">26</span></a><span class="sd">        height: Image height in pixels.</span>
-</span><span id="checkerboard-27"><a href="#checkerboard-27"><span class="linenos">27</span></a><span class="sd">        count_x: Number of rectangles along the width. Must be &gt;= 1.</span>
-</span><span id="checkerboard-28"><a href="#checkerboard-28"><span class="linenos">28</span></a><span class="sd">        count_y: Number of rectangles along the height. Must be &gt;= 1.</span>
-</span><span id="checkerboard-29"><a href="#checkerboard-29"><span class="linenos">29</span></a>
-</span><span id="checkerboard-30"><a href="#checkerboard-30"><span class="linenos">30</span></a><span class="sd">    Returns:</span>
-</span><span id="checkerboard-31"><a href="#checkerboard-31"><span class="linenos">31</span></a><span class="sd">        A 2D uint8 array of shape (height, width) with values 0 or 255.</span>
-</span><span id="checkerboard-32"><a href="#checkerboard-32"><span class="linenos">32</span></a>
-</span><span id="checkerboard-33"><a href="#checkerboard-33"><span class="linenos">33</span></a><span class="sd">    Raises:</span>
-</span><span id="checkerboard-34"><a href="#checkerboard-34"><span class="linenos">34</span></a><span class="sd">        ValueError: If count_x or count_y is less than 1.</span>
-</span><span id="checkerboard-35"><a href="#checkerboard-35"><span class="linenos">35</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="checkerboard-36"><a href="#checkerboard-36"><span class="linenos">36</span></a>    <span class="k">if</span> <span class="n">count_x</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-</span><span id="checkerboard-37"><a href="#checkerboard-37"><span class="linenos">37</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;count_x </span><span class="si">{</span><span class="n">count_x</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
-</span><span id="checkerboard-38"><a href="#checkerboard-38"><span class="linenos">38</span></a>    <span class="k">if</span> <span class="n">count_y</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-</span><span id="checkerboard-39"><a href="#checkerboard-39"><span class="linenos">39</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;count_y </span><span class="si">{</span><span class="n">count_y</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
-</span><span id="checkerboard-40"><a href="#checkerboard-40"><span class="linenos">40</span></a>
-</span><span id="checkerboard-41"><a href="#checkerboard-41"><span class="linenos">41</span></a>    <span class="n">rows</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">height</span><span class="p">)</span> <span class="o">*</span> <span class="n">count_y</span> <span class="o">//</span> <span class="n">height</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span>
-</span><span id="checkerboard-42"><a href="#checkerboard-42"><span class="linenos">42</span></a>    <span class="n">cols</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">width</span><span class="p">)</span> <span class="o">*</span> <span class="n">count_x</span> <span class="o">//</span> <span class="n">width</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span>
-</span><span id="checkerboard-43"><a href="#checkerboard-43"><span class="linenos">43</span></a>    <span class="n">pattern</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_xor</span><span class="p">(</span><span class="n">rows</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">cols</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])</span>
-</span><span id="checkerboard-44"><a href="#checkerboard-44"><span class="linenos">44</span></a>    <span class="k">return</span> <span class="p">(</span><span class="n">pattern</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="checkerboard-14"><a href="#checkerboard-14"><span class="linenos">14</span></a><span class="k">def</span><span class="w"> </span><span class="nf">checkerboard</span><span class="p">(</span>
+</span><span id="checkerboard-15"><a href="#checkerboard-15"><span class="linenos">15</span></a>    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">count_x</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span> <span class="n">count_y</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span>
+</span><span id="checkerboard-16"><a href="#checkerboard-16"><span class="linenos">16</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="checkerboard-17"><a href="#checkerboard-17"><span class="linenos">17</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a black-and-white checkerboard test image.</span>
+</span><span id="checkerboard-18"><a href="#checkerboard-18"><span class="linenos">18</span></a>
+</span><span id="checkerboard-19"><a href="#checkerboard-19"><span class="linenos">19</span></a><span class="sd">    Same parameters and pixel values as the `dictk checkerboard` CLI</span>
+</span><span id="checkerboard-20"><a href="#checkerboard-20"><span class="linenos">20</span></a><span class="sd">    command, minus the file write — see the `dictk` package docstring for</span>
+</span><span id="checkerboard-21"><a href="#checkerboard-21"><span class="linenos">21</span></a><span class="sd">    why the API layer stops at the array. count_x and count_y are named for</span>
+</span><span id="checkerboard-22"><a href="#checkerboard-22"><span class="linenos">22</span></a><span class="sd">    the rectangles they divide the image into, not &quot;squares&quot;: unequal</span>
+</span><span id="checkerboard-23"><a href="#checkerboard-23"><span class="linenos">23</span></a><span class="sd">    counts (or a width/height ratio that doesn&#39;t match count_x/count_y)</span>
+</span><span id="checkerboard-24"><a href="#checkerboard-24"><span class="linenos">24</span></a><span class="sd">    produce rectangular cells, not square ones.</span>
+</span><span id="checkerboard-25"><a href="#checkerboard-25"><span class="linenos">25</span></a>
+</span><span id="checkerboard-26"><a href="#checkerboard-26"><span class="linenos">26</span></a><span class="sd">    Args:</span>
+</span><span id="checkerboard-27"><a href="#checkerboard-27"><span class="linenos">27</span></a><span class="sd">        width: Image width in pixels.</span>
+</span><span id="checkerboard-28"><a href="#checkerboard-28"><span class="linenos">28</span></a><span class="sd">        height: Image height in pixels.</span>
+</span><span id="checkerboard-29"><a href="#checkerboard-29"><span class="linenos">29</span></a><span class="sd">        count_x: Number of rectangles along the width. Must be &gt;= 1.</span>
+</span><span id="checkerboard-30"><a href="#checkerboard-30"><span class="linenos">30</span></a><span class="sd">        count_y: Number of rectangles along the height. Must be &gt;= 1.</span>
+</span><span id="checkerboard-31"><a href="#checkerboard-31"><span class="linenos">31</span></a>
+</span><span id="checkerboard-32"><a href="#checkerboard-32"><span class="linenos">32</span></a><span class="sd">    Returns:</span>
+</span><span id="checkerboard-33"><a href="#checkerboard-33"><span class="linenos">33</span></a><span class="sd">        A 2D uint8 array of shape (height, width) with values 0 or 255.</span>
+</span><span id="checkerboard-34"><a href="#checkerboard-34"><span class="linenos">34</span></a>
+</span><span id="checkerboard-35"><a href="#checkerboard-35"><span class="linenos">35</span></a><span class="sd">    Raises:</span>
+</span><span id="checkerboard-36"><a href="#checkerboard-36"><span class="linenos">36</span></a><span class="sd">        ValueError: If count_x or count_y is less than 1.</span>
+</span><span id="checkerboard-37"><a href="#checkerboard-37"><span class="linenos">37</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="checkerboard-38"><a href="#checkerboard-38"><span class="linenos">38</span></a>    <span class="k">if</span> <span class="n">count_x</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="checkerboard-39"><a href="#checkerboard-39"><span class="linenos">39</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;count_x </span><span class="si">{</span><span class="n">count_x</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
+</span><span id="checkerboard-40"><a href="#checkerboard-40"><span class="linenos">40</span></a>    <span class="k">if</span> <span class="n">count_y</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="checkerboard-41"><a href="#checkerboard-41"><span class="linenos">41</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;count_y </span><span class="si">{</span><span class="n">count_y</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
+</span><span id="checkerboard-42"><a href="#checkerboard-42"><span class="linenos">42</span></a>
+</span><span id="checkerboard-43"><a href="#checkerboard-43"><span class="linenos">43</span></a>    <span class="n">rows</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">height</span><span class="p">)</span> <span class="o">*</span> <span class="n">count_y</span> <span class="o">//</span> <span class="n">height</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span>
+</span><span id="checkerboard-44"><a href="#checkerboard-44"><span class="linenos">44</span></a>    <span class="n">cols</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">width</span><span class="p">)</span> <span class="o">*</span> <span class="n">count_x</span> <span class="o">//</span> <span class="n">width</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span>
+</span><span id="checkerboard-45"><a href="#checkerboard-45"><span class="linenos">45</span></a>    <span class="n">pattern</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_xor</span><span class="p">(</span><span class="n">rows</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">cols</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])</span>
+</span><span id="checkerboard-46"><a href="#checkerboard-46"><span class="linenos">46</span></a>    <span class="k">return</span> <span class="p">(</span><span class="n">pattern</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -362,6 +411,89 @@ produce rectangular cells, not square ones.</p>
 
 
                 </section>
+                <section id="astronaut">
+                            <input id="astronaut-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">astronaut</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span>, </span><span class="param"><span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span></span><span class="return-annotation">) -> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>:</span></span>
+
+                <label class="view-source-button" for="astronaut-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#astronaut"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="astronaut-49"><a href="#astronaut-49"><span class="linenos">49</span></a><span class="k">def</span><span class="w"> </span><span class="nf">astronaut</span><span class="p">(</span><span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="astronaut-50"><a href="#astronaut-50"><span class="linenos">50</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Load a bundled real-world grayscale reference image.</span>
+</span><span id="astronaut-51"><a href="#astronaut-51"><span class="linenos">51</span></a>
+</span><span id="astronaut-52"><a href="#astronaut-52"><span class="linenos">52</span></a><span class="sd">    Same parameters and pixel values as the `dictk astronaut` CLI</span>
+</span><span id="astronaut-53"><a href="#astronaut-53"><span class="linenos">53</span></a><span class="sd">    command, minus the file write — see the `dictk` package docstring for</span>
+</span><span id="astronaut-54"><a href="#astronaut-54"><span class="linenos">54</span></a><span class="sd">    why the API layer stops at the array.</span>
+</span><span id="astronaut-55"><a href="#astronaut-55"><span class="linenos">55</span></a>
+</span><span id="astronaut-56"><a href="#astronaut-56"><span class="linenos">56</span></a><span class="sd">    The source is a NASA portrait of astronaut Eileen Collins, from the</span>
+</span><span id="astronaut-57"><a href="#astronaut-57"><span class="linenos">57</span></a><span class="sd">    NASA Great Images database (&quot;No known copyright restrictions, released</span>
+</span><span id="astronaut-58"><a href="#astronaut-58"><span class="linenos">58</span></a><span class="sd">    into the public domain.&quot;). It&#39;s bundled as a color image and converted</span>
+</span><span id="astronaut-59"><a href="#astronaut-59"><span class="linenos">59</span></a><span class="sd">    with `rgba_to_gray`; unlike `rosta` and `checkerboard`, it isn&#39;t</span>
+</span><span id="astronaut-60"><a href="#astronaut-60"><span class="linenos">60</span></a><span class="sd">    procedurally generated, so `width`/`height` other than the native</span>
+</span><span id="astronaut-61"><a href="#astronaut-61"><span class="linenos">61</span></a><span class="sd">    512x512 resize the source image (via `scipy.ndimage.zoom`) rather than</span>
+</span><span id="astronaut-62"><a href="#astronaut-62"><span class="linenos">62</span></a><span class="sd">    computing a fresh pattern at that size.</span>
+</span><span id="astronaut-63"><a href="#astronaut-63"><span class="linenos">63</span></a>
+</span><span id="astronaut-64"><a href="#astronaut-64"><span class="linenos">64</span></a><span class="sd">    Args:</span>
+</span><span id="astronaut-65"><a href="#astronaut-65"><span class="linenos">65</span></a><span class="sd">        width: Image width in pixels. Must be &gt;= 1.</span>
+</span><span id="astronaut-66"><a href="#astronaut-66"><span class="linenos">66</span></a><span class="sd">        height: Image height in pixels. Must be &gt;= 1.</span>
+</span><span id="astronaut-67"><a href="#astronaut-67"><span class="linenos">67</span></a>
+</span><span id="astronaut-68"><a href="#astronaut-68"><span class="linenos">68</span></a><span class="sd">    Returns:</span>
+</span><span id="astronaut-69"><a href="#astronaut-69"><span class="linenos">69</span></a><span class="sd">        A 2D uint8 array of shape (height, width).</span>
+</span><span id="astronaut-70"><a href="#astronaut-70"><span class="linenos">70</span></a>
+</span><span id="astronaut-71"><a href="#astronaut-71"><span class="linenos">71</span></a><span class="sd">    Raises:</span>
+</span><span id="astronaut-72"><a href="#astronaut-72"><span class="linenos">72</span></a><span class="sd">        ValueError: If width or height is less than 1.</span>
+</span><span id="astronaut-73"><a href="#astronaut-73"><span class="linenos">73</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="astronaut-74"><a href="#astronaut-74"><span class="linenos">74</span></a>    <span class="k">if</span> <span class="n">width</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="astronaut-75"><a href="#astronaut-75"><span class="linenos">75</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;width </span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
+</span><span id="astronaut-76"><a href="#astronaut-76"><span class="linenos">76</span></a>    <span class="k">if</span> <span class="n">height</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="astronaut-77"><a href="#astronaut-77"><span class="linenos">77</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;height </span><span class="si">{</span><span class="n">height</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
+</span><span id="astronaut-78"><a href="#astronaut-78"><span class="linenos">78</span></a>
+</span><span id="astronaut-79"><a href="#astronaut-79"><span class="linenos">79</span></a>    <span class="n">asset_path</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">resources</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="s2">&quot;dictk&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;data&quot;</span> <span class="o">/</span> <span class="s2">&quot;astronaut.png&quot;</span>
+</span><span id="astronaut-80"><a href="#astronaut-80"><span class="linenos">80</span></a>    <span class="k">with</span> <span class="n">importlib</span><span class="o">.</span><span class="n">resources</span><span class="o">.</span><span class="n">as_file</span><span class="p">(</span><span class="n">asset_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">path</span><span class="p">:</span>
+</span><span id="astronaut-81"><a href="#astronaut-81"><span class="linenos">81</span></a>        <span class="n">color</span> <span class="o">=</span> <span class="n">read_image</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+</span><span id="astronaut-82"><a href="#astronaut-82"><span class="linenos">82</span></a>    <span class="n">gray</span> <span class="o">=</span> <span class="n">rgba_to_gray</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+</span><span id="astronaut-83"><a href="#astronaut-83"><span class="linenos">83</span></a>
+</span><span id="astronaut-84"><a href="#astronaut-84"><span class="linenos">84</span></a>    <span class="n">native_height</span><span class="p">,</span> <span class="n">native_width</span> <span class="o">=</span> <span class="n">gray</span><span class="o">.</span><span class="n">shape</span>
+</span><span id="astronaut-85"><a href="#astronaut-85"><span class="linenos">85</span></a>    <span class="k">if</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">native_width</span><span class="p">,</span> <span class="n">native_height</span><span class="p">):</span>
+</span><span id="astronaut-86"><a href="#astronaut-86"><span class="linenos">86</span></a>        <span class="k">return</span> <span class="n">gray</span>
+</span><span id="astronaut-87"><a href="#astronaut-87"><span class="linenos">87</span></a>
+</span><span id="astronaut-88"><a href="#astronaut-88"><span class="linenos">88</span></a>    <span class="n">zoom_factors</span> <span class="o">=</span> <span class="p">(</span><span class="n">height</span> <span class="o">/</span> <span class="n">native_height</span><span class="p">,</span> <span class="n">width</span> <span class="o">/</span> <span class="n">native_width</span><span class="p">)</span>
+</span><span id="astronaut-89"><a href="#astronaut-89"><span class="linenos">89</span></a>    <span class="n">resized</span> <span class="o">=</span> <span class="n">zoom</span><span class="p">(</span><span class="n">gray</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="n">zoom_factors</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</span><span id="astronaut-90"><a href="#astronaut-90"><span class="linenos">90</span></a>    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">resized</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Load a bundled real-world grayscale reference image.</p>
+
+<p>Same parameters and pixel values as the <code>dictk astronaut</code> CLI
+command, minus the file write — see the <code><a href="../dictk.html">dictk</a></code> package docstring for
+why the API layer stops at the array.</p>
+
+<p>The source is a NASA portrait of astronaut Eileen Collins, from the
+NASA Great Images database ("No known copyright restrictions, released
+into the public domain."). It's bundled as a color image and converted
+with <code><a href="#rgba_to_gray">rgba_to_gray</a></code>; unlike <code>rosta</code> and <code><a href="#checkerboard">checkerboard</a></code>, it isn't
+procedurally generated, so <code>width</code>/<code>height</code> other than the native
+512x512 resize the source image (via <code>scipy.ndimage.zoom</code>) rather than
+computing a fresh pattern at that size.</p>
+
+<p>Args:
+    width: Image width in pixels. Must be &gt;= 1.
+    height: Image height in pixels. Must be &gt;= 1.</p>
+
+<p>Returns:
+    A 2D uint8 array of shape (height, width).</p>
+
+<p>Raises:
+    ValueError: If width or height is less than 1.</p>
+</div>
+
+
+                </section>
                 <section id="is_rgba">
                             <input id="is_rgba-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
@@ -373,16 +505,16 @@ produce rectangular cells, not square ones.</p>
 
     </div>
     <a class="headerlink" href="#is_rgba"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="is_rgba-47"><a href="#is_rgba-47"><span class="linenos">47</span></a><span class="k">def</span><span class="w"> </span><span class="nf">is_rgba</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-</span><span id="is_rgba-48"><a href="#is_rgba-48"><span class="linenos">48</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Check whether an image array is in RGB or RGBA format.</span>
-</span><span id="is_rgba-49"><a href="#is_rgba-49"><span class="linenos">49</span></a>
-</span><span id="is_rgba-50"><a href="#is_rgba-50"><span class="linenos">50</span></a><span class="sd">    Args:</span>
-</span><span id="is_rgba-51"><a href="#is_rgba-51"><span class="linenos">51</span></a><span class="sd">        arr: Input image array.</span>
-</span><span id="is_rgba-52"><a href="#is_rgba-52"><span class="linenos">52</span></a>
-</span><span id="is_rgba-53"><a href="#is_rgba-53"><span class="linenos">53</span></a><span class="sd">    Returns:</span>
-</span><span id="is_rgba-54"><a href="#is_rgba-54"><span class="linenos">54</span></a><span class="sd">        True if the array is 3D with 3 or 4 channels, False otherwise.</span>
-</span><span id="is_rgba-55"><a href="#is_rgba-55"><span class="linenos">55</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="is_rgba-56"><a href="#is_rgba-56"><span class="linenos">56</span></a>    <span class="k">return</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="is_rgba-93"><a href="#is_rgba-93"><span class="linenos"> 93</span></a><span class="k">def</span><span class="w"> </span><span class="nf">is_rgba</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="is_rgba-94"><a href="#is_rgba-94"><span class="linenos"> 94</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Check whether an image array is in RGB or RGBA format.</span>
+</span><span id="is_rgba-95"><a href="#is_rgba-95"><span class="linenos"> 95</span></a>
+</span><span id="is_rgba-96"><a href="#is_rgba-96"><span class="linenos"> 96</span></a><span class="sd">    Args:</span>
+</span><span id="is_rgba-97"><a href="#is_rgba-97"><span class="linenos"> 97</span></a><span class="sd">        arr: Input image array.</span>
+</span><span id="is_rgba-98"><a href="#is_rgba-98"><span class="linenos"> 98</span></a>
+</span><span id="is_rgba-99"><a href="#is_rgba-99"><span class="linenos"> 99</span></a><span class="sd">    Returns:</span>
+</span><span id="is_rgba-100"><a href="#is_rgba-100"><span class="linenos">100</span></a><span class="sd">        True if the array is 3D with 3 or 4 channels, False otherwise.</span>
+</span><span id="is_rgba-101"><a href="#is_rgba-101"><span class="linenos">101</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="is_rgba-102"><a href="#is_rgba-102"><span class="linenos">102</span></a>    <span class="k">return</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -408,28 +540,28 @@ produce rectangular cells, not square ones.</p>
 
     </div>
     <a class="headerlink" href="#rgba_to_gray"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="rgba_to_gray-59"><a href="#rgba_to_gray-59"><span class="linenos">59</span></a><span class="k">def</span><span class="w"> </span><span class="nf">rgba_to_gray</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-</span><span id="rgba_to_gray-60"><a href="#rgba_to_gray-60"><span class="linenos">60</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert an RGB(A) image to grayscale by averaging the RGB channels.</span>
-</span><span id="rgba_to_gray-61"><a href="#rgba_to_gray-61"><span class="linenos">61</span></a>
-</span><span id="rgba_to_gray-62"><a href="#rgba_to_gray-62"><span class="linenos">62</span></a><span class="sd">    Args:</span>
-</span><span id="rgba_to_gray-63"><a href="#rgba_to_gray-63"><span class="linenos">63</span></a><span class="sd">        arr: Input image array, either 2D (grayscale) or 3D (color).</span>
-</span><span id="rgba_to_gray-64"><a href="#rgba_to_gray-64"><span class="linenos">64</span></a>
-</span><span id="rgba_to_gray-65"><a href="#rgba_to_gray-65"><span class="linenos">65</span></a><span class="sd">    Returns:</span>
-</span><span id="rgba_to_gray-66"><a href="#rgba_to_gray-66"><span class="linenos">66</span></a><span class="sd">        A 2D grayscale image array. If the input is already 2D, it is</span>
-</span><span id="rgba_to_gray-67"><a href="#rgba_to_gray-67"><span class="linenos">67</span></a><span class="sd">        returned unchanged.</span>
-</span><span id="rgba_to_gray-68"><a href="#rgba_to_gray-68"><span class="linenos">68</span></a>
-</span><span id="rgba_to_gray-69"><a href="#rgba_to_gray-69"><span class="linenos">69</span></a><span class="sd">    Raises:</span>
-</span><span id="rgba_to_gray-70"><a href="#rgba_to_gray-70"><span class="linenos">70</span></a><span class="sd">        ValueError: If the array is neither 2D nor a 3-or-4-channel 3D array.</span>
-</span><span id="rgba_to_gray-71"><a href="#rgba_to_gray-71"><span class="linenos">71</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="rgba_to_gray-72"><a href="#rgba_to_gray-72"><span class="linenos">72</span></a>    <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-</span><span id="rgba_to_gray-73"><a href="#rgba_to_gray-73"><span class="linenos">73</span></a>        <span class="k">return</span> <span class="n">arr</span>
-</span><span id="rgba_to_gray-74"><a href="#rgba_to_gray-74"><span class="linenos">74</span></a>
-</span><span id="rgba_to_gray-75"><a href="#rgba_to_gray-75"><span class="linenos">75</span></a>    <span class="k">if</span> <span class="n">is_rgba</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
-</span><span id="rgba_to_gray-76"><a href="#rgba_to_gray-76"><span class="linenos">76</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">arr</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
-</span><span id="rgba_to_gray-77"><a href="#rgba_to_gray-77"><span class="linenos">77</span></a>
-</span><span id="rgba_to_gray-78"><a href="#rgba_to_gray-78"><span class="linenos">78</span></a>    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span id="rgba_to_gray-79"><a href="#rgba_to_gray-79"><span class="linenos">79</span></a>        <span class="s2">&quot;Input array must be either 2D (grayscale) or 3D with 3 or 4 channels (color).&quot;</span>
-</span><span id="rgba_to_gray-80"><a href="#rgba_to_gray-80"><span class="linenos">80</span></a>    <span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="rgba_to_gray-105"><a href="#rgba_to_gray-105"><span class="linenos">105</span></a><span class="k">def</span><span class="w"> </span><span class="nf">rgba_to_gray</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="rgba_to_gray-106"><a href="#rgba_to_gray-106"><span class="linenos">106</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert an RGB(A) image to grayscale by averaging the RGB channels.</span>
+</span><span id="rgba_to_gray-107"><a href="#rgba_to_gray-107"><span class="linenos">107</span></a>
+</span><span id="rgba_to_gray-108"><a href="#rgba_to_gray-108"><span class="linenos">108</span></a><span class="sd">    Args:</span>
+</span><span id="rgba_to_gray-109"><a href="#rgba_to_gray-109"><span class="linenos">109</span></a><span class="sd">        arr: Input image array, either 2D (grayscale) or 3D (color).</span>
+</span><span id="rgba_to_gray-110"><a href="#rgba_to_gray-110"><span class="linenos">110</span></a>
+</span><span id="rgba_to_gray-111"><a href="#rgba_to_gray-111"><span class="linenos">111</span></a><span class="sd">    Returns:</span>
+</span><span id="rgba_to_gray-112"><a href="#rgba_to_gray-112"><span class="linenos">112</span></a><span class="sd">        A 2D grayscale image array. If the input is already 2D, it is</span>
+</span><span id="rgba_to_gray-113"><a href="#rgba_to_gray-113"><span class="linenos">113</span></a><span class="sd">        returned unchanged.</span>
+</span><span id="rgba_to_gray-114"><a href="#rgba_to_gray-114"><span class="linenos">114</span></a>
+</span><span id="rgba_to_gray-115"><a href="#rgba_to_gray-115"><span class="linenos">115</span></a><span class="sd">    Raises:</span>
+</span><span id="rgba_to_gray-116"><a href="#rgba_to_gray-116"><span class="linenos">116</span></a><span class="sd">        ValueError: If the array is neither 2D nor a 3-or-4-channel 3D array.</span>
+</span><span id="rgba_to_gray-117"><a href="#rgba_to_gray-117"><span class="linenos">117</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="rgba_to_gray-118"><a href="#rgba_to_gray-118"><span class="linenos">118</span></a>    <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+</span><span id="rgba_to_gray-119"><a href="#rgba_to_gray-119"><span class="linenos">119</span></a>        <span class="k">return</span> <span class="n">arr</span>
+</span><span id="rgba_to_gray-120"><a href="#rgba_to_gray-120"><span class="linenos">120</span></a>
+</span><span id="rgba_to_gray-121"><a href="#rgba_to_gray-121"><span class="linenos">121</span></a>    <span class="k">if</span> <span class="n">is_rgba</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+</span><span id="rgba_to_gray-122"><a href="#rgba_to_gray-122"><span class="linenos">122</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">arr</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+</span><span id="rgba_to_gray-123"><a href="#rgba_to_gray-123"><span class="linenos">123</span></a>
+</span><span id="rgba_to_gray-124"><a href="#rgba_to_gray-124"><span class="linenos">124</span></a>    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="rgba_to_gray-125"><a href="#rgba_to_gray-125"><span class="linenos">125</span></a>        <span class="s2">&quot;Input array must be either 2D (grayscale) or 3D with 3 or 4 channels (color).&quot;</span>
+</span><span id="rgba_to_gray-126"><a href="#rgba_to_gray-126"><span class="linenos">126</span></a>    <span class="p">)</span>
 </span></pre></div>
 
 
@@ -459,29 +591,29 @@ produce rectangular cells, not square ones.</p>
 
     </div>
     <a class="headerlink" href="#combine_images"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="combine_images-83"><a href="#combine_images-83"><span class="linenos"> 83</span></a><span class="k">def</span><span class="w"> </span><span class="nf">combine_images</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-</span><span id="combine_images-84"><a href="#combine_images-84"><span class="linenos"> 84</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Combine two images by averaging their pixel values.</span>
-</span><span id="combine_images-85"><a href="#combine_images-85"><span class="linenos"> 85</span></a>
-</span><span id="combine_images-86"><a href="#combine_images-86"><span class="linenos"> 86</span></a><span class="sd">    Args:</span>
-</span><span id="combine_images-87"><a href="#combine_images-87"><span class="linenos"> 87</span></a><span class="sd">        a: First image, 2D grayscale or 3D color.</span>
-</span><span id="combine_images-88"><a href="#combine_images-88"><span class="linenos"> 88</span></a><span class="sd">        b: Second image, same shape as `a` once converted to grayscale.</span>
-</span><span id="combine_images-89"><a href="#combine_images-89"><span class="linenos"> 89</span></a>
-</span><span id="combine_images-90"><a href="#combine_images-90"><span class="linenos"> 90</span></a><span class="sd">    Returns:</span>
-</span><span id="combine_images-91"><a href="#combine_images-91"><span class="linenos"> 91</span></a><span class="sd">        A 2D uint8 array, normalized to the range [0, 255].</span>
-</span><span id="combine_images-92"><a href="#combine_images-92"><span class="linenos"> 92</span></a>
-</span><span id="combine_images-93"><a href="#combine_images-93"><span class="linenos"> 93</span></a><span class="sd">    Raises:</span>
-</span><span id="combine_images-94"><a href="#combine_images-94"><span class="linenos"> 94</span></a><span class="sd">        ValueError: If the grayscale-converted images don&#39;t share a shape.</span>
-</span><span id="combine_images-95"><a href="#combine_images-95"><span class="linenos"> 95</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="combine_images-96"><a href="#combine_images-96"><span class="linenos"> 96</span></a>    <span class="n">gray_a</span> <span class="o">=</span> <span class="n">rgba_to_gray</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-</span><span id="combine_images-97"><a href="#combine_images-97"><span class="linenos"> 97</span></a>    <span class="n">gray_b</span> <span class="o">=</span> <span class="n">rgba_to_gray</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
-</span><span id="combine_images-98"><a href="#combine_images-98"><span class="linenos"> 98</span></a>
-</span><span id="combine_images-99"><a href="#combine_images-99"><span class="linenos"> 99</span></a>    <span class="k">if</span> <span class="n">gray_a</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">gray_b</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
-</span><span id="combine_images-100"><a href="#combine_images-100"><span class="linenos">100</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span id="combine_images-101"><a href="#combine_images-101"><span class="linenos">101</span></a>            <span class="sa">f</span><span class="s2">&quot;shape mismatch: a.shape=</span><span class="si">{</span><span class="n">gray_a</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, b.shape=</span><span class="si">{</span><span class="n">gray_b</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="combine_images-102"><a href="#combine_images-102"><span class="linenos">102</span></a>        <span class="p">)</span>
-</span><span id="combine_images-103"><a href="#combine_images-103"><span class="linenos">103</span></a>
-</span><span id="combine_images-104"><a href="#combine_images-104"><span class="linenos">104</span></a>    <span class="n">combined</span> <span class="o">=</span> <span class="n">gray_a</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="o">+</span> <span class="n">gray_b</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-</span><span id="combine_images-105"><a href="#combine_images-105"><span class="linenos">105</span></a>    <span class="k">return</span> <span class="p">(</span><span class="n">combined</span> <span class="o">/</span> <span class="n">combined</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="combine_images-129"><a href="#combine_images-129"><span class="linenos">129</span></a><span class="k">def</span><span class="w"> </span><span class="nf">combine_images</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="combine_images-130"><a href="#combine_images-130"><span class="linenos">130</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Combine two images by averaging their pixel values.</span>
+</span><span id="combine_images-131"><a href="#combine_images-131"><span class="linenos">131</span></a>
+</span><span id="combine_images-132"><a href="#combine_images-132"><span class="linenos">132</span></a><span class="sd">    Args:</span>
+</span><span id="combine_images-133"><a href="#combine_images-133"><span class="linenos">133</span></a><span class="sd">        a: First image, 2D grayscale or 3D color.</span>
+</span><span id="combine_images-134"><a href="#combine_images-134"><span class="linenos">134</span></a><span class="sd">        b: Second image, same shape as `a` once converted to grayscale.</span>
+</span><span id="combine_images-135"><a href="#combine_images-135"><span class="linenos">135</span></a>
+</span><span id="combine_images-136"><a href="#combine_images-136"><span class="linenos">136</span></a><span class="sd">    Returns:</span>
+</span><span id="combine_images-137"><a href="#combine_images-137"><span class="linenos">137</span></a><span class="sd">        A 2D uint8 array, normalized to the range [0, 255].</span>
+</span><span id="combine_images-138"><a href="#combine_images-138"><span class="linenos">138</span></a>
+</span><span id="combine_images-139"><a href="#combine_images-139"><span class="linenos">139</span></a><span class="sd">    Raises:</span>
+</span><span id="combine_images-140"><a href="#combine_images-140"><span class="linenos">140</span></a><span class="sd">        ValueError: If the grayscale-converted images don&#39;t share a shape.</span>
+</span><span id="combine_images-141"><a href="#combine_images-141"><span class="linenos">141</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="combine_images-142"><a href="#combine_images-142"><span class="linenos">142</span></a>    <span class="n">gray_a</span> <span class="o">=</span> <span class="n">rgba_to_gray</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+</span><span id="combine_images-143"><a href="#combine_images-143"><span class="linenos">143</span></a>    <span class="n">gray_b</span> <span class="o">=</span> <span class="n">rgba_to_gray</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+</span><span id="combine_images-144"><a href="#combine_images-144"><span class="linenos">144</span></a>
+</span><span id="combine_images-145"><a href="#combine_images-145"><span class="linenos">145</span></a>    <span class="k">if</span> <span class="n">gray_a</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">gray_b</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+</span><span id="combine_images-146"><a href="#combine_images-146"><span class="linenos">146</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="combine_images-147"><a href="#combine_images-147"><span class="linenos">147</span></a>            <span class="sa">f</span><span class="s2">&quot;shape mismatch: a.shape=</span><span class="si">{</span><span class="n">gray_a</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, b.shape=</span><span class="si">{</span><span class="n">gray_b</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="combine_images-148"><a href="#combine_images-148"><span class="linenos">148</span></a>        <span class="p">)</span>
+</span><span id="combine_images-149"><a href="#combine_images-149"><span class="linenos">149</span></a>
+</span><span id="combine_images-150"><a href="#combine_images-150"><span class="linenos">150</span></a>    <span class="n">combined</span> <span class="o">=</span> <span class="n">gray_a</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="o">+</span> <span class="n">gray_b</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+</span><span id="combine_images-151"><a href="#combine_images-151"><span class="linenos">151</span></a>    <span class="k">return</span> <span class="p">(</span><span class="n">combined</span> <span class="o">/</span> <span class="n">combined</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -511,16 +643,16 @@ produce rectangular cells, not square ones.</p>
 
     </div>
     <a class="headerlink" href="#read_image"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="read_image-108"><a href="#read_image-108"><span class="linenos">108</span></a><span class="k">def</span><span class="w"> </span><span class="nf">read_image</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-</span><span id="read_image-109"><a href="#read_image-109"><span class="linenos">109</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Read an image file into a NumPy array.</span>
-</span><span id="read_image-110"><a href="#read_image-110"><span class="linenos">110</span></a>
-</span><span id="read_image-111"><a href="#read_image-111"><span class="linenos">111</span></a><span class="sd">    Args:</span>
-</span><span id="read_image-112"><a href="#read_image-112"><span class="linenos">112</span></a><span class="sd">        path: Path to the image file.</span>
-</span><span id="read_image-113"><a href="#read_image-113"><span class="linenos">113</span></a>
-</span><span id="read_image-114"><a href="#read_image-114"><span class="linenos">114</span></a><span class="sd">    Returns:</span>
-</span><span id="read_image-115"><a href="#read_image-115"><span class="linenos">115</span></a><span class="sd">        The image as a NumPy array.</span>
-</span><span id="read_image-116"><a href="#read_image-116"><span class="linenos">116</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="read_image-117"><a href="#read_image-117"><span class="linenos">117</span></a>    <span class="k">return</span> <span class="n">iio</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="read_image-154"><a href="#read_image-154"><span class="linenos">154</span></a><span class="k">def</span><span class="w"> </span><span class="nf">read_image</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="read_image-155"><a href="#read_image-155"><span class="linenos">155</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Read an image file into a NumPy array.</span>
+</span><span id="read_image-156"><a href="#read_image-156"><span class="linenos">156</span></a>
+</span><span id="read_image-157"><a href="#read_image-157"><span class="linenos">157</span></a><span class="sd">    Args:</span>
+</span><span id="read_image-158"><a href="#read_image-158"><span class="linenos">158</span></a><span class="sd">        path: Path to the image file.</span>
+</span><span id="read_image-159"><a href="#read_image-159"><span class="linenos">159</span></a>
+</span><span id="read_image-160"><a href="#read_image-160"><span class="linenos">160</span></a><span class="sd">    Returns:</span>
+</span><span id="read_image-161"><a href="#read_image-161"><span class="linenos">161</span></a><span class="sd">        The image as a NumPy array.</span>
+</span><span id="read_image-162"><a href="#read_image-162"><span class="linenos">162</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="read_image-163"><a href="#read_image-163"><span class="linenos">163</span></a>    <span class="k">return</span> <span class="n">iio</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -546,32 +678,32 @@ produce rectangular cells, not square ones.</p>
 
     </div>
     <a class="headerlink" href="#write_svg"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="write_svg-120"><a href="#write_svg-120"><span class="linenos">120</span></a><span class="k">def</span><span class="w"> </span><span class="nf">write_svg</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="write_svg-121"><a href="#write_svg-121"><span class="linenos">121</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Write a NumPy array to an SVG file.</span>
-</span><span id="write_svg-122"><a href="#write_svg-122"><span class="linenos">122</span></a>
-</span><span id="write_svg-123"><a href="#write_svg-123"><span class="linenos">123</span></a><span class="sd">    SVG is a vector format with no native pixel-grid concept, so the array</span>
-</span><span id="write_svg-124"><a href="#write_svg-124"><span class="linenos">124</span></a><span class="sd">    is PNG-encoded and embedded as a base64 data URI inside a minimal SVG</span>
-</span><span id="write_svg-125"><a href="#write_svg-125"><span class="linenos">125</span></a><span class="sd">    wrapper (the standard way to carry raster data in SVG) rather than</span>
-</span><span id="write_svg-126"><a href="#write_svg-126"><span class="linenos">126</span></a><span class="sd">    traced into vector shapes.</span>
-</span><span id="write_svg-127"><a href="#write_svg-127"><span class="linenos">127</span></a>
-</span><span id="write_svg-128"><a href="#write_svg-128"><span class="linenos">128</span></a><span class="sd">    Args:</span>
-</span><span id="write_svg-129"><a href="#write_svg-129"><span class="linenos">129</span></a><span class="sd">        arr: The image array to save.</span>
-</span><span id="write_svg-130"><a href="#write_svg-130"><span class="linenos">130</span></a><span class="sd">        path: The output file path.</span>
-</span><span id="write_svg-131"><a href="#write_svg-131"><span class="linenos">131</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="write_svg-132"><a href="#write_svg-132"><span class="linenos">132</span></a>    <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
-</span><span id="write_svg-133"><a href="#write_svg-133"><span class="linenos">133</span></a>    <span class="n">png_bytes</span> <span class="o">=</span> <span class="n">iio</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="s2">&quot;&lt;bytes&gt;&quot;</span><span class="p">,</span> <span class="n">arr</span><span class="p">,</span> <span class="n">extension</span><span class="o">=</span><span class="s2">&quot;.png&quot;</span><span class="p">)</span>
-</span><span id="write_svg-134"><a href="#write_svg-134"><span class="linenos">134</span></a>    <span class="n">encoded</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">png_bytes</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span>
-</span><span id="write_svg-135"><a href="#write_svg-135"><span class="linenos">135</span></a>
-</span><span id="write_svg-136"><a href="#write_svg-136"><span class="linenos">136</span></a>    <span class="n">svg</span> <span class="o">=</span> <span class="p">(</span>
-</span><span id="write_svg-137"><a href="#write_svg-137"><span class="linenos">137</span></a>        <span class="s1">&#39;&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span><span class="se">\n</span><span class="s1">&#39;</span>
-</span><span id="write_svg-138"><a href="#write_svg-138"><span class="linenos">138</span></a>        <span class="sa">f</span><span class="s1">&#39;&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; &#39;</span>
-</span><span id="write_svg-139"><a href="#write_svg-139"><span class="linenos">139</span></a>        <span class="sa">f</span><span class="s1">&#39;xmlns:xlink=&quot;http://www.w3.org/1999/xlink&quot; &#39;</span>
-</span><span id="write_svg-140"><a href="#write_svg-140"><span class="linenos">140</span></a>        <span class="sa">f</span><span class="s1">&#39;width=&quot;</span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s1">&quot; height=&quot;</span><span class="si">{</span><span class="n">height</span><span class="si">}</span><span class="s1">&quot; viewBox=&quot;0 0 </span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">height</span><span class="si">}</span><span class="s1">&quot;&gt;</span><span class="se">\n</span><span class="s1">&#39;</span>
-</span><span id="write_svg-141"><a href="#write_svg-141"><span class="linenos">141</span></a>        <span class="sa">f</span><span class="s1">&#39;  &lt;image width=&quot;</span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s1">&quot; height=&quot;</span><span class="si">{</span><span class="n">height</span><span class="si">}</span><span class="s1">&quot; &#39;</span>
-</span><span id="write_svg-142"><a href="#write_svg-142"><span class="linenos">142</span></a>        <span class="sa">f</span><span class="s1">&#39;xlink:href=&quot;data:image/png;base64,</span><span class="si">{</span><span class="n">encoded</span><span class="si">}</span><span class="s1">&quot;/&gt;</span><span class="se">\n</span><span class="s1">&#39;</span>
-</span><span id="write_svg-143"><a href="#write_svg-143"><span class="linenos">143</span></a>        <span class="s2">&quot;&lt;/svg&gt;</span><span class="se">\n</span><span class="s2">&quot;</span>
-</span><span id="write_svg-144"><a href="#write_svg-144"><span class="linenos">144</span></a>    <span class="p">)</span>
-</span><span id="write_svg-145"><a href="#write_svg-145"><span class="linenos">145</span></a>    <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">svg</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="write_svg-166"><a href="#write_svg-166"><span class="linenos">166</span></a><span class="k">def</span><span class="w"> </span><span class="nf">write_svg</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="write_svg-167"><a href="#write_svg-167"><span class="linenos">167</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Write a NumPy array to an SVG file.</span>
+</span><span id="write_svg-168"><a href="#write_svg-168"><span class="linenos">168</span></a>
+</span><span id="write_svg-169"><a href="#write_svg-169"><span class="linenos">169</span></a><span class="sd">    SVG is a vector format with no native pixel-grid concept, so the array</span>
+</span><span id="write_svg-170"><a href="#write_svg-170"><span class="linenos">170</span></a><span class="sd">    is PNG-encoded and embedded as a base64 data URI inside a minimal SVG</span>
+</span><span id="write_svg-171"><a href="#write_svg-171"><span class="linenos">171</span></a><span class="sd">    wrapper (the standard way to carry raster data in SVG) rather than</span>
+</span><span id="write_svg-172"><a href="#write_svg-172"><span class="linenos">172</span></a><span class="sd">    traced into vector shapes.</span>
+</span><span id="write_svg-173"><a href="#write_svg-173"><span class="linenos">173</span></a>
+</span><span id="write_svg-174"><a href="#write_svg-174"><span class="linenos">174</span></a><span class="sd">    Args:</span>
+</span><span id="write_svg-175"><a href="#write_svg-175"><span class="linenos">175</span></a><span class="sd">        arr: The image array to save.</span>
+</span><span id="write_svg-176"><a href="#write_svg-176"><span class="linenos">176</span></a><span class="sd">        path: The output file path.</span>
+</span><span id="write_svg-177"><a href="#write_svg-177"><span class="linenos">177</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="write_svg-178"><a href="#write_svg-178"><span class="linenos">178</span></a>    <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+</span><span id="write_svg-179"><a href="#write_svg-179"><span class="linenos">179</span></a>    <span class="n">png_bytes</span> <span class="o">=</span> <span class="n">iio</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="s2">&quot;&lt;bytes&gt;&quot;</span><span class="p">,</span> <span class="n">arr</span><span class="p">,</span> <span class="n">extension</span><span class="o">=</span><span class="s2">&quot;.png&quot;</span><span class="p">)</span>
+</span><span id="write_svg-180"><a href="#write_svg-180"><span class="linenos">180</span></a>    <span class="n">encoded</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">png_bytes</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span>
+</span><span id="write_svg-181"><a href="#write_svg-181"><span class="linenos">181</span></a>
+</span><span id="write_svg-182"><a href="#write_svg-182"><span class="linenos">182</span></a>    <span class="n">svg</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="write_svg-183"><a href="#write_svg-183"><span class="linenos">183</span></a>        <span class="s1">&#39;&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span><span class="se">\n</span><span class="s1">&#39;</span>
+</span><span id="write_svg-184"><a href="#write_svg-184"><span class="linenos">184</span></a>        <span class="sa">f</span><span class="s1">&#39;&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; &#39;</span>
+</span><span id="write_svg-185"><a href="#write_svg-185"><span class="linenos">185</span></a>        <span class="sa">f</span><span class="s1">&#39;xmlns:xlink=&quot;http://www.w3.org/1999/xlink&quot; &#39;</span>
+</span><span id="write_svg-186"><a href="#write_svg-186"><span class="linenos">186</span></a>        <span class="sa">f</span><span class="s1">&#39;width=&quot;</span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s1">&quot; height=&quot;</span><span class="si">{</span><span class="n">height</span><span class="si">}</span><span class="s1">&quot; viewBox=&quot;0 0 </span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">height</span><span class="si">}</span><span class="s1">&quot;&gt;</span><span class="se">\n</span><span class="s1">&#39;</span>
+</span><span id="write_svg-187"><a href="#write_svg-187"><span class="linenos">187</span></a>        <span class="sa">f</span><span class="s1">&#39;  &lt;image width=&quot;</span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s1">&quot; height=&quot;</span><span class="si">{</span><span class="n">height</span><span class="si">}</span><span class="s1">&quot; &#39;</span>
+</span><span id="write_svg-188"><a href="#write_svg-188"><span class="linenos">188</span></a>        <span class="sa">f</span><span class="s1">&#39;xlink:href=&quot;data:image/png;base64,</span><span class="si">{</span><span class="n">encoded</span><span class="si">}</span><span class="s1">&quot;/&gt;</span><span class="se">\n</span><span class="s1">&#39;</span>
+</span><span id="write_svg-189"><a href="#write_svg-189"><span class="linenos">189</span></a>        <span class="s2">&quot;&lt;/svg&gt;</span><span class="se">\n</span><span class="s2">&quot;</span>
+</span><span id="write_svg-190"><a href="#write_svg-190"><span class="linenos">190</span></a>    <span class="p">)</span>
+</span><span id="write_svg-191"><a href="#write_svg-191"><span class="linenos">191</span></a>    <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">svg</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -600,22 +732,22 @@ traced into vector shapes.</p>
 
     </div>
     <a class="headerlink" href="#write_image"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="write_image-148"><a href="#write_image-148"><span class="linenos">148</span></a><span class="k">def</span><span class="w"> </span><span class="nf">write_image</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="write_image-149"><a href="#write_image-149"><span class="linenos">149</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Write a NumPy array to an image file.</span>
-</span><span id="write_image-150"><a href="#write_image-150"><span class="linenos">150</span></a>
-</span><span id="write_image-151"><a href="#write_image-151"><span class="linenos">151</span></a><span class="sd">    Dispatches on the file extension: `.svg` is handled by `write_svg`</span>
-</span><span id="write_image-152"><a href="#write_image-152"><span class="linenos">152</span></a><span class="sd">    (embedding a raster PNG in an SVG wrapper); every other extension</span>
-</span><span id="write_image-153"><a href="#write_image-153"><span class="linenos">153</span></a><span class="sd">    (`.tiff`, `.png`, `.jpg`, ...) is handled by imageio directly.</span>
-</span><span id="write_image-154"><a href="#write_image-154"><span class="linenos">154</span></a>
-</span><span id="write_image-155"><a href="#write_image-155"><span class="linenos">155</span></a><span class="sd">    Args:</span>
-</span><span id="write_image-156"><a href="#write_image-156"><span class="linenos">156</span></a><span class="sd">        arr: The image array to save.</span>
-</span><span id="write_image-157"><a href="#write_image-157"><span class="linenos">157</span></a><span class="sd">        path: The output file path.</span>
-</span><span id="write_image-158"><a href="#write_image-158"><span class="linenos">158</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="write_image-159"><a href="#write_image-159"><span class="linenos">159</span></a>    <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;.svg&quot;</span><span class="p">:</span>
-</span><span id="write_image-160"><a href="#write_image-160"><span class="linenos">160</span></a>        <span class="n">write_svg</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
-</span><span id="write_image-161"><a href="#write_image-161"><span class="linenos">161</span></a>        <span class="k">return</span>
-</span><span id="write_image-162"><a href="#write_image-162"><span class="linenos">162</span></a>
-</span><span id="write_image-163"><a href="#write_image-163"><span class="linenos">163</span></a>    <span class="n">iio</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">arr</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="write_image-194"><a href="#write_image-194"><span class="linenos">194</span></a><span class="k">def</span><span class="w"> </span><span class="nf">write_image</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="write_image-195"><a href="#write_image-195"><span class="linenos">195</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Write a NumPy array to an image file.</span>
+</span><span id="write_image-196"><a href="#write_image-196"><span class="linenos">196</span></a>
+</span><span id="write_image-197"><a href="#write_image-197"><span class="linenos">197</span></a><span class="sd">    Dispatches on the file extension: `.svg` is handled by `write_svg`</span>
+</span><span id="write_image-198"><a href="#write_image-198"><span class="linenos">198</span></a><span class="sd">    (embedding a raster PNG in an SVG wrapper); every other extension</span>
+</span><span id="write_image-199"><a href="#write_image-199"><span class="linenos">199</span></a><span class="sd">    (`.tiff`, `.png`, `.jpg`, ...) is handled by imageio directly.</span>
+</span><span id="write_image-200"><a href="#write_image-200"><span class="linenos">200</span></a>
+</span><span id="write_image-201"><a href="#write_image-201"><span class="linenos">201</span></a><span class="sd">    Args:</span>
+</span><span id="write_image-202"><a href="#write_image-202"><span class="linenos">202</span></a><span class="sd">        arr: The image array to save.</span>
+</span><span id="write_image-203"><a href="#write_image-203"><span class="linenos">203</span></a><span class="sd">        path: The output file path.</span>
+</span><span id="write_image-204"><a href="#write_image-204"><span class="linenos">204</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="write_image-205"><a href="#write_image-205"><span class="linenos">205</span></a>    <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;.svg&quot;</span><span class="p">:</span>
+</span><span id="write_image-206"><a href="#write_image-206"><span class="linenos">206</span></a>        <span class="n">write_svg</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+</span><span id="write_image-207"><a href="#write_image-207"><span class="linenos">207</span></a>        <span class="k">return</span>
+</span><span id="write_image-208"><a href="#write_image-208"><span class="linenos">208</span></a>
+</span><span id="write_image-209"><a href="#write_image-209"><span class="linenos">209</span></a>    <span class="n">iio</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">arr</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -643,32 +775,32 @@ traced into vector shapes.</p>
 
     </div>
     <a class="headerlink" href="#describe_image"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="describe_image-166"><a href="#describe_image-166"><span class="linenos">166</span></a><span class="k">def</span><span class="w"> </span><span class="nf">describe_image</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-</span><span id="describe_image-167"><a href="#describe_image-167"><span class="linenos">167</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Format a description of an image array&#39;s type, shape, and color format.</span>
-</span><span id="describe_image-168"><a href="#describe_image-168"><span class="linenos">168</span></a>
-</span><span id="describe_image-169"><a href="#describe_image-169"><span class="linenos">169</span></a><span class="sd">    Args:</span>
-</span><span id="describe_image-170"><a href="#describe_image-170"><span class="linenos">170</span></a><span class="sd">        arr: The image array to describe.</span>
-</span><span id="describe_image-171"><a href="#describe_image-171"><span class="linenos">171</span></a>
-</span><span id="describe_image-172"><a href="#describe_image-172"><span class="linenos">172</span></a><span class="sd">    Returns:</span>
-</span><span id="describe_image-173"><a href="#describe_image-173"><span class="linenos">173</span></a><span class="sd">        A multi-line description string.</span>
-</span><span id="describe_image-174"><a href="#describe_image-174"><span class="linenos">174</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="describe_image-175"><a href="#describe_image-175"><span class="linenos">175</span></a>    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
-</span><span id="describe_image-176"><a href="#describe_image-176"><span class="linenos">176</span></a>        <span class="sa">f</span><span class="s2">&quot;Type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-</span><span id="describe_image-177"><a href="#describe_image-177"><span class="linenos">177</span></a>        <span class="sa">f</span><span class="s2">&quot;Shape: </span><span class="si">{</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-</span><span id="describe_image-178"><a href="#describe_image-178"><span class="linenos">178</span></a>        <span class="sa">f</span><span class="s2">&quot;Dtype: </span><span class="si">{</span><span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-</span><span id="describe_image-179"><a href="#describe_image-179"><span class="linenos">179</span></a>    <span class="p">]</span>
-</span><span id="describe_image-180"><a href="#describe_image-180"><span class="linenos">180</span></a>
-</span><span id="describe_image-181"><a href="#describe_image-181"><span class="linenos">181</span></a>    <span class="k">match</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
-</span><span id="describe_image-182"><a href="#describe_image-182"><span class="linenos">182</span></a>        <span class="k">case</span> <span class="p">(</span><span class="n">_height</span><span class="p">,</span> <span class="n">_width</span><span class="p">):</span>
-</span><span id="describe_image-183"><a href="#describe_image-183"><span class="linenos">183</span></a>            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;The image is grayscale.&quot;</span><span class="p">)</span>
-</span><span id="describe_image-184"><a href="#describe_image-184"><span class="linenos">184</span></a>        <span class="k">case</span> <span class="p">(</span><span class="n">_height</span><span class="p">,</span> <span class="n">_width</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
-</span><span id="describe_image-185"><a href="#describe_image-185"><span class="linenos">185</span></a>            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;The image is color (RGB).&quot;</span><span class="p">)</span>
-</span><span id="describe_image-186"><a href="#describe_image-186"><span class="linenos">186</span></a>        <span class="k">case</span> <span class="p">(</span><span class="n">_height</span><span class="p">,</span> <span class="n">_width</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span>
-</span><span id="describe_image-187"><a href="#describe_image-187"><span class="linenos">187</span></a>            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;The image is color (RGBA, includes alpha channel).&quot;</span><span class="p">)</span>
-</span><span id="describe_image-188"><a href="#describe_image-188"><span class="linenos">188</span></a>        <span class="k">case</span><span class="w"> </span><span class="k">_</span><span class="p">:</span>
-</span><span id="describe_image-189"><a href="#describe_image-189"><span class="linenos">189</span></a>            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;The image has an unsupported format.&quot;</span><span class="p">)</span>
-</span><span id="describe_image-190"><a href="#describe_image-190"><span class="linenos">190</span></a>
-</span><span id="describe_image-191"><a href="#describe_image-191"><span class="linenos">191</span></a>    <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="describe_image-212"><a href="#describe_image-212"><span class="linenos">212</span></a><span class="k">def</span><span class="w"> </span><span class="nf">describe_image</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="describe_image-213"><a href="#describe_image-213"><span class="linenos">213</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Format a description of an image array&#39;s type, shape, and color format.</span>
+</span><span id="describe_image-214"><a href="#describe_image-214"><span class="linenos">214</span></a>
+</span><span id="describe_image-215"><a href="#describe_image-215"><span class="linenos">215</span></a><span class="sd">    Args:</span>
+</span><span id="describe_image-216"><a href="#describe_image-216"><span class="linenos">216</span></a><span class="sd">        arr: The image array to describe.</span>
+</span><span id="describe_image-217"><a href="#describe_image-217"><span class="linenos">217</span></a>
+</span><span id="describe_image-218"><a href="#describe_image-218"><span class="linenos">218</span></a><span class="sd">    Returns:</span>
+</span><span id="describe_image-219"><a href="#describe_image-219"><span class="linenos">219</span></a><span class="sd">        A multi-line description string.</span>
+</span><span id="describe_image-220"><a href="#describe_image-220"><span class="linenos">220</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="describe_image-221"><a href="#describe_image-221"><span class="linenos">221</span></a>    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
+</span><span id="describe_image-222"><a href="#describe_image-222"><span class="linenos">222</span></a>        <span class="sa">f</span><span class="s2">&quot;Type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+</span><span id="describe_image-223"><a href="#describe_image-223"><span class="linenos">223</span></a>        <span class="sa">f</span><span class="s2">&quot;Shape: </span><span class="si">{</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+</span><span id="describe_image-224"><a href="#describe_image-224"><span class="linenos">224</span></a>        <span class="sa">f</span><span class="s2">&quot;Dtype: </span><span class="si">{</span><span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+</span><span id="describe_image-225"><a href="#describe_image-225"><span class="linenos">225</span></a>    <span class="p">]</span>
+</span><span id="describe_image-226"><a href="#describe_image-226"><span class="linenos">226</span></a>
+</span><span id="describe_image-227"><a href="#describe_image-227"><span class="linenos">227</span></a>    <span class="k">match</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+</span><span id="describe_image-228"><a href="#describe_image-228"><span class="linenos">228</span></a>        <span class="k">case</span> <span class="p">(</span><span class="n">_height</span><span class="p">,</span> <span class="n">_width</span><span class="p">):</span>
+</span><span id="describe_image-229"><a href="#describe_image-229"><span class="linenos">229</span></a>            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;The image is grayscale.&quot;</span><span class="p">)</span>
+</span><span id="describe_image-230"><a href="#describe_image-230"><span class="linenos">230</span></a>        <span class="k">case</span> <span class="p">(</span><span class="n">_height</span><span class="p">,</span> <span class="n">_width</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+</span><span id="describe_image-231"><a href="#describe_image-231"><span class="linenos">231</span></a>            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;The image is color (RGB).&quot;</span><span class="p">)</span>
+</span><span id="describe_image-232"><a href="#describe_image-232"><span class="linenos">232</span></a>        <span class="k">case</span> <span class="p">(</span><span class="n">_height</span><span class="p">,</span> <span class="n">_width</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span>
+</span><span id="describe_image-233"><a href="#describe_image-233"><span class="linenos">233</span></a>            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;The image is color (RGBA, includes alpha channel).&quot;</span><span class="p">)</span>
+</span><span id="describe_image-234"><a href="#describe_image-234"><span class="linenos">234</span></a>        <span class="k">case</span><span class="w"> </span><span class="k">_</span><span class="p">:</span>
+</span><span id="describe_image-235"><a href="#describe_image-235"><span class="linenos">235</span></a>            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;The image has an unsupported format.&quot;</span><span class="p">)</span>
+</span><span id="describe_image-236"><a href="#describe_image-236"><span class="linenos">236</span></a>
+</span><span id="describe_image-237"><a href="#describe_image-237"><span class="linenos">237</span></a>    <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -694,21 +826,21 @@ traced into vector shapes.</p>
 
     </div>
     <a class="headerlink" href="#save_histogram"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="save_histogram-194"><a href="#save_histogram-194"><span class="linenos">194</span></a><span class="k">def</span><span class="w"> </span><span class="nf">save_histogram</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">dpi</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">300</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="save_histogram-195"><a href="#save_histogram-195"><span class="linenos">195</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Save a histogram of pixel intensities [0, 255] for a grayscale image.</span>
-</span><span id="save_histogram-196"><a href="#save_histogram-196"><span class="linenos">196</span></a>
-</span><span id="save_histogram-197"><a href="#save_histogram-197"><span class="linenos">197</span></a><span class="sd">    Args:</span>
-</span><span id="save_histogram-198"><a href="#save_histogram-198"><span class="linenos">198</span></a><span class="sd">        arr: The 2D grayscale image array, expected type uint8, range [0, 255].</span>
-</span><span id="save_histogram-199"><a href="#save_histogram-199"><span class="linenos">199</span></a><span class="sd">        path: The output file path for the histogram image.</span>
-</span><span id="save_histogram-200"><a href="#save_histogram-200"><span class="linenos">200</span></a><span class="sd">        dpi: Resolution of the saved figure.</span>
-</span><span id="save_histogram-201"><a href="#save_histogram-201"><span class="linenos">201</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="save_histogram-202"><a href="#save_histogram-202"><span class="linenos">202</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
-</span><span id="save_histogram-203"><a href="#save_histogram-203"><span class="linenos">203</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">bins</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
-</span><span id="save_histogram-204"><a href="#save_histogram-204"><span class="linenos">204</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;pixel histogram intensity</span><span class="se">\n</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
-</span><span id="save_histogram-205"><a href="#save_histogram-205"><span class="linenos">205</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;pixel intensity (0-255)&quot;</span><span class="p">)</span>
-</span><span id="save_histogram-206"><a href="#save_histogram-206"><span class="linenos">206</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;frequency&quot;</span><span class="p">)</span>
-</span><span id="save_histogram-207"><a href="#save_histogram-207"><span class="linenos">207</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
-</span><span id="save_histogram-208"><a href="#save_histogram-208"><span class="linenos">208</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="save_histogram-240"><a href="#save_histogram-240"><span class="linenos">240</span></a><span class="k">def</span><span class="w"> </span><span class="nf">save_histogram</span><span class="p">(</span><span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">dpi</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">300</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="save_histogram-241"><a href="#save_histogram-241"><span class="linenos">241</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Save a histogram of pixel intensities [0, 255] for a grayscale image.</span>
+</span><span id="save_histogram-242"><a href="#save_histogram-242"><span class="linenos">242</span></a>
+</span><span id="save_histogram-243"><a href="#save_histogram-243"><span class="linenos">243</span></a><span class="sd">    Args:</span>
+</span><span id="save_histogram-244"><a href="#save_histogram-244"><span class="linenos">244</span></a><span class="sd">        arr: The 2D grayscale image array, expected type uint8, range [0, 255].</span>
+</span><span id="save_histogram-245"><a href="#save_histogram-245"><span class="linenos">245</span></a><span class="sd">        path: The output file path for the histogram image.</span>
+</span><span id="save_histogram-246"><a href="#save_histogram-246"><span class="linenos">246</span></a><span class="sd">        dpi: Resolution of the saved figure.</span>
+</span><span id="save_histogram-247"><a href="#save_histogram-247"><span class="linenos">247</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="save_histogram-248"><a href="#save_histogram-248"><span class="linenos">248</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+</span><span id="save_histogram-249"><a href="#save_histogram-249"><span class="linenos">249</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">arr</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">bins</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="nb">range</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+</span><span id="save_histogram-250"><a href="#save_histogram-250"><span class="linenos">250</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;pixel histogram intensity</span><span class="se">\n</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+</span><span id="save_histogram-251"><a href="#save_histogram-251"><span class="linenos">251</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;pixel intensity (0-255)&quot;</span><span class="p">)</span>
+</span><span id="save_histogram-252"><a href="#save_histogram-252"><span class="linenos">252</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;frequency&quot;</span><span class="p">)</span>
+</span><span id="save_histogram-253"><a href="#save_histogram-253"><span class="linenos">253</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
+</span><span id="save_histogram-254"><a href="#save_histogram-254"><span class="linenos">254</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </span></pre></div>
 
 
