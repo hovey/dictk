@@ -16,13 +16,13 @@ produce this report and the README's pylint score badge. See
 <pre>************* Module dictk.rosta
 src/dictk/rosta.py:99:0: R0913: Too many arguments (6/5) (too-many-arguments)
 ************* Module dictk.cli
-src/dictk/cli.py:18:0: R0913: Too many arguments (6/5) (too-many-arguments)
-src/dictk/cli.py:18:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
+src/dictk/cli.py:20:0: R0913: Too many arguments (6/5) (too-many-arguments)
+src/dictk/cli.py:20:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
 
 
 Report
 ======
-174 statements analysed.
+178 statements analysed.
 
 Statistics by type
 ------------------
@@ -36,7 +36,7 @@ Statistics by type
 +---------+-------+-----------+-----------+------------+---------+
 |method   |1      |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
-|function |18     |NC         |NC         |100.00      |0.00     |
+|function |19     |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
 
 
@@ -49,13 +49,13 @@ External dependencies
       \-v3 (dictk.imaging)
     matplotlib 
       \-pyplot (dictk.imaging)
-    numpy (dictk.core,dictk.imaging,dictk.rosta)
+    numpy (dictk.cli,dictk.core,dictk.imaging,dictk.rosta)
     scipy 
       \-ndimage (dictk.rosta)
 
 
 
-620 lines have been analyzed
+627 lines have been analyzed
 
 Raw metrics
 -----------
@@ -63,13 +63,13 @@ Raw metrics
 +----------+-------+------+---------+-----------+
 |type      |number |%     |previous |difference |
 +==========+=======+======+=========+===========+
-|code      |307    |49.52 |NC       |NC         |
+|code      |311    |49.60 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|docstring |227    |36.61 |NC       |NC         |
+|docstring |227    |36.20 |NC       |NC         |
 +----------+-------+------+---------+-----------+
 |comment   |3      |0.48  |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|empty     |83     |13.39 |NC       |NC         |
+|empty     |86     |13.72 |NC       |NC         |
 +----------+-------+------+---------+-----------+
 
 
