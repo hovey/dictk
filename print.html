@@ -708,6 +708,35 @@ write_image(combined, "astronaut_complex_deform.png")
 <tr><td>factor_x=1.3, factor_y=0.8, angle=15°</td><td><img src="getting_started/astronaut_complex_deform.png" alt="composed deformation" /></td></tr>
 </tbody></table>
 </div>
+<h2 id="crack-dislocation"><a class="header" href="#crack-dislocation">Crack Dislocation</a></h2>
+<p>A vertical crack splits the image at x = width/2: the left half shifts
+down 8 pixels and the right half shifts up 8 pixels, producing a
+displacement field that jumps discontinuously across the crack line —
+unlike every other example on this page, which deforms smoothly.
+Standard DIC assumes smooth displacements and cannot capture this jump;
+cases like this motivate the Heaviside finite-element formulation.</p>
+<p>This is where a speckle pattern earns its keep: on a plain photograph,
+an 8-pixel jump is subtle, but overlaid with
+<a href="getting_started/../api/dictk.html#rosta"><code>dictk.rosta</code></a> it's immediately visible as a
+misaligned speckle field across the crack.</p>
+<pre><code class="language-python">import dictk
+from dictk.imaging import combine_images, crack_dislocation, write_image
+
+photo = dictk.astronaut(300, 300)
+speckle = dictk.rosta(300, 300, density=0.5)
+reference = combine_images(speckle, photo)
+write_image(reference, "astronaut_crack_original.png")
+
+cracked = crack_dislocation(reference, offset=8.0)
+write_image(cracked, "astronaut_crack_dislocation.png")
+</code></pre>
+<pre><code class="language-text">Saved: astronaut_crack_original.png, astronaut_crack_dislocation.png
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>Crack Dislocation</th><th>Image</th></tr></thead><tbody>
+<tr><td>Original (speckle + astronaut)</td><td><img src="getting_started/astronaut_crack_original.png" alt="original" /></td></tr>
+<tr><td>offset=8 pixels</td><td><img src="getting_started/astronaut_crack_dislocation.png" alt="crack dislocation" /></td></tr>
+</tbody></table>
+</div>
 <h2 id="references"><a class="header" href="#references">References</a></h2>
 <hr>
 <ol class="footnote-definition"><li id="footnote-Szeliski_2022">
