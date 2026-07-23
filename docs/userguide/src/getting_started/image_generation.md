@@ -155,20 +155,20 @@ returns
 <!-- cmdrun dictk astronaut --help -->
 ```
 
-Save it at 200 by 200 pixels, matching the size of the other images on
-this page:
+Save it at 300 by 300 pixels — smaller downscales from the native 512x512
+start to lose too much detail:
 
 ```sh
-dictk astronaut 200 200 --format png -o .
+dictk astronaut 300 300 --format png -o .
 ```
 
 ```text
-<!-- cmdrun dictk astronaut 200 200 --format png -o . -->
+<!-- cmdrun dictk astronaut 300 300 --format png -o . -->
 ```
 
 <figure>
-    <img src="astronaut_200w_by_200h.png" alt="astronaut" />
-    <figcaption>NASA portrait of astronaut Eileen Collins, resized to 200x200 pixels.</figcaption>
+    <img src="astronaut_300w_by_300h.png" alt="astronaut" />
+    <figcaption>NASA portrait of astronaut Eileen Collins, resized to 300x300 pixels.</figcaption>
 </figure>
 
 The Python equivalent, again returning an array with no file written:
@@ -176,14 +176,21 @@ The Python equivalent, again returning an array with no file written:
 ```python
 import dictk
 
-photo = dictk.astronaut(200, 200)
+photo = dictk.astronaut(300, 300)
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; photo = dictk.astronaut(200, 200); print(f'shape={photo.shape}, dtype={photo.dtype}')" -->
+<!-- cmdrun python3 -c "import dictk; photo = dictk.astronaut(300, 300); print(f'shape={photo.shape}, dtype={photo.dtype}')" -->
 ```
 
 ## Combining into a reference image
+
+`combine_images` works on any two grayscale images of the same shape, so
+it isn't limited to combining the two synthetic images below —
+[Speckle + Astronaut](#speckle--astronaut) further down combines `rosta`
+with a real photograph instead.
+
+### Speckle + Checkerboard
 
 We combine the `rosta` speckle pattern with the checkerboard into a
 **reference image** `i0` by averaging their pixel values and normalizing
@@ -240,3 +247,35 @@ save_histogram(i0, "i0_histogram.png")
 rosta | checkerboard | i0
 --- | --- | ---
 ![rosta histogram](rosta_histogram.png) | ![checkerboard histogram](checkerboard_histogram.png) | ![i0 histogram](i0_histogram.png)
+
+### Speckle + Astronaut
+
+The checkerboard above is a stand-in for an actual specimen — in a real
+DIC setup, the speckle pattern is applied directly to the surface being
+measured, not swapped in from another generator. Combining `rosta` with
+the `astronaut` photo instead of the checkerboard is closer to that: a
+speckle pattern overlaid on a realistic, non-uniform grayscale image.
+
+This time the two source images are never written to disk at all — both
+`dictk.rosta` and `dictk.astronaut` return arrays directly, which
+`combine_images` accepts as-is, so only the combined result `i1` is
+saved:
+
+```python
+import dictk
+from dictk.imaging import combine_images, write_image
+
+speckle = dictk.rosta(300, 300, density=0.5)
+photo = dictk.astronaut(300, 300)
+i1 = combine_images(speckle, photo)
+write_image(i1, "i1.png")
+```
+
+```text
+<!-- cmdrun python3 -c "import dictk; from dictk.imaging import combine_images, write_image; speckle = dictk.rosta(300, 300, density=0.5); photo = dictk.astronaut(300, 300); i1 = combine_images(speckle, photo); write_image(i1, 'i1.png'); print('Saved image: i1.png')" -->
+```
+
+<figure>
+    <img src="i1.png" alt="reference image i1: rosta speckle over the astronaut photo" />
+    <figcaption>Reference image i1: rosta speckle pattern combined with the astronaut photo, 300x300 pixels.</figcaption>
+</figure>
