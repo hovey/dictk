@@ -83,6 +83,7 @@ def _checkerboard_create(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Build the `dictk` argument parser, with one subparser per subcommand."""
     parser = argparse.ArgumentParser(
         prog="dictk", description="Digital Image Correlation Toolkit"
     )
@@ -199,6 +200,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Entry point for the `dictk` console script; returns the process exit code."""
     parser = build_parser()
     args = parser.parse_args(argv)
     return args.func(args)
