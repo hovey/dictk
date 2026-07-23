@@ -211,7 +211,7 @@ print(score)  # 1.0 -- correlated up to a brightness/contrast rescale
 (<code>--format png</code>), not <code>dictk</code>'s default TIFF. Browsers don't natively
 render TIFF in <code>&lt;img&gt;</code> tags, so a TIFF embedded here simply wouldn't
 display.</p>
-<p>Among the alternatives, PNG also wins on its own merits: it's
+<p>Among the alternatives, PNG also wins on its own merits: it is
 lossless, whereas JPG's compression tends to smear hard edges and
 speckle-pattern detail (for the 200x200 checkerboard on this page: TIFF
 40,256 bytes, JPG 6,760 bytes, PNG only 418 bytes — JPG is actually
@@ -225,7 +225,7 @@ uncompressed format conventionally used for DIC and other
 scientific-imaging workflows.</p>
 </blockquote>
 <blockquote>
-<p><strong>CLI vs. API:</strong> the subcommands on this page (<code>dictk rosta</code>,
+<p><strong>CLI vs. API:</strong> the Command Line Interface (CLI) on this page (<code>dictk rosta</code>,
 <code>dictk checkerboard</code>) write an image file to disk — that's their whole
 job. The corresponding Python functions, <code>dictk.rosta</code> and
 <code>dictk.checkerboard</code>, take the same parameters but perform no file I/O:
@@ -279,6 +279,7 @@ options:
 </code></pre>
 <pre><code class="language-text">Saved image: rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png
 </code></pre>
+<p>Note that the file name is automatically chosen based on the input parameters.</p>
 <p>The result:</p>
 <figure>
     <img src="getting_started/rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png"
@@ -295,7 +296,33 @@ pattern = dictk.rosta(200, 200, density=0.5)
 </code></pre>
 <h2 id="checkerboard"><a class="header" href="#checkerboard">Checkerboard</a></h2>
 <p>To make it easier to manually identify discrete points in the speckle
-pattern, <code>dictk</code> can also generate a checkerboard test image:</p>
+pattern, <code>dictk</code> can also generate a checkerboard test image.</p>
+<p>The help text for <code>checkerboard</code>:</p>
+<pre><code class="language-sh">dictk checkerboard --help
+</code></pre>
+<p>returns</p>
+<pre><code class="language-text">usage: dictk checkerboard [-h] [--count-x COUNT_X] [--count-y COUNT_Y]
+                          [--output OUTPUT] [--format {tiff,png,jpg,svg}]
+                          [width] [height]
+
+positional arguments:
+  width                 Image width in pixels (int), default: 200.
+  height                Image height in pixels (int), default: 200.
+
+options:
+  -h, --help            show this help message and exit
+  --count-x COUNT_X, -x COUNT_X
+                        Number of rectangles along the width (int), default:
+                        8.
+  --count-y COUNT_Y, -y COUNT_Y
+                        Number of rectangles along the height (int), default:
+                        8.
+  --output OUTPUT, -o OUTPUT
+                        Output directory (path), default: current directory.
+  --format {tiff,png,jpg,svg}, -f {tiff,png,jpg,svg}
+                        Output image format (str), default: tiff.
+</code></pre>
+<p>Create a synthetic image, 200 by 200 pixels:</p>
 <pre><code class="language-sh">dictk checkerboard 200 200 --format png -o .
 </code></pre>
 <pre><code class="language-text">Saved image: checkerboard_200w_by_200h_8x8.png
@@ -341,6 +368,16 @@ white stays white.</li>
 speckle and checkerboard are both roughly bimodal (dark/light), while <code>i0</code>
 picks up a distinct middle hump from the black/white-speckle-on-opposite
 checkerboard combinations.</p>
+<pre><code class="language-python">from dictk.imaging import read_image, save_histogram
+
+speckle = read_image("rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
+checker = read_image("checkerboard_200w_by_200h_8x8.png")
+i0 = read_image("i0.png")
+
+save_histogram(speckle, "rosta_histogram.png")
+save_histogram(checker, "checkerboard_histogram.png")
+save_histogram(i0, "i0_histogram.png")
+</code></pre>
 <pre><code class="language-text">Saved histograms: rosta_histogram.png, checkerboard_histogram.png, i0_histogram.png
 </code></pre>
 <div class="table-wrapper"><table><thead><tr><th>rosta</th><th>checkerboard</th><th>i0</th></tr></thead><tbody>
