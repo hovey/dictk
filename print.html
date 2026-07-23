@@ -461,7 +461,99 @@ write_image(astronaut0, "astronaut0.png")
 <p>Both <code>checkerboard0.png</code> and <code>astronaut0.png</code> are also bundled in
 <code>src/dictk/data/</code>, alongside the source <code>astronaut.png</code>, so later examples
 can reuse them without regenerating from scratch each time.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="contributing-to-dictk"><a class="header" href="#contributing-to-dictk">Contributing to dictk</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="image-processing"><a class="header" href="#image-processing">Image Processing</a></h1>
+<p>Certain preprocessing steps can make digital image correlation more robust
+to differences in brightness and contrast between a reference and deformed
+image. This page covers two of them, using the <a href="getting_started/./image_generation.html#astronaut">astronaut reference
+image</a> from the previous page as an
+example.</p>
+<h2 id="brightness"><a class="header" href="#brightness">Brightness</a></h2>
+<p><strong>Brightness</strong> shifts the entire pixel-intensity histogram up or down by a
+constant amount — the whole image gets lighter or darker together, dark
+areas included. Pushed too far, dark regions wash out to a flat gray and
+highlights clip at pure white (255), permanently losing detail.</p>
+<pre><code class="language-python">import dictk
+from dictk.imaging import brightness, save_histogram, write_image
+
+photo = dictk.astronaut(300, 300)
+write_image(photo, "astronaut_original.png")
+save_histogram(photo, "astronaut_original_histogram.png")
+
+bright_1_5 = brightness(photo, 1.5)
+write_image(bright_1_5, "astronaut_brightness_1.5.png")
+save_histogram(bright_1_5, "astronaut_brightness_1.5_histogram.png")
+
+bright_2_0 = brightness(photo, 2.0)
+write_image(bright_2_0, "astronaut_brightness_2.0.png")
+save_histogram(bright_2_0, "astronaut_brightness_2.0_histogram.png")
+</code></pre>
+<pre><code class="language-text">Saved: astronaut_original.png, astronaut_brightness_1.5.png, astronaut_brightness_2.0.png
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>factor=1.0 (original)</th><th>factor=1.5</th><th>factor=2.0</th></tr></thead><tbody>
+<tr><td><img src="getting_started/astronaut_original.png" alt="original" /></td><td><img src="getting_started/astronaut_brightness_1.5.png" alt="brightness 1.5" /></td><td><img src="getting_started/astronaut_brightness_2.0.png" alt="brightness 2.0" /></td></tr>
+</tbody></table>
+</div><div class="table-wrapper"><table><thead><tr><th>factor=1.0 (original)</th><th>factor=1.5</th><th>factor=2.0</th></tr></thead><tbody>
+<tr><td><img src="getting_started/astronaut_original_histogram.png" alt="original histogram" /></td><td><img src="getting_started/astronaut_brightness_1.5_histogram.png" alt="brightness 1.5 histogram" /></td><td><img src="getting_started/astronaut_brightness_2.0_histogram.png" alt="brightness 2.0 histogram" /></td></tr>
+</tbody></table>
+</div>
+<p>At factor=1.5 the histogram shifts right as a whole — midtones move into
+the brighter half and the mean climbs, with a few highlights starting to
+clip at 255. At factor=2.0 the shift is large enough that a big share of
+pixels pile up at that 255 ceiling, visible as a tall spike at the
+histogram's right edge: real detail that's been clipped away and can't be
+recovered.</p>
+<h2 id="contrast"><a class="header" href="#contrast">Contrast</a></h2>
+<p><strong>Contrast</strong> is the spread between an image's darkest and lightest pixels.
+Increasing contrast stretches the histogram outward from its own mean —
+darks get darker, lights get lighter — while the mean itself stays roughly
+where it was.</p>
+<pre><code class="language-python">import dictk
+from dictk.imaging import contrast, save_histogram, write_image
+
+photo = dictk.astronaut(300, 300)
+
+contrast_1_5 = contrast(photo, 1.5)
+write_image(contrast_1_5, "astronaut_contrast_1.5.png")
+save_histogram(contrast_1_5, "astronaut_contrast_1.5_histogram.png")
+
+contrast_2_0 = contrast(photo, 2.0)
+write_image(contrast_2_0, "astronaut_contrast_2.0.png")
+save_histogram(contrast_2_0, "astronaut_contrast_2.0_histogram.png")
+</code></pre>
+<pre><code class="language-text">Saved: astronaut_contrast_1.5.png, astronaut_contrast_2.0.png
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>factor=1.0 (original)</th><th>factor=1.5</th><th>factor=2.0</th></tr></thead><tbody>
+<tr><td><img src="getting_started/astronaut_original.png" alt="original" /></td><td><img src="getting_started/astronaut_contrast_1.5.png" alt="contrast 1.5" /></td><td><img src="getting_started/astronaut_contrast_2.0.png" alt="contrast 2.0" /></td></tr>
+</tbody></table>
+</div><div class="table-wrapper"><table><thead><tr><th>factor=1.0 (original)</th><th>factor=1.5</th><th>factor=2.0</th></tr></thead><tbody>
+<tr><td><img src="getting_started/astronaut_original_histogram.png" alt="original histogram" /></td><td><img src="getting_started/astronaut_contrast_1.5_histogram.png" alt="contrast 1.5 histogram" /></td><td><img src="getting_started/astronaut_contrast_2.0_histogram.png" alt="contrast 2.0 histogram" /></td></tr>
+</tbody></table>
+</div>
+<p>At factor=1.5 the histogram spreads outward from the mean rather than
+shifting — the astronaut's silhouette and helmet edges get sharper, while
+the mean barely moves. At factor=2.0 the spread is wide enough that more
+pixels pile up at both the 0 and 255 ends, crushing fine midtone detail
+even as high-contrast edges sharpen further.</p>
+<blockquote>
+<p><strong>Key Insight:</strong> Contrast stretches the histogram, while brightness
+translates it.</p>
+</blockquote>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="image-transformation"><a class="header" href="#image-transformation">Image Transformation</a></h1>
+<p>Image deformations, also called <em>transformations</em> in the computer vision
+literature (see Szeliski<sup class="footnote-reference" id="fr-Szeliski_2022-1"><a href="#footnote-Szeliski_2022">1</a></sup>), fall into the categories shown
+below:</p>
+<figure>
+    <img src="getting_started/2d-planar-transformations.jpg" alt="2d-planar-transformations" />
+    <figcaption>
+        Figure: Categories of 2D planar transformations from Szeliski.
+    </figcaption>
+</figure>
+<h2 id="references"><a class="header" href="#references">References</a></h2>
+<hr>
+<ol class="footnote-definition"><li id="footnote-Szeliski_2022">
+<p>Szeliski R. Computer vision: algorithms and applications, 2nd Edition, Springer Nature; 2022 Jan 3. <a href="https://1drv.ms/b/c/3cc1bee5e2795295/IQBSP0s8pYRBRJArjzAAx3PbAcZ0PUh149lv7Z85uiBp-ms?e=FUynzc">download</a> (43 MB) <a href="#fr-Szeliski_2022-1">↩</a></p>
+</li>
+</ol><div style="break-before: page; page-break-before: always;"></div><h1 id="contributing-to-dictk"><a class="header" href="#contributing-to-dictk">Contributing to dictk</a></h1>
 <h2 id="getting-the-source-code"><a class="header" href="#getting-the-source-code">Getting the source code</a></h2>
 <pre><code class="language-bash">git clone git@github.com:hovey/dictk.git
 cd dictk
