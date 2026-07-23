@@ -169,6 +169,18 @@ speckle and checkerboard are both roughly bimodal (dark/light), while `i0`
 picks up a distinct middle hump from the black/white-speckle-on-opposite
 checkerboard combinations.
 
+```python
+from dictk.imaging import read_image, save_histogram
+
+speckle = read_image("rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
+checker = read_image("checkerboard_200w_by_200h_8x8.png")
+i0 = read_image("i0.png")
+
+save_histogram(speckle, "rosta_histogram.png")
+save_histogram(checker, "checkerboard_histogram.png")
+save_histogram(i0, "i0_histogram.png")
+```
+
 ```text
 <!-- cmdrun python3 -c "from dictk.imaging import read_image, save_histogram; save_histogram(read_image('rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png'), 'rosta_histogram.png'); save_histogram(read_image('checkerboard_200w_by_200h_8x8.png'), 'checkerboard_histogram.png'); save_histogram(read_image('i0.png'), 'i0_histogram.png'); print('Saved histograms: rosta_histogram.png, checkerboard_histogram.png, i0_histogram.png')" -->
 ```
