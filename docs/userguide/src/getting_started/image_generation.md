@@ -193,25 +193,25 @@ with a real photograph instead.
 ### Speckle + Checkerboard
 
 We combine the `rosta` speckle pattern with the checkerboard into a
-**reference image** `i0` by averaging their pixel values and normalizing
-back to `uint8`:
+**reference image** `checkerboard0` by averaging their pixel values and
+normalizing back to `uint8`:
 
 ```python
 from dictk.imaging import combine_images, read_image, write_image
 
 speckle = read_image("rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
 checker = read_image("checkerboard_200w_by_200h_8x8.png")
-i0 = combine_images(speckle, checker)
-write_image(i0, "i0.png")
+checkerboard0 = combine_images(speckle, checker)
+write_image(checkerboard0, "checkerboard0.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.imaging import combine_images, read_image, write_image; speckle = read_image('rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png'); checker = read_image('checkerboard_200w_by_200h_8x8.png'); write_image(combine_images(speckle, checker), 'i0.png'); print('Saved image: i0.png')" -->
+<!-- cmdrun python3 -c "from dictk.imaging import combine_images, read_image, write_image; speckle = read_image('rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png'); checker = read_image('checkerboard_200w_by_200h_8x8.png'); write_image(combine_images(speckle, checker), 'checkerboard0.png'); print('Saved image: checkerboard0.png')" -->
 ```
 
 <figure>
-    <img src="i0.png" alt="reference image i0" />
-    <figcaption>Reference image i0, 200x200 pixels.</figcaption>
+    <img src="checkerboard0.png" alt="reference image checkerboard0" />
+    <figcaption>Reference image checkerboard0, 200x200 pixels.</figcaption>
 </figure>
 
 Because both inputs are averaged and rescaled together, the checkerboard's
@@ -224,29 +224,29 @@ gray texture within them:
   white stays white.
 
 That trimodal structure is visible in the pixel-intensity histograms below:
-speckle and checkerboard are both roughly bimodal (dark/light), while `i0`
-picks up a distinct middle hump from the black/white-speckle-on-opposite
-checkerboard combinations.
+speckle and checkerboard are both roughly bimodal (dark/light), while
+`checkerboard0` picks up a distinct middle hump from the
+black/white-speckle-on-opposite checkerboard combinations.
 
 ```python
 from dictk.imaging import read_image, save_histogram
 
 speckle = read_image("rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
 checker = read_image("checkerboard_200w_by_200h_8x8.png")
-i0 = read_image("i0.png")
+checkerboard0 = read_image("checkerboard0.png")
 
 save_histogram(speckle, "rosta_histogram.png")
 save_histogram(checker, "checkerboard_histogram.png")
-save_histogram(i0, "i0_histogram.png")
+save_histogram(checkerboard0, "checkerboard0_histogram.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.imaging import read_image, save_histogram; save_histogram(read_image('rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png'), 'rosta_histogram.png'); save_histogram(read_image('checkerboard_200w_by_200h_8x8.png'), 'checkerboard_histogram.png'); save_histogram(read_image('i0.png'), 'i0_histogram.png'); print('Saved histograms: rosta_histogram.png, checkerboard_histogram.png, i0_histogram.png')" -->
+<!-- cmdrun python3 -c "from dictk.imaging import read_image, save_histogram; save_histogram(read_image('rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png'), 'rosta_histogram.png'); save_histogram(read_image('checkerboard_200w_by_200h_8x8.png'), 'checkerboard_histogram.png'); save_histogram(read_image('checkerboard0.png'), 'checkerboard0_histogram.png'); print('Saved histograms: rosta_histogram.png, checkerboard_histogram.png, checkerboard0_histogram.png')" -->
 ```
 
-rosta | checkerboard | i0
+rosta | checkerboard | checkerboard0
 --- | --- | ---
-![rosta histogram](rosta_histogram.png) | ![checkerboard histogram](checkerboard_histogram.png) | ![i0 histogram](i0_histogram.png)
+![rosta histogram](rosta_histogram.png) | ![checkerboard histogram](checkerboard_histogram.png) | ![checkerboard0 histogram](checkerboard0_histogram.png)
 
 ### Speckle + Astronaut
 
@@ -258,8 +258,8 @@ speckle pattern overlaid on a realistic, non-uniform grayscale image.
 
 This time the two source images are never written to disk at all — both
 `dictk.rosta` and `dictk.astronaut` return arrays directly, which
-`combine_images` accepts as-is, so only the combined result `i1` is
-saved:
+`combine_images` accepts as-is, so only the combined result `astronaut0`
+is saved:
 
 ```python
 import dictk
@@ -267,15 +267,15 @@ from dictk.imaging import combine_images, write_image
 
 speckle = dictk.rosta(300, 300, density=0.5)
 photo = dictk.astronaut(300, 300)
-i1 = combine_images(speckle, photo)
-write_image(i1, "i1.png")
+astronaut0 = combine_images(speckle, photo)
+write_image(astronaut0, "astronaut0.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.imaging import combine_images, write_image; speckle = dictk.rosta(300, 300, density=0.5); photo = dictk.astronaut(300, 300); i1 = combine_images(speckle, photo); write_image(i1, 'i1.png'); print('Saved image: i1.png')" -->
+<!-- cmdrun python3 -c "import dictk; from dictk.imaging import combine_images, write_image; speckle = dictk.rosta(300, 300, density=0.5); photo = dictk.astronaut(300, 300); astronaut0 = combine_images(speckle, photo); write_image(astronaut0, 'astronaut0.png'); print('Saved image: astronaut0.png')" -->
 ```
 
 <figure>
-    <img src="i1.png" alt="reference image i1: rosta speckle over the astronaut photo" />
-    <figcaption>Reference image i1: rosta speckle pattern combined with the astronaut photo, 300x300 pixels.</figcaption>
+    <img src="astronaut0.png" alt="reference image astronaut0: rosta speckle over the astronaut photo" />
+    <figcaption>Reference image astronaut0: rosta speckle pattern combined with the astronaut photo, 300x300 pixels.</figcaption>
 </figure>
