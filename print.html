@@ -548,6 +548,43 @@ below:</p>
         Figure: Categories of 2D planar transformations from Szeliski.
     </figcaption>
 </figure>
+<h2 id="x-axis-stretch"><a class="header" href="#x-axis-stretch">X-Axis Stretch</a></h2>
+<p>As a concrete example of the <em>similarity</em> category above,
+<a href="getting_started/../api/dictk/imaging.html#stretch"><code>dictk.imaging.stretch</code></a> applies a
+uniaxial stretch along the x-axis: the image's top-left corner (x=0, y=0)
+stays fixed, and content grows away from it, using backward mapping with
+bilinear interpolation so the result has no gaps (unlike naively moving
+each source pixel forward, which can leave holes). The four stretches
+below range from a small, realistic deformation (5%, similar in magnitude
+to a modest tensile strain in a materials test) up to a doubling (100%).</p>
+<pre><code class="language-python">import dictk
+from dictk.imaging import stretch, write_image
+
+photo = dictk.astronaut(300, 300)
+write_image(photo, "astronaut_stretch_original.png")
+
+stretch_5pct = stretch(photo, factor_x=1.05)
+write_image(stretch_5pct, "astronaut_stretch_x_5pct.png")
+
+stretch_10pct = stretch(photo, factor_x=1.10)
+write_image(stretch_10pct, "astronaut_stretch_x_10pct.png")
+
+stretch_50pct = stretch(photo, factor_x=1.50)
+write_image(stretch_50pct, "astronaut_stretch_x_50pct.png")
+
+stretch_100pct = stretch(photo, factor_x=2.00)
+write_image(stretch_100pct, "astronaut_stretch_x_100pct.png")
+</code></pre>
+<pre><code class="language-text">Saved: astronaut_stretch_original.png, astronaut_stretch_x_5pct.png, astronaut_stretch_x_10pct.png, astronaut_stretch_x_50pct.png, astronaut_stretch_x_100pct.png
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>Stretch</th><th>Image</th></tr></thead><tbody>
+<tr><td>Original</td><td><img src="getting_started/astronaut_stretch_original.png" alt="original" /></td></tr>
+<tr><td>5% (factor_x=1.05)</td><td><img src="getting_started/astronaut_stretch_x_5pct.png" alt="5% x-axis stretch" /></td></tr>
+<tr><td>10% (factor_x=1.10)</td><td><img src="getting_started/astronaut_stretch_x_10pct.png" alt="10% x-axis stretch" /></td></tr>
+<tr><td>50% (factor_x=1.50)</td><td><img src="getting_started/astronaut_stretch_x_50pct.png" alt="50% x-axis stretch" /></td></tr>
+<tr><td>100% (factor_x=2.00)</td><td><img src="getting_started/astronaut_stretch_x_100pct.png" alt="100% x-axis stretch" /></td></tr>
+</tbody></table>
+</div>
 <h2 id="references"><a class="header" href="#references">References</a></h2>
 <hr>
 <ol class="footnote-definition"><li id="footnote-Szeliski_2022">
