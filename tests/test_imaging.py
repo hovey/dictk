@@ -12,6 +12,7 @@ from dictk.imaging import (
     describe_image,
     read_image,
     rgba_to_gray,
+    stretch,
     write_image,
 )
 
@@ -159,6 +160,50 @@ def test_contrast_preserves_shape_and_dtype():
     result = contrast(arr, 1.2)
     assert result.shape == arr.shape
     assert result.dtype == np.uint8
+
+
+def test_stretch_identity_at_factor_1():
+    arr = np.arange(400, dtype=np.uint8).reshape(20, 20)
+    assert np.array_equal(stretch(arr), arr)
+
+
+def test_stretch_preserves_shape_and_dtype():
+    arr = np.full((20, 30), 100, dtype=np.uint8)
+    result = stretch(arr, factor_x=1.05)
+    assert result.shape == arr.shape
+    assert result.dtype == np.uint8
+
+
+def test_stretch_expansion_has_no_black_margin():
+    # A factor > 1.0 samples only from within [0, (width-1)/factor_x], a
+    # subset of the original bounds, so every output pixel is valid.
+    arr = np.full((20, 20), 200, dtype=np.uint8)
+    result = stretch(arr, factor_x=1.05)
+    assert result.min() > 0
+
+
+def test_stretch_compression_anchors_origin_and_blackens_far_edge():
+    # Pivoting on the origin: x=0 stays fixed (still valid content), while
+    # the far (right) edge samples outside the original bounds and is
+    # filled with black.
+    arr = np.full((20, 20), 200, dtype=np.uint8)
+    result = stretch(arr, factor_x=0.5)
+    assert result[10, 0] > 0
+    assert result[10, -1] == 0
+
+
+@pytest.mark.parametrize("factor_x", [0, -1])
+def test_stretch_invalid_factor_x_raises(factor_x):
+    arr = np.full((10, 10), 100, dtype=np.uint8)
+    with pytest.raises(ValueError):
+        stretch(arr, factor_x=factor_x)
+
+
+@pytest.mark.parametrize("factor_y", [0, -1])
+def test_stretch_invalid_factor_y_raises(factor_y):
+    arr = np.full((10, 10), 100, dtype=np.uint8)
+    with pytest.raises(ValueError):
+        stretch(arr, factor_y=factor_y)
 
 
 def test_rgba_to_gray_passthrough_for_2d():

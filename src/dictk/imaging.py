@@ -7,6 +7,7 @@ from pathlib import Path
 import imageio.v3 as iio
 import numpy as np
 from matplotlib import pyplot as plt
+from scipy.interpolate import RegularGridInterpolator
 from scipy.ndimage import zoom
 
 
@@ -193,6 +194,60 @@ def contrast(arr: np.ndarray, factor: float) -> np.ndarray:
     mean = arr.astype(np.float64).mean()
     stretched = (arr.astype(np.float64) - mean) * factor + mean
     return np.clip(stretched, 0, 255).astype(np.uint8)
+
+
+def stretch(
+    arr: np.ndarray, factor_x: float = 1.0, factor_y: float = 1.0
+) -> np.ndarray:
+    """Apply a uniaxial or biaxial stretch, pivoting on the image origin.
+
+    Mimics a continuum-mechanics stretch deformation gradient
+    diag(factor_x, factor_y), anchored at the image's top-left corner
+    (x=0, y=0): that corner stays fixed, and content grows (factor > 1.0)
+    or shrinks (factor < 1.0) away from it along each axis. Uses backward
+    mapping — for each output pixel, the inverse of the stretch locates
+    its source coordinate in `arr`, with bilinear interpolation for
+    non-integer source coordinates — so the result has no gaps, unlike
+    naively moving each source pixel forward. A factor < 1.0 shrinks
+    content toward the origin, leaving black (fill value 0) margins along
+    the far (bottom/right) edges.
+
+    Args:
+        arr: A 2D grayscale image array.
+        factor_x: Stretch factor along the x-axis. Must be > 0.
+        factor_y: Stretch factor along the y-axis. Must be > 0.
+
+    Returns:
+        A 2D uint8 array, same shape as `arr`.
+
+    Raises:
+        ValueError: If factor_x or factor_y is <= 0.
+    """
+    if factor_x <= 0:
+        raise ValueError(f"factor_x {factor_x} must be > 0")
+    if factor_y <= 0:
+        raise ValueError(f"factor_y {factor_y} must be > 0")
+
+    height, width = arr.shape
+    xs, ys = np.meshgrid(np.arange(width), np.arange(height))
+
+    # Backward mapping, pivoting on the origin (0, 0): for each output
+    # pixel, the inverse of the stretch gives the coordinate to sample
+    # from in the original image.
+    xs_source = xs / factor_x
+    ys_source = ys / factor_y
+
+    interpolator = RegularGridInterpolator(
+        points=(np.arange(height), np.arange(width)),
+        values=arr.astype(np.float64),
+        method="linear",
+        bounds_error=False,
+        fill_value=0.0,
+    )
+    points = np.stack((ys_source.ravel(), xs_source.ravel()), axis=1)
+    deformed = interpolator(points).reshape(arr.shape)
+
+    return np.clip(deformed, 0, 255).astype(np.uint8)
 
 
 def read_image(path: Path) -> np.ndarray:
