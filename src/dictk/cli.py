@@ -32,9 +32,9 @@ def _rosta_filename(
 
 
 def _checkerboard_filename(
-    width: int, height: int, squares_x: int, squares_y: int, image_format: str
+    width: int, height: int, count_x: int, count_y: int, image_format: str
 ) -> str:
-    return f"checkerboard_{width}w_by_{height}h_{squares_x}x{squares_y}.{image_format}"
+    return f"checkerboard_{width}w_by_{height}h_{count_x}x{count_y}.{image_format}"
 
 
 def _write_output(arr: np.ndarray, output: Path | None, filename: str) -> int:
@@ -76,15 +76,19 @@ def _rosta_create(args: argparse.Namespace) -> int:
 
 
 def _checkerboard_create(args: argparse.Namespace) -> int:
-    arr = checkerboard(
-        width=args.width,
-        height=args.height,
-        squares_x=args.squares_x,
-        squares_y=args.squares_y,
-    )
+    try:
+        arr = checkerboard(
+            width=args.width,
+            height=args.height,
+            count_x=args.count_x,
+            count_y=args.count_y,
+        )
+    except ValueError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 1
 
     filename = _checkerboard_filename(
-        args.width, args.height, args.squares_x, args.squares_y, args.format
+        args.width, args.height, args.count_x, args.count_y, args.format
     )
     return _write_output(arr, args.output, filename)
 
@@ -176,16 +180,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="Image height in pixels (int), default: %(default)s.",
     )
     checkerboard_parser.add_argument(
-        "--squares-x",
+        "--count-x",
+        "-x",
         type=int,
         default=8,
-        help="Number of checkerboard squares along the width (int), default: %(default)s.",
+        help="Number of rectangles along the width (int), default: %(default)s.",
     )
     checkerboard_parser.add_argument(
-        "--squares-y",
+        "--count-y",
+        "-y",
         type=int,
         default=8,
-        help="Number of checkerboard squares along the height (int), default: %(default)s.",
+        help="Number of rectangles along the height (int), default: %(default)s.",
     )
     checkerboard_parser.add_argument(
         "--output",

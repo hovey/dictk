@@ -25,12 +25,24 @@ def test_checkerboard_only_black_or_white():
 
 
 def test_checkerboard_alternates():
-    arr = checkerboard(width=40, height=40, squares_x=4, squares_y=4)
-    # Adjacent squares along a row must differ.
-    square_width = 40 // 4
-    first_square = arr[0, 0]
-    second_square = arr[0, square_width]
-    assert first_square != second_square
+    arr = checkerboard(width=40, height=40, count_x=4, count_y=4)
+    # Adjacent rectangles along a row must differ.
+    rect_width = 40 // 4
+    first_rect = arr[0, 0]
+    second_rect = arr[0, rect_width]
+    assert first_rect != second_rect
+
+
+@pytest.mark.parametrize("count_x", [0, -1])
+def test_checkerboard_invalid_count_x_raises(count_x):
+    with pytest.raises(ValueError):
+        checkerboard(width=40, height=40, count_x=count_x)
+
+
+@pytest.mark.parametrize("count_y", [0, -1])
+def test_checkerboard_invalid_count_y_raises(count_y):
+    with pytest.raises(ValueError):
+        checkerboard(width=40, height=40, count_y=count_y)
 
 
 def test_rgba_to_gray_passthrough_for_2d():

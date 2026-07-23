@@ -8,7 +8,7 @@
 > render TIFF in `<img>` tags, so a TIFF embedded here simply wouldn't
 > display.
 >
-> Among the alternatives, PNG also wins on its own merits: it's
+> Among the alternatives, PNG also wins on its own merits: it is
 > lossless, whereas JPG's compression tends to smear hard edges and
 > speckle-pattern detail (for the 200x200 checkerboard on this page: TIFF
 > 40,256 bytes, JPG 6,760 bytes, PNG only 418 bytes — JPG is actually
@@ -22,7 +22,7 @@
 > uncompressed format conventionally used for DIC and other
 > scientific-imaging workflows.
 
-> **CLI vs. API:** the subcommands on this page (`dictk rosta`,
+> **CLI vs. API:** the Command Line Interface (CLI) on this page (`dictk rosta`,
 > `dictk checkerboard`) write an image file to disk — that's their whole
 > job. The corresponding Python functions, `dictk.rosta` and
 > `dictk.checkerboard`, take the same parameters but perform no file I/O:
@@ -64,6 +64,8 @@ dictk rosta 200 200 --density 0.5 --format png -o .
 <!-- cmdrun dictk rosta 200 200 --density 0.5 --format png -o . -->
 ```
 
+Note that the file name is automatically chosen based on the input parameters.
+
 The result:
 
 <figure>
@@ -88,7 +90,21 @@ pattern = dictk.rosta(200, 200, density=0.5)
 ## Checkerboard
 
 To make it easier to manually identify discrete points in the speckle
-pattern, `dictk` can also generate a checkerboard test image:
+pattern, `dictk` can also generate a checkerboard test image.
+
+The help text for `checkerboard`:
+
+```sh
+dictk checkerboard --help
+```
+
+returns
+
+```text
+<!-- cmdrun dictk checkerboard --help -->
+```
+
+Create a synthetic image, 200 by 200 pixels:
 
 ```sh
 dictk checkerboard 200 200 --format png -o .

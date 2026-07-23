@@ -54,6 +54,25 @@ def test_checkerboard_create_writes_file(tmp_path: Path):
     assert image.shape == (16, 20)
 
 
+def test_checkerboard_create_invalid_count_x_fails_cleanly(tmp_path: Path, capsys):
+    exit_code = main(
+        ["checkerboard", "20", "16", "--count-x", "0", "-o", str(tmp_path)]
+    )
+    assert exit_code == 1
+    assert "error" in capsys.readouterr().err
+    assert list(tmp_path.glob("checkerboard_*.tiff")) == []
+
+
+def test_checkerboard_create_respects_short_count_flags(tmp_path: Path):
+    exit_code = main(
+        ["checkerboard", "20", "16", "-x", "2", "-y", "3", "-o", str(tmp_path)]
+    )
+    assert exit_code == 0
+
+    files = list(tmp_path.glob("checkerboard_20w_by_16h_2x3.tiff"))
+    assert len(files) == 1
+
+
 def test_checkerboard_create_unwritable_output_fails_cleanly(tmp_path: Path, capsys):
     unwritable = tmp_path / "unwritable"
     unwritable.mkdir()

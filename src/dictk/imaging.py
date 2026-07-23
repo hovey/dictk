@@ -9,25 +9,36 @@ from matplotlib import pyplot as plt
 
 
 def checkerboard(
-    width: int, height: int, squares_x: int = 8, squares_y: int = 8
+    width: int, height: int, count_x: int = 8, count_y: int = 8
 ) -> np.ndarray:
     """Generate a black-and-white checkerboard test image.
 
     Same parameters and pixel values as the `dictk checkerboard` CLI
     command, minus the file write — see the `dictk` package docstring for
-    why the API layer stops at the array.
+    why the API layer stops at the array. count_x and count_y are named for
+    the rectangles they divide the image into, not "squares": unequal
+    counts (or a width/height ratio that doesn't match count_x/count_y)
+    produce rectangular cells, not square ones.
 
     Args:
         width: Image width in pixels.
         height: Image height in pixels.
-        squares_x: Number of checkerboard squares along the width.
-        squares_y: Number of checkerboard squares along the height.
+        count_x: Number of rectangles along the width. Must be >= 1.
+        count_y: Number of rectangles along the height. Must be >= 1.
 
     Returns:
         A 2D uint8 array of shape (height, width) with values 0 or 255.
+
+    Raises:
+        ValueError: If count_x or count_y is less than 1.
     """
-    rows = (np.arange(height) * squares_y // height) % 2
-    cols = (np.arange(width) * squares_x // width) % 2
+    if count_x < 1:
+        raise ValueError(f"count_x {count_x} must be >= 1")
+    if count_y < 1:
+        raise ValueError(f"count_y {count_y} must be >= 1")
+
+    rows = (np.arange(height) * count_y // height) % 2
+    cols = (np.arange(width) * count_x // width) % 2
     pattern = np.logical_xor(rows[:, None], cols[None, :])
     return (pattern * 255).astype(np.uint8)
 
