@@ -38,6 +38,7 @@ pip-delete-this-directory.txt
 
 # Unit test / coverage reports
 htmlcov/
+coverage-badge.svg
 .tox/
 .nox/
 .coverage
@@ -80,6 +81,9 @@ docs/userguide/src/getting_started/*.png
 
 # pdoc API documentation
 docs/api/
+
+# CI's combined-site staging directory (mdBook + pdoc + coverage, see ci.yml)
+/site/
 
 # PyBuilder
 .pybuilder/

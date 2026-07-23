@@ -70,6 +70,15 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
+      - name: Download coverage report from test job
+        uses: actions/download-artifact@v4
+        with:
+          name: report-coverage
+          path: coverage-report
+
+      - name: Generate coverage badge
+        run: uv run genbadge coverage -i coverage-report/coverage.xml -o coverage-badge.svg
+
       - name: Install mdBook
         uses: peaceiris/actions-mdbook@v2
         with:
@@ -106,15 +115,20 @@ jobs:
         run: uv run pdoc dictk dictk.core dictk.imaging dictk.cli -o docs/api
 
       - name: Assemble combined site
-        # mdBook and pdoc each produce a self-contained site; peaceiris/actions-gh-pages
-        # replaces the whole publish_dir contents on deploy, so both must be staged
-        # under one directory (API docs at /api/) rather than deployed separately,
-        # or the second deploy would wipe out the first.
+        # mdBook, pdoc, and the coverage report each produce standalone output;
+        # peaceiris/actions-gh-pages replaces the whole publish_dir contents on
+        # deploy, so all of them must be staged under one directory (API docs at
+        # /api/, coverage badge/report at /badges/ and /coverage/) rather than
+        # deployed separately, or each deploy would wipe out the previous one.
         run: |
           mkdir -p site
           cp -r docs/userguide/book/. site/
           mkdir -p site/api
           cp -r docs/api/. site/api/
+          mkdir -p site/badges
+          cp coverage-badge.svg site/badges/coverage.svg
+          mkdir -p site/coverage
+          cp -r coverage-report/htmlcov/. site/coverage/
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4

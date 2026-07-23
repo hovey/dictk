@@ -3,6 +3,7 @@
 [![CI](https://github.com/hovey/dictk/actions/workflows/ci.yml/badge.svg)](https://github.com/hovey/dictk/actions/workflows/ci.yml)
 [![Docs](https://img.shields.io/badge/docs-user%20guide-blue)](https://hovey.github.io/dictk/)
 [![API](https://img.shields.io/badge/docs-API%20reference-blue)](https://hovey.github.io/dictk/api/dictk.html)
+[![Coverage](https://hovey.github.io/dictk/badges/coverage.svg)](https://hovey.github.io/dictk/coverage/)
 
 Digital Image Correlation Toolkit
 
@@ -45,7 +46,9 @@ uv run ruff check
 Documentation (mdBook) lives in `docs/userguide/` and is published at
 https://hovey.github.io/dictk/ on every push to `main`. The Python API
 reference is generated from docstrings with [pdoc](https://pdoc.dev/) and
-published alongside it at https://hovey.github.io/dictk/api/dictk.html. See
+published alongside it at https://hovey.github.io/dictk/api/dictk.html. The
+full HTML coverage report from the same run is published at
+https://hovey.github.io/dictk/coverage/. See
 [CONTRIBUTING.md](CONTRIBUTING.md#building-the-docs) for the exact
 (version-pinned) build instructions.
 

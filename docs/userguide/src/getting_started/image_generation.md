@@ -33,6 +33,8 @@
 > separate step. See each function's docstring (rendered in the API
 > reference) for details.
 
+## Rosta
+
 We create a synthetic example speckle pattern with the built-in `rosta`
 image generator. It implements the Rosta algorithm described by
 [Olufsen](https://doi.org/10.1016/j.softx.2019.100391) (Olufsen SN,

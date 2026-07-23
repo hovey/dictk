@@ -128,6 +128,24 @@ Output goes to `docs/api/` (gitignored, regenerated on demand). CI builds
 this too and publishes it alongside the mdBook user guide — see "CI/CD
 architecture" below.
 
+### Building the coverage badge
+
+The README's coverage badge is a real SVG generated from `coverage.xml` with
+[genbadge](https://smarie.github.io/python-genbadge/), a dev dependency —
+not a static label:
+
+```bash
+uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html
+uv run genbadge coverage -i coverage.xml -o coverage-badge.svg
+```
+
+In CI this runs in the `docs` job (not `test`) using the coverage.xml
+produced by the `test` job's `report-coverage` artifact, so the badge only
+updates on pushes to `main` — same cadence as the Docs and API badges, not
+per-PR. Both `coverage-badge.svg` and the full `htmlcov/` report are staged
+into the deployed site (`/badges/coverage.svg` and `/coverage/`
+respectively) — see "CI/CD architecture" below.
+
 ### Before pushing
 
 There's no `preflight` command yet (see rattlesnake-vibration-controller's
@@ -137,9 +155,10 @@ the checks manually:
 ```bash
 uv run ruff format --check
 uv run ruff check
-uv run pytest --cov=src/dictk
+uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html
 (cd docs/userguide && uv run mdbook build)
 uv run pdoc dictk dictk.core dictk.imaging dictk.cli -o docs/api
+uv run genbadge coverage -i coverage.xml -o coverage-badge.svg
 ```
 
 These are exactly the checks the `test` and `docs` jobs run in CI.
@@ -155,22 +174,26 @@ three jobs:
   a build artifact.
 - **`docs`** — runs only on pushes to `main`, after `test` passes. Installs
   the pinned `mdbook` 0.4.52 and `mdbook-cmdrun` (cached via
-  `actions/cache`), builds the mdBook user guide with dictk's own CLI on
-  `PATH`, builds the pdoc API reference, stages both into one directory (user
-  guide at the root, API reference under `/api/`), and deploys the combined
-  site to the `gh-pages` branch (published via GitHub Pages). Both are staged
-  together because `peaceiris/actions-gh-pages` replaces the whole
-  `publish_dir` on each deploy — publishing them separately would have the
-  second deploy wipe out the first.
+  `actions/cache`), downloads the `test` job's coverage artifact, builds the
+  mdBook user guide with dictk's own CLI on `PATH`, builds the pdoc API
+  reference, generates a coverage badge from `coverage.xml` with
+  [genbadge](https://smarie.github.io/python-genbadge/), stages all of it
+  into one directory (user guide at the root, API reference under `/api/`,
+  coverage badge under `/badges/coverage.svg`, full HTML coverage report
+  under `/coverage/`), and deploys the combined site to the `gh-pages`
+  branch (published via GitHub Pages). Everything is staged together because
+  `peaceiris/actions-gh-pages` replaces the whole `publish_dir` on each
+  deploy — publishing pieces separately would have each deploy wipe out the
+  last.
 - **`release`** — runs only on pushes to `main`, after `test` passes, and
   only if the pushed commit's message contains `[testpypi]` or `[pypi]`.
   Publishes the built package to TestPyPI or PyPI respectively. See
   "Releasing" below.
 
 This is intentionally a minimal setup — no matrix OS/Python testing, no
-containerized builds, no lint/coverage badge generation, no dashboard page.
-pytribeam's `ci.yml` and rattlesnake-vibration-controller's `ci.yml`/
-`release.yml` are useful references for growing any of this out later.
+containerized builds, no lint badge or dashboard page. pytribeam's `ci.yml`
+and rattlesnake-vibration-controller's `ci.yml`/`release.yml` are useful
+references for growing any of this out later.
 
 ## Versioning
 

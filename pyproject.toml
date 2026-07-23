@@ -32,6 +32,7 @@ dev = [
     "pytest-cov",
     "ruff",
     "pdoc",
+    "genbadge[coverage]",
 ]
 
 [tool.hatch.version]
