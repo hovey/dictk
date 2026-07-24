@@ -131,10 +131,13 @@ jobs:
           key: cargo-mdbook-cmdrun-${{ runner.os }}
 
       - name: Install mdbook-cmdrun
-        # --force: ~/.cargo/bin is cached (see above), so a cache hit means
-        # the binary is already present and a plain `cargo install` errors
-        # with "binary already exists in destination".
-        run: cargo install mdbook-cmdrun --locked --force
+        # cargo install always recompiles from source, even when the exact
+        # binary is already sitting in the cache restored above — the old
+        # `--force` flag masked a "binary already exists" error but still
+        # paid the ~80s compile cost on every run, silently defeating the
+        # cache's whole purpose. Skip entirely when the cache already
+        # restored a working binary to ~/.cargo/bin.
+        run: command -v mdbook-cmdrun || cargo install mdbook-cmdrun --locked
 
       - name: Build user guide
         # mdbook-cmdrun resolves each cmdrun command's working directory
