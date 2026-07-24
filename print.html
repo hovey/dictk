@@ -755,13 +755,12 @@ that holds the canonical copy of the repository, tracks issues and pull
 requests, and runs the CI/CD pipeline described below.</p>
 <h2 id="cloning-vs-forking"><a class="header" href="#cloning-vs-forking">Cloning vs. forking</a></h2>
 <p>Contributors can get a working copy of dictk by either cloning or forking
-the repository. Cloning is a Git action: it creates a copy of the
-repository on your own computer. Forking is a GitHub action: it creates a
-personal copy of the entire project under your own GitHub account.</p>
-<p><strong>Cloning</strong> is for authorized collaborators who can push changes directly
-to the main project. <strong>Forking</strong> lets external contributors make changes
-without affecting the original repository, then submit a pull request to
-share those changes.</p>
+the repository.</p>
+<div class="table-wrapper"><table><thead><tr><th>Cloning</th><th>Forking</th></tr></thead><tbody>
+<tr><td>A <strong>Git</strong> action: it creates a copy of the repository on your own computer.</td><td>A <strong>GitHub</strong> action: it creates a personal copy of the entire project under your own GitHub account.</td></tr>
+<tr><td>For <strong>authorized collaborators</strong> who can push changes directly to the main project.</td><td>For <strong>external contributors</strong> to make changes without affecting the original repository, then submit a pull request to share those changes.</td></tr>
+</tbody></table>
+</div>
 <h2 id="getting-the-source-code"><a class="header" href="#getting-the-source-code">Getting the source code</a></h2>
 <p>Collaborators should clone directly:</p>
 <pre><code class="language-bash">git clone git@github.com:hovey/dictk.git
@@ -786,14 +785,18 @@ brew install uv
 the <code>uv run</code> prefix, e.g. <code>uv run pytest</code>.</p>
 <h3 id="using-venv-and-pip-alternative"><a class="header" href="#using-venv-and-pip-alternative">Using <code>venv</code> and <code>pip</code> (alternative)</a></h3>
 <pre><code class="language-bash">python3 -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
+
+source .venv/bin/activate       # bash/zsh
+source .venv/bin/activate.fish  # fish
+.venv\Scripts\activate          # Windows
+
 pip install -e ".[dev]"
 </code></pre>
 <h2 id="git-workflow"><a class="header" href="#git-workflow">Git workflow</a></h2>
 <h3 id="branching-model"><a class="header" href="#branching-model">Branching model</a></h3>
 <p><code>main</code> and <code>dev</code> are both long-lived: <code>dev</code> is branched from <code>main</code>, and
 <code>main</code> only moves forward via merges from <code>dev</code> (each push to <code>main</code> is a
-potential release — see "Releasing" below). Actual development happens one
+potential release — see <a href="contributing.html#releasing">"Releasing"</a> below). Actual development happens one
 level further out, on <code>dev-feature</code>, a branch cut from <code>dev</code>.</p>
 <pre><code>main          ●───────────────●───────────  (releases only, tagged)
                    \                \
@@ -801,6 +804,14 @@ dev           ●─────●───●───●───●───
                \       \         \
 dev-feature     ●───●   ●─●───●   ●──●      (your work)
 </code></pre>
+<p><code>dev-feature</code> above is a placeholder — name each branch <code>dev-&lt;short-description&gt;</code>
+so its purpose is clear at a glance. For example:</p>
+<ul>
+<li><code>dev-cicd</code> — CI/CD pipeline or workflow-file changes</li>
+<li><code>dev-algorithm-refactor</code> — refactoring an existing algorithm or module</li>
+<li><code>dev-imaging</code> — new imaging transformations/workflows</li>
+<li><code>dev-docs</code> — documentation-only updates</li>
+</ul>
 <h3 id="starting-a-dev-feature-branch"><a class="header" href="#starting-a-dev-feature-branch">Starting a dev-feature branch</a></h3>
 <pre><code class="language-bash">git checkout dev
 git pull origin dev
@@ -837,29 +848,23 @@ has commits others might be using:</p>
 is safer than <code>--force</code> since it won't overwrite someone else's pushed
 work)</li>
 </ul>
-<p><strong>Which to pick</strong> — use merge if the branch is shared with others or you want
-a clear record of when <code>dev</code>'s changes came in; use rebase if it's mostly
-just your own branch and you want a clean, linear commit history without
-merge bubbles.</p>
+<p><strong>Which to pick</strong></p>
+<ul>
+<li>Use <strong>merge</strong> if the branch is shared with others or you want a clear record of when <code>dev</code>'s changes came in</li>
+<li>Use <strong>rebase</strong> if it's mostly just your own branch and you want a clean, linear commit history without merge bubbles.</li>
+</ul>
 <p><strong>Tip</strong> — before doing either, it's worth running:</p>
 <pre><code class="language-bash">git log dev-feature..dev --oneline
 </code></pre>
 <p>to preview what's coming in, so conflicts aren't a total surprise.</p>
-<h3 id="releasing-merging-dev-into-main"><a class="header" href="#releasing-merging-dev-into-main">Releasing: merging <code>dev</code> into <code>main</code></a></h3>
-<p><code>main</code> is a protected branch — it only accepts changes through a merged pull
-request, even for repo admins, so <code>git push origin main</code> will be rejected.
-Once <code>dev</code> is ready to ship, open a PR from <code>dev</code> into <code>main</code> and merge it:</p>
-<pre><code class="language-bash">git checkout dev
-git pull origin dev
-gh pr create --base main --head dev --title "Merge dev into main" --body ""
-gh pr merge --merge
-</code></pre>
-<p>(No approving review is required, so you can merge your own PR.) Merging
-doesn't publish anything by itself — a push to <code>main</code> also needs a commit
-message containing <code>[testpypi]</code> or <code>[pypi]</code> to trigger the <code>release</code> job (see
-"Releasing" below). That keyword can be in the PR's merge commit message, or
-in a follow-up release commit on <code>main</code> as described there.</p>
 <h2 id="development-workflow"><a class="header" href="#development-workflow">Development workflow</a></h2>
+<p>Developers work locally and periodically push to their <code>dev-&lt;feature&gt;</code>
+branch. Before pushing changes, developers should check code quality
+locally rather than solely relying on CI to catch problems. This means
+running tests, linting, format checking (ruff), code coverage, and
+confirming that the documentation (mdBook + pdoc) builds locally. Catching
+issues locally is faster than waiting on a CI run, and it keeps the CI
+pipeline green for everyone else.</p>
 <h3 id="running-tests"><a class="header" href="#running-tests">Running tests</a></h3>
 <pre><code class="language-bash">uv run pytest
 </code></pre>
@@ -1013,7 +1018,7 @@ each deploy wipe out the last.</li>
 <li><strong><code>release</code></strong> — runs only on pushes to <code>main</code>, after <code>test</code> passes, and
 only if the pushed commit's message contains <code>[testpypi]</code> or <code>[pypi]</code>.
 Publishes the built package to TestPyPI or PyPI respectively. See
-"Releasing" below.</li>
+<a href="contributing.html#releasing">"Releasing"</a> below.</li>
 </ul>
 <p>This is intentionally a minimal setup — no matrix OS/Python testing, no
 containerized builds, no lint badge or dashboard page. pytribeam's <code>ci.yml</code>
@@ -1028,12 +1033,55 @@ version string anywhere in the source. Tag format is a <code>v</code>-prefixed
 <code>hatch-vcs</code> appends a local version segment (e.g. <code>0.1.dev1+gd975d09</code>).
 <strong>PyPI and TestPyPI reject uploads with a local version segment</strong>, so a
 publishable commit must be exactly the tagged commit.</p>
+<h3 id="tags-and-semantic-versioning"><a class="header" href="#tags-and-semantic-versioning">Tags and semantic versioning</a></h3>
+<p>Tags follow <a href="https://peps.python.org/pep-0440/">PEP 440</a>, which requires
+version strings to follow this structure:</p>
+<pre><code>N.N.N[{a|b|rc}N][.postN][.devN]
+</code></pre>
+<h4 id="example-tags"><a class="header" href="#example-tags">Example tags</a></h4>
+<p>Prerelease tags:</p>
+<div class="table-wrapper"><table><thead><tr><th>tag</th><th>description</th></tr></thead><tbody>
+<tr><td><code>v1.1.0a1</code></td><td>The first <strong>alpha</strong> for version 1.1.0</td></tr>
+<tr><td><code>v1.1.0b2</code></td><td>The second <strong>beta</strong> for version 1.1.0</td></tr>
+<tr><td><code>v1.1.0rc1</code></td><td>The first <strong>release candidate</strong> for version 1.1.0</td></tr>
+</tbody></table>
+</div>
+<p>A <strong>release candidate</strong> is made during the final testing stage before a full
+release.</p>
+<p>Stable release tags (e.g., starting from a <code>v1.0.0</code> release):</p>
+<div class="table-wrapper"><table><thead><tr><th>tag</th><th>description</th></tr></thead><tbody>
+<tr><td><code>v1.0.1</code></td><td><strong>Patch release</strong>: backwards-compatible bug fixes</td></tr>
+<tr><td><code>v1.1.0</code></td><td><strong>Minor release</strong>: new features that are backwards-compatible</td></tr>
+<tr><td><code>v2.0.0</code></td><td><strong>Major release</strong>: significant changes or breaking API updates</td></tr>
+</tbody></table>
+</div>
+<p>Development and post-release tags:</p>
+<div class="table-wrapper"><table><thead><tr><th>tag</th><th>description</th></tr></thead><tbody>
+<tr><td><code>v1.1.0.dev1</code></td><td>A version currently under development</td></tr>
+<tr><td><code>v1.0.0.post1</code></td><td>Fix a minor error in the release process, such as a typo in the documentation, without changing the code</td></tr>
+</tbody></table>
+</div>
+<h3 id="release-on-tag"><a class="header" href="#release-on-tag">Release on tag</a></h3>
+<p>Unlike a tag-triggered release, dictk's publish trigger is the
+<code>[testpypi]</code>/<code>[pypi]</code> commit-message keyword described below — the tag just
+has to point at that exact commit (see "Versioning" above). See "Merging
+<code>dev</code> into <code>main</code>" and "Publishing a release" below for the actual commands.</p>
 <h2 id="releasing"><a class="header" href="#releasing">Releasing</a></h2>
 <p>Releases are triggered by pushing a commit to <code>main</code> whose message contains
 a keyword — <code>[testpypi]</code> for a TestPyPI release, <code>[pypi]</code> for a real PyPI
 release. If a commit message contains both, <code>[pypi]</code> takes priority. Because
 the release job builds whatever <code>hatch-vcs</code> resolves at that commit, the tag
 for the version you want to publish must point at that exact commit.</p>
+<h3 id="merging-dev-into-main"><a class="header" href="#merging-dev-into-main">Merging <code>dev</code> into <code>main</code></a></h3>
+<p><code>main</code> is a protected branch — it only accepts changes through a merged pull
+request, even for repo admins, so <code>git push origin main</code> will be rejected.
+Before publishing a release, merge <code>dev</code> into <code>main</code> through a PR:</p>
+<pre><code class="language-bash">git checkout dev
+git pull origin dev
+gh pr create --base main --head dev --title "Merge dev into main" --body ""
+gh pr merge --merge
+</code></pre>
+<p>No approving review is required, so you can merge your own PR.</p>
 <h3 id="one-time-setup-already-done-for-this-repo"><a class="header" href="#one-time-setup-already-done-for-this-repo">One-time setup (already done for this repo)</a></h3>
 <ol>
 <li>GitHub → repo Settings → Environments: create <code>testpypi</code> and <code>pypi</code>
