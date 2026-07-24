@@ -75,7 +75,8 @@ PAGE_TEMPLATE = """<!doctype html>
           <a href="main/dashboard/" class="hover-card p-4 bg-white rounded-xl shadow-sm
                                             border border-slate-200 hover:border-blue-600">
             <span class="block text-xs font-bold text-slate-400 uppercase mb-2">Status</span>
-            <span class="text-sm font-semibold text-slate-700">Dashboard</span>
+            <img src="https://img.shields.io/badge/docs-GitHub%20Pages-blueviolet?style=flat"
+                 alt="Pages" class="h-5">
           </a>
           <a href="main/reports/lint/" class="hover-card p-4 bg-white rounded-xl shadow-sm
                                                border border-slate-200 hover:border-blue-600">
@@ -122,7 +123,8 @@ PAGE_TEMPLATE = """<!doctype html>
           <a href="dev/dashboard/" class="hover-card p-4 bg-white rounded-xl shadow-sm
                                            border border-slate-200 hover:border-orange-500">
             <span class="block text-xs font-bold text-slate-400 uppercase mb-2">Status</span>
-            <span class="text-sm font-semibold text-slate-700">Dashboard</span>
+            <img src="https://img.shields.io/badge/docs-GitHub%20Pages-blueviolet?style=flat"
+                 alt="Pages" class="h-5">
           </a>
           <a href="dev/reports/lint/" class="hover-card p-4 bg-white rounded-xl shadow-sm
                                               border border-slate-200 hover:border-orange-500">
