@@ -846,16 +846,19 @@ merge bubbles.</p>
 </code></pre>
 <p>to preview what's coming in, so conflicts aren't a total surprise.</p>
 <h3 id="releasing-merging-dev-into-main"><a class="header" href="#releasing-merging-dev-into-main">Releasing: merging <code>dev</code> into <code>main</code></a></h3>
-<p>Once <code>dev</code> is ready to ship:</p>
-<pre><code class="language-bash">git checkout main
-git pull origin main
-git merge dev
-git push origin main
+<p><code>main</code> is a protected branch — it only accepts changes through a merged pull
+request, even for repo admins, so <code>git push origin main</code> will be rejected.
+Once <code>dev</code> is ready to ship, open a PR from <code>dev</code> into <code>main</code> and merge it:</p>
+<pre><code class="language-bash">git checkout dev
+git pull origin dev
+gh pr create --base main --head dev --title "Merge dev into main" --body ""
+gh pr merge --merge
 </code></pre>
-<p>A push to <code>main</code> doesn't publish anything by itself — it also needs a commit
+<p>(No approving review is required, so you can merge your own PR.) Merging
+doesn't publish anything by itself — a push to <code>main</code> also needs a commit
 message containing <code>[testpypi]</code> or <code>[pypi]</code> to trigger the <code>release</code> job (see
-"Releasing" below). That keyword can be in the merge commit itself, or in a
-follow-up commit on <code>main</code> such as the release commit shown there.</p>
+"Releasing" below). That keyword can be in the PR's merge commit message, or
+in a follow-up release commit on <code>main</code> as described there.</p>
 <h2 id="development-workflow"><a class="header" href="#development-workflow">Development workflow</a></h2>
 <h3 id="running-tests"><a class="header" href="#running-tests">Running tests</a></h3>
 <pre><code class="language-bash">uv run pytest
@@ -1046,19 +1049,28 @@ workflow file <code>ci.yml</code>, environment name <code>testpypi</code> (for T
 <p>No API tokens are stored anywhere — publishing uses OIDC trusted publishing
 via the <code>id-token: write</code> permission.</p>
 <h3 id="publishing-a-release"><a class="header" href="#publishing-a-release">Publishing a release</a></h3>
-<pre><code class="language-bash"># Make sure your working tree is clean and you're on main, up to date
-git checkout main
-git pull
+<p><code>main</code> is protected, so the release commit has to land via a merged PR
+rather than a direct push:</p>
+<pre><code class="language-bash"># Make sure your working tree is clean and dev is up to date
+git checkout dev
+git pull origin dev
+git checkout -b release/v0.1.0
 
 # Commit the release (an empty commit is fine if there's nothing else to land)
 git commit --allow-empty -m "chore: release v0.1.0 [testpypi]"
+git push origin release/v0.1.0
 
-# Tag that exact commit
+# Open and merge the PR — use --squash so the commit message above
+# (with its [testpypi]/[pypi] keyword) becomes the commit on main
+gh pr create --base main --head release/v0.1.0 \
+  --title "chore: release v0.1.0 [testpypi]" --body ""
+gh pr merge --squash
+
+# Pull the merged commit and tag exactly that commit
+git checkout main
+git pull origin main
 git tag v0.1.0
-
-# Push the tag before the branch, so it's visible when CI checks out the repo
 git push origin v0.1.0
-git push origin main
 </code></pre>
 <p>Watch the Actions tab: <code>test</code> → <code>release</code> job, under the <code>testpypi</code>
 environment. Once it succeeds, check
@@ -1067,10 +1079,18 @@ environment. Once it succeeds, check
 new tag/version (PyPI and TestPyPI are independent indexes, but reusing a
 version number across a test and a real release invites confusion — prefer
 a fresh version, e.g. <code>v0.1.1</code>, for the real release):</p>
-<pre><code class="language-bash">git commit --allow-empty -m "chore: release v0.1.1 [pypi]"
+<pre><code class="language-bash">git checkout dev
+git pull origin dev
+git checkout -b release/v0.1.1
+git commit --allow-empty -m "chore: release v0.1.1 [pypi]"
+git push origin release/v0.1.1
+gh pr create --base main --head release/v0.1.1 \
+  --title "chore: release v0.1.1 [pypi]" --body ""
+gh pr merge --squash
+git checkout main
+git pull origin main
 git tag v0.1.1
 git push origin v0.1.1
-git push origin main
 </code></pre>
 <p>Uploads to PyPI (and TestPyPI) are permanent — a given version's files can
 never be re-uploaded or deleted, only "yanked". Prefer testing on TestPyPI
