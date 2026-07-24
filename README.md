@@ -1,9 +1,7 @@
 # dictk
 
 [![CI](https://github.com/hovey/dictk/actions/workflows/ci.yml/badge.svg)](https://github.com/hovey/dictk/actions/workflows/ci.yml)
-[![Dashboard](https://img.shields.io/badge/status-dashboard-lightgrey)](https://hovey.github.io/dictk/main/dashboard/)
-[![Docs](https://img.shields.io/badge/docs-user%20guide-blue)](https://hovey.github.io/dictk/main/)
-[![API](https://img.shields.io/badge/docs-API%20reference-blue)](https://hovey.github.io/dictk/main/api/dictk.html)
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blueviolet)](https://hovey.github.io/dictk/)
 [![Coverage](https://hovey.github.io/dictk/main/badges/coverage.svg)](https://hovey.github.io/dictk/main/coverage/)
 [![Lint](https://hovey.github.io/dictk/main/badges/lint.svg)](https://hovey.github.io/dictk/main/reports/lint/)
 
@@ -15,6 +13,41 @@ and strain fields.
 
 This is an early-stage skeleton: a small, real, tested primitive
 (zero-normalized cross-correlation) rather than a full DIC pipeline.
+
+## Documentation
+
+Rebuilt on every push to its branch — `main` is the latest release,
+`dev` is in-development preview:
+
+<table>
+<tr>
+<th>🚀 main (released)</th>
+<th>🛠️ dev (in development)</th>
+</tr>
+<tr>
+<td valign="top">
+
+- [Status dashboard](https://hovey.github.io/dictk/main/dashboard/)
+- [User guide](https://hovey.github.io/dictk/main/)
+- [API reference](https://hovey.github.io/dictk/main/api/dictk.html)
+- [Coverage report](https://hovey.github.io/dictk/main/coverage/)
+- [Lint report](https://hovey.github.io/dictk/main/reports/lint/)
+
+</td>
+<td valign="top">
+
+- [Status dashboard](https://hovey.github.io/dictk/dev/dashboard/)
+- [User guide](https://hovey.github.io/dictk/dev/)
+- [API reference](https://hovey.github.io/dictk/dev/api/dictk.html)
+- [Coverage report](https://hovey.github.io/dictk/dev/coverage/)
+- [Lint report](https://hovey.github.io/dictk/dev/reports/lint/)
+
+</td>
+</tr>
+</table>
+
+See [CONTRIBUTING.md](CONTRIBUTING.md#building-the-docs) for the exact
+(version-pinned) build instructions.
 
 ## Installation
 
@@ -44,23 +77,6 @@ uv run pytest --cov=src/dictk
 uv run ruff format --check
 uv run ruff check
 ```
-
-Documentation (mdBook) lives in `docs/userguide/` and is published at
-https://hovey.github.io/dictk/main/ on every push to `main` (and at
-https://hovey.github.io/dictk/dev/ on every push to `dev`, for previewing
-in-development docs). The Python API reference is generated from docstrings
-with [pdoc](https://pdoc.dev/) and published alongside it at
-https://hovey.github.io/dictk/main/api/dictk.html. The full HTML coverage
-report from the same run is published at
-https://hovey.github.io/dictk/main/coverage/. The lint badge's score comes
-from [pylint](https://pylint.readthedocs.io/), run informationally alongside
-[ruff](https://docs.astral.sh/ruff/) (which actually gates CI); its full
-report is published at https://hovey.github.io/dictk/main/reports/lint/. All
-of the above are linked from one status dashboard at
-https://hovey.github.io/dictk/main/dashboard/, and both versions are linked
-from the site root at https://hovey.github.io/dictk/. See
-[CONTRIBUTING.md](CONTRIBUTING.md#building-the-docs) for the exact
-(version-pinned) build instructions.
 
 ## Contributing
 
