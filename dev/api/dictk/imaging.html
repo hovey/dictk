@@ -683,6 +683,38 @@
 </span><span id="L-574"><a href="#L-574"><span class="linenos">574</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;frequency&quot;</span><span class="p">)</span>
 </span><span id="L-575"><a href="#L-575"><span class="linenos">575</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
 </span><span id="L-576"><a href="#L-576"><span class="linenos">576</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span id="L-577"><a href="#L-577"><span class="linenos">577</span></a>
+</span><span id="L-578"><a href="#L-578"><span class="linenos">578</span></a>
+</span><span id="L-579"><a href="#L-579"><span class="linenos">579</span></a><span class="k">def</span><span class="w"> </span><span class="nf">_diagnostic_dump</span><span class="p">(</span>
+</span><span id="L-580"><a href="#L-580"><span class="linenos">580</span></a>    <span class="n">a</span><span class="p">,</span> <span class="n">arr</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">100</span>
+</span><span id="L-581"><a href="#L-581"><span class="linenos">581</span></a><span class="p">):</span>
+</span><span id="L-582"><a href="#L-582"><span class="linenos">582</span></a>    <span class="n">x</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-583"><a href="#L-583"><span class="linenos">583</span></a>    <span class="k">try</span><span class="p">:</span>
+</span><span id="L-584"><a href="#L-584"><span class="linenos">584</span></a>        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="L-585"><a href="#L-585"><span class="linenos">585</span></a>            <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">:</span>
+</span><span id="L-586"><a href="#L-586"><span class="linenos">586</span></a>                <span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;high&quot;</span><span class="p">)</span>
+</span><span id="L-587"><a href="#L-587"><span class="linenos">587</span></a>            <span class="k">else</span><span class="p">:</span>
+</span><span id="L-588"><a href="#L-588"><span class="linenos">588</span></a>                <span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;low&quot;</span><span class="p">)</span>
+</span><span id="L-589"><a href="#L-589"><span class="linenos">589</span></a>        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+</span><span id="L-590"><a href="#L-590"><span class="linenos">590</span></a>            <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">std</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">:</span>
+</span><span id="L-591"><a href="#L-591"><span class="linenos">591</span></a>                <span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;spread&quot;</span><span class="p">)</span>
+</span><span id="L-592"><a href="#L-592"><span class="linenos">592</span></a>            <span class="k">else</span><span class="p">:</span>
+</span><span id="L-593"><a href="#L-593"><span class="linenos">593</span></a>                <span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;tight&quot;</span><span class="p">)</span>
+</span><span id="L-594"><a href="#L-594"><span class="linenos">594</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="L-595"><a href="#L-595"><span class="linenos">595</span></a>            <span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;unknown&quot;</span><span class="p">)</span>
+</span><span id="L-596"><a href="#L-596"><span class="linenos">596</span></a>
+</span><span id="L-597"><a href="#L-597"><span class="linenos">597</span></a>        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+</span><span id="L-598"><a href="#L-598"><span class="linenos">598</span></a>            <span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tag=</span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="L-599"><a href="#L-599"><span class="linenos">599</span></a>
+</span><span id="L-600"><a href="#L-600"><span class="linenos">600</span></a>        <span class="k">if</span> <span class="n">extra</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-601"><a href="#L-601"><span class="linenos">601</span></a>            <span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">extra</span><span class="p">))</span>
+</span><span id="L-602"><a href="#L-602"><span class="linenos">602</span></a>
+</span><span id="L-603"><a href="#L-603"><span class="linenos">603</span></a>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">limit</span><span class="p">:</span>
+</span><span id="L-604"><a href="#L-604"><span class="linenos">604</span></a>            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:</span><span class="n">limit</span><span class="p">]</span>
+</span><span id="L-605"><a href="#L-605"><span class="linenos">605</span></a>    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+</span><span id="L-606"><a href="#L-606"><span class="linenos">606</span></a>        <span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;error&quot;</span><span class="p">)</span>
+</span><span id="L-607"><a href="#L-607"><span class="linenos">607</span></a>
+</span><span id="L-608"><a href="#L-608"><span class="linenos">608</span></a>    <span class="k">return</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 </span></pre></div>
 
 
