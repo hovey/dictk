@@ -145,19 +145,22 @@ to preview what's coming in, so conflicts aren't a total surprise.
 
 ### Releasing: merging `dev` into `main`
 
-Once `dev` is ready to ship:
+`main` is a protected branch — it only accepts changes through a merged pull
+request, even for repo admins, so `git push origin main` will be rejected.
+Once `dev` is ready to ship, open a PR from `dev` into `main` and merge it:
 
 ```bash
-git checkout main
-git pull origin main
-git merge dev
-git push origin main
+git checkout dev
+git pull origin dev
+gh pr create --base main --head dev --title "Merge dev into main" --body ""
+gh pr merge --merge
 ```
 
-A push to `main` doesn't publish anything by itself — it also needs a commit
+(No approving review is required, so you can merge your own PR.) Merging
+doesn't publish anything by itself — a push to `main` also needs a commit
 message containing `[testpypi]` or `[pypi]` to trigger the `release` job (see
-"Releasing" below). That keyword can be in the merge commit itself, or in a
-follow-up commit on `main` such as the release commit shown there.
+"Releasing" below). That keyword can be in the PR's merge commit message, or
+in a follow-up release commit on `main` as described there.
 
 ## Development workflow
 
@@ -407,20 +410,30 @@ via the `id-token: write` permission.
 
 ### Publishing a release
 
+`main` is protected, so the release commit has to land via a merged PR
+rather than a direct push:
+
 ```bash
-# Make sure your working tree is clean and you're on main, up to date
-git checkout main
-git pull
+# Make sure your working tree is clean and dev is up to date
+git checkout dev
+git pull origin dev
+git checkout -b release/v0.1.0
 
 # Commit the release (an empty commit is fine if there's nothing else to land)
 git commit --allow-empty -m "chore: release v0.1.0 [testpypi]"
+git push origin release/v0.1.0
 
-# Tag that exact commit
+# Open and merge the PR — use --squash so the commit message above
+# (with its [testpypi]/[pypi] keyword) becomes the commit on main
+gh pr create --base main --head release/v0.1.0 \
+  --title "chore: release v0.1.0 [testpypi]" --body ""
+gh pr merge --squash
+
+# Pull the merged commit and tag exactly that commit
+git checkout main
+git pull origin main
 git tag v0.1.0
-
-# Push the tag before the branch, so it's visible when CI checks out the repo
 git push origin v0.1.0
-git push origin main
 ```
 
 Watch the Actions tab: `test` → `release` job, under the `testpypi`
@@ -433,10 +446,18 @@ version number across a test and a real release invites confusion — prefer
 a fresh version, e.g. `v0.1.1`, for the real release):
 
 ```bash
+git checkout dev
+git pull origin dev
+git checkout -b release/v0.1.1
 git commit --allow-empty -m "chore: release v0.1.1 [pypi]"
+git push origin release/v0.1.1
+gh pr create --base main --head release/v0.1.1 \
+  --title "chore: release v0.1.1 [pypi]" --body ""
+gh pr merge --squash
+git checkout main
+git pull origin main
 git tag v0.1.1
 git push origin v0.1.1
-git push origin main
 ```
 
 Uploads to PyPI (and TestPyPI) are permanent — a given version's files can
