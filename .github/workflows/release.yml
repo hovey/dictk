@@ -106,6 +106,15 @@ jobs:
   test:
     needs: validate_tag
     uses: ./.github/workflows/ci.yml
+    # Required even though the tag ref means ci.yml's own docs job never
+    # actually runs here (its `if:` only matches refs/heads/main or dev):
+    # ci.yml's docs job declares `permissions: contents: write`, and a
+    # reusable workflow's job-level permissions can't exceed what the
+    # calling job grants — without this, GitHub rejects the entire run
+    # before any job starts (startup_failure), regardless of whether the
+    # permission-requesting job would even run for this ref.
+    permissions:
+      contents: write
 
   # 3. BUILD: only runs if 'test' passes.
   build:
