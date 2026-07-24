@@ -19,7 +19,7 @@ This is an early-stage skeleton: a small, real, tested primitive
 <tr>
 <td valign="top" align="center">
 
-[![CI](https://img.shields.io/github/actions/workflow/status/hovey/dictk/ci.yml?branch=main&style=flat)](https://github.com/hovey/dictk/actions/workflows/ci.yml?query=branch%3Amain)
+[![CI](https://img.shields.io/github/actions/workflow/status/hovey/dictk/ci.yml?branch=main&style=flat&label=CI)](https://github.com/hovey/dictk/actions/workflows/ci.yml?query=branch%3Amain)
 <br>
 [![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blueviolet?style=flat)](https://hovey.github.io/dictk/main/dashboard/)&nbsp;
 [![User Guide](https://img.shields.io/badge/docs-user%20guide-blue?logo=mdbook&logoColor=white&style=flat)](https://hovey.github.io/dictk/main/)&nbsp;
@@ -31,7 +31,7 @@ This is an early-stage skeleton: a small, real, tested primitive
 </td>
 <td valign="top" align="center">
 
-[![CI](https://img.shields.io/github/actions/workflow/status/hovey/dictk/ci.yml?branch=dev&style=flat)](https://github.com/hovey/dictk/actions/workflows/ci.yml?query=branch%3Adev)
+[![CI](https://img.shields.io/github/actions/workflow/status/hovey/dictk/ci.yml?branch=dev&style=flat&label=CI)](https://github.com/hovey/dictk/actions/workflows/ci.yml?query=branch%3Adev)
 <br>
 [![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blueviolet?style=flat)](https://hovey.github.io/dictk/dev/dashboard/)&nbsp;
 [![User Guide](https://img.shields.io/badge/docs-user%20guide-orange?logo=mdbook&logoColor=white&style=flat)](https://hovey.github.io/dictk/dev/)&nbsp;

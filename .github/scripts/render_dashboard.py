@@ -36,7 +36,7 @@ PAGE_TEMPLATE = """<!doctype html>
 
 <p class="badges">
 <a href="{github_repo_url}/actions/workflows/ci.yml?query=branch%3A{ref_name}"><img
-  src="https://img.shields.io/github/actions/workflow/status/{github_repo}/ci.yml?branch={ref_name}&style=flat"
+  src="https://img.shields.io/github/actions/workflow/status/{github_repo}/ci.yml?branch={ref_name}&style=flat&label=CI"
   alt="CI"></a>
 <a href="../"><img
   src="https://img.shields.io/badge/docs-user%20guide-blue?style=flat" alt="Docs"></a>
