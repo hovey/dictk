@@ -109,7 +109,7 @@ jobs:
             else if (s >= 1) print "orange";
             else print "red";
           }')
-          curl -s -o lint-badge.svg "https://img.shields.io/badge/pylint-${SCORE}%2F10-${COLOR}.svg"
+          curl -s -o lint-badge.svg "https://img.shields.io/badge/pylint-${SCORE}%2F10-${COLOR}.svg?style=flat"
 
           uv run python .github/scripts/render_pylint_report.py \
             --input pylint-report.txt --output pylint-report.html
