@@ -424,17 +424,23 @@ uv run pylint src/dictk --output-format=text --reports=yes
 </code></pre>
 <p>These are exactly the checks the <code>test</code> and <code>docs</code> jobs run in CI.</p>
 <h2 id="cicd-architecture"><a class="header" href="#cicd-architecture">CI/CD architecture</a></h2>
-<p>Everything lives in a single workflow, <code>.github/workflows/ci.yml</code>, with
-three jobs:</p>
+<p>CI and releasing live in two workflows: <code>.github/workflows/ci.yml</code> (checks
+and docs, on every push/PR) and <code>.github/workflows/release.yml</code> (publishing,
+on a version tag push).</p>
+<p><code>ci.yml</code> has two jobs, plus a <code>workflow_call</code> trigger so <code>release.yml</code> can
+invoke it as a reusable workflow:</p>
 <ul>
-<li><strong><code>test</code></strong> — runs on every push and pull request. Installs dependencies
-with <code>uv sync</code>, runs <code>uv build</code> as a build sanity check, <code>ruff format --check</code>, <code>ruff check</code>, and <code>pytest --cov</code>. Uploads the coverage report as
-a build artifact.</li>
-<li><strong><code>docs</code></strong> — runs only on pushes to <code>main</code>, after <code>test</code> passes. Installs
-the pinned <code>mdbook</code> 0.4.52 and <code>mdbook-cmdrun</code> (cached via
-<code>actions/cache</code>), downloads the <code>test</code> job's coverage artifact, builds the
-mdBook user guide with dictk's own CLI on <code>PATH</code>, builds the pdoc API
-reference, generates a coverage badge from <code>coverage.xml</code> with
+<li><strong><code>test</code></strong> — runs on every push, pull request, and when called from
+<code>release.yml</code>. Installs dependencies with <code>uv sync</code>, runs <code>uv build</code> as a
+build sanity check, <code>ruff format --check</code>, <code>ruff check</code>, and <code>pytest --cov</code>.
+Uploads the coverage report as a build artifact.</li>
+<li><strong><code>docs</code></strong> — runs only on pushes to <code>main</code>, after <code>test</code> passes (this <code>if</code>
+condition also means it's skipped when <code>release.yml</code> calls <code>ci.yml</code> from a
+tag push, since the ref won't be <code>refs/heads/main</code>). Installs the pinned
+<code>mdbook</code> 0.4.52 and <code>mdbook-cmdrun</code> (cached via <code>actions/cache</code>), downloads
+the <code>test</code> job's coverage artifact, builds the mdBook user guide with
+dictk's own CLI on <code>PATH</code>, builds the pdoc API reference, generates a
+coverage badge from <code>coverage.xml</code> with
 <a href="https://smarie.github.io/python-genbadge/">genbadge</a>, runs pylint
 informationally to get a 0-10 score (fetched as a shields.io badge) and a
 full findings report, renders a status dashboard linking all of the above,
@@ -446,15 +452,30 @@ site to the <code>gh-pages</code> branch (published via GitHub Pages). Everythin
 staged together because <code>peaceiris/actions-gh-pages</code> replaces the whole
 <code>publish_dir</code> on each deploy — publishing pieces separately would have
 each deploy wipe out the last.</li>
-<li><strong><code>release</code></strong> — runs only on pushes to <code>main</code>, after <code>test</code> passes, and
-only if the pushed commit's message contains <code>[testpypi]</code> or <code>[pypi]</code>.
-Publishes the built package to TestPyPI or PyPI respectively. See
-<a href="#releasing">"Releasing"</a> below.</li>
+</ul>
+<p><code>release.yml</code> triggers on pushing a tag matching <code>v*</code> and runs, in order:</p>
+<ul>
+<li><strong><code>validate_tag</code></strong> — verifies the tag is valid <a href="https://peps.python.org/pep-0440/">PEP 440</a>,
+that it's strictly newer than every existing tag, and that its branch
+matches its prerelease status: a prerelease tag (<code>a</code>/<code>b</code>/<code>rc</code>/<code>.dev</code> suffix)
+must be reachable from <code>origin/dev</code>; a stable/post tag must be reachable
+from <code>origin/main</code> specifically. Outputs <code>is_prerelease</code> for the jobs below.</li>
+<li><strong><code>test</code></strong> — <code>needs: validate_tag</code>, calls <code>ci.yml</code>'s <code>test</code> job fresh at the
+tagged commit (not reused from an earlier push-to-main run).</li>
+<li><strong><code>build</code></strong> — <code>needs: test</code>. Runs <code>uv build</code>, generates a build-provenance
+attestation for the dist files, and uploads them as an artifact.</li>
+<li><strong><code>github-release</code></strong> — <code>needs: [build, validate_tag]</code>. Creates a GitHub
+Release with auto-generated notes, attaching the dist files, marked
+prerelease or not per <code>validate_tag</code>'s output.</li>
+<li><strong><code>publish_testpypi</code></strong> / <strong><code>publish_pypi</code></strong> — <code>needs: [build, github-release, validate_tag]</code>, gated on <code>is_prerelease</code> being <code>true</code>/<code>false</code> respectively.
+Publishes to TestPyPI or PyPI. See <a href="#releasing">"Releasing"</a> below.</li>
 </ul>
 <p>This is intentionally a minimal setup — no matrix OS/Python testing, no
-containerized builds, no lint badge or dashboard page. pytribeam's <code>ci.yml</code>
-and rattlesnake-vibration-controller's <code>ci.yml</code>/<code>release.yml</code> are useful
-references for growing any of this out later.</p>
+containerized builds. pytribeam's <code>ci.yml</code> and
+rattlesnake-vibration-controller's <code>ci.yml</code>/<code>release.yml</code> are useful
+references for growing any of this out later (dictk's <code>release.yml</code> is in
+fact modeled on rattlesnake-vibration-controller's, with one addition: tying
+the branch check to prerelease status, described above).</p>
 <h2 id="versioning"><a class="header" href="#versioning">Versioning</a></h2>
 <p>Versions are derived automatically from git tags via
 <a href="https://github.com/ofek/hatch-vcs">hatch-vcs</a> — there is no hand-maintained
@@ -493,20 +514,26 @@ release.</p>
 </tbody></table>
 </div>
 <h3 id="release-on-tag"><a class="header" href="#release-on-tag">Release on tag</a></h3>
-<p>Unlike a tag-triggered release, dictk's publish trigger is the
-<code>[testpypi]</code>/<code>[pypi]</code> commit-message keyword described below — the tag just
-has to point at that exact commit (see "Versioning" above). See "Merging
-<code>dev</code> into <code>main</code>" and "Publishing a release" below for the actual commands.</p>
+<p>Pushing a tag is what triggers <code>release.yml</code> (see "CI/CD architecture"
+above) — there's no separate commit-message keyword. Which registry it
+publishes to is decided by the tag's own shape: a prerelease tag
+(<code>a</code>/<code>b</code>/<code>rc</code>/<code>.dev</code> suffix) publishes to TestPyPI, a stable/post tag
+publishes to PyPI. The branch the tag is cut from has to match: prerelease
+tags on <code>dev</code>, stable/post tags on <code>main</code>. See "Merging <code>dev</code> into <code>main</code>"
+and "Publishing a release" below for the actual commands.</p>
 <h2 id="releasing"><a class="header" href="#releasing">Releasing</a></h2>
-<p>Releases are triggered by pushing a commit to <code>main</code> whose message contains
-a keyword — <code>[testpypi]</code> for a TestPyPI release, <code>[pypi]</code> for a real PyPI
-release. If a commit message contains both, <code>[pypi]</code> takes priority. Because
-the release job builds whatever <code>hatch-vcs</code> resolves at that commit, the tag
-for the version you want to publish must point at that exact commit.</p>
+<p>Releases are triggered by pushing a git tag matching <code>v*</code> — see "Release on
+tag" above. <code>validate_tag</code> (the first job in <code>release.yml</code>) checks the tag is
+valid PEP 440, strictly newer than every existing tag, and cut from the
+branch its prerelease status requires (<code>dev</code> for prerelease, <code>main</code> for
+stable/post). Because the release jobs build whatever <code>hatch-vcs</code> resolves at
+the tagged commit, the tag must point at the exact commit you want published.</p>
 <h3 id="merging-dev-into-main"><a class="header" href="#merging-dev-into-main">Merging <code>dev</code> into <code>main</code></a></h3>
 <p><code>main</code> is a protected branch — it only accepts changes through a merged pull
 request, even for repo admins, so <code>git push origin main</code> will be rejected.
-Before publishing a release, merge <code>dev</code> into <code>main</code> through a PR:</p>
+This step is only needed before a <strong>stable</strong> release (prereleases tag <code>dev</code>
+directly — see "Publishing a release" below). Merge <code>dev</code> into <code>main</code> through
+a PR:</p>
 <pre><code class="language-bash">git checkout dev
 git pull origin dev
 gh pr create --base main --head dev --title "Merge dev into main" --body ""
@@ -516,64 +543,41 @@ gh pr merge --merge
 <h3 id="one-time-setup-already-done-for-this-repo"><a class="header" href="#one-time-setup-already-done-for-this-repo">One-time setup (already done for this repo)</a></h3>
 <ol>
 <li>GitHub → repo Settings → Environments: create <code>testpypi</code> and <code>pypi</code>
-environments. (Optional but recommended: add "Required reviewers" on the
-<code>pypi</code> environment so a real release needs manual approval before
-publishing — TestPyPI doesn't need this.)</li>
+environments. <code>pypi</code> has a "Required reviewers" rule (you) configured, so
+a real release needs manual approval in the Actions UI before publishing
+— <code>testpypi</code> doesn't need this.</li>
 <li>On <a href="https://test.pypi.org">test.pypi.org</a> and
 <a href="https://pypi.org">pypi.org</a>, under the <code>dictk</code> project's "Publishing"
 settings, add a trusted publisher: owner <code>hovey</code>, repository <code>dictk</code>,
-workflow file <code>ci.yml</code>, environment name <code>testpypi</code> (for TestPyPI) or
+<strong>workflow file <code>release.yml</code></strong> (not <code>ci.yml</code> — publishing happens in the
+tag-triggered workflow), environment name <code>testpypi</code> (for TestPyPI) or
 <code>pypi</code> (for PyPI).</li>
 </ol>
 <p>No API tokens are stored anywhere — publishing uses OIDC trusted publishing
 via the <code>id-token: write</code> permission.</p>
 <h3 id="publishing-a-release"><a class="header" href="#publishing-a-release">Publishing a release</a></h3>
-<p><code>main</code> is protected, so the release commit has to land via a merged PR
-rather than a direct push:</p>
-<pre><code class="language-bash"># Make sure your working tree is clean and dev is up to date
-git checkout dev
+<p><strong>Prerelease (TestPyPI)</strong> — tag <code>dev</code> directly, no PR needed:</p>
+<pre><code class="language-bash">git checkout dev
 git pull origin dev
-git checkout -b release/v0.1.0
-
-# Commit the release (an empty commit is fine if there's nothing else to land)
-git commit --allow-empty -m "chore: release v0.1.0 [testpypi]"
-git push origin release/v0.1.0
-
-# Open and merge the PR — use --squash so the commit message above
-# (with its [testpypi]/[pypi] keyword) becomes the commit on main
-gh pr create --base main --head release/v0.1.0 \
-  --title "chore: release v0.1.0 [testpypi]" --body ""
-gh pr merge --squash
-
-# Pull the merged commit and tag exactly that commit
-git checkout main
+git tag v0.1.0rc1
+git push origin v0.1.0rc1
+</code></pre>
+<p><strong>Stable (PyPI)</strong> — merge <code>dev</code> into <code>main</code> first (see above), then tag
+<code>main</code>:</p>
+<pre><code class="language-bash">git checkout main
 git pull origin main
 git tag v0.1.0
 git push origin v0.1.0
 </code></pre>
-<p>Watch the Actions tab: <code>test</code> → <code>release</code> job, under the <code>testpypi</code>
-environment. Once it succeeds, check
-<code>https://test.pypi.org/project/dictk/</code> for the new version.</p>
-<p>For a real PyPI release, repeat with <code>[pypi]</code> instead of <code>[testpypi]</code> and a
-new tag/version (PyPI and TestPyPI are independent indexes, but reusing a
-version number across a test and a real release invites confusion — prefer
-a fresh version, e.g. <code>v0.1.1</code>, for the real release):</p>
-<pre><code class="language-bash">git checkout dev
-git pull origin dev
-git checkout -b release/v0.1.1
-git commit --allow-empty -m "chore: release v0.1.1 [pypi]"
-git push origin release/v0.1.1
-gh pr create --base main --head release/v0.1.1 \
-  --title "chore: release v0.1.1 [pypi]" --body ""
-gh pr merge --squash
-git checkout main
-git pull origin main
-git tag v0.1.1
-git push origin v0.1.1
-</code></pre>
+<p>Either way, watch the Actions tab: <code>validate_tag</code> → <code>test</code> → <code>build</code> →
+<code>github-release</code> → <code>publish_testpypi</code>/<code>publish_pypi</code>. For a prerelease, check
+<code>https://test.pypi.org/project/dictk/</code> once it succeeds. For a stable
+release, the <code>publish_pypi</code> job pauses for your approval (the <code>pypi</code>
+environment's required reviewer) before it runs; approve it from the Actions
+run page, then check <code>https://pypi.org/project/dictk/</code>.</p>
 <p>Uploads to PyPI (and TestPyPI) are permanent — a given version's files can
 never be re-uploaded or deleted, only "yanked". Prefer testing on TestPyPI
-first, as with <code>v0.1.0</code> above, before publishing the same content to PyPI.</p>
+first, as with <code>v0.1.0rc1</code> above, before publishing the stable release.</p>
 
                     </main>
 
