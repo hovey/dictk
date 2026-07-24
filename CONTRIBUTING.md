@@ -4,7 +4,7 @@ dictk is developed on [GitHub](https://github.com/hovey/dictk) using
 [Git](https://git-scm.com/) for version control. Git is the tool that tracks
 changes to the source on your own computer; GitHub is the hosting service
 that holds the canonical copy of the repository, tracks issues and pull
-requests, and runs the CI/CD pipeline described below.
+requests, and runs the CI/CD pipeline described [below](#cicd-architecture).
 
 ## Cloning vs. forking
 
@@ -247,8 +247,8 @@ uv run pdoc dictk dictk.core dictk.imaging dictk.cli   # live preview, serves on
 ```
 
 Output goes to `docs/api/` (gitignored, regenerated on demand). CI builds
-this too and publishes it alongside the mdBook user guide — see "CI/CD
-architecture" below.
+this too and publishes it alongside the mdBook user guide — see
+["CI/CD architecture"](#cicd-architecture) below.
 
 ### Building the coverage badge
 
@@ -266,12 +266,12 @@ produced by the `test` job's `report-coverage` artifact, so the badge only
 updates on pushes to `main` — same cadence as the Docs and API badges, not
 per-PR. Both `coverage-badge.svg` and the full `htmlcov/` report are staged
 into the deployed site (`/badges/coverage.svg` and `/coverage/`
-respectively) — see "CI/CD architecture" below.
+respectively) — see ["CI/CD architecture"](#cicd-architecture) below.
 
 ### Running pylint (informational)
 
 ruff (`ruff format --check` and `ruff check`) is what actually gates CI —
-see "Linting and formatting" above. [pylint](https://pylint.readthedocs.io/)
+see ["Linting and formatting"](#linting-and-formatting) above. [pylint](https://pylint.readthedocs.io/)
 also runs, but only in the `docs` job, and only informationally: it can't
 fail the build. It exists purely because ruff has no equivalent of pylint's
 `Your code has been rated at X.XX/10` score, and the README's lint badge
@@ -445,18 +445,20 @@ Development and post-release tags:
 
 ### Release on tag
 
-Pushing a tag is what triggers `release.yml` (see "CI/CD architecture"
-above) — there's no separate commit-message keyword. Which registry it
-publishes to is decided by the tag's own shape: a prerelease tag
-(`a`/`b`/`rc`/`.dev` suffix) publishes to TestPyPI, a stable/post tag
-publishes to PyPI. The branch the tag is cut from has to match: prerelease
-tags on `dev`, stable/post tags on `main`. See "Merging `dev` into `main`"
-and "Publishing a release" below for the actual commands.
+Pushing a tag is what triggers `release.yml` (see
+["CI/CD architecture"](#cicd-architecture) above) — there's no separate
+commit-message keyword. Which registry it publishes to is decided by the
+tag's own shape: a prerelease tag (`a`/`b`/`rc`/`.dev` suffix) publishes to
+TestPyPI, a stable/post tag publishes to PyPI. The branch the tag is cut from
+has to match: prerelease tags on `dev`, stable/post tags on `main`. See
+["Merging `dev` into `main`"](#merging-dev-into-main) and
+["Publishing a release"](#publishing-a-release) below for the actual
+commands.
 
 ## Releasing
 
-Releases are triggered by pushing a git tag matching `v*` — see "Release on
-tag" above. `validate_tag` (the first job in `release.yml`) checks the tag is
+Releases are triggered by pushing a git tag matching `v*` — see
+["Release on tag"](#release-on-tag) above. `validate_tag` (the first job in `release.yml`) checks the tag is
 valid PEP 440, strictly newer than every existing tag, and cut from the
 branch its prerelease status requires (`dev` for prerelease, `main` for
 stable/post). Because the release jobs build whatever `hatch-vcs` resolves at
@@ -467,8 +469,8 @@ the tagged commit, the tag must point at the exact commit you want published.
 `main` is a protected branch — it only accepts changes through a merged pull
 request, even for repo admins, so `git push origin main` will be rejected.
 This step is only needed before a **stable** release (prereleases tag `dev`
-directly — see "Publishing a release" below). Merge `dev` into `main` through
-a PR:
+directly — see ["Publishing a release"](#publishing-a-release) below). Merge
+`dev` into `main` through a PR:
 
 ```bash
 git checkout dev
@@ -506,7 +508,8 @@ git tag v0.1.0rc1
 git push origin v0.1.0rc1
 ```
 
-**Stable (PyPI)** — merge `dev` into `main` first (see above), then tag
+**Stable (PyPI)** — merge `dev` into `main` first (see
+["Merging `dev` into `main`"](#merging-dev-into-main) above), then tag
 `main`:
 
 ```bash
