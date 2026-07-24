@@ -339,18 +339,24 @@ These are exactly the checks the `test` and `docs` jobs run in CI.
 
 ## CI/CD architecture
 
-Everything lives in a single workflow, `.github/workflows/ci.yml`, with
-three jobs:
+CI and releasing live in two workflows: `.github/workflows/ci.yml` (checks
+and docs, on every push/PR) and `.github/workflows/release.yml` (publishing,
+on a version tag push).
 
-- **`test`** — runs on every push and pull request. Installs dependencies
-  with `uv sync`, runs `uv build` as a build sanity check, `ruff format
-  --check`, `ruff check`, and `pytest --cov`. Uploads the coverage report as
-  a build artifact.
-- **`docs`** — runs only on pushes to `main`, after `test` passes. Installs
-  the pinned `mdbook` 0.4.52 and `mdbook-cmdrun` (cached via
-  `actions/cache`), downloads the `test` job's coverage artifact, builds the
-  mdBook user guide with dictk's own CLI on `PATH`, builds the pdoc API
-  reference, generates a coverage badge from `coverage.xml` with
+`ci.yml` has two jobs, plus a `workflow_call` trigger so `release.yml` can
+invoke it as a reusable workflow:
+
+- **`test`** — runs on every push, pull request, and when called from
+  `release.yml`. Installs dependencies with `uv sync`, runs `uv build` as a
+  build sanity check, `ruff format --check`, `ruff check`, and `pytest --cov`.
+  Uploads the coverage report as a build artifact.
+- **`docs`** — runs only on pushes to `main`, after `test` passes (this `if`
+  condition also means it's skipped when `release.yml` calls `ci.yml` from a
+  tag push, since the ref won't be `refs/heads/main`). Installs the pinned
+  `mdbook` 0.4.52 and `mdbook-cmdrun` (cached via `actions/cache`), downloads
+  the `test` job's coverage artifact, builds the mdBook user guide with
+  dictk's own CLI on `PATH`, builds the pdoc API reference, generates a
+  coverage badge from `coverage.xml` with
   [genbadge](https://smarie.github.io/python-genbadge/), runs pylint
   informationally to get a 0-10 score (fetched as a shields.io badge) and a
   full findings report, renders a status dashboard linking all of the above,
@@ -362,15 +368,31 @@ three jobs:
   staged together because `peaceiris/actions-gh-pages` replaces the whole
   `publish_dir` on each deploy — publishing pieces separately would have
   each deploy wipe out the last.
-- **`release`** — runs only on pushes to `main`, after `test` passes, and
-  only if the pushed commit's message contains `[testpypi]` or `[pypi]`.
-  Publishes the built package to TestPyPI or PyPI respectively. See
-  ["Releasing"](#releasing) below.
+
+`release.yml` triggers on pushing a tag matching `v*` and runs, in order:
+
+- **`validate_tag`** — verifies the tag is valid [PEP 440](https://peps.python.org/pep-0440/),
+  that it's strictly newer than every existing tag, and that its branch
+  matches its prerelease status: a prerelease tag (`a`/`b`/`rc`/`.dev` suffix)
+  must be reachable from `origin/dev`; a stable/post tag must be reachable
+  from `origin/main` specifically. Outputs `is_prerelease` for the jobs below.
+- **`test`** — `needs: validate_tag`, calls `ci.yml`'s `test` job fresh at the
+  tagged commit (not reused from an earlier push-to-main run).
+- **`build`** — `needs: test`. Runs `uv build`, generates a build-provenance
+  attestation for the dist files, and uploads them as an artifact.
+- **`github-release`** — `needs: [build, validate_tag]`. Creates a GitHub
+  Release with auto-generated notes, attaching the dist files, marked
+  prerelease or not per `validate_tag`'s output.
+- **`publish_testpypi`** / **`publish_pypi`** — `needs: [build, github-release,
+  validate_tag]`, gated on `is_prerelease` being `true`/`false` respectively.
+  Publishes to TestPyPI or PyPI. See ["Releasing"](#releasing) below.
 
 This is intentionally a minimal setup — no matrix OS/Python testing, no
-containerized builds, no lint badge or dashboard page. pytribeam's `ci.yml`
-and rattlesnake-vibration-controller's `ci.yml`/`release.yml` are useful
-references for growing any of this out later.
+containerized builds. pytribeam's `ci.yml` and
+rattlesnake-vibration-controller's `ci.yml`/`release.yml` are useful
+references for growing any of this out later (dictk's `release.yml` is in
+fact modeled on rattlesnake-vibration-controller's, with one addition: tying
+the branch check to prerelease status, described above).
 
 ## Versioning
 
@@ -423,24 +445,30 @@ Development and post-release tags:
 
 ### Release on tag
 
-Unlike a tag-triggered release, dictk's publish trigger is the
-`[testpypi]`/`[pypi]` commit-message keyword described below — the tag just
-has to point at that exact commit (see "Versioning" above). See "Merging
-`dev` into `main`" and "Publishing a release" below for the actual commands.
+Pushing a tag is what triggers `release.yml` (see "CI/CD architecture"
+above) — there's no separate commit-message keyword. Which registry it
+publishes to is decided by the tag's own shape: a prerelease tag
+(`a`/`b`/`rc`/`.dev` suffix) publishes to TestPyPI, a stable/post tag
+publishes to PyPI. The branch the tag is cut from has to match: prerelease
+tags on `dev`, stable/post tags on `main`. See "Merging `dev` into `main`"
+and "Publishing a release" below for the actual commands.
 
 ## Releasing
 
-Releases are triggered by pushing a commit to `main` whose message contains
-a keyword — `[testpypi]` for a TestPyPI release, `[pypi]` for a real PyPI
-release. If a commit message contains both, `[pypi]` takes priority. Because
-the release job builds whatever `hatch-vcs` resolves at that commit, the tag
-for the version you want to publish must point at that exact commit.
+Releases are triggered by pushing a git tag matching `v*` — see "Release on
+tag" above. `validate_tag` (the first job in `release.yml`) checks the tag is
+valid PEP 440, strictly newer than every existing tag, and cut from the
+branch its prerelease status requires (`dev` for prerelease, `main` for
+stable/post). Because the release jobs build whatever `hatch-vcs` resolves at
+the tagged commit, the tag must point at the exact commit you want published.
 
 ### Merging `dev` into `main`
 
 `main` is a protected branch — it only accepts changes through a merged pull
 request, even for repo admins, so `git push origin main` will be rejected.
-Before publishing a release, merge `dev` into `main` through a PR:
+This step is only needed before a **stable** release (prereleases tag `dev`
+directly — see "Publishing a release" below). Merge `dev` into `main` through
+a PR:
 
 ```bash
 git checkout dev
@@ -454,13 +482,14 @@ No approving review is required, so you can merge your own PR.
 ### One-time setup (already done for this repo)
 
 1. GitHub → repo Settings → Environments: create `testpypi` and `pypi`
-   environments. (Optional but recommended: add "Required reviewers" on the
-   `pypi` environment so a real release needs manual approval before
-   publishing — TestPyPI doesn't need this.)
+   environments. `pypi` has a "Required reviewers" rule (you) configured, so
+   a real release needs manual approval in the Actions UI before publishing
+   — `testpypi` doesn't need this.
 2. On [test.pypi.org](https://test.pypi.org) and
    [pypi.org](https://pypi.org), under the `dictk` project's "Publishing"
    settings, add a trusted publisher: owner `hovey`, repository `dictk`,
-   workflow file `ci.yml`, environment name `testpypi` (for TestPyPI) or
+   **workflow file `release.yml`** (not `ci.yml` — publishing happens in the
+   tag-triggered workflow), environment name `testpypi` (for TestPyPI) or
    `pypi` (for PyPI).
 
 No API tokens are stored anywhere — publishing uses OIDC trusted publishing
@@ -468,56 +497,32 @@ via the `id-token: write` permission.
 
 ### Publishing a release
 
-`main` is protected, so the release commit has to land via a merged PR
-rather than a direct push:
+**Prerelease (TestPyPI)** — tag `dev` directly, no PR needed:
 
 ```bash
-# Make sure your working tree is clean and dev is up to date
 git checkout dev
 git pull origin dev
-git checkout -b release/v0.1.0
+git tag v0.1.0rc1
+git push origin v0.1.0rc1
+```
 
-# Commit the release (an empty commit is fine if there's nothing else to land)
-git commit --allow-empty -m "chore: release v0.1.0 [testpypi]"
-git push origin release/v0.1.0
+**Stable (PyPI)** — merge `dev` into `main` first (see above), then tag
+`main`:
 
-# Open and merge the PR — use --squash so the commit message above
-# (with its [testpypi]/[pypi] keyword) becomes the commit on main
-gh pr create --base main --head release/v0.1.0 \
-  --title "chore: release v0.1.0 [testpypi]" --body ""
-gh pr merge --squash
-
-# Pull the merged commit and tag exactly that commit
+```bash
 git checkout main
 git pull origin main
 git tag v0.1.0
 git push origin v0.1.0
 ```
 
-Watch the Actions tab: `test` → `release` job, under the `testpypi`
-environment. Once it succeeds, check
-`https://test.pypi.org/project/dictk/` for the new version.
-
-For a real PyPI release, repeat with `[pypi]` instead of `[testpypi]` and a
-new tag/version (PyPI and TestPyPI are independent indexes, but reusing a
-version number across a test and a real release invites confusion — prefer
-a fresh version, e.g. `v0.1.1`, for the real release):
-
-```bash
-git checkout dev
-git pull origin dev
-git checkout -b release/v0.1.1
-git commit --allow-empty -m "chore: release v0.1.1 [pypi]"
-git push origin release/v0.1.1
-gh pr create --base main --head release/v0.1.1 \
-  --title "chore: release v0.1.1 [pypi]" --body ""
-gh pr merge --squash
-git checkout main
-git pull origin main
-git tag v0.1.1
-git push origin v0.1.1
-```
+Either way, watch the Actions tab: `validate_tag` → `test` → `build` →
+`github-release` → `publish_testpypi`/`publish_pypi`. For a prerelease, check
+`https://test.pypi.org/project/dictk/` once it succeeds. For a stable
+release, the `publish_pypi` job pauses for your approval (the `pypi`
+environment's required reviewer) before it runs; approve it from the Actions
+run page, then check `https://pypi.org/project/dictk/`.
 
 Uploads to PyPI (and TestPyPI) are permanent — a given version's files can
 never be re-uploaded or deleted, only "yanked". Prefer testing on TestPyPI
-first, as with `v0.1.0` above, before publishing the same content to PyPI.
+first, as with `v0.1.0rc1` above, before publishing the stable release.
