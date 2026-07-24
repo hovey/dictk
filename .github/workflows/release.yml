@@ -1,0 +1,205 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*" # trigger only on version tags (e.g., v1.0.0)
+
+concurrency:
+  group: release-pipeline
+  cancel-in-progress: true
+
+jobs:
+  # 1. VALIDATE: PEP 440 conformance, monotonic version, and that the tag's
+  # branch matches its prerelease status.
+  validate_tag:
+    runs-on: ubuntu-latest
+    outputs:
+      is_prerelease: ${{ steps.pep440_check.outputs.is_prerelease }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Verify tag conforms to PEP 440
+        id: pep440_check
+        run: |
+          pip install packaging --quiet
+          python - <<'EOF' >> "$GITHUB_OUTPUT"
+          import sys
+          from packaging.version import Version, InvalidVersion
+          tag = "${{ github.ref_name }}"
+          version_str = tag.lstrip("v")
+          try:
+              version = Version(version_str)
+          except InvalidVersion:
+              print(f"ERROR: '{tag}' is not a valid PEP 440 version.", file=sys.stderr)
+              print("       Valid examples: v1.0.0  v1.1.0a1  v1.1.0rc1  v1.0.0.post1  v1.1.0.dev1", file=sys.stderr)
+              sys.exit(1)
+          print(f"OK: '{tag}' is a valid PEP 440 version.", file=sys.stderr)
+          print(f"is_prerelease={'true' if version.is_prerelease else 'false'}")
+          EOF
+
+      - name: Verify tag's branch matches its prerelease status
+        # Prerelease tags (a/b/rc/.dev suffix) must be reachable from dev --
+        # they're allowed to publish to TestPyPI without going through main's
+        # required PR. Stable/post tags must be reachable from main
+        # specifically, not just "main or dev" -- since main only advances via
+        # a reviewed PR from dev, this guarantees a real PyPI release can
+        # never happen from unmerged dev content.
+        run: |
+          TAG="${{ github.ref_name }}"
+          IS_PRERELEASE="${{ steps.pep440_check.outputs.is_prerelease }}"
+
+          if [ "$IS_PRERELEASE" = "true" ]; then
+            REQUIRED_BRANCH="dev"
+          else
+            REQUIRED_BRANCH="main"
+          fi
+
+          BRANCHES=$(git branch -r --contains "refs/tags/$TAG" | grep -E "^\s*origin/${REQUIRED_BRANCH}\s*$" || true)
+          if [ -z "$BRANCHES" ]; then
+            echo "ERROR: '$TAG' is a $([ "$IS_PRERELEASE" = "true" ] && echo prerelease || echo stable) tag, so it must be reachable from 'origin/${REQUIRED_BRANCH}'."
+            echo "Tag is reachable from:"
+            git branch -r --contains "refs/tags/$TAG" || echo "  (no remote branches)"
+            exit 1
+          fi
+          echo "OK: '$TAG' is reachable from origin/${REQUIRED_BRANCH}."
+
+      - name: Verify tag is newer than all existing tags
+        run: |
+          python - <<'EOF'
+          import sys
+          import subprocess
+          from packaging.version import Version, InvalidVersion
+          new_tag = "${{ github.ref_name }}"
+          new_version = Version(new_tag.lstrip("v"))
+
+          result = subprocess.run(["git", "tag"], capture_output=True, text=True)
+          existing_versions = []
+          for tag in result.stdout.strip().splitlines():
+              tag = tag.strip()
+              if tag == new_tag:
+                  continue
+              try:
+                  existing_versions.append((Version(tag.lstrip("v")), tag))
+              except InvalidVersion:
+                  pass
+
+          if not existing_versions:
+              print(f"OK: No existing tags to compare against. '{new_tag}' is the first release.")
+              sys.exit(0)
+
+          latest_version, latest_tag = max(existing_versions, key=lambda x: x[0])
+          if new_version <= latest_version:
+              print(f"ERROR: '{new_tag}' ({new_version}) is not newer than the existing tag '{latest_tag}' ({latest_version}).")
+              print(f"       The new tag must be strictly greater than {latest_version}.")
+              sys.exit(1)
+
+          print(f"OK: '{new_tag}' ({new_version}) is newer than the latest existing tag '{latest_tag}' ({latest_version}).")
+          EOF
+
+  # 2. TEST: reuse ci.yml's lint/format/pytest checks, run fresh at the
+  # tagged commit.
+  test:
+    needs: validate_tag
+    uses: ./.github/workflows/ci.yml
+
+  # 3. BUILD: only runs if 'test' passes.
+  build:
+    name: Build distribution and generate attestation
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      attestations: write
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.11"
+          enable-cache: true
+
+      - name: Build
+        run: uv build
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: "dist/*"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  # 4. GITHUB RELEASE: create the release on GitHub and attach the build files.
+  github-release:
+    needs: [build, validate_tag]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
+          prerelease: ${{ needs.validate_tag.outputs.is_prerelease == 'true' }}
+
+  # 5a. PUBLISH (PRERELEASE): only runs if the tag is a prerelease.
+  publish_testpypi:
+    name: "Publish: TestPyPI (prerelease)"
+    needs: [build, github-release, validate_tag]
+    if: needs.validate_tag.outputs.is_prerelease == 'true'
+    runs-on: ubuntu-latest
+    environment: testpypi
+    permissions:
+      id-token: write
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Trusted Publish to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  # 5b. PUBLISH (RELEASE): only runs if the tag is a stable/post release.
+  publish_pypi:
+    name: "Publish: PyPI (production release)"
+    needs: [build, github-release, validate_tag]
+    if: needs.validate_tag.outputs.is_prerelease == 'false'
+    runs-on: ubuntu-latest
+    environment: pypi
+    # Manual approval gate is configured on the 'pypi' GitHub environment
+    # (Settings -> Environments -> pypi -> Required reviewers).
+    permissions:
+      id-token: write
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Trusted Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
