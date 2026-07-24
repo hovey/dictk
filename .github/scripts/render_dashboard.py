@@ -9,6 +9,11 @@ works regardless of the domain the site is served from.
 import argparse
 import html
 
+BRANCH_LABELS = {
+    "main": "&#128640; Released",
+    "dev": "&#128736;&#65039; Development",
+}
+
 PAGE_TEMPLATE = """<!doctype html>
 <html lang="en">
 <head>
@@ -27,11 +32,11 @@ PAGE_TEMPLATE = """<!doctype html>
 </style>
 </head>
 <body>
-<h1>dictk &mdash; status dashboard</h1>
+<h1>{branch_label} &mdash; dictk status dashboard</h1>
 
 <p class="badges">
-<a href="{github_repo_url}/actions/workflows/ci.yml"><img
-  src="{github_repo_url}/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+<a href="{github_repo_url}/actions/workflows/ci.yml?query=branch%3A{ref_name}"><img
+  src="{github_repo_url}/actions/workflows/ci.yml/badge.svg?branch={ref_name}" alt="CI"></a>
 <a href="../"><img
   src="https://img.shields.io/badge/docs-user%20guide-blue" alt="Docs"></a>
 <a href="../api/dictk.html"><img
@@ -75,6 +80,7 @@ def main() -> None:
         short_sha=html.escape(args.sha[:8]),
         ref_name=html.escape(args.ref_name),
         timestamp=html.escape(args.timestamp),
+        branch_label=BRANCH_LABELS.get(args.ref_name, html.escape(args.ref_name)),
     )
     with open(args.output, "w", encoding="utf-8") as f:
         f.write(page)
