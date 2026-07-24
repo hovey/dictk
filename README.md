@@ -1,8 +1,5 @@
 # dictk
 
-[![CI](https://github.com/hovey/dictk/actions/workflows/ci.yml/badge.svg)](https://github.com/hovey/dictk/actions/workflows/ci.yml)
-[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blueviolet)](https://hovey.github.io/dictk/)
-
 Digital Image Correlation Toolkit
 
 `dictk` is a Python library for digital image correlation (DIC) — comparing
@@ -25,27 +22,28 @@ Rebuilt on every push to its branch — `main` is the latest release,
 <tr>
 <td valign="top">
 
+- [![CI](https://github.com/hovey/dictk/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/hovey/dictk/actions/workflows/ci.yml?query=branch%3Amain)
 - [Status dashboard](https://hovey.github.io/dictk/main/dashboard/)
 - [User guide](https://hovey.github.io/dictk/main/)
 - [API reference](https://hovey.github.io/dictk/main/api/dictk.html)
-- [Coverage report](https://hovey.github.io/dictk/main/coverage/) [![Coverage](https://hovey.github.io/dictk/main/badges/coverage.svg)](https://hovey.github.io/dictk/main/coverage/)
-- [Lint report](https://hovey.github.io/dictk/main/reports/lint/) [![Lint](https://hovey.github.io/dictk/main/badges/lint.svg)](https://hovey.github.io/dictk/main/reports/lint/)
+- [![Coverage](https://hovey.github.io/dictk/main/badges/coverage.svg)](https://hovey.github.io/dictk/main/coverage/)
+- [![Lint](https://hovey.github.io/dictk/main/badges/lint.svg)](https://hovey.github.io/dictk/main/reports/lint/)
 
 </td>
 <td valign="top">
 
+- [![CI](https://github.com/hovey/dictk/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/hovey/dictk/actions/workflows/ci.yml?query=branch%3Adev)
 - [Status dashboard](https://hovey.github.io/dictk/dev/dashboard/)
 - [User guide](https://hovey.github.io/dictk/dev/)
 - [API reference](https://hovey.github.io/dictk/dev/api/dictk.html)
-- [Coverage report](https://hovey.github.io/dictk/dev/coverage/) [![Coverage](https://hovey.github.io/dictk/dev/badges/coverage.svg)](https://hovey.github.io/dictk/dev/coverage/)
-- [Lint report](https://hovey.github.io/dictk/dev/reports/lint/) [![Lint](https://hovey.github.io/dictk/dev/badges/lint.svg)](https://hovey.github.io/dictk/dev/reports/lint/)
+- [![Coverage](https://hovey.github.io/dictk/dev/badges/coverage.svg)](https://hovey.github.io/dictk/dev/coverage/)
+- [![Lint](https://hovey.github.io/dictk/dev/badges/lint.svg)](https://hovey.github.io/dictk/dev/reports/lint/)
 
 </td>
 </tr>
 </table>
 
-See [CONTRIBUTING.md](CONTRIBUTING.md#building-the-docs) for the exact
-(version-pinned) build instructions.
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blueviolet)](https://hovey.github.io/dictk/)
 
 ## Installation
 
