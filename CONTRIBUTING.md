@@ -1,11 +1,34 @@
 # Contributing to dictk
 
+dictk is developed on [GitHub](https://github.com/hovey/dictk) using
+[Git](https://git-scm.com/) for version control. Git is the tool that tracks
+changes to the source on your own computer; GitHub is the hosting service
+that holds the canonical copy of the repository, tracks issues and pull
+requests, and runs the CI/CD pipeline described below.
+
+## Cloning vs. forking
+
+Contributors can get a working copy of dictk by either cloning or forking
+the repository. Cloning is a Git action: it creates a copy of the
+repository on your own computer. Forking is a GitHub action: it creates a
+personal copy of the entire project under your own GitHub account.
+
+**Cloning** is for authorized collaborators who can push changes directly
+to the main project. **Forking** lets external contributors make changes
+without affecting the original repository, then submit a pull request to
+share those changes.
+
 ## Getting the source code
+
+Collaborators should clone directly:
 
 ```bash
 git clone git@github.com:hovey/dictk.git
 cd dictk
 ```
+
+External contributors should first fork the repository to their own GitHub
+account, then clone their fork locally.
 
 ## Installation
 
@@ -38,6 +61,103 @@ python3 -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
 ```
+
+## Git workflow
+
+### Branching model
+
+`main` and `dev` are both long-lived: `dev` is branched from `main`, and
+`main` only moves forward via merges from `dev` (each push to `main` is a
+potential release — see "Releasing" below). Actual development happens one
+level further out, on `dev-feature`, a branch cut from `dev`.
+
+```
+main          ●───────────────●───────────  (releases only, tagged)
+                   \                \
+dev           ●─────●───●───●───●────●────  (integration branch)
+               \       \         \
+dev-feature     ●───●   ●─●───●   ●──●      (your work)
+```
+
+### Starting a dev-feature branch
+
+```bash
+git checkout dev
+git pull origin dev
+git checkout -b dev-feature
+```
+
+### Keeping your dev-feature branch up to date with `dev`
+
+Before opening a PR, or periodically during long-lived work, bring in `dev`'s
+latest changes.
+
+**Option 1: Merge** (safer, keeps history of both branches)
+
+```bash
+git checkout dev
+git pull origin dev
+git checkout dev-feature
+git merge dev
+```
+
+If there are conflicts, git will tell you which files — resolve them, then:
+
+```bash
+git add <resolved-files>
+git commit
+```
+
+**Option 2: Rebase** (cleaner, linear history)
+
+```bash
+git checkout dev
+git pull origin dev
+git checkout dev-feature
+git rebase dev
+```
+
+If conflicts come up during rebase, fix them then run `git add <files>`
+followed by `git rebase --continue` (repeat until done). To bail out at any
+point: `git rebase --abort`.
+
+**Pushing after either approach** — if `dev-feature` was already pushed and
+has commits others might be using:
+
+- After a **merge**: `git push origin dev-feature`
+- After a **rebase**: `git push origin dev-feature --force-with-lease`
+  (rebase rewrites history, so you need a force push — `--force-with-lease`
+  is safer than `--force` since it won't overwrite someone else's pushed
+  work)
+
+**Which to pick** — use merge if the branch is shared with others or you want
+a clear record of when `dev`'s changes came in; use rebase if it's mostly
+just your own branch and you want a clean, linear commit history without
+merge bubbles.
+
+**Tip** — before doing either, it's worth running:
+
+```bash
+git log dev-feature..dev --oneline
+```
+
+to preview what's coming in, so conflicts aren't a total surprise.
+
+### Releasing: merging `dev` into `main`
+
+Once `dev` is ready to ship:
+
+```bash
+git checkout main
+git pull origin main
+git merge dev
+git push origin main
+```
+
+A push to `main` doesn't publish anything by itself — it also needs a commit
+message containing `[testpypi]` or `[pypi]` to trigger the `release` job (see
+"Releasing" below). That keyword can be in the merge commit itself, or in a
+follow-up commit on `main` such as the release commit shown there.
 
 ## Development workflow
 
