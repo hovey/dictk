@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>dictk pylint report</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 2rem; max-width: 60rem; }
+  pre { background: #f6f8fa; padding: 1rem; overflow-x: auto; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>dictk &mdash; pylint report</h1>
+<p>Informational only: pylint runs alongside ruff (which gates CI) purely to
+produce this report and the README's pylint score badge. See
+<a href="https://github.com/hovey/dictk/blob/main/CONTRIBUTING.md#running-pylint-informational">CONTRIBUTING.md</a>.</p>
+<pre>************* Module dictk.rosta
+src/dictk/rosta.py:99:0: R0913: Too many arguments (6/5) (too-many-arguments)
+************* Module dictk.cli
+src/dictk/cli.py:20:0: R0913: Too many arguments (6/5) (too-many-arguments)
+src/dictk/cli.py:20:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
+
+
+Report
+======
+293 statements analysed.
+
+Statistics by type
+------------------
+
++---------+-------+-----------+-----------+------------+---------+
+|type     |number |old number |difference |%documented |%badname |
++=========+=======+===========+===========+============+=========+
+|module   |5      |NC         |NC         |100.00      |0.00     |
++---------+-------+-----------+-----------+------------+---------+
+|class    |2      |NC         |NC         |100.00      |0.00     |
++---------+-------+-----------+-----------+------------+---------+
+|method   |1      |NC         |NC         |100.00      |0.00     |
++---------+-------+-----------+-----------+------------+---------+
+|function |31     |NC         |NC         |100.00      |0.00     |
++---------+-------+-----------+-----------+------------+---------+
+
+
+
+External dependencies
+---------------------
+::
+
+    imageio 
+      \-v3 (dictk.imaging)
+    matplotlib 
+      \-pyplot (dictk.imaging)
+    numpy (dictk.cli,dictk.core,dictk.imaging,dictk.rosta)
+    scipy 
+      \-interpolate (dictk.imaging)
+      \-ndimage (dictk.imaging,dictk.rosta)
+
+
+
+1064 lines have been analyzed
+
+Raw metrics
+-----------
+
++----------+-------+------+---------+-----------+
+|type      |number |%     |previous |difference |
++==========+=======+======+=========+===========+
+|code      |459    |43.14 |NC       |NC         |
++----------+-------+------+---------+-----------+
+|docstring |457    |42.95 |NC       |NC         |
++----------+-------+------+---------+-----------+
+|comment   |14     |1.32  |NC       |NC         |
++----------+-------+------+---------+-----------+
+|empty     |134    |12.59 |NC       |NC         |
++----------+-------+------+---------+-----------+
+
+
+
+Duplication
+-----------
+
++-------------------------+------+---------+-----------+
+|                         |now   |previous |difference |
++=========================+======+=========+===========+
+|nb duplicated lines      |0     |NC       |NC         |
++-------------------------+------+---------+-----------+
+|percent duplicated lines |0.000 |NC       |NC         |
++-------------------------+------+---------+-----------+
+
+
+
+Messages by category
+--------------------
+
++-----------+-------+---------+-----------+
+|type       |number |previous |difference |
++===========+=======+=========+===========+
+|convention |0      |NC       |NC         |
++-----------+-------+---------+-----------+
+|refactor   |3      |NC       |NC         |
++-----------+-------+---------+-----------+
+|warning    |0      |NC       |NC         |
++-----------+-------+---------+-----------+
+|error      |0      |NC       |NC         |
++-----------+-------+---------+-----------+
+
+
+
+% errors / warnings by module
+-----------------------------
+
++------------+------+--------+---------+-----------+
+|module      |error |warning |refactor |convention |
++============+======+========+=========+===========+
+|dictk.cli   |0.00  |0.00    |66.67    |0.00       |
++------------+------+--------+---------+-----------+
+|dictk.rosta |0.00  |0.00    |33.33    |0.00       |
++------------+------+--------+---------+-----------+
+
+
+
+Messages
+--------
+
++------------------------------+------------+
+|message id                    |occurrences |
++==============================+============+
+|too-many-arguments            |2           |
++------------------------------+------------+
+|too-many-positional-arguments |1           |
++------------------------------+------------+
+
+
+
+
+-----------------------------------
+Your code has been rated at 9.90/10
+</pre>
+</body>
+</html>
