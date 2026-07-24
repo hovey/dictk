@@ -19,11 +19,11 @@ This is an early-stage skeleton: a small, real, tested primitive
 <tr>
 <td valign="top" align="center">
 
-[![CI](https://github.com/hovey/dictk/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/hovey/dictk/actions/workflows/ci.yml?query=branch%3Amain)
+[![CI](https://img.shields.io/github/actions/workflow/status/hovey/dictk/ci.yml?branch=main&style=flat)](https://github.com/hovey/dictk/actions/workflows/ci.yml?query=branch%3Amain)
 <br>
-[![Docs](https://img.shields.io/badge/docs-Pages-blueviolet)](https://hovey.github.io/dictk/main/dashboard/)&nbsp;
-[![User Guide](https://img.shields.io/badge/docs-user%20guide-blue?logo=mdbook&logoColor=white)](https://hovey.github.io/dictk/main/)&nbsp;
-[![API Docs](https://img.shields.io/badge/docs-API%20reference-blue?logo=python&logoColor=white)](https://hovey.github.io/dictk/main/api/dictk.html)
+[![Docs](https://img.shields.io/badge/docs-Pages-blueviolet?style=flat)](https://hovey.github.io/dictk/main/dashboard/)&nbsp;
+[![User Guide](https://img.shields.io/badge/docs-user%20guide-blue?logo=mdbook&logoColor=white&style=flat)](https://hovey.github.io/dictk/main/)&nbsp;
+[![API Docs](https://img.shields.io/badge/docs-API%20reference-blue?logo=python&logoColor=white&style=flat)](https://hovey.github.io/dictk/main/api/dictk.html)
 <br>
 [![Coverage](https://hovey.github.io/dictk/main/badges/coverage.svg)](https://hovey.github.io/dictk/main/coverage/)&nbsp;
 [![Lint](https://hovey.github.io/dictk/main/badges/lint.svg)](https://hovey.github.io/dictk/main/reports/lint/)
@@ -31,11 +31,11 @@ This is an early-stage skeleton: a small, real, tested primitive
 </td>
 <td valign="top" align="center">
 
-[![CI](https://github.com/hovey/dictk/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/hovey/dictk/actions/workflows/ci.yml?query=branch%3Adev)
+[![CI](https://img.shields.io/github/actions/workflow/status/hovey/dictk/ci.yml?branch=dev&style=flat)](https://github.com/hovey/dictk/actions/workflows/ci.yml?query=branch%3Adev)
 <br>
-[![Docs](https://img.shields.io/badge/docs-Pages-blueviolet)](https://hovey.github.io/dictk/dev/dashboard/)&nbsp;
-[![User Guide](https://img.shields.io/badge/docs-user%20guide-orange?logo=mdbook&logoColor=white)](https://hovey.github.io/dictk/dev/)&nbsp;
-[![API Docs](https://img.shields.io/badge/docs-API%20reference-orange?logo=python&logoColor=white)](https://hovey.github.io/dictk/dev/api/dictk.html)
+[![Docs](https://img.shields.io/badge/docs-Pages-blueviolet?style=flat)](https://hovey.github.io/dictk/dev/dashboard/)&nbsp;
+[![User Guide](https://img.shields.io/badge/docs-user%20guide-orange?logo=mdbook&logoColor=white&style=flat)](https://hovey.github.io/dictk/dev/)&nbsp;
+[![API Docs](https://img.shields.io/badge/docs-API%20reference-orange?logo=python&logoColor=white&style=flat)](https://hovey.github.io/dictk/dev/api/dictk.html)
 <br>
 [![Coverage](https://hovey.github.io/dictk/dev/badges/coverage.svg)](https://hovey.github.io/dictk/dev/coverage/)&nbsp;
 [![Lint](https://hovey.github.io/dictk/dev/badges/lint.svg)](https://hovey.github.io/dictk/dev/reports/lint/)
@@ -44,7 +44,7 @@ This is an early-stage skeleton: a small, real, tested primitive
 </tr>
 </table>
 
-[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blueviolet)](https://hovey.github.io/dictk/)
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blueviolet?style=flat)](https://hovey.github.io/dictk/)
 
 ## Installation
 

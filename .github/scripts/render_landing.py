@@ -69,7 +69,7 @@ PAGE_TEMPLATE = """<!doctype html>
           <a href="main/api/dictk.html" class="hover-card p-4 bg-white rounded-xl shadow-sm
                                                 border border-slate-200 hover:border-blue-600">
             <span class="block text-xs font-bold text-slate-400 uppercase mb-2">API</span>
-            <img src="https://img.shields.io/badge/docs-API%20reference-blue?logo=python&amp;logoColor=white"
+            <img src="https://img.shields.io/badge/docs-API%20reference-blue?logo=python&amp;logoColor=white&amp;style=flat"
                  alt="API Reference" class="h-5">
           </a>
           <a href="main/dashboard/" class="hover-card p-4 bg-white rounded-xl shadow-sm
@@ -116,7 +116,7 @@ PAGE_TEMPLATE = """<!doctype html>
           <a href="dev/api/dictk.html" class="hover-card p-4 bg-white rounded-xl shadow-sm
                                                border border-slate-200 hover:border-orange-500">
             <span class="block text-xs font-bold text-slate-400 uppercase mb-2">API</span>
-            <img src="https://img.shields.io/badge/docs-API%20reference-orange?logo=python&amp;logoColor=white"
+            <img src="https://img.shields.io/badge/docs-API%20reference-orange?logo=python&amp;logoColor=white&amp;style=flat"
                  alt="API Reference" class="h-5">
           </a>
           <a href="dev/dashboard/" class="hover-card p-4 bg-white rounded-xl shadow-sm

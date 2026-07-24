@@ -36,11 +36,12 @@ PAGE_TEMPLATE = """<!doctype html>
 
 <p class="badges">
 <a href="{github_repo_url}/actions/workflows/ci.yml?query=branch%3A{ref_name}"><img
-  src="{github_repo_url}/actions/workflows/ci.yml/badge.svg?branch={ref_name}" alt="CI"></a>
+  src="https://img.shields.io/github/actions/workflow/status/{github_repo}/ci.yml?branch={ref_name}&style=flat"
+  alt="CI"></a>
 <a href="../"><img
-  src="https://img.shields.io/badge/docs-user%20guide-blue" alt="Docs"></a>
+  src="https://img.shields.io/badge/docs-user%20guide-blue?style=flat" alt="Docs"></a>
 <a href="../api/dictk.html"><img
-  src="https://img.shields.io/badge/docs-API%20reference-blue" alt="API"></a>
+  src="https://img.shields.io/badge/docs-API%20reference-blue?style=flat" alt="API"></a>
 <a href="../coverage/"><img
   src="../badges/coverage.svg" alt="Coverage"></a>
 <a href="../reports/lint/"><img
@@ -74,6 +75,7 @@ def main() -> None:
     args = parser.parse_args()
 
     page = PAGE_TEMPLATE.format(
+        github_repo=html.escape(args.github_repo),
         github_repo_url=f"https://github.com/{html.escape(args.github_repo)}",
         run_id=html.escape(args.run_id),
         sha=html.escape(args.sha),
