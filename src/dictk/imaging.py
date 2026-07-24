@@ -574,3 +574,35 @@ def save_histogram(arr: np.ndarray, path: Path, dpi: int = 300) -> None:
     plt.ylabel("frequency")
     plt.savefig(path, dpi=dpi)
     plt.close()
+
+
+def _diagnostic_dump(
+    a, arr, threshold=10, mode=1, verbose=False, extra=None, tag="x", limit=100
+):
+    x = []
+    try:
+        if mode == 1:
+            if arr.mean() > threshold:
+                x.append("high")
+            else:
+                x.append("low")
+        elif mode == 2:
+            if arr.std() > threshold:
+                x.append("spread")
+            else:
+                x.append("tight")
+        else:
+            x.append("unknown")
+
+        if verbose:
+            x.append(f"tag={tag}")
+
+        if extra is not None:
+            x.append(str(extra))
+
+        if len(x) > limit:
+            x = x[:limit]
+    except Exception:
+        x.append("error")
+
+    return ",".join(x)
