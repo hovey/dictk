@@ -9,14 +9,12 @@ requests, and runs the CI/CD pipeline described below.
 ## Cloning vs. forking
 
 Contributors can get a working copy of dictk by either cloning or forking
-the repository. Cloning is a Git action: it creates a copy of the
-repository on your own computer. Forking is a GitHub action: it creates a
-personal copy of the entire project under your own GitHub account.
+the repository.
 
-**Cloning** is for authorized collaborators who can push changes directly
-to the main project. **Forking** lets external contributors make changes
-without affecting the original repository, then submit a pull request to
-share those changes.
+| Cloning | Forking |
+| --- | --- |
+| A **Git** action: it creates a copy of the repository on your own computer. | A **GitHub** action: it creates a personal copy of the entire project under your own GitHub account. |
+| For **authorized collaborators** who can push changes directly to the main project. | For **external contributors** to make changes without affecting the original repository, then submit a pull request to share those changes. |
 
 ## Getting the source code
 
@@ -58,7 +56,11 @@ the `uv run` prefix, e.g. `uv run pytest`.
 
 ```bash
 python3 -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
+
+source .venv/bin/activate       # bash/zsh
+source .venv/bin/activate.fish  # fish
+.venv\Scripts\activate          # Windows
+
 pip install -e ".[dev]"
 ```
 
@@ -68,7 +70,7 @@ pip install -e ".[dev]"
 
 `main` and `dev` are both long-lived: `dev` is branched from `main`, and
 `main` only moves forward via merges from `dev` (each push to `main` is a
-potential release — see "Releasing" below). Actual development happens one
+potential release — see ["Releasing"](#releasing) below). Actual development happens one
 level further out, on `dev-feature`, a branch cut from `dev`.
 
 ```
@@ -78,6 +80,14 @@ dev           ●─────●───●───●───●───
                \       \         \
 dev-feature     ●───●   ●─●───●   ●──●      (your work)
 ```
+
+`dev-feature` above is a placeholder — name each branch `dev-<short-description>`
+so its purpose is clear at a glance. For example:
+
+- `dev-cicd` — CI/CD pipeline or workflow-file changes
+- `dev-algorithm-refactor` — refactoring an existing algorithm or module
+- `dev-imaging` — new imaging transformations/workflows
+- `dev-docs` — documentation-only updates
 
 ### Starting a dev-feature branch
 
@@ -130,10 +140,10 @@ has commits others might be using:
   is safer than `--force` since it won't overwrite someone else's pushed
   work)
 
-**Which to pick** — use merge if the branch is shared with others or you want
-a clear record of when `dev`'s changes came in; use rebase if it's mostly
-just your own branch and you want a clean, linear commit history without
-merge bubbles.
+**Which to pick**
+
+* Use **merge** if the branch is shared with others or you want a clear record of when `dev`'s changes came in
+* Use **rebase** if it's mostly just your own branch and you want a clean, linear commit history without merge bubbles.
 
 **Tip** — before doing either, it's worth running:
 
@@ -143,26 +153,15 @@ git log dev-feature..dev --oneline
 
 to preview what's coming in, so conflicts aren't a total surprise.
 
-### Releasing: merging `dev` into `main`
-
-`main` is a protected branch — it only accepts changes through a merged pull
-request, even for repo admins, so `git push origin main` will be rejected.
-Once `dev` is ready to ship, open a PR from `dev` into `main` and merge it:
-
-```bash
-git checkout dev
-git pull origin dev
-gh pr create --base main --head dev --title "Merge dev into main" --body ""
-gh pr merge --merge
-```
-
-(No approving review is required, so you can merge your own PR.) Merging
-doesn't publish anything by itself — a push to `main` also needs a commit
-message containing `[testpypi]` or `[pypi]` to trigger the `release` job (see
-"Releasing" below). That keyword can be in the PR's merge commit message, or
-in a follow-up release commit on `main` as described there.
-
 ## Development workflow
+
+Developers work locally and periodically push to their `dev-<feature>`
+branch. Before pushing changes, developers should check code quality
+locally rather than solely relying on CI to catch problems. This means
+running tests, linting, format checking (ruff), code coverage, and
+confirming that the documentation (mdBook + pdoc) builds locally. Catching
+issues locally is faster than waiting on a CI run, and it keeps the CI
+pipeline green for everyone else.
 
 ### Running tests
 
@@ -366,7 +365,7 @@ three jobs:
 - **`release`** — runs only on pushes to `main`, after `test` passes, and
   only if the pushed commit's message contains `[testpypi]` or `[pypi]`.
   Publishes the built package to TestPyPI or PyPI respectively. See
-  "Releasing" below.
+  ["Releasing"](#releasing) below.
 
 This is intentionally a minimal setup — no matrix OS/Python testing, no
 containerized builds, no lint badge or dashboard page. pytribeam's `ci.yml`
@@ -385,6 +384,50 @@ If the current commit isn't exactly at a tag (or the working tree is dirty),
 **PyPI and TestPyPI reject uploads with a local version segment**, so a
 publishable commit must be exactly the tagged commit.
 
+### Tags and semantic versioning
+
+Tags follow [PEP 440](https://peps.python.org/pep-0440/), which requires
+version strings to follow this structure:
+
+```
+N.N.N[{a|b|rc}N][.postN][.devN]
+```
+
+#### Example tags
+
+Prerelease tags:
+
+| tag | description |
+| --- | --- |
+| `v1.1.0a1` | The first **alpha** for version 1.1.0 |
+| `v1.1.0b2` | The second **beta** for version 1.1.0 |
+| `v1.1.0rc1` | The first **release candidate** for version 1.1.0 |
+
+A **release candidate** is made during the final testing stage before a full
+release.
+
+Stable release tags (e.g., starting from a `v1.0.0` release):
+
+| tag | description |
+| --- | --- |
+| `v1.0.1` | **Patch release**: backwards-compatible bug fixes |
+| `v1.1.0` | **Minor release**: new features that are backwards-compatible |
+| `v2.0.0` | **Major release**: significant changes or breaking API updates |
+
+Development and post-release tags:
+
+| tag | description |
+| --- | --- |
+| `v1.1.0.dev1` | A version currently under development |
+| `v1.0.0.post1` | Fix a minor error in the release process, such as a typo in the documentation, without changing the code |
+
+### Release on tag
+
+Unlike a tag-triggered release, dictk's publish trigger is the
+`[testpypi]`/`[pypi]` commit-message keyword described below — the tag just
+has to point at that exact commit (see "Versioning" above). See "Merging
+`dev` into `main`" and "Publishing a release" below for the actual commands.
+
 ## Releasing
 
 Releases are triggered by pushing a commit to `main` whose message contains
@@ -392,6 +435,21 @@ a keyword — `[testpypi]` for a TestPyPI release, `[pypi]` for a real PyPI
 release. If a commit message contains both, `[pypi]` takes priority. Because
 the release job builds whatever `hatch-vcs` resolves at that commit, the tag
 for the version you want to publish must point at that exact commit.
+
+### Merging `dev` into `main`
+
+`main` is a protected branch — it only accepts changes through a merged pull
+request, even for repo admins, so `git push origin main` will be rejected.
+Before publishing a release, merge `dev` into `main` through a PR:
+
+```bash
+git checkout dev
+git pull origin dev
+gh pr create --base main --head dev --title "Merge dev into main" --body ""
+gh pr merge --merge
+```
+
+No approving review is required, so you can merge your own PR.
 
 ### One-time setup (already done for this repo)
 
