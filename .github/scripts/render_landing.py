@@ -3,7 +3,9 @@
 Used by the `docs` job in ci.yml. Both branches deploy to their own
 subdirectory (see CONTRIBUTING.md#cicd-architecture) rather than the site
 root, so this regenerates the root index.html on every deploy — whichever
-branch (main or dev) ran most recently — to point at both.
+branch (main or dev) ran most recently — to point at both. Modeled on
+sandialabs/rattlesnake-vibration-controller's gh-pages dashboard
+(https://sandialabs.github.io/rattlesnake-vibration-controller/).
 """
 
 import argparse
@@ -13,32 +15,142 @@ PAGE_TEMPLATE = """<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>dictk</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap"
+      rel="stylesheet">
 <style>
-  body {{
-    font-family: system-ui, sans-serif;
-    margin: 2rem auto;
-    max-width: 40rem;
-    line-height: 1.5;
-  }}
-  ul {{ padding-left: 1.2rem; }}
-  footer {{ margin-top: 2rem; color: #57606a; font-size: 0.9rem; }}
+  body {{ font-family: 'Inter', sans-serif; }}
+  .hover-card:hover {{ transform: translateY(-2px); transition: all 0.2s ease; }}
 </style>
 </head>
-<body>
-<h1>dictk</h1>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen">
 
-<p>Digital Image Correlation Toolkit &mdash; pick a version:</p>
+<nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+    <span class="text-xl font-bold tracking-tight text-blue-600">dictk</span>
+    <a href="{github_repo_url}" class="text-sm font-medium hover:text-blue-600 transition">
+      GitHub Repository</a>
+  </div>
+</nav>
 
-<ul>
-<li><a href="main/">main</a> &mdash; latest released user guide, API reference, coverage and lint reports</li>
-<li><a href="dev/">dev</a> &mdash; in-development user guide, API reference, coverage and lint reports</li>
-</ul>
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <header class="mb-12 text-center">
+    <h1 class="text-4xl font-extrabold tracking-tight text-slate-900 mb-4">dictk</h1>
+    <p class="text-lg text-slate-600 max-w-2xl mx-auto">
+      Documentation and quality reports for the Digital Image Correlation Toolkit.</p>
+  </header>
 
-<p><a href="{github_repo_url}">Repository</a></p>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-<footer>Last refreshed {timestamp} by a deploy of <code>{ref_name}</code> at commit
-<code>{short_sha}</code> (<a href="{github_repo_url}/actions/runs/{run_id}">CI run</a>).</footer>
+    <section class="space-y-6">
+      <div class="flex items-center justify-between border-b-2 border-blue-200 pb-2">
+        <h2 class="text-2xl font-bold flex items-center gap-2">&#128640; Released</h2>
+        <a href="{github_repo_url}/tree/main"
+           class="text-xs font-semibold bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-slate-300">
+          main branch</a>
+      </div>
+
+      <div class="space-y-4">
+        <a href="main/" class="hover-card block p-5 bg-white rounded-xl shadow-sm border
+                                border-slate-200 hover:border-blue-600 group">
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="font-bold text-lg group-hover:text-blue-600">User Guide</h3>
+              <p class="text-sm text-slate-500 mt-1">Stable documentation for end-users.</p>
+            </div>
+            <span class="text-xs font-bold uppercase tracking-wider bg-blue-100 text-blue-700
+                          px-2 py-1 rounded">Stable</span>
+          </div>
+        </a>
+
+        <div class="grid grid-cols-2 gap-4">
+          <a href="main/api/dictk.html" class="hover-card p-4 bg-white rounded-xl shadow-sm
+                                                border border-slate-200 hover:border-blue-600">
+            <span class="block text-xs font-bold text-slate-400 uppercase mb-2">API</span>
+            <img src="https://img.shields.io/badge/docs-API%20reference-blue?logo=python&amp;logoColor=white"
+                 alt="API Reference" class="h-5">
+          </a>
+          <a href="main/dashboard/" class="hover-card p-4 bg-white rounded-xl shadow-sm
+                                            border border-slate-200 hover:border-blue-600">
+            <span class="block text-xs font-bold text-slate-400 uppercase mb-2">Status</span>
+            <span class="text-sm font-semibold text-slate-700">Dashboard</span>
+          </a>
+          <a href="main/reports/lint/" class="hover-card p-4 bg-white rounded-xl shadow-sm
+                                               border border-slate-200 hover:border-blue-600">
+            <span class="block text-xs font-bold text-slate-400 uppercase mb-2">Code Quality</span>
+            <img src="main/badges/lint.svg" alt="Lint Score" class="h-5">
+          </a>
+          <a href="main/coverage/" class="hover-card p-4 bg-white rounded-xl shadow-sm
+                                           border border-slate-200 hover:border-blue-600">
+            <span class="block text-xs font-bold text-slate-400 uppercase mb-2">Test Coverage</span>
+            <img src="main/badges/coverage.svg" alt="Coverage" class="h-5">
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="space-y-6">
+      <div class="flex items-center justify-between border-b-2 border-orange-200 pb-2">
+        <h2 class="text-2xl font-bold flex items-center gap-2">&#128736;&#65039; Development</h2>
+        <a href="{github_repo_url}/tree/dev"
+           class="text-xs font-semibold bg-orange-100 text-orange-700 px-2 py-1 rounded hover:bg-orange-200">
+          dev branch</a>
+      </div>
+
+      <div class="space-y-4">
+        <a href="dev/" class="hover-card block p-5 bg-white rounded-xl shadow-sm border
+                               border-slate-200 hover:border-orange-500 group">
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="font-bold text-lg group-hover:text-orange-600">User Guide</h3>
+              <p class="text-sm text-slate-500 mt-1">In-development documentation.</p>
+            </div>
+            <span class="text-xs font-bold uppercase tracking-wider bg-orange-100 text-orange-700
+                          px-2 py-1 rounded">Latest</span>
+          </div>
+        </a>
+
+        <div class="grid grid-cols-2 gap-4">
+          <a href="dev/api/dictk.html" class="hover-card p-4 bg-white rounded-xl shadow-sm
+                                               border border-slate-200 hover:border-orange-500">
+            <span class="block text-xs font-bold text-slate-400 uppercase mb-2">API</span>
+            <img src="https://img.shields.io/badge/docs-API%20reference-orange?logo=python&amp;logoColor=white"
+                 alt="API Reference" class="h-5">
+          </a>
+          <a href="dev/dashboard/" class="hover-card p-4 bg-white rounded-xl shadow-sm
+                                           border border-slate-200 hover:border-orange-500">
+            <span class="block text-xs font-bold text-slate-400 uppercase mb-2">Status</span>
+            <span class="text-sm font-semibold text-slate-700">Dashboard</span>
+          </a>
+          <a href="dev/reports/lint/" class="hover-card p-4 bg-white rounded-xl shadow-sm
+                                              border border-slate-200 hover:border-orange-500">
+            <span class="block text-xs font-bold text-slate-400 uppercase mb-2">Code Quality</span>
+            <img src="dev/badges/lint.svg" alt="Lint Score" class="h-5">
+          </a>
+          <a href="dev/coverage/" class="hover-card p-4 bg-white rounded-xl shadow-sm
+                                          border border-slate-200 hover:border-orange-500">
+            <span class="block text-xs font-bold text-slate-400 uppercase mb-2">Test Coverage</span>
+            <img src="dev/badges/coverage.svg" alt="Coverage" class="h-5">
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="mt-20 py-10 border-t border-slate-200 bg-white">
+  <div class="max-w-7xl mx-auto px-4 text-center">
+    <p class="text-sm text-slate-400">
+      Last refreshed {timestamp} by a deploy of <code>{ref_name}</code> at commit
+      <a href="{github_repo_url}/commit/{sha}" class="text-blue-600 hover:underline">{short_sha}</a>
+      (<a href="{github_repo_url}/actions/runs/{run_id}" class="text-blue-600 hover:underline">CI run</a>).
+    </p>
+  </div>
+</footer>
+
 </body>
 </html>
 """
