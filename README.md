@@ -11,36 +11,42 @@ This is an early-stage skeleton: a small, real, tested primitive
 
 ## Documentation
 
+<p align="center">
+<a href="https://hovey.github.io/dictk/"><img src="https://img.shields.io/badge/docs-GitHub%20Pages-blueviolet" alt="Docs"></a>
+</p>
+
 <table>
 <tr>
 <th>🚀 main (released)</th>
 <th>🛠️ dev (in development)</th>
 </tr>
 <tr>
-<td valign="top">
+<td valign="top" align="center">
 
-[![CI](https://github.com/hovey/dictk/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/hovey/dictk/actions/workflows/ci.yml?query=branch%3Amain)&nbsp;
-[![Docs](https://img.shields.io/badge/docs-main%20Pages-blueviolet)](https://hovey.github.io/dictk/main/dashboard/)&nbsp;
+[![CI](https://github.com/hovey/dictk/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/hovey/dictk/actions/workflows/ci.yml?query=branch%3Amain)
+<br>
+[![Docs](https://img.shields.io/badge/docs-Pages-blueviolet)](https://hovey.github.io/dictk/main/dashboard/)&nbsp;
 [![User Guide](https://img.shields.io/badge/-User%20Guide-gray?logo=mdbook&logoColor=blue)](https://hovey.github.io/dictk/main/)&nbsp;
-[![API Docs](https://img.shields.io/badge/-API%20Docs-gray?logo=python&logoColor=blue)](https://hovey.github.io/dictk/main/api/dictk.html)&nbsp;
+[![API Docs](https://img.shields.io/badge/-API%20Docs-gray?logo=python&logoColor=blue)](https://hovey.github.io/dictk/main/api/dictk.html)
+<br>
 [![Coverage](https://hovey.github.io/dictk/main/badges/coverage.svg)](https://hovey.github.io/dictk/main/coverage/)&nbsp;
 [![Lint](https://hovey.github.io/dictk/main/badges/lint.svg)](https://hovey.github.io/dictk/main/reports/lint/)
 
 </td>
-<td valign="top">
+<td valign="top" align="center">
 
-[![CI](https://github.com/hovey/dictk/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/hovey/dictk/actions/workflows/ci.yml?query=branch%3Adev)&nbsp;
-[![Docs](https://img.shields.io/badge/docs-dev%20Pages-blueviolet)](https://hovey.github.io/dictk/dev/dashboard/)&nbsp;
+[![CI](https://github.com/hovey/dictk/actions/workflows/ci.yml/badge.svg?branch=dev)](https://github.com/hovey/dictk/actions/workflows/ci.yml?query=branch%3Adev)
+<br>
+[![Docs](https://img.shields.io/badge/docs-Pages-blueviolet)](https://hovey.github.io/dictk/dev/dashboard/)&nbsp;
 [![User Guide](https://img.shields.io/badge/-User%20Guide-gray?logo=mdbook&logoColor=orange)](https://hovey.github.io/dictk/dev/)&nbsp;
-[![API Docs](https://img.shields.io/badge/-API%20Docs-gray?logo=python&logoColor=orange)](https://hovey.github.io/dictk/dev/api/dictk.html)&nbsp;
+[![API Docs](https://img.shields.io/badge/-API%20Docs-gray?logo=python&logoColor=orange)](https://hovey.github.io/dictk/dev/api/dictk.html)
+<br>
 [![Coverage](https://hovey.github.io/dictk/dev/badges/coverage.svg)](https://hovey.github.io/dictk/dev/coverage/)&nbsp;
 [![Lint](https://hovey.github.io/dictk/dev/badges/lint.svg)](https://hovey.github.io/dictk/dev/reports/lint/)
 
 </td>
 </tr>
 </table>
-
-[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blueviolet)](https://hovey.github.io/dictk/)
 
 ## Installation
 
