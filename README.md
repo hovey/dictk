@@ -6,8 +6,9 @@ Digital Image Correlation Toolkit
 images of a specimen before and after deformation to measure displacement
 and strain fields.
 
-This is an early-stage skeleton: a small, real, tested primitive
-(zero-normalized cross-correlation) rather than a full DIC pipeline.
+This is an early-stage toolkit: currently synthetic image generation,
+preprocessing, and transformation utilities for building DIC test data,
+with point-tracking (registration) under active development.
 
 ## Documentation
 
@@ -55,13 +56,10 @@ pip install dictk
 ## Usage
 
 ```python
-import numpy as np
-from dictk import zero_normalized_cross_correlation
+from dictk import checkerboard
 
-a = np.array([[1.0, 2.0], [3.0, 4.0]])
-b = np.array([[2.0, 4.0], [6.0, 8.0]])
-
-zero_normalized_cross_correlation(a, b)  # 1.0
+image = checkerboard(width=200, height=200, count_x=8, count_y=8)
+image.shape  # (200, 200)
 ```
 
 ## Development

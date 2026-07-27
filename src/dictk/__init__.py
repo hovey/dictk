@@ -13,7 +13,6 @@ before anything touches disk — and callers who do want a file call
 
 from importlib.metadata import PackageNotFoundError, version
 
-from dictk.core import zero_normalized_cross_correlation
 from dictk.imaging import astronaut, checkerboard
 from dictk.rosta import rosta
 
@@ -26,6 +25,5 @@ __all__ = [
     "astronaut",
     "checkerboard",
     "rosta",
-    "zero_normalized_cross_correlation",
     "__version__",
 ]
