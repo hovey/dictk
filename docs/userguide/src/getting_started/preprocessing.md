@@ -1,4 +1,4 @@
-# Image Processing
+# Image Preprocessing
 
 Certain preprocessing steps can make digital image correlation more robust
 to differences in brightness and contrast between a reference and deformed
