@@ -147,10 +147,15 @@ jobs:
         run: cd docs/userguide && uv run --project ../.. mdbook build
 
       - name: Build API docs
-        # dictk.core/imaging/cli must be listed explicitly: pdoc's automatic
-        # submodule discovery respects a package's __all__, and only rosta
-        # is exported there — see CONTRIBUTING.md#building-the-api-docs.
-        run: uv run pdoc dictk dictk.core dictk.imaging dictk.cli -o docs/api
+        # dictk.image/translation/cli must be listed explicitly: pdoc's
+        # automatic submodule discovery respects a package's __all__, and
+        # only rosta is exported there — see
+        # CONTRIBUTING.md#building-the-api-docs. Forgetting a new submodule
+        # here doesn't fail the build, it just silently omits it from the
+        # published docs (as dictk.image and dictk.translation were until
+        # this comment), so double-check this list against src/dictk/*.py
+        # when adding a new top-level module.
+        run: uv run pdoc dictk dictk.image dictk.translation dictk.cli -o docs/api
 
       - name: Generate status dashboard
         run: |

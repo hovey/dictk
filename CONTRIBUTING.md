@@ -230,20 +230,21 @@ Python API reference docs (function signatures, docstrings) are generated
 from source with [pdoc](https://pdoc.dev/), a dev dependency:
 
 ```bash
-uv run pdoc dictk dictk.image dictk.cli -o docs/api
+uv run pdoc dictk dictk.image dictk.translation dictk.cli -o docs/api
 ```
 
 `dictk.rosta` doesn't need to be listed explicitly — pdoc's submodule
 discovery respects a package's `__all__`, and `rosta` is exported there (see
 below), so it's picked up automatically. The other submodules (`image`,
-`cli`) aren't in `__all__` — `dictk/__init__.py` only lists the
-individual functions it re-exports, not module names — so pdoc's automatic
-package walk skips them unless named explicitly on the command line, per
+`translation`, `cli`) aren't in `__all__` — `dictk/__init__.py` only lists
+the individual functions it re-exports, not module names — so pdoc's
+automatic package walk skips them unless named explicitly on the command
+line, per
 [pdoc's `__all__` handling](https://pdoc.dev/docs/pdoc.html#what-objects-are-documented). If you add a new top-level submodule, add it to this
 command too, or it will silently go undocumented.
 
 ```bash
-uv run pdoc dictk dictk.image dictk.cli   # live preview, serves on localhost
+uv run pdoc dictk dictk.image dictk.translation dictk.cli   # live preview, serves on localhost
 ```
 
 Output goes to `docs/api/` (gitignored, regenerated on demand). CI builds
@@ -359,7 +360,7 @@ uv run ruff format --check
 uv run ruff check
 uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html
 (cd docs/userguide && uv run mdbook build)
-uv run pdoc dictk dictk.image dictk.cli -o docs/api
+uv run pdoc dictk dictk.image dictk.translation dictk.cli -o docs/api
 uv run genbadge coverage -i coverage.xml -o coverage-badge.svg
 uv run pylint src/dictk --output-format=text --reports=yes
 ```
