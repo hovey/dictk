@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from dictk.image import (
+    ArrowAnnotation,
     PixelCoordinate,
     astronaut,
     brightness,
@@ -13,6 +14,7 @@ from dictk.image import (
     contrast,
     crack_dislocation,
     describe,
+    point_plot,
     subimage_plot,
     subimage_bounds_plot,
     subimage_comparison_plot,
@@ -597,3 +599,53 @@ def test_subimage_comparison_plot_invalid_size_raises(tmp_path: Path, width, hei
             height=height,
             path=tmp_path / "out.png",
         )
+
+
+def test_point_plot_writes_file(tmp_path: Path):
+    arr = checkerboard(width=200, height=200)
+    path = tmp_path / "points.png"
+    point_plot(
+        image=arr,
+        arrows=[
+            ArrowAnnotation(
+                tail=PixelCoordinate(x=0, y=0),
+                head=PixelCoordinate(x=100, y=75),
+                color="gold",
+                label="p0",
+            ),
+            ArrowAnnotation(
+                tail=PixelCoordinate(x=100, y=75),
+                head=PixelCoordinate(x=94, y=83),
+                color="magenta",
+                label="displacement",
+            ),
+        ],
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_plot_arrow_outside_image_bounds(tmp_path: Path):
+    arr = checkerboard(width=40, height=40)
+    path = tmp_path / "points.png"
+    point_plot(
+        image=arr,
+        arrows=[
+            ArrowAnnotation(
+                tail=PixelCoordinate(x=0, y=0),
+                head=PixelCoordinate(x=-10, y=60),
+                color="cyan",
+                label="p1",
+            )
+        ],
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_plot_empty_arrows_raises(tmp_path: Path):
+    arr = checkerboard(width=40, height=40)
+    with pytest.raises(ValueError):
+        point_plot(image=arr, arrows=[], path=tmp_path / "out.png")

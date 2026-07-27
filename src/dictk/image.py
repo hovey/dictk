@@ -2,6 +2,7 @@
 
 import base64
 import importlib.resources
+from collections.abc import Sequence
 from pathlib import Path
 from typing import NamedTuple
 
@@ -363,6 +364,98 @@ def subimage_comparison_plot(
     ax_right.set_xlabel("x (pixels)")
     ax_right.set_ylabel("y (pixels)")
     ax_right.set_title("subimage")
+
+    plt.savefig(path, dpi=dpi, bbox_inches="tight")
+    plt.close(fig)
+
+
+class ArrowAnnotation(NamedTuple):
+    """A labeled, colored arrow to overlay on an image, from `tail` to `head`.
+
+    Attributes:
+        tail: Arrow's starting point, in the image's pixel reference frame.
+        head: Arrow's ending point, in the image's pixel reference frame.
+        color: Matplotlib color name for the arrow and its legend entry.
+        label: Legend label for the arrow.
+    """
+
+    tail: PixelCoordinate
+    head: PixelCoordinate
+    color: str
+    label: str
+
+
+def point_plot(
+    *, image: np.ndarray, arrows: Sequence[ArrowAnnotation], path: Path, dpi: int = 300
+) -> None:
+    """Save a figure overlaying one or more labeled arrows on `image`.
+
+    Each `ArrowAnnotation` draws a straight arrow from `tail` to `head`, in
+    `image`'s own pixel reference frame — e.g. from the origin `(0, 0)` to a
+    point of interest, or between two points to show a displacement.
+
+    Args:
+        image: Source 2D grayscale image array.
+        arrows: One or more arrows to overlay, each with its own color and
+            legend label.
+        path: Output file path for the figure; format is inferred from the
+            extension by matplotlib's savefig (e.g. .png), not dictk's own
+            write/write_svg.
+        dpi: Resolution of the saved figure.
+
+    Raises:
+        ValueError: If `arrows` is empty.
+    """
+    if not arrows:
+        raise ValueError("arrows must not be empty")
+
+    image_height, image_width = image.shape
+
+    endpoints_x = [pt.x for arrow in arrows for pt in (arrow.tail, arrow.head)]
+    endpoints_y = [pt.y for arrow in arrows for pt in (arrow.tail, arrow.head)]
+    margin = max(image_width, image_height) * 0.05
+    x_min = min(0, *endpoints_x) - margin
+    x_max = max(image_width, *endpoints_x) + margin
+    y_min = min(0, *endpoints_y) - margin
+    y_max = max(image_height, *endpoints_y) + margin
+
+    figsize = (
+        (x_max - x_min) / _FIGURE_PIXELS_PER_INCH,
+        (y_max - y_min) / _FIGURE_PIXELS_PER_INCH,
+    )
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.imshow(
+        image, cmap="gray", origin="upper", extent=(0, image_width, image_height, 0)
+    )
+
+    for arrow in arrows:
+        ax.annotate(
+            "",
+            xy=(arrow.head.x, arrow.head.y),
+            xytext=(arrow.tail.x, arrow.tail.y),
+            arrowprops={
+                "color": arrow.color,
+                "width": 1.5,
+                "headwidth": 8,
+                "shrink": 0,
+            },
+        )
+    # ax.annotate's arrows don't register with the legend on their own, so
+    # proxy line handles stand in for each arrow's color/label.
+    handles = [
+        plt.Line2D([0], [0], color=arrow.color, lw=1.5, label=arrow.label)
+        for arrow in arrows
+    ]
+
+    ax.set_xlim(x_min, x_max)
+    ax.set_ylim(y_max, y_min)  # inverted: image y increases downward
+    ax.set_xlabel("x (pixels)")
+    ax.set_ylabel("y (pixels)")
+    # Same fully-outside legend placement as subimage_bounds_plot(), so it
+    # never overlaps the image regardless of arrow placement.
+    ax.legend(
+        handles=handles, loc="center left", bbox_to_anchor=(1.02, 0.5), fontsize=8
+    )
 
     plt.savefig(path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
