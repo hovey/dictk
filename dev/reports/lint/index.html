@@ -18,15 +18,12 @@ src/dictk/rosta.py:99:0: R0913: Too many arguments (6/5) (too-many-arguments)
 ************* Module dictk.cli
 src/dictk/cli.py:20:0: R0913: Too many arguments (6/5) (too-many-arguments)
 src/dictk/cli.py:20:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
-************* Module dictk.imaging
-src/dictk/imaging.py:89:0: R0913: Too many arguments (6/5) (too-many-arguments)
-src/dictk/imaging.py:89:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
-src/dictk/imaging.py:89:0: R0914: Too many local variables (16/15) (too-many-locals)
-src/dictk/imaging.py:184:0: R0913: Too many arguments (6/5) (too-many-arguments)
-src/dictk/imaging.py:184:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
-src/dictk/imaging.py:256:0: R0913: Too many arguments (6/5) (too-many-arguments)
-src/dictk/imaging.py:256:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
-src/dictk/imaging.py:256:0: R0914: Too many local variables (19/15) (too-many-locals)
+************* Module dictk.image
+src/dictk/image.py:89:0: R0913: Too many arguments (6/5) (too-many-arguments)
+src/dictk/image.py:89:0: R0914: Too many local variables (16/15) (too-many-locals)
+src/dictk/image.py:185:0: R0913: Too many arguments (6/5) (too-many-arguments)
+src/dictk/image.py:258:0: R0913: Too many arguments (6/5) (too-many-arguments)
+src/dictk/image.py:258:0: R0914: Too many local variables (19/15) (too-many-locals)
 
 
 Report
@@ -55,18 +52,18 @@ External dependencies
 ::
 
     imageio 
-      \-v3 (dictk.imaging)
+      \-v3 (dictk.image)
     matplotlib 
-      \-patches (dictk.imaging)
-      \-pyplot (dictk.imaging)
-    numpy (dictk.cli,dictk.imaging,dictk.rosta)
+      \-patches (dictk.image)
+      \-pyplot (dictk.image)
+    numpy (dictk.cli,dictk.image,dictk.rosta)
     scipy 
-      \-interpolate (dictk.imaging)
-      \-ndimage (dictk.imaging,dictk.rosta)
+      \-interpolate (dictk.image)
+      \-ndimage (dictk.image,dictk.rosta)
 
 
 
-1375 lines have been analyzed
+1378 lines have been analyzed
 
 Raw metrics
 -----------
@@ -74,13 +71,13 @@ Raw metrics
 +----------+-------+------+---------+-----------+
 |type      |number |%     |previous |difference |
 +==========+=======+======+=========+===========+
-|code      |639    |46.47 |NC       |NC         |
+|code      |642    |46.59 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|docstring |544    |39.56 |NC       |NC         |
+|docstring |544    |39.48 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|comment   |29     |2.11  |NC       |NC         |
+|comment   |29     |2.10  |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|empty     |163    |11.85 |NC       |NC         |
+|empty     |163    |11.83 |NC       |NC         |
 +----------+-------+------+---------+-----------+
 
 
@@ -106,7 +103,7 @@ Messages by category
 +===========+=======+=========+===========+
 |convention |0      |NC       |NC         |
 +-----------+-------+---------+-----------+
-|refactor   |11     |NC       |NC         |
+|refactor   |8      |NC       |NC         |
 +-----------+-------+---------+-----------+
 |warning    |0      |NC       |NC         |
 +-----------+-------+---------+-----------+
@@ -118,15 +115,15 @@ Messages by category
 % errors / warnings by module
 -----------------------------
 
-+--------------+------+--------+---------+-----------+
-|module        |error |warning |refactor |convention |
-+==============+======+========+=========+===========+
-|dictk.imaging |0.00  |0.00    |72.73    |0.00       |
-+--------------+------+--------+---------+-----------+
-|dictk.cli     |0.00  |0.00    |18.18    |0.00       |
-+--------------+------+--------+---------+-----------+
-|dictk.rosta   |0.00  |0.00    |9.09     |0.00       |
-+--------------+------+--------+---------+-----------+
++------------+------+--------+---------+-----------+
+|module      |error |warning |refactor |convention |
++============+======+========+=========+===========+
+|dictk.image |0.00  |0.00    |62.50    |0.00       |
++------------+------+--------+---------+-----------+
+|dictk.cli   |0.00  |0.00    |25.00    |0.00       |
++------------+------+--------+---------+-----------+
+|dictk.rosta |0.00  |0.00    |12.50    |0.00       |
++------------+------+--------+---------+-----------+
 
 
 
@@ -138,16 +135,16 @@ Messages
 +==============================+============+
 |too-many-arguments            |5           |
 +------------------------------+------------+
-|too-many-positional-arguments |4           |
-+------------------------------+------------+
 |too-many-locals               |2           |
++------------------------------+------------+
+|too-many-positional-arguments |1           |
 +------------------------------+------------+
 
 
 
 
 -----------------------------------
-Your code has been rated at 9.71/10
+Your code has been rated at 9.79/10
 </pre>
 </body>
 </html>

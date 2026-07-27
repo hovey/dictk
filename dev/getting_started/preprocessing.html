@@ -185,24 +185,24 @@ image. This page covers two of them, using the <a href="./image_generation.html#
 image</a> from the previous page as an
 example.</p>
 <h2 id="brightness"><a class="header" href="#brightness">Brightness</a></h2>
-<p><a href="../api/dictk/imaging.html#brightness"><strong>Brightness</strong></a> shifts the entire
+<p><a href="../api/dictk/image.html#brightness"><strong>Brightness</strong></a> shifts the entire
 pixel-intensity histogram up or down by a constant amount — the whole
 image gets lighter or darker together, dark areas included. Pushed too
 far, dark regions wash out to a flat gray and highlights clip at pure
 white (255), permanently losing detail.</p>
 <pre><code class="language-python">import dictk
-from dictk.imaging import brightness, save_histogram, write_image
+from dictk.image import brightness, save_histogram, write
 
-photo = dictk.astronaut(300, 300)
-write_image(photo, "astronaut_original.png")
+photo = dictk.astronaut(width=300, height=300)
+write(arr=photo, path="astronaut_original.png")
 save_histogram(photo, "astronaut_original_histogram.png")
 
 bright_1_5 = brightness(photo, 1.5)
-write_image(bright_1_5, "astronaut_brightness_1.5.png")
+write(arr=bright_1_5, path="astronaut_brightness_1.5.png")
 save_histogram(bright_1_5, "astronaut_brightness_1.5_histogram.png")
 
 bright_2_0 = brightness(photo, 2.0)
-write_image(bright_2_0, "astronaut_brightness_2.0.png")
+write(arr=bright_2_0, path="astronaut_brightness_2.0.png")
 save_histogram(bright_2_0, "astronaut_brightness_2.0_histogram.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_original.png, astronaut_brightness_1.5.png, astronaut_brightness_2.0.png
@@ -221,22 +221,22 @@ pixels pile up at that 255 ceiling, visible as a tall spike at the
 histogram's right edge: real detail that's been clipped away and can't be
 recovered.</p>
 <h2 id="contrast"><a class="header" href="#contrast">Contrast</a></h2>
-<p><a href="../api/dictk/imaging.html#contrast"><strong>Contrast</strong></a> is the spread between
+<p><a href="../api/dictk/image.html#contrast"><strong>Contrast</strong></a> is the spread between
 an image's darkest and lightest pixels. Increasing contrast stretches the
 histogram outward from its own mean — darks get darker, lights get
 lighter — while the mean itself stays roughly
 where it was.</p>
 <pre><code class="language-python">import dictk
-from dictk.imaging import contrast, save_histogram, write_image
+from dictk.image import contrast, save_histogram, write
 
-photo = dictk.astronaut(300, 300)
+photo = dictk.astronaut(width=300, height=300)
 
 contrast_1_5 = contrast(photo, 1.5)
-write_image(contrast_1_5, "astronaut_contrast_1.5.png")
+write(arr=contrast_1_5, path="astronaut_contrast_1.5.png")
 save_histogram(contrast_1_5, "astronaut_contrast_1.5_histogram.png")
 
 contrast_2_0 = contrast(photo, 2.0)
-write_image(contrast_2_0, "astronaut_contrast_2.0.png")
+write(arr=contrast_2_0, path="astronaut_contrast_2.0.png")
 save_histogram(contrast_2_0, "astronaut_contrast_2.0_histogram.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_contrast_1.5.png, astronaut_contrast_2.0.png

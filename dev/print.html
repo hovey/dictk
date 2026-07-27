@@ -221,9 +221,9 @@ functions, <a href="getting_started/../api/dictk.html#rosta"><code>dictk.rosta</
 parameters but perform no file I/O: they return a NumPy array only. That
 keeps the Python API composable in a functional style — arrays can be
 piped through further functions (e.g.
-<a href="getting_started/../api/dictk/imaging.html#combine_images"><code>combine_images</code></a> below)
+<a href="getting_started/../api/dictk/image.html#combine"><code>combine</code></a> below)
 before anything touches disk — and callers who do want a file call
-<a href="getting_started/../api/dictk/imaging.html#write_image"><code>dictk.imaging.write_image</code></a>
+<a href="getting_started/../api/dictk/image.html#write"><code>dictk.image.write</code></a>
 explicitly, as a separate step. See each function's docstring (rendered
 in the API reference) for details.</p>
 </blockquote>
@@ -281,7 +281,7 @@ options:
 file written:</p>
 <pre><code class="language-python">import dictk
 
-pattern = dictk.rosta(200, 200, density=0.5)
+pattern = dictk.rosta(width=200, height=200, density=0.5)
 </code></pre>
 <pre><code class="language-text">shape=(200, 200), dtype=uint8
 </code></pre>
@@ -370,12 +370,12 @@ start to lose too much detail:</p>
 <p>The Python equivalent, again returning an array with no file written:</p>
 <pre><code class="language-python">import dictk
 
-photo = dictk.astronaut(300, 300)
+photo = dictk.astronaut(width=300, height=300)
 </code></pre>
 <pre><code class="language-text">shape=(300, 300), dtype=uint8
 </code></pre>
 <h2 id="combining-into-a-reference-image"><a class="header" href="#combining-into-a-reference-image">Combining into a reference image</a></h2>
-<p><a href="getting_started/../api/dictk/imaging.html#combine_images"><code>combine_images</code></a> works on any
+<p><a href="getting_started/../api/dictk/image.html#combine"><code>combine</code></a> works on any
 two grayscale images of the same shape, so it isn't limited to combining
 the two synthetic images below —
 <a href="getting_started/image_generation.html#speckle--astronaut">Speckle + Astronaut</a> further down combines <code>rosta</code>
@@ -384,12 +384,12 @@ with a real photograph instead.</p>
 <p>We combine the <code>rosta</code> speckle pattern with the checkerboard into a
 <strong>reference image</strong> <code>checkerboard0</code> by averaging their pixel values and
 normalizing back to <code>uint8</code>:</p>
-<pre><code class="language-python">from dictk.imaging import combine_images, read_image, write_image
+<pre><code class="language-python">from dictk.image import combine, read, write
 
-speckle = read_image("rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
-checker = read_image("checkerboard_200w_by_200h_8x8.png")
-checkerboard0 = combine_images(speckle, checker)
-write_image(checkerboard0, "checkerboard0.png")
+speckle = read("rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
+checker = read("checkerboard_200w_by_200h_8x8.png")
+checkerboard0 = combine(a=speckle, b=checker)
+write(arr=checkerboard0, path="checkerboard0.png")
 </code></pre>
 <pre><code class="language-text">Saved image: checkerboard0.png
 </code></pre>
@@ -410,11 +410,11 @@ white stays white.</li>
 speckle and checkerboard are both roughly bimodal (dark/light), while
 <code>checkerboard0</code> picks up a distinct middle hump from the
 black/white-speckle-on-opposite checkerboard combinations.</p>
-<pre><code class="language-python">from dictk.imaging import read_image, save_histogram
+<pre><code class="language-python">from dictk.image import read, save_histogram
 
-speckle = read_image("rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
-checker = read_image("checkerboard_200w_by_200h_8x8.png")
-checkerboard0 = read_image("checkerboard0.png")
+speckle = read("rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
+checker = read("checkerboard_200w_by_200h_8x8.png")
+checkerboard0 = read("checkerboard0.png")
 
 save_histogram(speckle, "rosta_histogram.png")
 save_histogram(checker, "checkerboard_histogram.png")
@@ -435,15 +435,15 @@ speckle pattern overlaid on a realistic, non-uniform grayscale image.</p>
 <p>This time the two source images are never written to disk at all — both
 <a href="getting_started/../api/dictk.html#rosta"><code>dictk.rosta</code></a> and
 <a href="getting_started/../api/dictk.html#astronaut"><code>dictk.astronaut</code></a> return arrays directly,
-which <a href="getting_started/../api/dictk/imaging.html#combine_images"><code>combine_images</code></a> accepts
+which <a href="getting_started/../api/dictk/image.html#combine"><code>combine</code></a> accepts
 as-is, so only the combined result <code>astronaut0</code> is saved:</p>
 <pre><code class="language-python">import dictk
-from dictk.imaging import combine_images, write_image
+from dictk.image import combine, write
 
-speckle = dictk.rosta(300, 300, density=0.5)
-photo = dictk.astronaut(300, 300)
-astronaut0 = combine_images(speckle, photo)
-write_image(astronaut0, "astronaut0.png")
+speckle = dictk.rosta(width=300, height=300, density=0.5)
+photo = dictk.astronaut(width=300, height=300)
+astronaut0 = combine(a=speckle, b=photo)
+write(arr=astronaut0, path="astronaut0.png")
 </code></pre>
 <pre><code class="language-text">Saved image: astronaut0.png
 </code></pre>
@@ -455,7 +455,7 @@ write_image(astronaut0, "astronaut0.png")
 <code>src/dictk/data/</code>, alongside the source <code>astronaut.png</code>, so later examples
 can reuse them without regenerating from scratch each time.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="subimage-generation"><a class="header" href="#subimage-generation">Subimage Generation</a></h1>
-<p><a href="getting_started/../api/dictk/imaging.html#subimage"><code>dictk.imaging.subimage</code></a> extracts a
+<p><a href="getting_started/../api/dictk/image.html#subimage"><code>dictk.image.subimage</code></a> extracts a
 rectangular crop from a source image: a <code>width</code> x <code>height</code> region whose
 top-left corner sits at <code>origin</code>, expressed in the source image's own
 pixel reference frame (top-left corner <code>(0, 0)</code>). <code>origin</code> may place the
@@ -470,44 +470,44 @@ around a point of interest.</p>
 the astronaut photo introduced in <a href="getting_started/./image_generation.html#speckle--astronaut">Image
 Generation</a>:</p>
 <pre><code class="language-python">import dictk
-from dictk.imaging import combine_images, write_image
+from dictk.image import combine, write
 
-speckle = dictk.rosta(300, 300, density=0.5)
-photo = dictk.astronaut(300, 300)
-astronaut0 = combine_images(speckle, photo)
-write_image(astronaut0, "astronaut0.png")
+speckle = dictk.rosta(width=300, height=300, density=0.5)
+photo = dictk.astronaut(width=300, height=300)
+astronaut0 = combine(a=speckle, b=photo)
+write(arr=astronaut0, path="astronaut0.png")
 </code></pre>
 <pre><code class="language-text">Saved image: astronaut0.png
 </code></pre>
 <h2 id="python-api"><a class="header" href="#python-api">Python API</a></h2>
-<p><a href="getting_started/../api/dictk/imaging.html#PixelCoordinate"><code>dictk.imaging.PixelCoordinate</code></a>
+<p><a href="getting_started/../api/dictk/image.html#PixelCoordinate"><code>dictk.image.PixelCoordinate</code></a>
 is a simple <code>(x, y)</code> NamedTuple used for <code>origin</code>.
-<a href="getting_started/../api/dictk/imaging.html#subimage"><code>dictk.imaging.subimage</code></a> itself
+<a href="getting_started/../api/dictk/image.html#subimage"><code>dictk.image.subimage</code></a> itself
 returns the cropped array directly, with no file written. The examples
 below use
-<a href="getting_started/../api/dictk/imaging.html#plot_subimage_comparison"><code>plot_subimage_comparison</code></a>,
+<a href="getting_started/../api/dictk/image.html#subimage_comparison_plot"><code>subimage_comparison_plot</code></a>,
 which saves a two-panel figure: the left panel shows where the region
 falls relative to the source image (blue/red boxes), and the right panel
 shows the extracted result on its own, in its own local reference frame —
 top-left corner <code>(0, 0)</code> — sharing the <em>same</em> axis limits as the left
 panel so the two red boxes render at matching scale. It's built from two
 smaller single-panel functions, also available individually:
-<a href="getting_started/../api/dictk/imaging.html#plot_subimage_bounds"><code>plot_subimage_bounds</code></a>
+<a href="getting_started/../api/dictk/image.html#subimage_bounds_plot"><code>subimage_bounds_plot</code></a>
 (the left panel alone) and
-<a href="getting_started/../api/dictk/imaging.html#plot_subimage"><code>plot_subimage</code></a> (the right
+<a href="getting_started/../api/dictk/image.html#subimage_plot"><code>subimage_plot</code></a> (the right
 panel alone, but zoomed to the subimage's own size rather than sharing
 the source image's scale).</p>
 <h3 id="square-fully-inside"><a class="header" href="#square-fully-inside">Square, fully inside</a></h3>
 <p>An 80x80 square region entirely within <code>astronaut0</code>'s 300x300 bounds.
-<a href="getting_started/../api/dictk/imaging.html#plot_subimage_comparison"><code>plot_subimage_comparison</code></a>
+<a href="getting_started/../api/dictk/image.html#subimage_comparison_plot"><code>subimage_comparison_plot</code></a>
 draws both panels side by side, sharing the <em>same</em> axis limits, so the
 red box in the right panel renders at identical scale to the one on the
 left — instead of the right panel zooming in to fit just the 80x80
 crop:</p>
-<pre><code class="language-python">from dictk.imaging import PixelCoordinate, plot_subimage_comparison
+<pre><code class="language-python">from dictk.image import PixelCoordinate, subimage_comparison_plot
 
 origin = PixelCoordinate(x=100, y=40)
-plot_subimage_comparison(astronaut0, origin, width=80, height=80, path="subimage_comparison_80w_by_80h_at_100_40.png")
+subimage_comparison_plot(image=astronaut0, origin=origin, width=80, height=80, path="subimage_comparison_80w_by_80h_at_100_40.png")
 </code></pre>
 <pre><code class="language-text">Saved: subimage_comparison_80w_by_80h_at_100_40.png
 </code></pre>
@@ -518,10 +518,10 @@ plot_subimage_comparison(astronaut0, origin, width=80, height=80, path="subimage
 <h3 id="rectangle-fully-inside"><a class="header" href="#rectangle-fully-inside">Rectangle, fully inside</a></h3>
 <p>A 180x70 region — wider than it is tall — also entirely within the
 source image bounds:</p>
-<pre><code class="language-python">from dictk.imaging import PixelCoordinate, plot_subimage_comparison
+<pre><code class="language-python">from dictk.image import PixelCoordinate, subimage_comparison_plot
 
 origin = PixelCoordinate(x=50, y=200)
-plot_subimage_comparison(astronaut0, origin, width=180, height=70, path="subimage_comparison_180w_by_70h_at_50_200.png")
+subimage_comparison_plot(image=astronaut0, origin=origin, width=180, height=70, path="subimage_comparison_180w_by_70h_at_50_200.png")
 </code></pre>
 <pre><code class="language-text">Saved: subimage_comparison_180w_by_70h_at_50_200.png
 </code></pre>
@@ -533,10 +533,10 @@ plot_subimage_comparison(astronaut0, origin, width=180, height=70, path="subimag
 <p>A 120x120 region with a negative origin, straddling the source image's
 top-left corner. <code>subimage</code> fills the part of the region above and to
 the left of the source with black:</p>
-<pre><code class="language-python">from dictk.imaging import PixelCoordinate, plot_subimage_comparison
+<pre><code class="language-python">from dictk.image import PixelCoordinate, subimage_comparison_plot
 
 origin = PixelCoordinate(x=-20, y=-40)
-plot_subimage_comparison(astronaut0, origin, width=120, height=120, path="subimage_comparison_120w_by_120h_at_-20_-40.png")
+subimage_comparison_plot(image=astronaut0, origin=origin, width=120, height=120, path="subimage_comparison_120w_by_120h_at_-20_-40.png")
 </code></pre>
 <pre><code class="language-text">Saved: subimage_comparison_120w_by_120h_at_-20_-40.png
 </code></pre>
@@ -548,10 +548,10 @@ plot_subimage_comparison(astronaut0, origin, width=120, height=120, path="subima
 <p>A 40x100 region entirely beyond the source image's bounds — its x-range
 (310 to 350) shares no pixels with the source's (0 to 300), so there is
 no overlap at all and the result is entirely black:</p>
-<pre><code class="language-python">from dictk.imaging import PixelCoordinate, plot_subimage_comparison
+<pre><code class="language-python">from dictk.image import PixelCoordinate, subimage_comparison_plot
 
 origin = PixelCoordinate(x=310, y=250)
-plot_subimage_comparison(astronaut0, origin, width=40, height=100, path="subimage_comparison_40w_by_100h_at_310_250.png")
+subimage_comparison_plot(image=astronaut0, origin=origin, width=40, height=100, path="subimage_comparison_40w_by_100h_at_310_250.png")
 </code></pre>
 <pre><code class="language-text">Saved: subimage_comparison_40w_by_100h_at_310_250.png
 </code></pre>
@@ -566,24 +566,24 @@ image. This page covers two of them, using the <a href="getting_started/./image_
 image</a> from the previous page as an
 example.</p>
 <h2 id="brightness"><a class="header" href="#brightness">Brightness</a></h2>
-<p><a href="getting_started/../api/dictk/imaging.html#brightness"><strong>Brightness</strong></a> shifts the entire
+<p><a href="getting_started/../api/dictk/image.html#brightness"><strong>Brightness</strong></a> shifts the entire
 pixel-intensity histogram up or down by a constant amount — the whole
 image gets lighter or darker together, dark areas included. Pushed too
 far, dark regions wash out to a flat gray and highlights clip at pure
 white (255), permanently losing detail.</p>
 <pre><code class="language-python">import dictk
-from dictk.imaging import brightness, save_histogram, write_image
+from dictk.image import brightness, save_histogram, write
 
-photo = dictk.astronaut(300, 300)
-write_image(photo, "astronaut_original.png")
+photo = dictk.astronaut(width=300, height=300)
+write(arr=photo, path="astronaut_original.png")
 save_histogram(photo, "astronaut_original_histogram.png")
 
 bright_1_5 = brightness(photo, 1.5)
-write_image(bright_1_5, "astronaut_brightness_1.5.png")
+write(arr=bright_1_5, path="astronaut_brightness_1.5.png")
 save_histogram(bright_1_5, "astronaut_brightness_1.5_histogram.png")
 
 bright_2_0 = brightness(photo, 2.0)
-write_image(bright_2_0, "astronaut_brightness_2.0.png")
+write(arr=bright_2_0, path="astronaut_brightness_2.0.png")
 save_histogram(bright_2_0, "astronaut_brightness_2.0_histogram.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_original.png, astronaut_brightness_1.5.png, astronaut_brightness_2.0.png
@@ -602,22 +602,22 @@ pixels pile up at that 255 ceiling, visible as a tall spike at the
 histogram's right edge: real detail that's been clipped away and can't be
 recovered.</p>
 <h2 id="contrast"><a class="header" href="#contrast">Contrast</a></h2>
-<p><a href="getting_started/../api/dictk/imaging.html#contrast"><strong>Contrast</strong></a> is the spread between
+<p><a href="getting_started/../api/dictk/image.html#contrast"><strong>Contrast</strong></a> is the spread between
 an image's darkest and lightest pixels. Increasing contrast stretches the
 histogram outward from its own mean — darks get darker, lights get
 lighter — while the mean itself stays roughly
 where it was.</p>
 <pre><code class="language-python">import dictk
-from dictk.imaging import contrast, save_histogram, write_image
+from dictk.image import contrast, save_histogram, write
 
-photo = dictk.astronaut(300, 300)
+photo = dictk.astronaut(width=300, height=300)
 
 contrast_1_5 = contrast(photo, 1.5)
-write_image(contrast_1_5, "astronaut_contrast_1.5.png")
+write(arr=contrast_1_5, path="astronaut_contrast_1.5.png")
 save_histogram(contrast_1_5, "astronaut_contrast_1.5_histogram.png")
 
 contrast_2_0 = contrast(photo, 2.0)
-write_image(contrast_2_0, "astronaut_contrast_2.0.png")
+write(arr=contrast_2_0, path="astronaut_contrast_2.0.png")
 save_histogram(contrast_2_0, "astronaut_contrast_2.0_histogram.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_contrast_1.5.png, astronaut_contrast_2.0.png
@@ -661,18 +661,18 @@ preserved by every category to its left:</p>
 </div>
 <h2 id="pure-translation-rigid-body-motion"><a class="header" href="#pure-translation-rigid-body-motion">Pure Translation (Rigid Body Motion)</a></h2>
 <p>As the simplest of the categories above — no change in shape or size —
-<a href="getting_started/../api/dictk/imaging.html#translate"><code>dictk.imaging.translate</code></a> shifts
+<a href="getting_started/../api/dictk/image.html#translate"><code>dictk.image.translate</code></a> shifts
 every pixel by a fixed displacement. This example shifts the image by
 dx=-60 pixels in x and dy=+80 pixels in y, representing rigid body
 motion where the material moves without deforming.</p>
 <pre><code class="language-python">import dictk
-from dictk.imaging import translate, write_image
+from dictk.image import translate, write
 
-photo = dictk.astronaut(300, 300)
-write_image(photo, "astronaut_translate_original.png")
+photo = dictk.astronaut(width=300, height=300)
+write(arr=photo, path="astronaut_translate_original.png")
 
 translated = translate(photo, dx=-60, dy=80)
-write_image(translated, "astronaut_translate_rigid_body.png")
+write(arr=translated, path="astronaut_translate_rigid_body.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_translate_original.png, astronaut_translate_rigid_body.png
 </code></pre>
@@ -684,19 +684,19 @@ write_image(translated, "astronaut_translate_rigid_body.png")
 <h2 id="pure-rotation"><a class="header" href="#pure-rotation">Pure Rotation</a></h2>
 <p>A 30° counterclockwise rotation, another rigid body motion that preserves
 distances and angles.
-<a href="getting_started/../api/dictk/imaging.html#rotate"><code>dictk.imaging.rotate</code></a> pivots on the
+<a href="getting_started/../api/dictk/image.html#rotate"><code>dictk.image.rotate</code></a> pivots on the
 image's top-left corner (0, 0), consistent with <code>stretch</code> and
 <code>translate</code>'s pivot choice in this codebase — unlike the more typical
 "object spins in place" rotation about the center, most content swings
 away from that fixed corner, similar to a door on a hinge.</p>
 <pre><code class="language-python">import dictk
-from dictk.imaging import rotate, write_image
+from dictk.image import rotate, write
 
-photo = dictk.astronaut(300, 300)
-write_image(photo, "astronaut_rotate_original.png")
+photo = dictk.astronaut(width=300, height=300)
+write(arr=photo, path="astronaut_rotate_original.png")
 
 rotated = rotate(photo, 30.0)
-write_image(rotated, "astronaut_rotate_30deg.png")
+write(arr=rotated, path="astronaut_rotate_30deg.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_rotate_original.png, astronaut_rotate_30deg.png
 </code></pre>
@@ -707,7 +707,7 @@ write_image(rotated, "astronaut_rotate_30deg.png")
 </div>
 <h2 id="x-axis-stretch-extension"><a class="header" href="#x-axis-stretch-extension">X-Axis Stretch (Extension)</a></h2>
 <p>As a concrete example of the <em>similarity</em> category above,
-<a href="getting_started/../api/dictk/imaging.html#stretch"><code>dictk.imaging.stretch</code></a> applies a
+<a href="getting_started/../api/dictk/image.html#stretch"><code>dictk.image.stretch</code></a> applies a
 uniaxial stretch along the x-axis: the image's top-left corner (x=0, y=0)
 stays fixed, and content grows away from it, using backward mapping with
 bilinear interpolation so the result has no gaps (unlike naively moving
@@ -716,16 +716,16 @@ below range from a small, realistic deformation (5%, similar in magnitude
 to a modest tensile strain in a materials test) up to a much larger one
 (50%).</p>
 <pre><code class="language-python">import dictk
-from dictk.imaging import stretch, write_image
+from dictk.image import stretch, write
 
-photo = dictk.astronaut(300, 300)
-write_image(photo, "astronaut_stretch_original.png")
+photo = dictk.astronaut(width=300, height=300)
+write(arr=photo, path="astronaut_stretch_original.png")
 
 stretch_5pct = stretch(photo, factor_x=1.05)
-write_image(stretch_5pct, "astronaut_stretch_x_5pct.png")
+write(arr=stretch_5pct, path="astronaut_stretch_x_5pct.png")
 
 stretch_50pct = stretch(photo, factor_x=1.50)
-write_image(stretch_50pct, "astronaut_stretch_x_50pct.png")
+write(arr=stretch_50pct, path="astronaut_stretch_x_50pct.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_stretch_original.png, astronaut_stretch_x_5pct.png, astronaut_stretch_x_50pct.png
 </code></pre>
@@ -736,23 +736,23 @@ write_image(stretch_50pct, "astronaut_stretch_x_50pct.png")
 </tbody></table>
 </div>
 <h2 id="y-axis-stretch-compression"><a class="header" href="#y-axis-stretch-compression">Y-Axis Stretch (Compression)</a></h2>
-<p>The same <a href="getting_started/../api/dictk/imaging.html#stretch"><code>dictk.imaging.stretch</code></a>
+<p>The same <a href="getting_started/../api/dictk/image.html#stretch"><code>dictk.image.stretch</code></a>
 function compresses along the y-axis with <code>factor_y &lt; 1.0</code>. Pivoting on
 the origin means the top edge (y=0) stays fixed while content shrinks
 toward it, leaving a black margin along the bottom — the mirror image of
 the x-axis stretch case, where growth away from the origin never leaves a
 gap.</p>
 <pre><code class="language-python">import dictk
-from dictk.imaging import stretch, write_image
+from dictk.image import stretch, write
 
-photo = dictk.astronaut(300, 300)
-write_image(photo, "astronaut_compress_original.png")
+photo = dictk.astronaut(width=300, height=300)
+write(arr=photo, path="astronaut_compress_original.png")
 
 compress_neg5pct = stretch(photo, factor_y=0.95)
-write_image(compress_neg5pct, "astronaut_compress_y_neg5pct.png")
+write(arr=compress_neg5pct, path="astronaut_compress_y_neg5pct.png")
 
 compress_neg50pct = stretch(photo, factor_y=0.50)
-write_image(compress_neg50pct, "astronaut_compress_y_neg50pct.png")
+write(arr=compress_neg50pct, path="astronaut_compress_y_neg50pct.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_compress_original.png, astronaut_compress_y_neg5pct.png, astronaut_compress_y_neg50pct.png
 </code></pre>
@@ -766,17 +766,17 @@ write_image(compress_neg50pct, "astronaut_compress_y_neg50pct.png")
 <p>A shear deformation with γ = 0.5, where horizontal planes slide relative
 to each other by an amount proportional to their y-coordinate — the
 higher up a row of pixels, the further it shifts sideways.
-<a href="getting_started/../api/dictk/imaging.html#shear"><code>dictk.imaging.shear</code></a> pivots on the
+<a href="getting_started/../api/dictk/image.html#shear"><code>dictk.image.shear</code></a> pivots on the
 image's top-left corner (0, 0), consistent with the other transform
 functions in this codebase.</p>
 <pre><code class="language-python">import dictk
-from dictk.imaging import shear, write_image
+from dictk.image import shear, write
 
-photo = dictk.astronaut(300, 300)
-write_image(photo, "astronaut_shear_original.png")
+photo = dictk.astronaut(width=300, height=300)
+write(arr=photo, path="astronaut_shear_original.png")
 
 sheared = shear(photo, shear_x=0.5)
-write_image(sheared, "astronaut_shear_x_0.5.png")
+write(arr=sheared, path="astronaut_shear_x_0.5.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_shear_original.png, astronaut_shear_x_0.5.png
 </code></pre>
@@ -790,19 +790,19 @@ write_image(sheared, "astronaut_shear_x_0.5.png")
 y) — realistic loading scenarios where materials experience multiple
 simultaneous deformation modes, typically the hardest case for
 correlation algorithms.
-<a href="getting_started/../api/dictk/imaging.html#complex_deform"><code>dictk.imaging.complex_deform</code></a>
+<a href="getting_started/../api/dictk/image.html#complex_deform"><code>dictk.image.complex_deform</code></a>
 composes the two into a single deformation gradient (stretch applied
 first, then rotation) and applies it in one backward-mapping pass, so
 the result isn't blurred by interpolating twice as calling <code>stretch</code>
 and then <code>rotate</code> separately would.</p>
 <pre><code class="language-python">import dictk
-from dictk.imaging import complex_deform, write_image
+from dictk.image import complex_deform, write
 
-photo = dictk.astronaut(300, 300)
-write_image(photo, "astronaut_complex_original.png")
+photo = dictk.astronaut(width=300, height=300)
+write(arr=photo, path="astronaut_complex_original.png")
 
 combined = complex_deform(photo, factor_x=1.3, factor_y=0.8, angle=15.0)
-write_image(combined, "astronaut_complex_deform.png")
+write(arr=combined, path="astronaut_complex_deform.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_complex_original.png, astronaut_complex_deform.png
 </code></pre>
@@ -819,13 +819,13 @@ unlike every other example on this page, which deforms smoothly.
 Standard DIC assumes smooth displacements and cannot capture this jump;
 cases like this motivate the Heaviside finite-element formulation.</p>
 <pre><code class="language-python">import dictk
-from dictk.imaging import crack_dislocation, write_image
+from dictk.image import crack_dislocation, write
 
-photo = dictk.astronaut(300, 300)
-write_image(photo, "astronaut_crack_plain_original.png")
+photo = dictk.astronaut(width=300, height=300)
+write(arr=photo, path="astronaut_crack_plain_original.png")
 
 cracked_plain = crack_dislocation(photo, offset=4.0)
-write_image(cracked_plain, "astronaut_crack_plain_dislocation.png")
+write(arr=cracked_plain, path="astronaut_crack_plain_dislocation.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_crack_plain_original.png, astronaut_crack_plain_dislocation.png
 </code></pre>
@@ -1004,17 +1004,17 @@ uv run mdbook serve           # live preview at http://localhost:3000
 <h3 id="building-the-api-docs"><a class="header" href="#building-the-api-docs">Building the API docs</a></h3>
 <p>Python API reference docs (function signatures, docstrings) are generated
 from source with <a href="https://pdoc.dev/">pdoc</a>, a dev dependency:</p>
-<pre><code class="language-bash">uv run pdoc dictk dictk.imaging dictk.cli -o docs/api
+<pre><code class="language-bash">uv run pdoc dictk dictk.image dictk.cli -o docs/api
 </code></pre>
 <p><code>dictk.rosta</code> doesn't need to be listed explicitly — pdoc's submodule
 discovery respects a package's <code>__all__</code>, and <code>rosta</code> is exported there (see
-below), so it's picked up automatically. The other submodules (<code>imaging</code>,
+below), so it's picked up automatically. The other submodules (<code>image</code>,
 <code>cli</code>) aren't in <code>__all__</code> — <code>dictk/__init__.py</code> only lists the
 individual functions it re-exports, not module names — so pdoc's automatic
 package walk skips them unless named explicitly on the command line, per
 <a href="https://pdoc.dev/docs/pdoc.html#what-objects-are-documented">pdoc's <code>__all__</code> handling</a>. If you add a new top-level submodule, add it to this
 command too, or it will silently go undocumented.</p>
-<pre><code class="language-bash">uv run pdoc dictk dictk.imaging dictk.cli   # live preview, serves on localhost
+<pre><code class="language-bash">uv run pdoc dictk dictk.image dictk.cli   # live preview, serves on localhost
 </code></pre>
 <p>Output goes to <code>docs/api/</code> (gitignored, regenerated on demand). CI builds
 this too and publishes it alongside the mdBook user guide — see
@@ -1105,7 +1105,7 @@ the checks manually:</p>
 uv run ruff check
 uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html
 (cd docs/userguide &amp;&amp; uv run mdbook build)
-uv run pdoc dictk dictk.imaging dictk.cli -o docs/api
+uv run pdoc dictk dictk.image dictk.cli -o docs/api
 uv run genbadge coverage -i coverage.xml -o coverage-badge.svg
 uv run pylint src/dictk --output-format=text --reports=yes
 </code></pre>

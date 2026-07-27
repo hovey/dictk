@@ -179,7 +179,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="subimage-generation"><a class="header" href="#subimage-generation">Subimage Generation</a></h1>
-<p><a href="../api/dictk/imaging.html#subimage"><code>dictk.imaging.subimage</code></a> extracts a
+<p><a href="../api/dictk/image.html#subimage"><code>dictk.image.subimage</code></a> extracts a
 rectangular crop from a source image: a <code>width</code> x <code>height</code> region whose
 top-left corner sits at <code>origin</code>, expressed in the source image's own
 pixel reference frame (top-left corner <code>(0, 0)</code>). <code>origin</code> may place the
@@ -194,44 +194,44 @@ around a point of interest.</p>
 the astronaut photo introduced in <a href="./image_generation.html#speckle--astronaut">Image
 Generation</a>:</p>
 <pre><code class="language-python">import dictk
-from dictk.imaging import combine_images, write_image
+from dictk.image import combine, write
 
-speckle = dictk.rosta(300, 300, density=0.5)
-photo = dictk.astronaut(300, 300)
-astronaut0 = combine_images(speckle, photo)
-write_image(astronaut0, "astronaut0.png")
+speckle = dictk.rosta(width=300, height=300, density=0.5)
+photo = dictk.astronaut(width=300, height=300)
+astronaut0 = combine(a=speckle, b=photo)
+write(arr=astronaut0, path="astronaut0.png")
 </code></pre>
 <pre><code class="language-text">Saved image: astronaut0.png
 </code></pre>
 <h2 id="python-api"><a class="header" href="#python-api">Python API</a></h2>
-<p><a href="../api/dictk/imaging.html#PixelCoordinate"><code>dictk.imaging.PixelCoordinate</code></a>
+<p><a href="../api/dictk/image.html#PixelCoordinate"><code>dictk.image.PixelCoordinate</code></a>
 is a simple <code>(x, y)</code> NamedTuple used for <code>origin</code>.
-<a href="../api/dictk/imaging.html#subimage"><code>dictk.imaging.subimage</code></a> itself
+<a href="../api/dictk/image.html#subimage"><code>dictk.image.subimage</code></a> itself
 returns the cropped array directly, with no file written. The examples
 below use
-<a href="../api/dictk/imaging.html#plot_subimage_comparison"><code>plot_subimage_comparison</code></a>,
+<a href="../api/dictk/image.html#subimage_comparison_plot"><code>subimage_comparison_plot</code></a>,
 which saves a two-panel figure: the left panel shows where the region
 falls relative to the source image (blue/red boxes), and the right panel
 shows the extracted result on its own, in its own local reference frame —
 top-left corner <code>(0, 0)</code> — sharing the <em>same</em> axis limits as the left
 panel so the two red boxes render at matching scale. It's built from two
 smaller single-panel functions, also available individually:
-<a href="../api/dictk/imaging.html#plot_subimage_bounds"><code>plot_subimage_bounds</code></a>
+<a href="../api/dictk/image.html#subimage_bounds_plot"><code>subimage_bounds_plot</code></a>
 (the left panel alone) and
-<a href="../api/dictk/imaging.html#plot_subimage"><code>plot_subimage</code></a> (the right
+<a href="../api/dictk/image.html#subimage_plot"><code>subimage_plot</code></a> (the right
 panel alone, but zoomed to the subimage's own size rather than sharing
 the source image's scale).</p>
 <h3 id="square-fully-inside"><a class="header" href="#square-fully-inside">Square, fully inside</a></h3>
 <p>An 80x80 square region entirely within <code>astronaut0</code>'s 300x300 bounds.
-<a href="../api/dictk/imaging.html#plot_subimage_comparison"><code>plot_subimage_comparison</code></a>
+<a href="../api/dictk/image.html#subimage_comparison_plot"><code>subimage_comparison_plot</code></a>
 draws both panels side by side, sharing the <em>same</em> axis limits, so the
 red box in the right panel renders at identical scale to the one on the
 left — instead of the right panel zooming in to fit just the 80x80
 crop:</p>
-<pre><code class="language-python">from dictk.imaging import PixelCoordinate, plot_subimage_comparison
+<pre><code class="language-python">from dictk.image import PixelCoordinate, subimage_comparison_plot
 
 origin = PixelCoordinate(x=100, y=40)
-plot_subimage_comparison(astronaut0, origin, width=80, height=80, path="subimage_comparison_80w_by_80h_at_100_40.png")
+subimage_comparison_plot(image=astronaut0, origin=origin, width=80, height=80, path="subimage_comparison_80w_by_80h_at_100_40.png")
 </code></pre>
 <pre><code class="language-text">Saved: subimage_comparison_80w_by_80h_at_100_40.png
 </code></pre>
@@ -242,10 +242,10 @@ plot_subimage_comparison(astronaut0, origin, width=80, height=80, path="subimage
 <h3 id="rectangle-fully-inside"><a class="header" href="#rectangle-fully-inside">Rectangle, fully inside</a></h3>
 <p>A 180x70 region — wider than it is tall — also entirely within the
 source image bounds:</p>
-<pre><code class="language-python">from dictk.imaging import PixelCoordinate, plot_subimage_comparison
+<pre><code class="language-python">from dictk.image import PixelCoordinate, subimage_comparison_plot
 
 origin = PixelCoordinate(x=50, y=200)
-plot_subimage_comparison(astronaut0, origin, width=180, height=70, path="subimage_comparison_180w_by_70h_at_50_200.png")
+subimage_comparison_plot(image=astronaut0, origin=origin, width=180, height=70, path="subimage_comparison_180w_by_70h_at_50_200.png")
 </code></pre>
 <pre><code class="language-text">Saved: subimage_comparison_180w_by_70h_at_50_200.png
 </code></pre>
@@ -257,10 +257,10 @@ plot_subimage_comparison(astronaut0, origin, width=180, height=70, path="subimag
 <p>A 120x120 region with a negative origin, straddling the source image's
 top-left corner. <code>subimage</code> fills the part of the region above and to
 the left of the source with black:</p>
-<pre><code class="language-python">from dictk.imaging import PixelCoordinate, plot_subimage_comparison
+<pre><code class="language-python">from dictk.image import PixelCoordinate, subimage_comparison_plot
 
 origin = PixelCoordinate(x=-20, y=-40)
-plot_subimage_comparison(astronaut0, origin, width=120, height=120, path="subimage_comparison_120w_by_120h_at_-20_-40.png")
+subimage_comparison_plot(image=astronaut0, origin=origin, width=120, height=120, path="subimage_comparison_120w_by_120h_at_-20_-40.png")
 </code></pre>
 <pre><code class="language-text">Saved: subimage_comparison_120w_by_120h_at_-20_-40.png
 </code></pre>
@@ -272,10 +272,10 @@ plot_subimage_comparison(astronaut0, origin, width=120, height=120, path="subima
 <p>A 40x100 region entirely beyond the source image's bounds — its x-range
 (310 to 350) shares no pixels with the source's (0 to 300), so there is
 no overlap at all and the result is entirely black:</p>
-<pre><code class="language-python">from dictk.imaging import PixelCoordinate, plot_subimage_comparison
+<pre><code class="language-python">from dictk.image import PixelCoordinate, subimage_comparison_plot
 
 origin = PixelCoordinate(x=310, y=250)
-plot_subimage_comparison(astronaut0, origin, width=40, height=100, path="subimage_comparison_40w_by_100h_at_310_250.png")
+subimage_comparison_plot(image=astronaut0, origin=origin, width=40, height=100, path="subimage_comparison_40w_by_100h_at_310_250.png")
 </code></pre>
 <pre><code class="language-text">Saved: subimage_comparison_40w_by_100h_at_310_250.png
 </code></pre>

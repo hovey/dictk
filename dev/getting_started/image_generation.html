@@ -211,9 +211,9 @@ functions, <a href="../api/dictk.html#rosta"><code>dictk.rosta</code></a>,
 parameters but perform no file I/O: they return a NumPy array only. That
 keeps the Python API composable in a functional style — arrays can be
 piped through further functions (e.g.
-<a href="../api/dictk/imaging.html#combine_images"><code>combine_images</code></a> below)
+<a href="../api/dictk/image.html#combine"><code>combine</code></a> below)
 before anything touches disk — and callers who do want a file call
-<a href="../api/dictk/imaging.html#write_image"><code>dictk.imaging.write_image</code></a>
+<a href="../api/dictk/image.html#write"><code>dictk.image.write</code></a>
 explicitly, as a separate step. See each function's docstring (rendered
 in the API reference) for details.</p>
 </blockquote>
@@ -271,7 +271,7 @@ options:
 file written:</p>
 <pre><code class="language-python">import dictk
 
-pattern = dictk.rosta(200, 200, density=0.5)
+pattern = dictk.rosta(width=200, height=200, density=0.5)
 </code></pre>
 <pre><code class="language-text">shape=(200, 200), dtype=uint8
 </code></pre>
@@ -360,12 +360,12 @@ start to lose too much detail:</p>
 <p>The Python equivalent, again returning an array with no file written:</p>
 <pre><code class="language-python">import dictk
 
-photo = dictk.astronaut(300, 300)
+photo = dictk.astronaut(width=300, height=300)
 </code></pre>
 <pre><code class="language-text">shape=(300, 300), dtype=uint8
 </code></pre>
 <h2 id="combining-into-a-reference-image"><a class="header" href="#combining-into-a-reference-image">Combining into a reference image</a></h2>
-<p><a href="../api/dictk/imaging.html#combine_images"><code>combine_images</code></a> works on any
+<p><a href="../api/dictk/image.html#combine"><code>combine</code></a> works on any
 two grayscale images of the same shape, so it isn't limited to combining
 the two synthetic images below —
 <a href="#speckle--astronaut">Speckle + Astronaut</a> further down combines <code>rosta</code>
@@ -374,12 +374,12 @@ with a real photograph instead.</p>
 <p>We combine the <code>rosta</code> speckle pattern with the checkerboard into a
 <strong>reference image</strong> <code>checkerboard0</code> by averaging their pixel values and
 normalizing back to <code>uint8</code>:</p>
-<pre><code class="language-python">from dictk.imaging import combine_images, read_image, write_image
+<pre><code class="language-python">from dictk.image import combine, read, write
 
-speckle = read_image("rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
-checker = read_image("checkerboard_200w_by_200h_8x8.png")
-checkerboard0 = combine_images(speckle, checker)
-write_image(checkerboard0, "checkerboard0.png")
+speckle = read("rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
+checker = read("checkerboard_200w_by_200h_8x8.png")
+checkerboard0 = combine(a=speckle, b=checker)
+write(arr=checkerboard0, path="checkerboard0.png")
 </code></pre>
 <pre><code class="language-text">Saved image: checkerboard0.png
 </code></pre>
@@ -400,11 +400,11 @@ white stays white.</li>
 speckle and checkerboard are both roughly bimodal (dark/light), while
 <code>checkerboard0</code> picks up a distinct middle hump from the
 black/white-speckle-on-opposite checkerboard combinations.</p>
-<pre><code class="language-python">from dictk.imaging import read_image, save_histogram
+<pre><code class="language-python">from dictk.image import read, save_histogram
 
-speckle = read_image("rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
-checker = read_image("checkerboard_200w_by_200h_8x8.png")
-checkerboard0 = read_image("checkerboard0.png")
+speckle = read("rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
+checker = read("checkerboard_200w_by_200h_8x8.png")
+checkerboard0 = read("checkerboard0.png")
 
 save_histogram(speckle, "rosta_histogram.png")
 save_histogram(checker, "checkerboard_histogram.png")
@@ -425,15 +425,15 @@ speckle pattern overlaid on a realistic, non-uniform grayscale image.</p>
 <p>This time the two source images are never written to disk at all — both
 <a href="../api/dictk.html#rosta"><code>dictk.rosta</code></a> and
 <a href="../api/dictk.html#astronaut"><code>dictk.astronaut</code></a> return arrays directly,
-which <a href="../api/dictk/imaging.html#combine_images"><code>combine_images</code></a> accepts
+which <a href="../api/dictk/image.html#combine"><code>combine</code></a> accepts
 as-is, so only the combined result <code>astronaut0</code> is saved:</p>
 <pre><code class="language-python">import dictk
-from dictk.imaging import combine_images, write_image
+from dictk.image import combine, write
 
-speckle = dictk.rosta(300, 300, density=0.5)
-photo = dictk.astronaut(300, 300)
-astronaut0 = combine_images(speckle, photo)
-write_image(astronaut0, "astronaut0.png")
+speckle = dictk.rosta(width=300, height=300, density=0.5)
+photo = dictk.astronaut(width=300, height=300)
+astronaut0 = combine(a=speckle, b=photo)
+write(arr=astronaut0, path="astronaut0.png")
 </code></pre>
 <pre><code class="language-text">Saved image: astronaut0.png
 </code></pre>
