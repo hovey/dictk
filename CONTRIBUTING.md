@@ -190,21 +190,25 @@ uv run ruff check           # lint
 ### Building the docs
 
 Documentation is an [mdBook](https://rust-lang.github.io/mdBook/) under
-`docs/userguide/`, with the
-[mdbook-cmdrun](https://github.com/FauconFan/mdbook-cmdrun) preprocessor
-enabled so pages can embed live, always-accurate command output (see the
-"Image Generation" page for an example) instead of pasted-by-hand output.
+`docs/userguide/`, with two preprocessors enabled:
+[mdbook-cmdrun](https://github.com/FauconFan/mdbook-cmdrun), so pages can
+embed live, always-accurate command output (see the "Image Generation"
+page for an example) instead of pasted-by-hand output, and
+[mdbook-katex](https://github.com/lzanini/mdbook-katex), so pages can
+include `$$...$$` LaTeX math blocks (see the "Single Point Motion" page).
 Neither is a Python dependency:
 
 ```bash
-# mdbook must be pinned to 0.4.52: mdbook-cmdrun depends on the mdbook
-# crate's 0.4.x preprocessor JSON schema, which changed in mdbook 0.5 and
-# broke compatibility (https://github.com/FauconFan/mdbook-cmdrun/issues/22,
-# open as of this writing). Do not `brew install mdbook` or
-# `cargo install mdbook` without a --version pin, or cmdrun pages will fail
-# to build with "Unable to parse the input".
+# mdbook must be pinned to 0.4.52: mdbook-cmdrun and mdbook-katex's 0.9.x
+# line both depend on the mdbook crate's 0.4.x preprocessor JSON schema,
+# which changed in mdbook 0.5 and broke compatibility
+# (https://github.com/FauconFan/mdbook-cmdrun/issues/22, open as of this
+# writing; mdbook-katex made the same jump at its own 0.10.0). Do not
+# `brew install mdbook` or `cargo install mdbook`/`mdbook-katex` without a
+# --version pin, or the build will fail with "Unable to parse the input".
 cargo install mdbook --version 0.4.52
 cargo install mdbook-cmdrun
+cargo install mdbook-katex --version 0.9.4
 ```
 
 If you already have a newer `mdbook` from Homebrew or elsewhere on your
@@ -383,10 +387,10 @@ invoke it as a reusable workflow:
 - **`docs`** — runs only on pushes to `main` or `dev`, after `test` passes
   (this `if` condition also means it's skipped when `release.yml` calls
   `ci.yml` from a tag push, since the ref won't be `refs/heads/main` or
-  `refs/heads/dev`). Installs the pinned `mdbook` 0.4.52 and `mdbook-cmdrun`
-  (cached via `actions/cache`), downloads the `test` job's coverage
-  artifact, builds the mdBook user guide with dictk's own CLI on `PATH`,
-  builds the pdoc API reference, generates a coverage badge from
+  `refs/heads/dev`). Installs the pinned `mdbook` 0.4.52, `mdbook-cmdrun`,
+  and `mdbook-katex` (cached via `actions/cache`), downloads the `test`
+  job's coverage artifact, builds the mdBook user guide with dictk's own
+  CLI on `PATH`, builds the pdoc API reference, generates a coverage badge from
   `coverage.xml` with [genbadge](https://smarie.github.io/python-genbadge/),
   runs pylint informationally to get a 0-10 score (fetched as a shields.io
   badge) and a full findings report, renders a status dashboard linking all
