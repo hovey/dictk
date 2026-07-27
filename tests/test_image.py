@@ -90,18 +90,18 @@ def test_astronaut_invalid_height_raises(height):
 
 def test_brightness_identity_at_factor_1():
     arr = np.array([[0, 60, 128, 200, 255]], dtype=np.uint8)
-    assert np.array_equal(brightness(arr, 1.0), arr)
+    assert np.array_equal(brightness(arr=arr, factor=1.0), arr)
 
 
 def test_brightness_shifts_mean_up():
     arr = np.full((10, 10), 100, dtype=np.uint8)
-    result = brightness(arr, 1.5)
+    result = brightness(arr=arr, factor=1.5)
     assert result.mean() > arr.mean()
 
 
 def test_brightness_shifts_mean_down():
     arr = np.full((10, 10), 100, dtype=np.uint8)
-    result = brightness(arr, 0.5)
+    result = brightness(arr=arr, factor=0.5)
     assert result.mean() < arr.mean()
 
 
@@ -109,13 +109,13 @@ def test_brightness_lightens_black_pixels():
     # An additive shift must lighten even a pure-black pixel; a
     # multiplicative scale (0 * anything) could not.
     arr = np.zeros((4, 4), dtype=np.uint8)
-    result = brightness(arr, 2.0)
+    result = brightness(arr=arr, factor=2.0)
     assert np.all(result > 0)
 
 
 def test_brightness_clips_to_valid_range():
     arr = np.array([[0, 255]], dtype=np.uint8)
-    result = brightness(arr, 5.0)
+    result = brightness(arr=arr, factor=5.0)
     assert result.min() >= 0
     assert result.max() <= 255
     assert result.dtype == np.uint8
@@ -123,43 +123,43 @@ def test_brightness_clips_to_valid_range():
 
 def test_brightness_preserves_shape_and_dtype():
     arr = np.full((10, 20), 100, dtype=np.uint8)
-    result = brightness(arr, 1.2)
+    result = brightness(arr=arr, factor=1.2)
     assert result.shape == arr.shape
     assert result.dtype == np.uint8
 
 
 def test_contrast_identity_at_factor_1():
     arr = np.array([[0, 60, 128, 200, 255]], dtype=np.uint8)
-    assert np.array_equal(contrast(arr, 1.0), arr)
+    assert np.array_equal(contrast(arr=arr, factor=1.0), arr)
 
 
 def test_contrast_zero_factor_collapses_to_mean():
     arr = np.array([[0, 50, 100, 150, 200, 255]], dtype=np.uint8)
-    result = contrast(arr, 0.0)
+    result = contrast(arr=arr, factor=0.0)
     assert len(np.unique(result)) == 1
 
 
 def test_contrast_increases_spread():
     arr = np.array([[50, 100, 150, 200]], dtype=np.uint8)
-    result = contrast(arr, 1.5)
+    result = contrast(arr=arr, factor=1.5)
     assert result.astype(np.float64).std() > arr.astype(np.float64).std()
 
 
 def test_contrast_decreases_spread():
     arr = np.array([[50, 100, 150, 200]], dtype=np.uint8)
-    result = contrast(arr, 0.5)
+    result = contrast(arr=arr, factor=0.5)
     assert result.astype(np.float64).std() < arr.astype(np.float64).std()
 
 
 def test_contrast_preserves_mean_approximately():
     arr = np.array([[50, 100, 150, 200]], dtype=np.uint8)
-    result = contrast(arr, 1.5)
+    result = contrast(arr=arr, factor=1.5)
     assert abs(float(result.mean()) - float(arr.mean())) < 5.0
 
 
 def test_contrast_clips_to_valid_range():
     arr = np.array([[0, 255]], dtype=np.uint8)
-    result = contrast(arr, 5.0)
+    result = contrast(arr=arr, factor=5.0)
     assert result.min() >= 0
     assert result.max() <= 255
     assert result.dtype == np.uint8
@@ -167,19 +167,19 @@ def test_contrast_clips_to_valid_range():
 
 def test_contrast_preserves_shape_and_dtype():
     arr = np.full((10, 20), 100, dtype=np.uint8)
-    result = contrast(arr, 1.2)
+    result = contrast(arr=arr, factor=1.2)
     assert result.shape == arr.shape
     assert result.dtype == np.uint8
 
 
 def test_stretch_identity_at_factor_1():
     arr = np.arange(400, dtype=np.uint8).reshape(20, 20)
-    assert np.array_equal(stretch(arr), arr)
+    assert np.array_equal(stretch(arr=arr), arr)
 
 
 def test_stretch_preserves_shape_and_dtype():
     arr = np.full((20, 30), 100, dtype=np.uint8)
-    result = stretch(arr, factor_x=1.05)
+    result = stretch(arr=arr, factor_x=1.05)
     assert result.shape == arr.shape
     assert result.dtype == np.uint8
 
@@ -188,7 +188,7 @@ def test_stretch_expansion_has_no_black_margin():
     # A factor > 1.0 samples only from within [0, (width-1)/factor_x], a
     # subset of the original bounds, so every output pixel is valid.
     arr = np.full((20, 20), 200, dtype=np.uint8)
-    result = stretch(arr, factor_x=1.05)
+    result = stretch(arr=arr, factor_x=1.05)
     assert result.min() > 0
 
 
@@ -197,7 +197,7 @@ def test_stretch_compression_anchors_origin_and_blackens_far_edge():
     # the far (right) edge samples outside the original bounds and is
     # filled with black.
     arr = np.full((20, 20), 200, dtype=np.uint8)
-    result = stretch(arr, factor_x=0.5)
+    result = stretch(arr=arr, factor_x=0.5)
     assert result[10, 0] > 0
     assert result[10, -1] == 0
 
@@ -206,24 +206,24 @@ def test_stretch_compression_anchors_origin_and_blackens_far_edge():
 def test_stretch_invalid_factor_x_raises(factor_x):
     arr = np.full((10, 10), 100, dtype=np.uint8)
     with pytest.raises(ValueError):
-        stretch(arr, factor_x=factor_x)
+        stretch(arr=arr, factor_x=factor_x)
 
 
 @pytest.mark.parametrize("factor_y", [0, -1])
 def test_stretch_invalid_factor_y_raises(factor_y):
     arr = np.full((10, 10), 100, dtype=np.uint8)
     with pytest.raises(ValueError):
-        stretch(arr, factor_y=factor_y)
+        stretch(arr=arr, factor_y=factor_y)
 
 
 def test_translate_identity_at_zero_displacement():
     arr = np.arange(400, dtype=np.uint8).reshape(20, 20)
-    assert np.array_equal(translate(arr), arr)
+    assert np.array_equal(translate(arr=arr), arr)
 
 
 def test_translate_preserves_shape_and_dtype():
     arr = np.full((20, 30), 100, dtype=np.uint8)
-    result = translate(arr, dx=5, dy=-3)
+    result = translate(arr=arr, dx=5, dy=-3)
     assert result.shape == arr.shape
     assert result.dtype == np.uint8
 
@@ -231,32 +231,32 @@ def test_translate_preserves_shape_and_dtype():
 def test_translate_shifts_content_right():
     arr = np.zeros((20, 20), dtype=np.uint8)
     arr[10, 5] = 255
-    result = translate(arr, dx=4, dy=0)
+    result = translate(arr=arr, dx=4, dy=0)
     assert result[10, 9] == 255
 
 
 def test_translate_shifts_content_down():
     arr = np.zeros((20, 20), dtype=np.uint8)
     arr[5, 10] = 255
-    result = translate(arr, dx=0, dy=4)
+    result = translate(arr=arr, dx=0, dy=4)
     assert result[9, 10] == 255
 
 
 def test_translate_introduces_black_margin():
     arr = np.full((20, 20), 200, dtype=np.uint8)
-    result = translate(arr, dx=5, dy=0)
+    result = translate(arr=arr, dx=5, dy=0)
     assert result[10, 0] == 0
     assert result[10, 19] > 0
 
 
 def test_rotate_identity_at_zero_angle():
     arr = np.arange(900, dtype=np.uint8).reshape(30, 30)
-    assert np.array_equal(rotate(arr, 0.0), arr)
+    assert np.array_equal(rotate(arr=arr, angle=0.0), arr)
 
 
 def test_rotate_preserves_shape_and_dtype():
     arr = np.full((20, 30), 100, dtype=np.uint8)
-    result = rotate(arr, 15.0)
+    result = rotate(arr=arr, angle=15.0)
     assert result.shape == arr.shape
     assert result.dtype == np.uint8
 
@@ -264,7 +264,7 @@ def test_rotate_preserves_shape_and_dtype():
 def test_rotate_90_degrees_moves_marker_to_expected_pixel():
     arr = np.zeros((30, 30), dtype=np.uint8)
     arr[0, 10] = 255  # row=0 (y=0), col=10 (x=10)
-    result = rotate(arr, 90.0)
+    result = rotate(arr=arr, angle=90.0)
     row, col = np.unravel_index(np.argmax(result), result.shape)
     assert (row, col) == (10, 0)
     assert result[10, 0] > 250
@@ -274,18 +274,18 @@ def test_rotate_introduces_black_fill():
     # Pivoting on the origin means a nonzero rotation swings most content
     # away from the fixed corner, leaving pixels with no source in bounds.
     arr = np.full((30, 30), 200, dtype=np.uint8)
-    result = rotate(arr, 30.0)
+    result = rotate(arr=arr, angle=30.0)
     assert result.min() == 0
 
 
 def test_shear_identity_at_zero_factors():
     arr = np.arange(1600, dtype=np.uint8).reshape(40, 40)
-    assert np.array_equal(shear(arr), arr)
+    assert np.array_equal(shear(arr=arr), arr)
 
 
 def test_shear_preserves_shape_and_dtype():
     arr = np.full((30, 40), 100, dtype=np.uint8)
-    result = shear(arr, shear_x=0.5)
+    result = shear(arr=arr, shear_x=0.5)
     assert result.shape == arr.shape
     assert result.dtype == np.uint8
 
@@ -295,7 +295,7 @@ def test_shear_x_moves_marker_proportional_to_y():
     # (x=10, y=20) under shear_x=0.5 should land at x=10+0.5*20=20, y=20.
     arr = np.zeros((40, 40), dtype=np.uint8)
     arr[20, 10] = 255
-    result = shear(arr, shear_x=0.5)
+    result = shear(arr=arr, shear_x=0.5)
     row, col = np.unravel_index(np.argmax(result), result.shape)
     assert (row, col) == (20, 20)
 
@@ -303,17 +303,17 @@ def test_shear_x_moves_marker_proportional_to_y():
 def test_shear_singular_gradient_raises():
     arr = np.full((10, 10), 100, dtype=np.uint8)
     with pytest.raises(ValueError):
-        shear(arr, shear_x=2.0, shear_y=0.5)
+        shear(arr=arr, shear_x=2.0, shear_y=0.5)
 
 
 def test_complex_deform_identity_at_defaults():
     arr = np.arange(900, dtype=np.uint8).reshape(30, 30)
-    assert np.array_equal(complex_deform(arr), arr)
+    assert np.array_equal(complex_deform(arr=arr), arr)
 
 
 def test_complex_deform_preserves_shape_and_dtype():
     arr = np.full((30, 40), 100, dtype=np.uint8)
-    result = complex_deform(arr, factor_x=1.3, factor_y=0.8, angle=15.0)
+    result = complex_deform(arr=arr, factor_x=1.3, factor_y=0.8, angle=15.0)
     assert result.shape == arr.shape
     assert result.dtype == np.uint8
 
@@ -321,8 +321,8 @@ def test_complex_deform_preserves_shape_and_dtype():
 def test_complex_deform_matches_stretch_when_angle_zero():
     arr = np.arange(900, dtype=np.uint8).reshape(30, 30)
     assert np.array_equal(
-        complex_deform(arr, factor_x=1.3, factor_y=0.8, angle=0.0),
-        stretch(arr, factor_x=1.3, factor_y=0.8),
+        complex_deform(arr=arr, factor_x=1.3, factor_y=0.8, angle=0.0),
+        stretch(arr=arr, factor_x=1.3, factor_y=0.8),
     )
 
 
@@ -331,8 +331,8 @@ def test_complex_deform_single_pass_differs_from_sequential_calls():
     # once; calling rotate(stretch(...)) interpolates twice, compounding
     # blur. The two should differ measurably, not just at rounding noise.
     arr = np.arange(900, dtype=np.uint8).reshape(30, 30)
-    combined = complex_deform(arr, factor_x=1.3, factor_y=0.8, angle=15.0)
-    sequential = rotate(stretch(arr, factor_x=1.3, factor_y=0.8), 15.0)
+    combined = complex_deform(arr=arr, factor_x=1.3, factor_y=0.8, angle=15.0)
+    sequential = rotate(arr=stretch(arr=arr, factor_x=1.3, factor_y=0.8), angle=15.0)
     diff = np.abs(combined.astype(np.float64) - sequential.astype(np.float64))
     assert diff.mean() > 1.0
 
@@ -341,24 +341,24 @@ def test_complex_deform_single_pass_differs_from_sequential_calls():
 def test_complex_deform_invalid_factor_x_raises(factor_x):
     arr = np.full((10, 10), 100, dtype=np.uint8)
     with pytest.raises(ValueError):
-        complex_deform(arr, factor_x=factor_x)
+        complex_deform(arr=arr, factor_x=factor_x)
 
 
 @pytest.mark.parametrize("factor_y", [0, -1])
 def test_complex_deform_invalid_factor_y_raises(factor_y):
     arr = np.full((10, 10), 100, dtype=np.uint8)
     with pytest.raises(ValueError):
-        complex_deform(arr, factor_y=factor_y)
+        complex_deform(arr=arr, factor_y=factor_y)
 
 
 def test_crack_dislocation_identity_at_zero_offset():
     arr = np.arange(1600, dtype=np.uint8).reshape(40, 40)
-    assert np.array_equal(crack_dislocation(arr, offset=0.0), arr)
+    assert np.array_equal(crack_dislocation(arr=arr, offset=0.0), arr)
 
 
 def test_crack_dislocation_preserves_shape_and_dtype():
     arr = np.full((40, 40), 100, dtype=np.uint8)
-    result = crack_dislocation(arr, offset=8.0)
+    result = crack_dislocation(arr=arr, offset=8.0)
     assert result.shape == arr.shape
     assert result.dtype == np.uint8
 
@@ -366,7 +366,7 @@ def test_crack_dislocation_preserves_shape_and_dtype():
 def test_crack_dislocation_left_half_shifts_down():
     arr = np.zeros((40, 40), dtype=np.uint8)
     arr[10, 5] = 255  # left half: x=5 < width/2=20
-    result = crack_dislocation(arr, offset=8.0)
+    result = crack_dislocation(arr=arr, offset=8.0)
     row, col = np.unravel_index(np.argmax(result), result.shape)
     assert (row, col) == (18, 5)
 
@@ -374,7 +374,7 @@ def test_crack_dislocation_left_half_shifts_down():
 def test_crack_dislocation_right_half_shifts_up():
     arr = np.zeros((40, 40), dtype=np.uint8)
     arr[10, 30] = 255  # right half: x=30 >= width/2=20
-    result = crack_dislocation(arr, offset=8.0)
+    result = crack_dislocation(arr=arr, offset=8.0)
     row, col = np.unravel_index(np.argmax(result), result.shape)
     assert (row, col) == (2, 30)
 

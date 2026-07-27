@@ -38,12 +38,12 @@ from dictk.image import translate, write
 photo = dictk.astronaut(width=300, height=300)
 write(arr=photo, path="astronaut_translate_original.png")
 
-translated = translate(photo, dx=-60, dy=80)
+translated = translate(arr=photo, dx=-60, dy=80)
 write(arr=translated, path="astronaut_translate_rigid_body.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.image import translate, write; photo = dictk.astronaut(width=300, height=300); write(arr=photo, path='astronaut_translate_original.png'); translated = translate(photo, dx=-60, dy=80); write(arr=translated, path='astronaut_translate_rigid_body.png'); print('Saved: astronaut_translate_original.png, astronaut_translate_rigid_body.png')" -->
+<!-- cmdrun python3 -c "import dictk; from dictk.image import translate, write; photo = dictk.astronaut(width=300, height=300); write(arr=photo, path='astronaut_translate_original.png'); translated = translate(arr=photo, dx=-60, dy=80); write(arr=translated, path='astronaut_translate_rigid_body.png'); print('Saved: astronaut_translate_original.png, astronaut_translate_rigid_body.png')" -->
 ```
 
 Translation | Image
@@ -68,12 +68,12 @@ from dictk.image import rotate, write
 photo = dictk.astronaut(width=300, height=300)
 write(arr=photo, path="astronaut_rotate_original.png")
 
-rotated = rotate(photo, 30.0)
+rotated = rotate(arr=photo, angle=30.0)
 write(arr=rotated, path="astronaut_rotate_30deg.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.image import rotate, write; photo = dictk.astronaut(width=300, height=300); write(arr=photo, path='astronaut_rotate_original.png'); rotated = rotate(photo, 30.0); write(arr=rotated, path='astronaut_rotate_30deg.png'); print('Saved: astronaut_rotate_original.png, astronaut_rotate_30deg.png')" -->
+<!-- cmdrun python3 -c "import dictk; from dictk.image import rotate, write; photo = dictk.astronaut(width=300, height=300); write(arr=photo, path='astronaut_rotate_original.png'); rotated = rotate(arr=photo, angle=30.0); write(arr=rotated, path='astronaut_rotate_30deg.png'); print('Saved: astronaut_rotate_original.png, astronaut_rotate_30deg.png')" -->
 ```
 
 Rotation | Image
@@ -100,15 +100,15 @@ from dictk.image import stretch, write
 photo = dictk.astronaut(width=300, height=300)
 write(arr=photo, path="astronaut_stretch_original.png")
 
-stretch_5pct = stretch(photo, factor_x=1.05)
+stretch_5pct = stretch(arr=photo, factor_x=1.05)
 write(arr=stretch_5pct, path="astronaut_stretch_x_5pct.png")
 
-stretch_50pct = stretch(photo, factor_x=1.50)
+stretch_50pct = stretch(arr=photo, factor_x=1.50)
 write(arr=stretch_50pct, path="astronaut_stretch_x_50pct.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.image import stretch, write; photo = dictk.astronaut(width=300, height=300); write(arr=photo, path='astronaut_stretch_original.png'); write(arr=stretch(photo, factor_x=1.05), path='astronaut_stretch_x_5pct.png'); write(arr=stretch(photo, factor_x=1.50), path='astronaut_stretch_x_50pct.png'); print('Saved: astronaut_stretch_original.png, astronaut_stretch_x_5pct.png, astronaut_stretch_x_50pct.png')" -->
+<!-- cmdrun python3 -c "import dictk; from dictk.image import stretch, write; photo = dictk.astronaut(width=300, height=300); write(arr=photo, path='astronaut_stretch_original.png'); write(arr=stretch(arr=photo, factor_x=1.05), path='astronaut_stretch_x_5pct.png'); write(arr=stretch(arr=photo, factor_x=1.50), path='astronaut_stretch_x_50pct.png'); print('Saved: astronaut_stretch_original.png, astronaut_stretch_x_5pct.png, astronaut_stretch_x_50pct.png')" -->
 ```
 
 Stretch | Image
@@ -133,15 +133,15 @@ from dictk.image import stretch, write
 photo = dictk.astronaut(width=300, height=300)
 write(arr=photo, path="astronaut_compress_original.png")
 
-compress_neg5pct = stretch(photo, factor_y=0.95)
+compress_neg5pct = stretch(arr=photo, factor_y=0.95)
 write(arr=compress_neg5pct, path="astronaut_compress_y_neg5pct.png")
 
-compress_neg50pct = stretch(photo, factor_y=0.50)
+compress_neg50pct = stretch(arr=photo, factor_y=0.50)
 write(arr=compress_neg50pct, path="astronaut_compress_y_neg50pct.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.image import stretch, write; photo = dictk.astronaut(width=300, height=300); write(arr=photo, path='astronaut_compress_original.png'); write(arr=stretch(photo, factor_y=0.95), path='astronaut_compress_y_neg5pct.png'); write(arr=stretch(photo, factor_y=0.50), path='astronaut_compress_y_neg50pct.png'); print('Saved: astronaut_compress_original.png, astronaut_compress_y_neg5pct.png, astronaut_compress_y_neg50pct.png')" -->
+<!-- cmdrun python3 -c "import dictk; from dictk.image import stretch, write; photo = dictk.astronaut(width=300, height=300); write(arr=photo, path='astronaut_compress_original.png'); write(arr=stretch(arr=photo, factor_y=0.95), path='astronaut_compress_y_neg5pct.png'); write(arr=stretch(arr=photo, factor_y=0.50), path='astronaut_compress_y_neg50pct.png'); print('Saved: astronaut_compress_original.png, astronaut_compress_y_neg5pct.png, astronaut_compress_y_neg50pct.png')" -->
 ```
 
 Compression | Image
@@ -166,12 +166,12 @@ from dictk.image import shear, write
 photo = dictk.astronaut(width=300, height=300)
 write(arr=photo, path="astronaut_shear_original.png")
 
-sheared = shear(photo, shear_x=0.5)
+sheared = shear(arr=photo, shear_x=0.5)
 write(arr=sheared, path="astronaut_shear_x_0.5.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.image import shear, write; photo = dictk.astronaut(width=300, height=300); write(arr=photo, path='astronaut_shear_original.png'); sheared = shear(photo, shear_x=0.5); write(arr=sheared, path='astronaut_shear_x_0.5.png'); print('Saved: astronaut_shear_original.png, astronaut_shear_x_0.5.png')" -->
+<!-- cmdrun python3 -c "import dictk; from dictk.image import shear, write; photo = dictk.astronaut(width=300, height=300); write(arr=photo, path='astronaut_shear_original.png'); sheared = shear(arr=photo, shear_x=0.5); write(arr=sheared, path='astronaut_shear_x_0.5.png'); print('Saved: astronaut_shear_original.png, astronaut_shear_x_0.5.png')" -->
 ```
 
 Shear | Image
@@ -198,12 +198,12 @@ from dictk.image import complex_deform, write
 photo = dictk.astronaut(width=300, height=300)
 write(arr=photo, path="astronaut_complex_original.png")
 
-combined = complex_deform(photo, factor_x=1.3, factor_y=0.8, angle=15.0)
+combined = complex_deform(arr=photo, factor_x=1.3, factor_y=0.8, angle=15.0)
 write(arr=combined, path="astronaut_complex_deform.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.image import complex_deform, write; photo = dictk.astronaut(width=300, height=300); write(arr=photo, path='astronaut_complex_original.png'); combined = complex_deform(photo, factor_x=1.3, factor_y=0.8, angle=15.0); write(arr=combined, path='astronaut_complex_deform.png'); print('Saved: astronaut_complex_original.png, astronaut_complex_deform.png')" -->
+<!-- cmdrun python3 -c "import dictk; from dictk.image import complex_deform, write; photo = dictk.astronaut(width=300, height=300); write(arr=photo, path='astronaut_complex_original.png'); combined = complex_deform(arr=photo, factor_x=1.3, factor_y=0.8, angle=15.0); write(arr=combined, path='astronaut_complex_deform.png'); print('Saved: astronaut_complex_original.png, astronaut_complex_deform.png')" -->
 ```
 
 Composed Deformation | Image
@@ -227,12 +227,12 @@ from dictk.image import crack_dislocation, write
 photo = dictk.astronaut(width=300, height=300)
 write(arr=photo, path="astronaut_crack_plain_original.png")
 
-cracked_plain = crack_dislocation(photo, offset=4.0)
+cracked_plain = crack_dislocation(arr=photo, offset=4.0)
 write(arr=cracked_plain, path="astronaut_crack_plain_dislocation.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.image import crack_dislocation, write; photo = dictk.astronaut(width=300, height=300); write(arr=photo, path='astronaut_crack_plain_original.png'); cracked_plain = crack_dislocation(photo, offset=4.0); write(arr=cracked_plain, path='astronaut_crack_plain_dislocation.png'); print('Saved: astronaut_crack_plain_original.png, astronaut_crack_plain_dislocation.png')" -->
+<!-- cmdrun python3 -c "import dictk; from dictk.image import crack_dislocation, write; photo = dictk.astronaut(width=300, height=300); write(arr=photo, path='astronaut_crack_plain_original.png'); cracked_plain = crack_dislocation(arr=photo, offset=4.0); write(arr=cracked_plain, path='astronaut_crack_plain_dislocation.png'); print('Saved: astronaut_crack_plain_original.png, astronaut_crack_plain_dislocation.png')" -->
 ```
 
 Crack Dislocation | Image

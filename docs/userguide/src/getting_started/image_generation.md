@@ -128,11 +128,11 @@ The Python equivalent, again returning an array with no file written:
 ```python
 import dictk
 
-board = dictk.checkerboard(200, 200)
+board = dictk.checkerboard(width=200, height=200)
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; board = dictk.checkerboard(200, 200); print(f'shape={board.shape}, dtype={board.dtype}')" -->
+<!-- cmdrun python3 -c "import dictk; board = dictk.checkerboard(width=200, height=200); print(f'shape={board.shape}, dtype={board.dtype}')" -->
 ```
 
 ## Astronaut
@@ -234,19 +234,19 @@ speckle and checkerboard are both roughly bimodal (dark/light), while
 black/white-speckle-on-opposite checkerboard combinations.
 
 ```python
-from dictk.image import read, save_histogram
+from dictk.image import read, histogram_save
 
 speckle = read("rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
 checker = read("checkerboard_200w_by_200h_8x8.png")
 checkerboard0 = read("checkerboard0.png")
 
-save_histogram(speckle, "rosta_histogram.png")
-save_histogram(checker, "checkerboard_histogram.png")
-save_histogram(checkerboard0, "checkerboard0_histogram.png")
+histogram_save(arr=speckle, path="rosta_histogram.png")
+histogram_save(arr=checker, path="checkerboard_histogram.png")
+histogram_save(arr=checkerboard0, path="checkerboard0_histogram.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, save_histogram; save_histogram(read('rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png'), 'rosta_histogram.png'); save_histogram(read('checkerboard_200w_by_200h_8x8.png'), 'checkerboard_histogram.png'); save_histogram(read('checkerboard0.png'), 'checkerboard0_histogram.png'); print('Saved histograms: rosta_histogram.png, checkerboard_histogram.png, checkerboard0_histogram.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, histogram_save; histogram_save(arr=read('rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png'), path='rosta_histogram.png'); histogram_save(arr=read('checkerboard_200w_by_200h_8x8.png'), path='checkerboard_histogram.png'); histogram_save(arr=read('checkerboard0.png'), path='checkerboard0_histogram.png'); print('Saved histograms: rosta_histogram.png, checkerboard_histogram.png, checkerboard0_histogram.png')" -->
 ```
 
 rosta | checkerboard | checkerboard0

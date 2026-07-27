@@ -41,7 +41,7 @@ def _astronaut_filename(width: int, height: int, image_format: str) -> str:
     return f"astronaut_{width}w_by_{height}h.{image_format}"
 
 
-def _write_output(arr: np.ndarray, output: Path | None, filename: str) -> int:
+def _output_write(*, arr: np.ndarray, output: Path | None, filename: str) -> int:
     output_dir = output if output else Path.cwd()
     try:
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -76,7 +76,7 @@ def _rosta_create(args: argparse.Namespace) -> int:
         args.smoothness,
         args.format,
     )
-    return _write_output(arr, args.output, filename)
+    return _output_write(arr=arr, output=args.output, filename=filename)
 
 
 def _checkerboard_create(args: argparse.Namespace) -> int:
@@ -94,7 +94,7 @@ def _checkerboard_create(args: argparse.Namespace) -> int:
     filename = _checkerboard_filename(
         args.width, args.height, args.count_x, args.count_y, args.format
     )
-    return _write_output(arr, args.output, filename)
+    return _output_write(arr=arr, output=args.output, filename=filename)
 
 
 def _astronaut_create(args: argparse.Namespace) -> int:
@@ -105,7 +105,7 @@ def _astronaut_create(args: argparse.Namespace) -> int:
         return 1
 
     filename = _astronaut_filename(args.width, args.height, args.format)
-    return _write_output(arr, args.output, filename)
+    return _output_write(arr=arr, output=args.output, filename=filename)
 
 
 def build_parser() -> argparse.ArgumentParser:

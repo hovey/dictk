@@ -367,7 +367,7 @@ def subimage_comparison_plot(
 
 
 def checkerboard(
-    width: int, height: int, count_x: int = 8, count_y: int = 8
+    *, width: int, height: int, count_x: int = 8, count_y: int = 8
 ) -> np.ndarray:
     """Generate a black-and-white checkerboard test image.
 
@@ -506,7 +506,7 @@ def combine(*, a: np.ndarray, b: np.ndarray) -> np.ndarray:
     return (combined / combined.max() * 255).astype(np.uint8)
 
 
-def brightness(arr: np.ndarray, factor: float) -> np.ndarray:
+def brightness(*, arr: np.ndarray, factor: float) -> np.ndarray:
     """Adjust image brightness by an additive shift, clipped to [0, 255].
 
     Brightness *translates* the pixel-intensity histogram: every pixel is
@@ -529,7 +529,7 @@ def brightness(arr: np.ndarray, factor: float) -> np.ndarray:
     return np.clip(shifted, 0, max_pixel_value).astype(np.uint8)
 
 
-def contrast(arr: np.ndarray, factor: float) -> np.ndarray:
+def contrast(*, arr: np.ndarray, factor: float) -> np.ndarray:
     """Adjust image contrast by scaling around the mean, clipped to [0, 255].
 
     Contrast *stretches* the pixel-intensity histogram outward from its own
@@ -584,7 +584,7 @@ def _backward_map(
 
 
 def stretch(
-    arr: np.ndarray, factor_x: float = 1.0, factor_y: float = 1.0
+    *, arr: np.ndarray, factor_x: float = 1.0, factor_y: float = 1.0
 ) -> np.ndarray:
     """Apply a uniaxial or biaxial stretch, pivoting on the image origin.
 
@@ -627,7 +627,7 @@ def stretch(
     return _backward_map(arr, xs_source, ys_source)
 
 
-def translate(arr: np.ndarray, dx: float = 0.0, dy: float = 0.0) -> np.ndarray:
+def translate(*, arr: np.ndarray, dx: float = 0.0, dy: float = 0.0) -> np.ndarray:
     """Apply a rigid-body translation: every pixel shifts by (dx, dy).
 
     A pure displacement, with no change in shape or size — the simplest
@@ -656,7 +656,7 @@ def translate(arr: np.ndarray, dx: float = 0.0, dy: float = 0.0) -> np.ndarray:
     return _backward_map(arr, xs_source, ys_source)
 
 
-def rotate(arr: np.ndarray, angle: float) -> np.ndarray:
+def rotate(*, arr: np.ndarray, angle: float) -> np.ndarray:
     """Apply a rigid-body rotation, pivoting on the image origin.
 
     Rotates content by `angle` degrees, positive counterclockwise,
@@ -691,7 +691,7 @@ def rotate(arr: np.ndarray, angle: float) -> np.ndarray:
     return _backward_map(arr, xs_source, ys_source)
 
 
-def shear(arr: np.ndarray, shear_x: float = 0.0, shear_y: float = 0.0) -> np.ndarray:
+def shear(*, arr: np.ndarray, shear_x: float = 0.0, shear_y: float = 0.0) -> np.ndarray:
     """Apply a simple shear, pivoting on the image origin.
 
     Mimics a continuum-mechanics shear deformation gradient
@@ -737,7 +737,11 @@ def shear(arr: np.ndarray, shear_x: float = 0.0, shear_y: float = 0.0) -> np.nda
 
 
 def complex_deform(
-    arr: np.ndarray, factor_x: float = 1.0, factor_y: float = 1.0, angle: float = 0.0
+    *,
+    arr: np.ndarray,
+    factor_x: float = 1.0,
+    factor_y: float = 1.0,
+    angle: float = 0.0,
 ) -> np.ndarray:
     """Apply an anisotropic stretch composed with a rotation, in one pass.
 
@@ -791,7 +795,7 @@ def complex_deform(
     return _backward_map(arr, xs_source, ys_source)
 
 
-def crack_dislocation(arr: np.ndarray, offset: float = 8.0) -> np.ndarray:
+def crack_dislocation(*, arr: np.ndarray, offset: float = 8.0) -> np.ndarray:
     """Apply a discontinuous vertical-crack displacement field.
 
     Splits the image with a vertical crack at x = width / 2: the left
@@ -840,7 +844,7 @@ def read(path: Path) -> np.ndarray:
     return iio.imread(path)
 
 
-def write_svg(arr: np.ndarray, path: Path) -> None:
+def write_svg(*, arr: np.ndarray, path: Path) -> None:
     """Write a NumPy array to an SVG file.
 
     SVG is a vector format with no native pixel-grid concept, so the array
@@ -880,7 +884,7 @@ def write(*, arr: np.ndarray, path: Path) -> None:
         path: The output file path.
     """
     if Path(path).suffix.lower() == ".svg":
-        write_svg(arr, path)
+        write_svg(arr=arr, path=path)
         return
 
     iio.imwrite(path, arr)
@@ -914,7 +918,7 @@ def describe(arr: np.ndarray) -> str:
     return "\n".join(lines)
 
 
-def save_histogram(arr: np.ndarray, path: Path, dpi: int = 300) -> None:
+def histogram_save(*, arr: np.ndarray, path: Path, dpi: int = 300) -> None:
     """Save a histogram of pixel intensities [0, 255] for a grayscale image.
 
     Args:
