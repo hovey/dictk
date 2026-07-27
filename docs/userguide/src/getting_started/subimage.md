@@ -31,52 +31,70 @@ write_image(astronaut0, "astronaut0.png")
 <!-- cmdrun python3 -c "import dictk; from dictk.imaging import combine_images, write_image; speckle = dictk.rosta(300, 300, density=0.5); photo = dictk.astronaut(300, 300); astronaut0 = combine_images(speckle, photo); write_image(astronaut0, 'astronaut0.png'); print('Saved image: astronaut0.png')" -->
 ```
 
-## CLI
+## Python API
 
-`dictk subimage-bounds` visualizes where a subimage would be cropped
-from, drawing the source image's own bounds in blue and the requested
-region in red, saved as a PNG:
-
-```sh
-dictk subimage-bounds --help
-```
-
-```text
-<!-- cmdrun dictk subimage-bounds --help -->
-```
+[`dictk.imaging.PixelCoordinate`](../api/dictk/imaging.html#PixelCoordinate)
+is a simple `(x, y)` NamedTuple used for `origin`.
+[`dictk.imaging.subimage`](../api/dictk/imaging.html#subimage) itself
+returns the cropped array directly, with no file written. The examples
+below use
+[`plot_subimage_comparison`](../api/dictk/imaging.html#plot_subimage_comparison),
+which saves a two-panel figure: the left panel shows where the region
+falls relative to the source image (blue/red boxes), and the right panel
+shows the extracted result on its own, in its own local reference frame —
+top-left corner `(0, 0)` — sharing the *same* axis limits as the left
+panel so the two red boxes render at matching scale. It's built from two
+smaller single-panel functions, also available individually:
+[`plot_subimage_bounds`](../api/dictk/imaging.html#plot_subimage_bounds)
+(the left panel alone) and
+[`plot_subimage`](../api/dictk/imaging.html#plot_subimage) (the right
+panel alone, but zoomed to the subimage's own size rather than sharing
+the source image's scale).
 
 ### Square, fully inside
 
-An 80x80 square region entirely within `astronaut0`'s 300x300 bounds:
+An 80x80 square region entirely within `astronaut0`'s 300x300 bounds.
+[`plot_subimage_comparison`](../api/dictk/imaging.html#plot_subimage_comparison)
+draws both panels side by side, sharing the *same* axis limits, so the
+red box in the right panel renders at identical scale to the one on the
+left — instead of the right panel zooming in to fit just the 80x80
+crop:
 
-```sh
-dictk subimage-bounds astronaut0.png 100 100 80 80 -o .
+```python
+from dictk.imaging import PixelCoordinate, plot_subimage_comparison
+
+origin = PixelCoordinate(x=100, y=40)
+plot_subimage_comparison(astronaut0, origin, width=80, height=80, path="subimage_comparison_80w_by_80h_at_100_40.png")
 ```
 
 ```text
-<!-- cmdrun dictk subimage-bounds astronaut0.png 100 100 80 80 -o . -->
+<!-- cmdrun python3 -c "import dictk; from dictk.imaging import PixelCoordinate, combine_images, plot_subimage_comparison; speckle = dictk.rosta(300, 300, density=0.5); photo = dictk.astronaut(300, 300); astronaut0 = combine_images(speckle, photo); origin = PixelCoordinate(x=100, y=40); plot_subimage_comparison(astronaut0, origin, width=80, height=80, path='subimage_comparison_80w_by_80h_at_100_40.png'); print('Saved: subimage_comparison_80w_by_80h_at_100_40.png')" -->
 ```
 
 <figure>
-    <img src="subimage_bounds_80w_by_80h_at_100_100.png" alt="square subimage, fully inside" />
-    <figcaption>Square subimage (80x80) at origin (100, 100), entirely within bounds.</figcaption>
+    <img src="subimage_comparison_80w_by_80h_at_100_40.png" alt="square subimage, fully inside, source and extraction side by side at matching scale" />
+    <figcaption>Left: square subimage (80x80) at origin (100, 40), lying entirely within the source image bounds. The blue 'o' is the origin of the source image (0, 0); the red 'o' is the origin of the subimage in the source image's reference frame (100, 40). Right: the same subimage extracted on its own, in its own local reference frame — the red 'o' here is (0, 0).</figcaption>
 </figure>
 
 ### Rectangle, fully inside
 
-A 180x70 region — wider than it is tall — also entirely within bounds:
+A 180x70 region — wider than it is tall — also entirely within the
+source image bounds:
 
-```sh
-dictk subimage-bounds astronaut0.png 50 180 180 70 -o .
+```python
+from dictk.imaging import PixelCoordinate, plot_subimage_comparison
+
+origin = PixelCoordinate(x=50, y=200)
+plot_subimage_comparison(astronaut0, origin, width=180, height=70, path="subimage_comparison_180w_by_70h_at_50_200.png")
 ```
 
 ```text
-<!-- cmdrun dictk subimage-bounds astronaut0.png 50 180 180 70 -o . -->
+<!-- cmdrun python3 -c "import dictk; from dictk.imaging import PixelCoordinate, combine_images, plot_subimage_comparison; speckle = dictk.rosta(300, 300, density=0.5); photo = dictk.astronaut(300, 300); astronaut0 = combine_images(speckle, photo); origin = PixelCoordinate(x=50, y=200); plot_subimage_comparison(astronaut0, origin, width=180, height=70, path='subimage_comparison_180w_by_70h_at_50_200.png'); print('Saved: subimage_comparison_180w_by_70h_at_50_200.png')" -->
 ```
 
 <figure>
-    <img src="subimage_bounds_180w_by_70h_at_50_180.png" alt="rectangular subimage, fully inside" />
-    <figcaption>Rectangular subimage (180x70) at origin (50, 180), entirely within bounds.</figcaption>
+    <img src="subimage_comparison_180w_by_70h_at_50_200.png" alt="rectangular subimage, fully inside, source and extraction side by side at matching scale" />
+    <figcaption>Left: rectangular subimage (180x70) at origin (50, 200), lying entirely within the source image bounds. The blue 'o' is the origin of the source image (0, 0); the red 'o' is the origin of the subimage in the source image's reference frame (50, 200). Right: the same subimage extracted on its own, in its own local reference frame — the red 'o' here is (0, 0).</figcaption>
 </figure>
 
 ### Partially outside
@@ -85,83 +103,40 @@ A 120x120 region with a negative origin, straddling the source image's
 top-left corner. `subimage` fills the part of the region above and to
 the left of the source with black:
 
-```sh
-dictk subimage-bounds astronaut0.png -40 -40 120 120 -o .
+```python
+from dictk.imaging import PixelCoordinate, plot_subimage_comparison
+
+origin = PixelCoordinate(x=-20, y=-40)
+plot_subimage_comparison(astronaut0, origin, width=120, height=120, path="subimage_comparison_120w_by_120h_at_-20_-40.png")
 ```
 
 ```text
-<!-- cmdrun dictk subimage-bounds astronaut0.png -40 -40 120 120 -o . -->
+<!-- cmdrun python3 -c "import dictk; from dictk.imaging import PixelCoordinate, combine_images, plot_subimage_comparison; speckle = dictk.rosta(300, 300, density=0.5); photo = dictk.astronaut(300, 300); astronaut0 = combine_images(speckle, photo); origin = PixelCoordinate(x=-20, y=-40); plot_subimage_comparison(astronaut0, origin, width=120, height=120, path='subimage_comparison_120w_by_120h_at_-20_-40.png'); print('Saved: subimage_comparison_120w_by_120h_at_-20_-40.png')" -->
 ```
 
 <figure>
-    <img src="subimage_bounds_120w_by_120h_at_-40_-40.png" alt="subimage partially outside bounds" />
-    <figcaption>Subimage (120x120) at origin (-40, -40), straddling the source image's top-left corner.</figcaption>
+    <img src="subimage_comparison_120w_by_120h_at_-20_-40.png" alt="subimage partially outside bounds, source and extraction side by side at matching scale" />
+    <figcaption>Left: subimage (120x120) at origin (-20, -40), lying partially outside the source image bounds (straddling its top-left corner). The blue 'o' is the origin of the source image (0, 0); the red 'o' is the origin of the subimage in the source image's reference frame (-20, -40). Right: the same subimage extracted on its own, in its own local reference frame — the red 'o' here is (0, 0); the black band along the top and left is zero-padding, where the requested region fell outside <code>astronaut0</code>.</figcaption>
 </figure>
 
 ### Completely outside
 
-An 80x80 region entirely beyond the source image's bounds — no overlap
-at all, so the result is entirely black:
+A 40x100 region entirely beyond the source image's bounds — its x-range
+(310 to 350) shares no pixels with the source's (0 to 300), so there is
+no overlap at all and the result is entirely black:
 
-```sh
-dictk subimage-bounds astronaut0.png 320 320 80 80 -o .
+```python
+from dictk.imaging import PixelCoordinate, plot_subimage_comparison
+
+origin = PixelCoordinate(x=310, y=250)
+plot_subimage_comparison(astronaut0, origin, width=40, height=100, path="subimage_comparison_40w_by_100h_at_310_250.png")
 ```
 
 ```text
-<!-- cmdrun dictk subimage-bounds astronaut0.png 320 320 80 80 -o . -->
+<!-- cmdrun python3 -c "import dictk; from dictk.imaging import PixelCoordinate, combine_images, plot_subimage_comparison; speckle = dictk.rosta(300, 300, density=0.5); photo = dictk.astronaut(300, 300); astronaut0 = combine_images(speckle, photo); origin = PixelCoordinate(x=310, y=250); plot_subimage_comparison(astronaut0, origin, width=40, height=100, path='subimage_comparison_40w_by_100h_at_310_250.png'); print('Saved: subimage_comparison_40w_by_100h_at_310_250.png')" -->
 ```
 
 <figure>
-    <img src="subimage_bounds_80w_by_80h_at_320_320.png" alt="subimage completely outside bounds" />
-    <figcaption>Subimage (80x80) at origin (320, 320), entirely beyond the source image.</figcaption>
+    <img src="subimage_comparison_40w_by_100h_at_310_250.png" alt="subimage completely outside bounds, source and extraction side by side at matching scale" />
+    <figcaption>Left: subimage (40x100) at origin (310, 250), lying entirely outside the source image bounds. The blue 'o' is the origin of the source image (0, 0); the red 'o' is the origin of the subimage in the source image's reference frame (310, 250). Right: the same subimage extracted on its own, in its own local reference frame — the red 'o' here is (0, 0); entirely zero-padded black, since none of the requested region overlapped <code>astronaut0</code>.</figcaption>
 </figure>
-
-## Python API
-
-[`dictk.imaging.subimage`](../api/dictk/imaging.html#subimage) returns
-the cropped array directly, with no file written — the CLI's
-`subimage-bounds` command is a visualization built on top of it, not the
-only way to call it.
-[`dictk.imaging.PixelCoordinate`](../api/dictk/imaging.html#PixelCoordinate)
-is a simple `(x, y)` NamedTuple used for `origin`.
-
-```python
-from dictk import astronaut, rosta
-from dictk.imaging import PixelCoordinate, combine_images, subimage, write_image
-
-speckle = rosta(300, 300, density=0.5)
-photo = astronaut(300, 300)
-astronaut0 = combine_images(speckle, photo)
-
-# The "Partially outside" case above: origin (-40, -40) straddles the
-# top-left corner, so the top-left of the result is zero-padded.
-region = subimage(astronaut0, PixelCoordinate(x=-40, y=-40), width=120, height=120)
-write_image(region, "subimage_-40_-40_120x120.png")
-print(f"shape={region.shape}, dtype={region.dtype}, top-left pixel={region[0, 0]}")
-```
-
-```text
-<!-- cmdrun python3 -c "from dictk import astronaut, rosta; from dictk.imaging import PixelCoordinate, combine_images, subimage, write_image; speckle = rosta(300, 300, density=0.5); photo = astronaut(300, 300); astronaut0 = combine_images(speckle, photo); region = subimage(astronaut0, PixelCoordinate(x=-40, y=-40), width=120, height=120); write_image(region, 'subimage_-40_-40_120x120.png'); print(f'shape={region.shape}, dtype={region.dtype}, top-left pixel={region[0, 0]}')" -->
-```
-
-<figure>
-    <img src="subimage_-40_-40_120x120.png" alt="the extracted, zero-padded subimage itself" />
-    <figcaption>The extracted subimage itself (120x120): black along the top and left, where the requested region fell outside <code>astronaut0</code>.</figcaption>
-</figure>
-
-[`dictk.imaging.plot_subimage_bounds`](../api/dictk/imaging.html#plot_subimage_bounds)
-is the function behind the CLI command above, callable directly on an
-in-memory array without writing the source image to disk first:
-
-```python
-from dictk.imaging import PixelCoordinate, plot_subimage_bounds
-
-plot_subimage_bounds(
-    astronaut0, PixelCoordinate(x=-40, y=-40), width=120, height=120,
-    path="subimage_bounds_api.png",
-)
-```
-
-```text
-<!-- cmdrun python3 -c "from dictk import astronaut, rosta; from dictk.imaging import PixelCoordinate, combine_images, plot_subimage_bounds; speckle = rosta(300, 300, density=0.5); photo = astronaut(300, 300); astronaut0 = combine_images(speckle, photo); plot_subimage_bounds(astronaut0, PixelCoordinate(x=-40, y=-40), width=120, height=120, path='subimage_bounds_api.png'); print('Saved image: subimage_bounds_api.png')" -->
-```

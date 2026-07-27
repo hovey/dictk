@@ -25,6 +25,15 @@ class PixelCoordinate(NamedTuple):
     y: int
 
 
+# Shared figure scale (pixels of image data per inch) for
+# plot_subimage_bounds() and plot_subimage(), so each saved figure's size
+# is proportional to its actual pixel content rather than a fixed default
+# figure size -- letting the two be visually compared for relative size
+# instead of both rendering at roughly the same size regardless of how
+# many pixels each actually covers.
+_FIGURE_PIXELS_PER_INCH = 100
+
+
 def subimage(
     image: np.ndarray, origin: PixelCoordinate, width: int, height: int
 ) -> np.ndarray:
@@ -90,7 +99,10 @@ def plot_subimage_bounds(
     Draws `image`'s own bounds in blue and the requested `origin`/`width`/
     `height` region in red, on top of `image` itself — including cases
     where the red region extends partially or completely outside the blue
-    one, to visualize what `subimage()` would crop from.
+    one, to visualize what `subimage()` would crop from. An `'o'` marker
+    is also drawn at each rectangle's own origin: blue at `(0, 0)` for
+    `image`, red at `origin` for the subimage — both in `image`'s pixel
+    reference frame.
 
     Args:
         image: Source 2D grayscale image array.
@@ -113,7 +125,17 @@ def plot_subimage_bounds(
 
     image_height, image_width = image.shape
 
-    fig, ax = plt.subplots()
+    margin = max(width, height, image_width, image_height) * 0.05
+    x_min = min(0, origin.x) - margin
+    x_max = max(image_width, origin.x + width) + margin
+    y_min = min(0, origin.y) - margin
+    y_max = max(image_height, origin.y + height) + margin
+
+    figsize = (
+        (x_max - x_min) / _FIGURE_PIXELS_PER_INCH,
+        (y_max - y_min) / _FIGURE_PIXELS_PER_INCH,
+    )
+    fig, ax = plt.subplots(figsize=figsize)
     ax.imshow(
         image, cmap="gray", origin="upper", extent=(0, image_width, image_height, 0)
     )
@@ -140,21 +162,204 @@ def plot_subimage_bounds(
             label="subimage",
         )
     )
+    ax.plot(0, 0, marker="o", color="blue", markersize=6)
+    ax.plot(origin.x, origin.y, marker="o", color="red", markersize=6)
+
+    ax.set_xlim(x_min, x_max)
+    ax.set_ylim(y_max, y_min)  # inverted: image y increases downward
+
+    ax.set_xlabel("x (pixels)")
+    ax.set_ylabel("y (pixels)")
+    # Legend placed fully outside the axes (not just an "upper right"-style
+    # corner) so it never overlaps the source or subimage rectangles,
+    # regardless of how much of the frame they fill; bbox_inches="tight"
+    # on save keeps it from being clipped off the saved figure.
+    ax.legend(loc="center left", bbox_to_anchor=(1.02, 0.5), fontsize=8)
+    ax.set_title(f"subimage bounds: origin=({origin.x}, {origin.y}), {width}x{height}")
+
+    plt.savefig(path, dpi=dpi, bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_subimage(
+    image: np.ndarray,
+    origin: PixelCoordinate,
+    width: int,
+    height: int,
+    path: Path,
+    dpi: int = 300,
+) -> None:
+    """Save a figure of the subimage itself, in its own local reference frame.
+
+    Extracts the `width` x `height` region at `origin` (via `subimage()`)
+    and plots just that result, labeled with its own local pixel
+    coordinates — `(0, 0)` at its own top-left corner — rather than
+    `image`'s coordinates. An `'o'` marker is drawn at that local origin
+    `(0, 0)`, matching the red origin marker `plot_subimage_bounds()`
+    draws at the same subimage in `image`'s reference frame. Unlike
+    `plot_subimage_bounds()`, which shows where the region falls relative
+    to `image`, this shows what the extracted result actually looks like,
+    including any zero (black) padding from parts of the region that fell
+    outside `image`.
+
+    Args:
+        image: Source 2D grayscale image array.
+        origin: Top-left corner of the region, in `image`'s pixel
+            reference frame; see `subimage()`.
+        width: Width of the region in pixels. Must be >= 1.
+        height: Height of the region in pixels. Must be >= 1.
+        path: Output file path for the figure; format is inferred from
+            the extension by matplotlib's savefig (e.g. .png), not
+            dictk's own write_image/write_svg.
+        dpi: Resolution of the saved figure.
+
+    Raises:
+        ValueError: If width or height is less than 1.
+    """
+    region = subimage(image, origin, width, height)
+
+    # Same margin approach as plot_subimage_bounds(), so the red border
+    # gets the same small breathing room from the figure edge instead of
+    # sitting flush against it.
+    margin = max(width, height) * 0.05
+    x_min, x_max = -margin, width + margin
+    y_min, y_max = -margin, height + margin
+
+    figsize = (
+        (x_max - x_min) / _FIGURE_PIXELS_PER_INCH,
+        (y_max - y_min) / _FIGURE_PIXELS_PER_INCH,
+    )
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.imshow(region, cmap="gray", origin="upper", extent=(0, width, height, 0))
+    ax.add_patch(
+        patches.Rectangle(
+            (0, 0),
+            width,
+            height,
+            edgecolor="red",
+            facecolor="none",
+            linewidth=1.5,
+        )
+    )
+    ax.plot(0, 0, marker="o", color="red", markersize=6)
+
+    ax.set_xlim(x_min, x_max)
+    ax.set_ylim(y_max, y_min)  # inverted: image y increases downward
+
+    ax.set_xlabel("x (pixels)")
+    ax.set_ylabel("y (pixels)")
+
+    plt.savefig(path, dpi=dpi, bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_subimage_comparison(
+    image: np.ndarray,
+    origin: PixelCoordinate,
+    width: int,
+    height: int,
+    path: Path,
+    dpi: int = 300,
+) -> None:
+    """Save a side-by-side comparison of a subimage's placement and its extraction.
+
+    The left panel matches `plot_subimage_bounds()`: `image`'s bounds in
+    blue, the requested region in red, with an `'o'` marker at each
+    rectangle's own origin. The right panel shows the extracted subimage
+    (via `subimage()`) with a red border and origin marker, in its own
+    local reference frame — but drawn using the *same* axis limits as the
+    left panel, rather than being cropped or zoomed to the subimage's own
+    size the way `plot_subimage()` is. That shared scale is what makes
+    the two red boxes render at identical size by construction — same
+    data units per pixel in both panels — rather than approximating it by
+    sizing each panel's figure independently around its own content.
+
+    Args:
+        image: Source 2D grayscale image array.
+        origin: Top-left corner of the region, in `image`'s pixel
+            reference frame; see `subimage()`.
+        width: Width of the region in pixels. Must be >= 1.
+        height: Height of the region in pixels. Must be >= 1.
+        path: Output file path for the figure; format is inferred from
+            the extension by matplotlib's savefig (e.g. .png), not
+            dictk's own write_image/write_svg.
+        dpi: Resolution of the saved figure.
+
+    Raises:
+        ValueError: If width or height is less than 1.
+    """
+    if width < 1:
+        raise ValueError(f"width {width} must be >= 1")
+    if height < 1:
+        raise ValueError(f"height {height} must be >= 1")
+
+    region = subimage(image, origin, width, height)
+    image_height, image_width = image.shape
 
     margin = max(width, height, image_width, image_height) * 0.05
     x_min = min(0, origin.x) - margin
     x_max = max(image_width, origin.x + width) + margin
     y_min = min(0, origin.y) - margin
     y_max = max(image_height, origin.y + height) + margin
-    ax.set_xlim(x_min, x_max)
-    ax.set_ylim(y_max, y_min)  # inverted: image y increases downward
 
-    ax.set_xlabel("x (pixels)")
-    ax.set_ylabel("y (pixels)")
-    ax.legend(loc="upper right", fontsize=8)
-    ax.set_title(f"subimage bounds: origin=({origin.x}, {origin.y}), {width}x{height}")
+    panel_width = (x_max - x_min) / _FIGURE_PIXELS_PER_INCH
+    panel_height = (y_max - y_min) / _FIGURE_PIXELS_PER_INCH
+    fig, (ax_left, ax_right) = plt.subplots(
+        1, 2, figsize=(panel_width * 2, panel_height), constrained_layout=True
+    )
 
-    plt.savefig(path, dpi=dpi)
+    ax_left.imshow(
+        image, cmap="gray", origin="upper", extent=(0, image_width, image_height, 0)
+    )
+    ax_left.add_patch(
+        patches.Rectangle(
+            (0, 0),
+            image_width,
+            image_height,
+            edgecolor="blue",
+            facecolor="none",
+            linewidth=1.5,
+        )
+    )
+    ax_left.add_patch(
+        patches.Rectangle(
+            (origin.x, origin.y),
+            width,
+            height,
+            edgecolor="red",
+            facecolor="none",
+            linewidth=1.5,
+        )
+    )
+    ax_left.plot(0, 0, marker="o", color="blue", markersize=6)
+    ax_left.plot(origin.x, origin.y, marker="o", color="red", markersize=6)
+    ax_left.set_xlim(x_min, x_max)
+    ax_left.set_ylim(y_max, y_min)  # inverted: image y increases downward
+    ax_left.set_xlabel("x (pixels)")
+    ax_left.set_ylabel("y (pixels)")
+    ax_left.set_title("source image + subimage")
+
+    ax_right.imshow(region, cmap="gray", origin="upper", extent=(0, width, height, 0))
+    ax_right.add_patch(
+        patches.Rectangle(
+            (0, 0),
+            width,
+            height,
+            edgecolor="red",
+            facecolor="none",
+            linewidth=1.5,
+        )
+    )
+    ax_right.plot(0, 0, marker="o", color="red", markersize=6)
+    # Same limits as ax_left, not the subimage's own tight size -- this is
+    # the whole point: identical data-units-per-pixel in both panels.
+    ax_right.set_xlim(x_min, x_max)
+    ax_right.set_ylim(y_max, y_min)
+    ax_right.set_xlabel("x (pixels)")
+    ax_right.set_ylabel("y (pixels)")
+    ax_right.set_title("subimage")
+
+    plt.savefig(path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
 
 

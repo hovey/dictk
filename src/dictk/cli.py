@@ -11,14 +11,7 @@ import sys
 
 import numpy as np
 
-from dictk.imaging import (
-    PixelCoordinate,
-    astronaut,
-    checkerboard,
-    plot_subimage_bounds,
-    read_image,
-    write_image,
-)
+from dictk.imaging import astronaut, checkerboard, write_image
 from dictk.rosta import rosta
 
 IMAGE_FORMATS = ("tiff", "png", "jpg", "svg")
@@ -46,12 +39,6 @@ def _checkerboard_filename(
 
 def _astronaut_filename(width: int, height: int, image_format: str) -> str:
     return f"astronaut_{width}w_by_{height}h.{image_format}"
-
-
-def _subimage_bounds_filename(
-    width: int, height: int, origin_x: int, origin_y: int
-) -> str:
-    return f"subimage_bounds_{width}w_by_{height}h_at_{origin_x}_{origin_y}.png"
 
 
 def _write_output(arr: np.ndarray, output: Path | None, filename: str) -> int:
@@ -119,29 +106,6 @@ def _astronaut_create(args: argparse.Namespace) -> int:
 
     filename = _astronaut_filename(args.width, args.height, args.format)
     return _write_output(arr, args.output, filename)
-
-
-def _subimage_bounds_create(args: argparse.Namespace) -> int:
-    try:
-        image = read_image(args.source)
-    except OSError as e:
-        print(f"error: {e}", file=sys.stderr)
-        return 1
-
-    origin = PixelCoordinate(x=args.origin_x, y=args.origin_y)
-    output_dir = args.output if args.output else Path.cwd()
-    filename = _subimage_bounds_filename(
-        args.width, args.height, args.origin_x, args.origin_y
-    )
-    try:
-        output_dir.mkdir(parents=True, exist_ok=True)
-        path = output_dir / filename
-        plot_subimage_bounds(image, origin, args.width, args.height, path)
-    except (OSError, ValueError) as e:
-        print(f"error: {e}", file=sys.stderr)
-        return 1
-    print(f"Saved image: {path}")
-    return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -293,44 +257,6 @@ def build_parser() -> argparse.ArgumentParser:
         help="Output image format (str), default: %(default)s.",
     )
     astronaut_parser.set_defaults(func=_astronaut_create)
-
-    subimage_bounds_parser = subparsers.add_parser(
-        "subimage-bounds",
-        help="Visualize a subimage's bounds against its source image, saved as PNG.",
-    )
-    subimage_bounds_parser.add_argument(
-        "source",
-        type=Path,
-        help="Path to the source image file (path), required.",
-    )
-    subimage_bounds_parser.add_argument(
-        "origin_x",
-        type=int,
-        help="Subimage origin x-coordinate in pixels (int), required.",
-    )
-    subimage_bounds_parser.add_argument(
-        "origin_y",
-        type=int,
-        help="Subimage origin y-coordinate in pixels (int), required.",
-    )
-    subimage_bounds_parser.add_argument(
-        "width",
-        type=int,
-        help="Subimage width in pixels (int), required.",
-    )
-    subimage_bounds_parser.add_argument(
-        "height",
-        type=int,
-        help="Subimage height in pixels (int), required.",
-    )
-    subimage_bounds_parser.add_argument(
-        "--output",
-        "-o",
-        type=Path,
-        default=None,
-        help="Output directory (path), default: current directory.",
-    )
-    subimage_bounds_parser.set_defaults(func=_subimage_bounds_create)
 
     return parser
 

@@ -13,7 +13,9 @@ from dictk.imaging import (
     contrast,
     crack_dislocation,
     describe_image,
+    plot_subimage,
     plot_subimage_bounds,
+    plot_subimage_comparison,
     read_image,
     rgba_to_gray,
     rotate,
@@ -532,6 +534,53 @@ def test_plot_subimage_bounds_invalid_size_raises(tmp_path: Path, width, height)
     arr = checkerboard(width=40, height=40)
     with pytest.raises(ValueError):
         plot_subimage_bounds(
+            arr,
+            PixelCoordinate(x=0, y=0),
+            width=width,
+            height=height,
+            path=tmp_path / "out.png",
+        )
+
+
+def test_plot_subimage_writes_file(tmp_path: Path):
+    arr = checkerboard(width=40, height=40)
+    path = tmp_path / "region.png"
+    plot_subimage(arr, PixelCoordinate(x=-5, y=10), width=20, height=15, path=path)
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+@pytest.mark.parametrize("width,height", [(0, 5), (5, 0)])
+def test_plot_subimage_invalid_size_raises(tmp_path: Path, width, height):
+    arr = checkerboard(width=40, height=40)
+    with pytest.raises(ValueError):
+        plot_subimage(
+            arr,
+            PixelCoordinate(x=0, y=0),
+            width=width,
+            height=height,
+            path=tmp_path / "out.png",
+        )
+
+
+def test_plot_subimage_comparison_writes_file(tmp_path: Path):
+    # Larger than the 40x40 used elsewhere in this file: plot_subimage_comparison
+    # renders two side-by-side panels with constrained_layout, which warns
+    # ("axes sizes collapsed to zero") on very small figures.
+    arr = checkerboard(width=200, height=200)
+    path = tmp_path / "comparison.png"
+    plot_subimage_comparison(
+        arr, PixelCoordinate(x=-20, y=40), width=80, height=60, path=path
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+@pytest.mark.parametrize("width,height", [(0, 5), (5, 0)])
+def test_plot_subimage_comparison_invalid_size_raises(tmp_path: Path, width, height):
+    arr = checkerboard(width=40, height=40)
+    with pytest.raises(ValueError):
+        plot_subimage_comparison(
             arr,
             PixelCoordinate(x=0, y=0),
             width=width,
