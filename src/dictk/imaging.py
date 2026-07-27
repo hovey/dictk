@@ -3,12 +3,159 @@
 import base64
 import importlib.resources
 from pathlib import Path
+from typing import NamedTuple
 
 import imageio.v3 as iio
 import numpy as np
+from matplotlib import patches
 from matplotlib import pyplot as plt
 from scipy.interpolate import RegularGridInterpolator
 from scipy.ndimage import zoom
+
+
+class PixelCoordinate(NamedTuple):
+    """A pixel location in an image's reference frame.
+
+    Attributes:
+        x: Horizontal pixel coordinate, increasing left to right.
+        y: Vertical pixel coordinate, increasing top to bottom.
+    """
+
+    x: int
+    y: int
+
+
+def subimage(
+    image: np.ndarray, origin: PixelCoordinate, width: int, height: int
+) -> np.ndarray:
+    """Extract a width x height crop of `image` with its top-left corner at `origin`.
+
+    `origin` is expressed in `image`'s own pixel reference frame (`image`'s
+    top-left corner is `(0, 0)`) and may lie partially or entirely outside
+    `image`'s bounds. Wherever the requested region doesn't overlap
+    `image`, the corresponding output pixels are zero (black) rather than
+    raising an error — so a subimage straddling an edge, or lying
+    completely outside `image`, is always a valid, well-shaped result.
+
+    Args:
+        image: Source 2D grayscale image array.
+        origin: Top-left corner of the region to extract, in `image`'s
+            pixel reference frame.
+        width: Width of the extracted region in pixels. Must be >= 1.
+        height: Height of the extracted region in pixels. Must be >= 1.
+
+    Returns:
+        A 2D array of shape (height, width), same dtype as `image`.
+
+    Raises:
+        ValueError: If width or height is less than 1.
+    """
+    if width < 1:
+        raise ValueError(f"width {width} must be >= 1")
+    if height < 1:
+        raise ValueError(f"height {height} must be >= 1")
+
+    image_height, image_width = image.shape
+    result = np.zeros((height, width), dtype=image.dtype)
+
+    src_x_start = max(origin.x, 0)
+    src_y_start = max(origin.y, 0)
+    src_x_end = min(origin.x + width, image_width)
+    src_y_end = min(origin.y + height, image_height)
+
+    if src_x_start >= src_x_end or src_y_start >= src_y_end:
+        return result  # requested region doesn't overlap image at all
+
+    dst_x_start = src_x_start - origin.x
+    dst_y_start = src_y_start - origin.y
+    dst_x_end = dst_x_start + (src_x_end - src_x_start)
+    dst_y_end = dst_y_start + (src_y_end - src_y_start)
+
+    result[dst_y_start:dst_y_end, dst_x_start:dst_x_end] = image[
+        src_y_start:src_y_end, src_x_start:src_x_end
+    ]
+    return result
+
+
+def plot_subimage_bounds(
+    image: np.ndarray,
+    origin: PixelCoordinate,
+    width: int,
+    height: int,
+    path: Path,
+    dpi: int = 300,
+) -> None:
+    """Save a figure overlaying a source image's bounds and a subimage region.
+
+    Draws `image`'s own bounds in blue and the requested `origin`/`width`/
+    `height` region in red, on top of `image` itself — including cases
+    where the red region extends partially or completely outside the blue
+    one, to visualize what `subimage()` would crop from.
+
+    Args:
+        image: Source 2D grayscale image array.
+        origin: Top-left corner of the region, in `image`'s pixel
+            reference frame; see `subimage()`.
+        width: Width of the region in pixels. Must be >= 1.
+        height: Height of the region in pixels. Must be >= 1.
+        path: Output file path for the figure; format is inferred from
+            the extension by matplotlib's savefig (e.g. .png), not
+            dictk's own write_image/write_svg.
+        dpi: Resolution of the saved figure.
+
+    Raises:
+        ValueError: If width or height is less than 1.
+    """
+    if width < 1:
+        raise ValueError(f"width {width} must be >= 1")
+    if height < 1:
+        raise ValueError(f"height {height} must be >= 1")
+
+    image_height, image_width = image.shape
+
+    fig, ax = plt.subplots()
+    ax.imshow(
+        image, cmap="gray", origin="upper", extent=(0, image_width, image_height, 0)
+    )
+
+    ax.add_patch(
+        patches.Rectangle(
+            (0, 0),
+            image_width,
+            image_height,
+            edgecolor="blue",
+            facecolor="none",
+            linewidth=1.5,
+            label="source image",
+        )
+    )
+    ax.add_patch(
+        patches.Rectangle(
+            (origin.x, origin.y),
+            width,
+            height,
+            edgecolor="red",
+            facecolor="none",
+            linewidth=1.5,
+            label="subimage",
+        )
+    )
+
+    margin = max(width, height, image_width, image_height) * 0.05
+    x_min = min(0, origin.x) - margin
+    x_max = max(image_width, origin.x + width) + margin
+    y_min = min(0, origin.y) - margin
+    y_max = max(image_height, origin.y + height) + margin
+    ax.set_xlim(x_min, x_max)
+    ax.set_ylim(y_max, y_min)  # inverted: image y increases downward
+
+    ax.set_xlabel("x (pixels)")
+    ax.set_ylabel("y (pixels)")
+    ax.legend(loc="upper right", fontsize=8)
+    ax.set_title(f"subimage bounds: origin=({origin.x}, {origin.y}), {width}x{height}")
+
+    plt.savefig(path, dpi=dpi)
+    plt.close(fig)
 
 
 def checkerboard(
@@ -564,7 +711,9 @@ def save_histogram(arr: np.ndarray, path: Path, dpi: int = 300) -> None:
 
     Args:
         arr: The 2D grayscale image array, expected type uint8, range [0, 255].
-        path: The output file path for the histogram image.
+        path: The output file path for the histogram image; format is
+            inferred from the extension by matplotlib's savefig (e.g.
+            .png), not dictk's own write_image/write_svg.
         dpi: Resolution of the saved figure.
     """
     plt.figure()

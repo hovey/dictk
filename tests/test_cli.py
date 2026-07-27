@@ -218,3 +218,37 @@ def test_rosta_positional_width_only_defaults_height(tmp_path: Path):
 
     image = read_image(files[0])
     assert image.shape == (200, 300)
+
+
+def test_subimage_bounds_writes_file(tmp_path: Path):
+    source = tmp_path / "source.tiff"
+    main(["checkerboard", "40", "40", "-o", str(tmp_path)])
+    (tmp_path / "checkerboard_40w_by_40h_8x8.tiff").rename(source)
+
+    exit_code = main(
+        ["subimage-bounds", str(source), "-5", "10", "20", "15", "-o", str(tmp_path)]
+    )
+    assert exit_code == 0
+
+    files = list(tmp_path.glob("subimage_bounds_20w_by_15h_at_-5_10.png"))
+    assert len(files) == 1
+    assert files[0].stat().st_size > 0
+
+
+def test_subimage_bounds_invalid_size_fails_cleanly(tmp_path: Path, capsys):
+    source = tmp_path / "source.tiff"
+    main(["checkerboard", "40", "40", "-o", str(tmp_path)])
+    (tmp_path / "checkerboard_40w_by_40h_8x8.tiff").rename(source)
+
+    exit_code = main(
+        ["subimage-bounds", str(source), "0", "0", "0", "15", "-o", str(tmp_path)]
+    )
+    assert exit_code == 1
+    assert "error" in capsys.readouterr().err
+
+
+def test_subimage_bounds_missing_source_fails_cleanly(tmp_path: Path, capsys):
+    missing = tmp_path / "does_not_exist.tiff"
+    exit_code = main(["subimage-bounds", str(missing), "0", "0", "10", "10"])
+    assert exit_code == 1
+    assert "error" in capsys.readouterr().err

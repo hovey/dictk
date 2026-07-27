@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from dictk.imaging import (
+    PixelCoordinate,
     astronaut,
     brightness,
     checkerboard,
@@ -12,11 +13,13 @@ from dictk.imaging import (
     contrast,
     crack_dislocation,
     describe_image,
+    plot_subimage_bounds,
     read_image,
     rgba_to_gray,
     rotate,
     shear,
     stretch,
+    subimage,
     translate,
     write_image,
 )
@@ -460,3 +463,78 @@ def test_write_image_svg_produces_embedded_png(tmp_path: Path):
     assert 'width="16" height="8"' in content
     assert "data:image/png;base64," in content
     assert content.rstrip().endswith("</svg>")
+
+
+def test_subimage_fully_inside():
+    arr = np.arange(100).reshape(10, 10).astype(np.uint8)
+    result = subimage(arr, PixelCoordinate(x=2, y=3), width=4, height=2)
+    assert result.shape == (2, 4)
+    assert np.array_equal(result, arr[3:5, 2:6])
+
+
+def test_subimage_square_vs_rectangle_shape():
+    arr = np.ones((20, 20), dtype=np.uint8)
+    square = subimage(arr, PixelCoordinate(x=0, y=0), width=5, height=5)
+    rectangle = subimage(arr, PixelCoordinate(x=0, y=0), width=8, height=3)
+    assert square.shape == (5, 5)
+    assert rectangle.shape == (3, 8)
+
+
+def test_subimage_partially_outside_top_left_is_zero_padded():
+    arr = np.full((10, 10), 7, dtype=np.uint8)
+    result = subimage(arr, PixelCoordinate(x=-2, y=-3), width=5, height=5)
+    assert result.shape == (5, 5)
+    # Top-left corner (padding) is zero; bottom-right overlap keeps source values.
+    assert result[0, 0] == 0
+    assert np.array_equal(result[3:, 2:], arr[0:2, 0:3])
+
+
+def test_subimage_partially_outside_bottom_right_is_zero_padded():
+    arr = np.full((10, 10), 7, dtype=np.uint8)
+    result = subimage(arr, PixelCoordinate(x=8, y=8), width=4, height=4)
+    assert result.shape == (4, 4)
+    assert np.array_equal(result[:2, :2], arr[8:10, 8:10])
+    assert result[3, 3] == 0
+
+
+def test_subimage_completely_outside_is_all_zero():
+    arr = np.full((10, 10), 7, dtype=np.uint8)
+    result = subimage(arr, PixelCoordinate(x=50, y=50), width=4, height=4)
+    assert result.shape == (4, 4)
+    assert np.all(result == 0)
+
+
+def test_subimage_preserves_dtype():
+    arr = np.zeros((10, 10), dtype=np.float64)
+    result = subimage(arr, PixelCoordinate(x=0, y=0), width=3, height=3)
+    assert result.dtype == np.float64
+
+
+@pytest.mark.parametrize("width,height", [(0, 5), (5, 0), (-1, 5)])
+def test_subimage_invalid_size_raises(width, height):
+    arr = np.zeros((10, 10), dtype=np.uint8)
+    with pytest.raises(ValueError):
+        subimage(arr, PixelCoordinate(x=0, y=0), width=width, height=height)
+
+
+def test_plot_subimage_bounds_writes_file(tmp_path: Path):
+    arr = checkerboard(width=40, height=40)
+    path = tmp_path / "bounds.png"
+    plot_subimage_bounds(
+        arr, PixelCoordinate(x=-5, y=10), width=20, height=15, path=path
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+@pytest.mark.parametrize("width,height", [(0, 5), (5, 0)])
+def test_plot_subimage_bounds_invalid_size_raises(tmp_path: Path, width, height):
+    arr = checkerboard(width=40, height=40)
+    with pytest.raises(ValueError):
+        plot_subimage_bounds(
+            arr,
+            PixelCoordinate(x=0, y=0),
+            width=width,
+            height=height,
+            path=tmp_path / "out.png",
+        )
