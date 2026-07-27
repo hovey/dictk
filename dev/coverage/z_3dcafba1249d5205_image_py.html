@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_3dcafba1249d5205_rosta_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.15.2">coverage.py v7.15.2</a>,
-            created at 2026-07-27 21:57 +0000
+            created at 2026-07-27 22:05 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -515,7 +515,7 @@
     <p class="pln"><span class="n"><a id="t433" href="#t433">433</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t434" href="#t434">434</a></span><span class="t">    <span class="nam">asset_path</span> <span class="op">=</span> <span class="nam">importlib</span><span class="op">.</span><span class="nam">resources</span><span class="op">.</span><span class="nam">files</span><span class="op">(</span><span class="str">"dictk"</span><span class="op">)</span> <span class="op">/</span> <span class="str">"data"</span> <span class="op">/</span> <span class="str">"astronaut.png"</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t435" href="#t435">435</a></span><span class="t">    <span class="key">with</span> <span class="nam">importlib</span><span class="op">.</span><span class="nam">resources</span><span class="op">.</span><span class="nam">as_file</span><span class="op">(</span><span class="nam">asset_path</span><span class="op">)</span> <span class="key">as</span> <span class="nam">path</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t436" href="#t436">436</a></span><span class="t">        <span class="nam">color</span> <span class="op">=</span> <span class="nam">read</span><span class="op">(</span><span class="nam">path</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t436" href="#t436">436</a></span><span class="t">        <span class="nam">color</span> <span class="op">=</span> <span class="nam">read</span><span class="op">(</span><span class="nam">path</span><span class="op">=</span><span class="nam">path</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t437" href="#t437">437</a></span><span class="t">    <span class="nam">gray</span> <span class="op">=</span> <span class="nam">rgba_to_gray</span><span class="op">(</span><span class="nam">color</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t438" href="#t438">438</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t439" href="#t439">439</a></span><span class="t">    <span class="nam">native_height</span><span class="op">,</span> <span class="nam">native_width</span> <span class="op">=</span> <span class="nam">gray</span><span class="op">.</span><span class="nam">shape</span>&nbsp;</span><span class="r"></span></p>
@@ -914,7 +914,7 @@
     <p class="run"><span class="n"><a id="t832" href="#t832">832</a></span><span class="t">    <span class="key">return</span> <span class="nam">_backward_map</span><span class="op">(</span><span class="nam">arr</span><span class="op">,</span> <span class="nam">xs_source</span><span class="op">,</span> <span class="nam">ys_source</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t833" href="#t833">833</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t834" href="#t834">834</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t835" href="#t835">835</a></span><span class="t"><span class="key">def</span> <span class="nam">read</span><span class="op">(</span><span class="nam">path</span><span class="op">:</span> <span class="nam">Path</span><span class="op">)</span> <span class="op">-></span> <span class="nam">np</span><span class="op">.</span><span class="nam">ndarray</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t835" href="#t835">835</a></span><span class="t"><span class="key">def</span> <span class="nam">read</span><span class="op">(</span><span class="op">*</span><span class="op">,</span> <span class="nam">path</span><span class="op">:</span> <span class="nam">Path</span><span class="op">)</span> <span class="op">-></span> <span class="nam">np</span><span class="op">.</span><span class="nam">ndarray</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t836" href="#t836">836</a></span><span class="t">    <span class="str">"""Read an image file into a NumPy array.</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t837" href="#t837">837</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t838" href="#t838">838</a></span><span class="t"><span class="str">    Args:</span>&nbsp;</span><span class="r"></span></p>
@@ -1026,7 +1026,7 @@
             <a class="nav" href="z_3dcafba1249d5205_rosta_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.15.2">coverage.py v7.15.2</a>,
-            created at 2026-07-27 21:57 +0000
+            created at 2026-07-27 22:05 +0000
         </p>
     </div>
 </footer>

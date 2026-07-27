@@ -376,8 +376,8 @@ with a real photograph instead.</p>
 normalizing back to <code>uint8</code>:</p>
 <pre><code class="language-python">from dictk.image import combine, read, write
 
-speckle = read("rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
-checker = read("checkerboard_200w_by_200h_8x8.png")
+speckle = read(path="rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
+checker = read(path="checkerboard_200w_by_200h_8x8.png")
 checkerboard0 = combine(a=speckle, b=checker)
 write(arr=checkerboard0, path="checkerboard0.png")
 </code></pre>
@@ -402,9 +402,9 @@ speckle and checkerboard are both roughly bimodal (dark/light), while
 black/white-speckle-on-opposite checkerboard combinations.</p>
 <pre><code class="language-python">from dictk.image import read, histogram_save
 
-speckle = read("rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
-checker = read("checkerboard_200w_by_200h_8x8.png")
-checkerboard0 = read("checkerboard0.png")
+speckle = read(path="rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
+checker = read(path="checkerboard_200w_by_200h_8x8.png")
+checkerboard0 = read(path="checkerboard0.png")
 
 histogram_save(arr=speckle, path="rosta_histogram.png")
 histogram_save(arr=checker, path="checkerboard_histogram.png")

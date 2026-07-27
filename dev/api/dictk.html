@@ -150,7 +150,7 @@ before anything touches disk — and callers who do want a file call
 </span><span id="astronaut-434"><a href="#astronaut-434"><span class="linenos">434</span></a>
 </span><span id="astronaut-435"><a href="#astronaut-435"><span class="linenos">435</span></a>    <span class="n">asset_path</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">resources</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="s2">&quot;dictk&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;data&quot;</span> <span class="o">/</span> <span class="s2">&quot;astronaut.png&quot;</span>
 </span><span id="astronaut-436"><a href="#astronaut-436"><span class="linenos">436</span></a>    <span class="k">with</span> <span class="n">importlib</span><span class="o">.</span><span class="n">resources</span><span class="o">.</span><span class="n">as_file</span><span class="p">(</span><span class="n">asset_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">path</span><span class="p">:</span>
-</span><span id="astronaut-437"><a href="#astronaut-437"><span class="linenos">437</span></a>        <span class="n">color</span> <span class="o">=</span> <span class="n">read</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+</span><span id="astronaut-437"><a href="#astronaut-437"><span class="linenos">437</span></a>        <span class="n">color</span> <span class="o">=</span> <span class="n">read</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">)</span>
 </span><span id="astronaut-438"><a href="#astronaut-438"><span class="linenos">438</span></a>    <span class="n">gray</span> <span class="o">=</span> <span class="n">rgba_to_gray</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
 </span><span id="astronaut-439"><a href="#astronaut-439"><span class="linenos">439</span></a>
 </span><span id="astronaut-440"><a href="#astronaut-440"><span class="linenos">440</span></a>    <span class="n">native_height</span><span class="p">,</span> <span class="n">native_width</span> <span class="o">=</span> <span class="n">gray</span><span class="o">.</span><span class="n">shape</span>
@@ -339,7 +339,7 @@ layer stops at the array.</p>
                 <section id="__version__">
                     <div class="attr variable">
             <span class="name">__version__</span>        =
-<span class="default_value">&#39;0.1.dev1+ga8581012c&#39;</span>
+<span class="default_value">&#39;0.1.dev1+g553f3b49b&#39;</span>
 
         
     </div>
