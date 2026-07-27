@@ -315,7 +315,7 @@ options:
 <p>The Python equivalent, again returning an array with no file written:</p>
 <pre><code class="language-python">import dictk
 
-board = dictk.checkerboard(200, 200)
+board = dictk.checkerboard(width=200, height=200)
 </code></pre>
 <pre><code class="language-text">shape=(200, 200), dtype=uint8
 </code></pre>
@@ -400,15 +400,15 @@ white stays white.</li>
 speckle and checkerboard are both roughly bimodal (dark/light), while
 <code>checkerboard0</code> picks up a distinct middle hump from the
 black/white-speckle-on-opposite checkerboard combinations.</p>
-<pre><code class="language-python">from dictk.image import read, save_histogram
+<pre><code class="language-python">from dictk.image import read, histogram_save
 
 speckle = read("rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
 checker = read("checkerboard_200w_by_200h_8x8.png")
 checkerboard0 = read("checkerboard0.png")
 
-save_histogram(speckle, "rosta_histogram.png")
-save_histogram(checker, "checkerboard_histogram.png")
-save_histogram(checkerboard0, "checkerboard0_histogram.png")
+histogram_save(arr=speckle, path="rosta_histogram.png")
+histogram_save(arr=checker, path="checkerboard_histogram.png")
+histogram_save(arr=checkerboard0, path="checkerboard0_histogram.png")
 </code></pre>
 <pre><code class="language-text">Saved histograms: rosta_histogram.png, checkerboard_histogram.png, checkerboard0_histogram.png
 </code></pre>

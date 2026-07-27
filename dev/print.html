@@ -325,7 +325,7 @@ options:
 <p>The Python equivalent, again returning an array with no file written:</p>
 <pre><code class="language-python">import dictk
 
-board = dictk.checkerboard(200, 200)
+board = dictk.checkerboard(width=200, height=200)
 </code></pre>
 <pre><code class="language-text">shape=(200, 200), dtype=uint8
 </code></pre>
@@ -410,15 +410,15 @@ white stays white.</li>
 speckle and checkerboard are both roughly bimodal (dark/light), while
 <code>checkerboard0</code> picks up a distinct middle hump from the
 black/white-speckle-on-opposite checkerboard combinations.</p>
-<pre><code class="language-python">from dictk.image import read, save_histogram
+<pre><code class="language-python">from dictk.image import read, histogram_save
 
 speckle = read("rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
 checker = read("checkerboard_200w_by_200h_8x8.png")
 checkerboard0 = read("checkerboard0.png")
 
-save_histogram(speckle, "rosta_histogram.png")
-save_histogram(checker, "checkerboard_histogram.png")
-save_histogram(checkerboard0, "checkerboard0_histogram.png")
+histogram_save(arr=speckle, path="rosta_histogram.png")
+histogram_save(arr=checker, path="checkerboard_histogram.png")
+histogram_save(arr=checkerboard0, path="checkerboard0_histogram.png")
 </code></pre>
 <pre><code class="language-text">Saved histograms: rosta_histogram.png, checkerboard_histogram.png, checkerboard0_histogram.png
 </code></pre>
@@ -572,19 +572,19 @@ image gets lighter or darker together, dark areas included. Pushed too
 far, dark regions wash out to a flat gray and highlights clip at pure
 white (255), permanently losing detail.</p>
 <pre><code class="language-python">import dictk
-from dictk.image import brightness, save_histogram, write
+from dictk.image import brightness, histogram_save, write
 
 photo = dictk.astronaut(width=300, height=300)
 write(arr=photo, path="astronaut_original.png")
-save_histogram(photo, "astronaut_original_histogram.png")
+histogram_save(arr=photo, path="astronaut_original_histogram.png")
 
-bright_1_5 = brightness(photo, 1.5)
+bright_1_5 = brightness(arr=photo, factor=1.5)
 write(arr=bright_1_5, path="astronaut_brightness_1.5.png")
-save_histogram(bright_1_5, "astronaut_brightness_1.5_histogram.png")
+histogram_save(arr=bright_1_5, path="astronaut_brightness_1.5_histogram.png")
 
-bright_2_0 = brightness(photo, 2.0)
+bright_2_0 = brightness(arr=photo, factor=2.0)
 write(arr=bright_2_0, path="astronaut_brightness_2.0.png")
-save_histogram(bright_2_0, "astronaut_brightness_2.0_histogram.png")
+histogram_save(arr=bright_2_0, path="astronaut_brightness_2.0_histogram.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_original.png, astronaut_brightness_1.5.png, astronaut_brightness_2.0.png
 </code></pre>
@@ -608,17 +608,17 @@ histogram outward from its own mean — darks get darker, lights get
 lighter — while the mean itself stays roughly
 where it was.</p>
 <pre><code class="language-python">import dictk
-from dictk.image import contrast, save_histogram, write
+from dictk.image import contrast, histogram_save, write
 
 photo = dictk.astronaut(width=300, height=300)
 
-contrast_1_5 = contrast(photo, 1.5)
+contrast_1_5 = contrast(arr=photo, factor=1.5)
 write(arr=contrast_1_5, path="astronaut_contrast_1.5.png")
-save_histogram(contrast_1_5, "astronaut_contrast_1.5_histogram.png")
+histogram_save(arr=contrast_1_5, path="astronaut_contrast_1.5_histogram.png")
 
-contrast_2_0 = contrast(photo, 2.0)
+contrast_2_0 = contrast(arr=photo, factor=2.0)
 write(arr=contrast_2_0, path="astronaut_contrast_2.0.png")
-save_histogram(contrast_2_0, "astronaut_contrast_2.0_histogram.png")
+histogram_save(arr=contrast_2_0, path="astronaut_contrast_2.0_histogram.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_contrast_1.5.png, astronaut_contrast_2.0.png
 </code></pre>
@@ -671,7 +671,7 @@ from dictk.image import translate, write
 photo = dictk.astronaut(width=300, height=300)
 write(arr=photo, path="astronaut_translate_original.png")
 
-translated = translate(photo, dx=-60, dy=80)
+translated = translate(arr=photo, dx=-60, dy=80)
 write(arr=translated, path="astronaut_translate_rigid_body.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_translate_original.png, astronaut_translate_rigid_body.png
@@ -695,7 +695,7 @@ from dictk.image import rotate, write
 photo = dictk.astronaut(width=300, height=300)
 write(arr=photo, path="astronaut_rotate_original.png")
 
-rotated = rotate(photo, 30.0)
+rotated = rotate(arr=photo, angle=30.0)
 write(arr=rotated, path="astronaut_rotate_30deg.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_rotate_original.png, astronaut_rotate_30deg.png
@@ -721,10 +721,10 @@ from dictk.image import stretch, write
 photo = dictk.astronaut(width=300, height=300)
 write(arr=photo, path="astronaut_stretch_original.png")
 
-stretch_5pct = stretch(photo, factor_x=1.05)
+stretch_5pct = stretch(arr=photo, factor_x=1.05)
 write(arr=stretch_5pct, path="astronaut_stretch_x_5pct.png")
 
-stretch_50pct = stretch(photo, factor_x=1.50)
+stretch_50pct = stretch(arr=photo, factor_x=1.50)
 write(arr=stretch_50pct, path="astronaut_stretch_x_50pct.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_stretch_original.png, astronaut_stretch_x_5pct.png, astronaut_stretch_x_50pct.png
@@ -748,10 +748,10 @@ from dictk.image import stretch, write
 photo = dictk.astronaut(width=300, height=300)
 write(arr=photo, path="astronaut_compress_original.png")
 
-compress_neg5pct = stretch(photo, factor_y=0.95)
+compress_neg5pct = stretch(arr=photo, factor_y=0.95)
 write(arr=compress_neg5pct, path="astronaut_compress_y_neg5pct.png")
 
-compress_neg50pct = stretch(photo, factor_y=0.50)
+compress_neg50pct = stretch(arr=photo, factor_y=0.50)
 write(arr=compress_neg50pct, path="astronaut_compress_y_neg50pct.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_compress_original.png, astronaut_compress_y_neg5pct.png, astronaut_compress_y_neg50pct.png
@@ -775,7 +775,7 @@ from dictk.image import shear, write
 photo = dictk.astronaut(width=300, height=300)
 write(arr=photo, path="astronaut_shear_original.png")
 
-sheared = shear(photo, shear_x=0.5)
+sheared = shear(arr=photo, shear_x=0.5)
 write(arr=sheared, path="astronaut_shear_x_0.5.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_shear_original.png, astronaut_shear_x_0.5.png
@@ -801,7 +801,7 @@ from dictk.image import complex_deform, write
 photo = dictk.astronaut(width=300, height=300)
 write(arr=photo, path="astronaut_complex_original.png")
 
-combined = complex_deform(photo, factor_x=1.3, factor_y=0.8, angle=15.0)
+combined = complex_deform(arr=photo, factor_x=1.3, factor_y=0.8, angle=15.0)
 write(arr=combined, path="astronaut_complex_deform.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_complex_original.png, astronaut_complex_deform.png
@@ -824,7 +824,7 @@ from dictk.image import crack_dislocation, write
 photo = dictk.astronaut(width=300, height=300)
 write(arr=photo, path="astronaut_crack_plain_original.png")
 
-cracked_plain = crack_dislocation(photo, offset=4.0)
+cracked_plain = crack_dislocation(arr=photo, offset=4.0)
 write(arr=cracked_plain, path="astronaut_crack_plain_dislocation.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_crack_plain_original.png, astronaut_crack_plain_dislocation.png
