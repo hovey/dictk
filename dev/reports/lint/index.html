@@ -16,16 +16,22 @@ produce this report and the README's pylint score badge. See
 <pre>************* Module dictk.rosta
 src/dictk/rosta.py:99:0: R0913: Too many arguments (6/5) (too-many-arguments)
 ************* Module dictk.cli
-src/dictk/cli.py:27:0: R0913: Too many arguments (6/5) (too-many-arguments)
-src/dictk/cli.py:27:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
+src/dictk/cli.py:20:0: R0913: Too many arguments (6/5) (too-many-arguments)
+src/dictk/cli.py:20:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
 ************* Module dictk.imaging
-src/dictk/imaging.py:80:0: R0913: Too many arguments (6/5) (too-many-arguments)
-src/dictk/imaging.py:80:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
+src/dictk/imaging.py:89:0: R0913: Too many arguments (6/5) (too-many-arguments)
+src/dictk/imaging.py:89:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
+src/dictk/imaging.py:89:0: R0914: Too many local variables (16/15) (too-many-locals)
+src/dictk/imaging.py:184:0: R0913: Too many arguments (6/5) (too-many-arguments)
+src/dictk/imaging.py:184:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
+src/dictk/imaging.py:256:0: R0913: Too many arguments (6/5) (too-many-arguments)
+src/dictk/imaging.py:256:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
+src/dictk/imaging.py:256:0: R0914: Too many local variables (19/15) (too-many-locals)
 
 
 Report
 ======
-355 statements analysed.
+382 statements analysed.
 
 Statistics by type
 ------------------
@@ -60,7 +66,7 @@ External dependencies
 
 
 
-1244 lines have been analyzed
+1375 lines have been analyzed
 
 Raw metrics
 -----------
@@ -68,13 +74,13 @@ Raw metrics
 +----------+-------+------+---------+-----------+
 |type      |number |%     |previous |difference |
 +==========+=======+======+=========+===========+
-|code      |584    |46.95 |NC       |NC         |
+|code      |639    |46.47 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|docstring |495    |39.79 |NC       |NC         |
+|docstring |544    |39.56 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|comment   |14     |1.13  |NC       |NC         |
+|comment   |29     |2.11  |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|empty     |151    |12.14 |NC       |NC         |
+|empty     |163    |11.85 |NC       |NC         |
 +----------+-------+------+---------+-----------+
 
 
@@ -100,7 +106,7 @@ Messages by category
 +===========+=======+=========+===========+
 |convention |0      |NC       |NC         |
 +-----------+-------+---------+-----------+
-|refactor   |5      |NC       |NC         |
+|refactor   |11     |NC       |NC         |
 +-----------+-------+---------+-----------+
 |warning    |0      |NC       |NC         |
 +-----------+-------+---------+-----------+
@@ -115,11 +121,11 @@ Messages by category
 +--------------+------+--------+---------+-----------+
 |module        |error |warning |refactor |convention |
 +==============+======+========+=========+===========+
-|dictk.imaging |0.00  |0.00    |40.00    |0.00       |
+|dictk.imaging |0.00  |0.00    |72.73    |0.00       |
 +--------------+------+--------+---------+-----------+
-|dictk.cli     |0.00  |0.00    |40.00    |0.00       |
+|dictk.cli     |0.00  |0.00    |18.18    |0.00       |
 +--------------+------+--------+---------+-----------+
-|dictk.rosta   |0.00  |0.00    |20.00    |0.00       |
+|dictk.rosta   |0.00  |0.00    |9.09     |0.00       |
 +--------------+------+--------+---------+-----------+
 
 
@@ -130,16 +136,18 @@ Messages
 +------------------------------+------------+
 |message id                    |occurrences |
 +==============================+============+
-|too-many-arguments            |3           |
+|too-many-arguments            |5           |
 +------------------------------+------------+
-|too-many-positional-arguments |2           |
+|too-many-positional-arguments |4           |
++------------------------------+------------+
+|too-many-locals               |2           |
 +------------------------------+------------+
 
 
 
 
 -----------------------------------
-Your code has been rated at 9.86/10
+Your code has been rated at 9.71/10
 </pre>
 </body>
 </html>
