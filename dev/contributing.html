@@ -178,7 +178,8 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="contributing-to-dictk"><a class="header" href="#contributing-to-dictk">Contributing to dictk</a></h1>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="contributing-to-dictk"><a class="header" href="#contributing-to-dictk">Contributing to dictk</a></h1>
 <p>dictk is developed on <a href="https://github.com/hovey/dictk">GitHub</a> using
 <a href="https://git-scm.com/">Git</a> for version control. Git is the tool that tracks
 changes to the source on your own computer; GitHub is the hosting service
@@ -311,19 +312,23 @@ uv run ruff check           # lint
 </code></pre>
 <h3 id="building-the-docs"><a class="header" href="#building-the-docs">Building the docs</a></h3>
 <p>Documentation is an <a href="https://rust-lang.github.io/mdBook/">mdBook</a> under
-<code>docs/userguide/</code>, with the
-<a href="https://github.com/FauconFan/mdbook-cmdrun">mdbook-cmdrun</a> preprocessor
-enabled so pages can embed live, always-accurate command output (see the
-"Image Generation" page for an example) instead of pasted-by-hand output.
+<code>docs/userguide/</code>, with two preprocessors enabled:
+<a href="https://github.com/FauconFan/mdbook-cmdrun">mdbook-cmdrun</a>, so pages can
+embed live, always-accurate command output (see the "Image Generation"
+page for an example) instead of pasted-by-hand output, and
+<a href="https://github.com/lzanini/mdbook-katex">mdbook-katex</a>, so pages can
+include <code>$$...$$</code> LaTeX math blocks (see the "Single Point Motion" page).
 Neither is a Python dependency:</p>
-<pre><code class="language-bash"># mdbook must be pinned to 0.4.52: mdbook-cmdrun depends on the mdbook
-# crate's 0.4.x preprocessor JSON schema, which changed in mdbook 0.5 and
-# broke compatibility (https://github.com/FauconFan/mdbook-cmdrun/issues/22,
-# open as of this writing). Do not `brew install mdbook` or
-# `cargo install mdbook` without a --version pin, or cmdrun pages will fail
-# to build with "Unable to parse the input".
+<pre><code class="language-bash"># mdbook must be pinned to 0.4.52: mdbook-cmdrun and mdbook-katex's 0.9.x
+# line both depend on the mdbook crate's 0.4.x preprocessor JSON schema,
+# which changed in mdbook 0.5 and broke compatibility
+# (https://github.com/FauconFan/mdbook-cmdrun/issues/22, open as of this
+# writing; mdbook-katex made the same jump at its own 0.10.0). Do not
+# `brew install mdbook` or `cargo install mdbook`/`mdbook-katex` without a
+# --version pin, or the build will fail with "Unable to parse the input".
 cargo install mdbook --version 0.4.52
 cargo install mdbook-cmdrun
+cargo install mdbook-katex --version 0.9.4
 </code></pre>
 <p>If you already have a newer <code>mdbook</code> from Homebrew or elsewhere on your
 <code>PATH</code>, make sure <code>~/.cargo/bin</code> comes first (or check <code>mdbook --version</code>
@@ -341,17 +346,18 @@ uv run mdbook serve           # live preview at http://localhost:3000
 <h3 id="building-the-api-docs"><a class="header" href="#building-the-api-docs">Building the API docs</a></h3>
 <p>Python API reference docs (function signatures, docstrings) are generated
 from source with <a href="https://pdoc.dev/">pdoc</a>, a dev dependency:</p>
-<pre><code class="language-bash">uv run pdoc dictk dictk.image dictk.cli -o docs/api
+<pre><code class="language-bash">uv run pdoc dictk dictk.image dictk.translation dictk.cli -o docs/api
 </code></pre>
 <p><code>dictk.rosta</code> doesn't need to be listed explicitly — pdoc's submodule
 discovery respects a package's <code>__all__</code>, and <code>rosta</code> is exported there (see
 below), so it's picked up automatically. The other submodules (<code>image</code>,
-<code>cli</code>) aren't in <code>__all__</code> — <code>dictk/__init__.py</code> only lists the
-individual functions it re-exports, not module names — so pdoc's automatic
-package walk skips them unless named explicitly on the command line, per
+<code>translation</code>, <code>cli</code>) aren't in <code>__all__</code> — <code>dictk/__init__.py</code> only lists
+the individual functions it re-exports, not module names — so pdoc's
+automatic package walk skips them unless named explicitly on the command
+line, per
 <a href="https://pdoc.dev/docs/pdoc.html#what-objects-are-documented">pdoc's <code>__all__</code> handling</a>. If you add a new top-level submodule, add it to this
 command too, or it will silently go undocumented.</p>
-<pre><code class="language-bash">uv run pdoc dictk dictk.image dictk.cli   # live preview, serves on localhost
+<pre><code class="language-bash">uv run pdoc dictk dictk.image dictk.translation dictk.cli   # live preview, serves on localhost
 </code></pre>
 <p>Output goes to <code>docs/api/</code> (gitignored, regenerated on demand). CI builds
 this too and publishes it alongside the mdBook user guide — see
@@ -442,7 +448,7 @@ the checks manually:</p>
 uv run ruff check
 uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html
 (cd docs/userguide &amp;&amp; uv run mdbook build)
-uv run pdoc dictk dictk.image dictk.cli -o docs/api
+uv run pdoc dictk dictk.image dictk.translation dictk.cli -o docs/api
 uv run genbadge coverage -i coverage.xml -o coverage-badge.svg
 uv run pylint src/dictk --output-format=text --reports=yes
 </code></pre>
@@ -464,10 +470,10 @@ Uploads the coverage report as a build artifact.</p>
 <p><strong><code>docs</code></strong> — runs only on pushes to <code>main</code> or <code>dev</code>, after <code>test</code> passes
 (this <code>if</code> condition also means it's skipped when <code>release.yml</code> calls
 <code>ci.yml</code> from a tag push, since the ref won't be <code>refs/heads/main</code> or
-<code>refs/heads/dev</code>). Installs the pinned <code>mdbook</code> 0.4.52 and <code>mdbook-cmdrun</code>
-(cached via <code>actions/cache</code>), downloads the <code>test</code> job's coverage
-artifact, builds the mdBook user guide with dictk's own CLI on <code>PATH</code>,
-builds the pdoc API reference, generates a coverage badge from
+<code>refs/heads/dev</code>). Installs the pinned <code>mdbook</code> 0.4.52, <code>mdbook-cmdrun</code>,
+and <code>mdbook-katex</code> (cached via <code>actions/cache</code>), downloads the <code>test</code>
+job's coverage artifact, builds the mdBook user guide with dictk's own
+CLI on <code>PATH</code>, builds the pdoc API reference, generates a coverage badge from
 <code>coverage.xml</code> with <a href="https://smarie.github.io/python-genbadge/">genbadge</a>,
 runs pylint informationally to get a 0-10 score (fetched as a shields.io
 badge) and a full findings report, renders a status dashboard linking all

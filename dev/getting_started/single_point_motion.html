@@ -3,8 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>dictk User Guide</title>
-        <meta name="robots" content="noindex">
+        <title>Single Point Motion - dictk User Guide</title>
 
 
         <!-- Custom HTML head -->
@@ -13,34 +12,34 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="favicon.svg">
-        <link rel="shortcut icon" href="favicon.png">
-        <link rel="stylesheet" href="css/variables.css">
-        <link rel="stylesheet" href="css/general.css">
-        <link rel="stylesheet" href="css/chrome.css">
-        <link rel="stylesheet" href="css/print.css" media="print">
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="fonts/fonts.css">
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="ayu-highlight.css">
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
 
 
         <!-- Provide site root and default themes to javascript -->
         <script>
-            const path_to_root = "";
+            const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex.js";
+            window.path_to_searchindex_js = "../searchindex.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc.js"></script>
+        <script src="../toc.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -107,7 +106,7 @@
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
-                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
@@ -142,7 +141,7 @@
                     <h1 class="menu-title">dictk User Guide</h1>
 
                     <div class="right-buttons">
-                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
                         <a href="https://github.com/hovey/dictk" title="Git repository" aria-label="Git repository">
@@ -180,676 +179,11 @@
                 <div id="content" class="content">
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
-<p><code>dictk</code> (Digital Image Correlation Toolkit) is a Python library for digital
-image correlation (DIC) — comparing images of a specimen before and after
-deformation to measure displacement and strain fields.</p>
-<p>This guide is a work in progress. See the following pages for what dictk
-currently provides, starting with generating a synthetic reference image.</p>
-<h2 id="installation"><a class="header" href="#installation">Installation</a></h2>
-<pre><code class="language-bash">pip install dictk
-</code></pre>
-<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="image-generation"><a class="header" href="#image-generation">Image Generation</a></h1>
-<blockquote>
-<p>The source for the commands on this page is <code>dictk</code>'s own <code>rosta</code>,
-<code>checkerboard</code>, and <code>astronaut</code> subcommands — see <code>dictk --help</code>.</p>
-</blockquote>
-<blockquote>
-<p><strong>Note:</strong> the images embedded on this page are rendered as PNG
-(<code>--format png</code>), not <code>dictk</code>'s default TIFF. Browsers don't natively
-render TIFF in <code>&lt;img&gt;</code> tags, so a TIFF embedded here simply wouldn't
-display.</p>
-<p>Among the alternatives, PNG also wins on its own merits: it is
-lossless, whereas JPG's compression tends to smear hard edges and
-speckle-pattern detail (for the 200x200 checkerboard on this page: TIFF
-40,256 bytes, JPG 6,760 bytes, PNG only 418 bytes — JPG is actually
-<em>larger</em> than PNG here, because its block-based compression is a poor
-fit for hard-edged content like a checkerboard). SVG doesn't help either:
-since there's no vector structure to trace, <code>dictk</code>'s SVG output just
-wraps that same PNG in a base64-encoded XML container, which comes out
-to 809 bytes here — roughly double the raw PNG for no rendering benefit.</p>
-<p>TIFF remains <code>dictk</code>'s command-line default, since it's the lossless,
-uncompressed format conventionally used for DIC and other
-scientific-imaging workflows.</p>
-</blockquote>
-<blockquote>
-<p><strong>CLI vs. API:</strong> the Command Line Interface (CLI) subcommands on this page
-(<code>dictk rosta</code>, <code>dictk checkerboard</code>, <code>dictk astronaut</code>) write an image
-file to disk — that's their whole job. The corresponding Python
-functions, <a href="getting_started/../api/dictk.html#rosta"><code>dictk.rosta</code></a>,
-<a href="getting_started/../api/dictk.html#checkerboard"><code>dictk.checkerboard</code></a>, and
-<a href="getting_started/../api/dictk.html#astronaut"><code>dictk.astronaut</code></a>, take the same
-parameters but perform no file I/O: they return a NumPy array only. That
-keeps the Python API composable in a functional style — arrays can be
-piped through further functions (e.g.
-<a href="getting_started/../api/dictk/image.html#combine"><code>combine</code></a> below)
-before anything touches disk — and callers who do want a file call
-<a href="getting_started/../api/dictk/image.html#write"><code>dictk.image.write</code></a>
-explicitly, as a separate step. See each function's docstring (rendered
-in the API reference) for details.</p>
-</blockquote>
-<h2 id="rosta"><a class="header" href="#rosta">Rosta</a></h2>
-<p>We create a synthetic example speckle pattern with the built-in <code>rosta</code>
-image generator. It implements the Rosta algorithm described by
-<a href="https://doi.org/10.1016/j.softx.2019.100391">Olufsen</a> (Olufsen SN,
-Andersen ME, Fagerholt E. <em>muDIC: An open-source toolkit for digital image
-correlation.</em> SoftwareX. 2020 Jan 1;11:100391, Algorithm 1, page 6,
-<a href="https://github.com/PolymerGuy/muDIC">repository</a>).</p>
-<p>The help text for <code>rosta</code>:</p>
-<pre><code class="language-sh">dictk rosta --help
-</code></pre>
-<p>returns</p>
-<pre><code class="language-text">usage: dictk rosta [-h] [--dot-size DOT_SIZE] [--density DENSITY]
-                   [--smoothness SMOOTHNESS] [--random-seed RANDOM_SEED]
-                   [--output OUTPUT] [--format {tiff,png,jpg,svg}]
-                   [width] [height]
-
-positional arguments:
-  width                 Image width in pixels (int), default: 200.
-  height                Image height in pixels (int), default: 200.
-
-options:
-  -h, --help            show this help message and exit
-  --dot-size DOT_SIZE, -s DOT_SIZE
-                        Dot pattern size factor, 0.0 to 100.0 (float),
-                        default: 4.0.
-  --density DENSITY, -d DENSITY
-                        Dot pattern density, 0.0 to 1.0 (float), default:
-                        0.32.
-  --smoothness SMOOTHNESS, -m SMOOTHNESS
-                        Smoothness factor, 0.0 to 100.0 (float), default: 2.0.
-  --random-seed RANDOM_SEED, -r RANDOM_SEED
-                        Seed for reproducible pattern generation (int),
-                        default: 42.
-  --output OUTPUT, -o OUTPUT
-                        Output directory (path), default: current directory.
-  --format {tiff,png,jpg,svg}, -f {tiff,png,jpg,svg}
-                        Output image format (str), default: tiff.
-</code></pre>
-<p>Create a synthetic image, 200 by 200 pixels, 50% dot density:</p>
-<pre><code class="language-sh">dictk rosta 200 200 --density 0.5 --format png -o .
-</code></pre>
-<pre><code class="language-text">Saved image: rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png
-</code></pre>
-<p>Note that the file name is automatically chosen based on the input parameters.</p>
-<p>The result:</p>
-<figure>
-    <img src="getting_started/rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png"
-    alt="rosta speckle pattern" />
-    <figcaption>Synthetic speckle pattern, 200x200 pixels.</figcaption>
-</figure>
-<p>The Python equivalent returns the same pixel data as a NumPy array, with no
-file written:</p>
-<pre><code class="language-python">import dictk
-
-pattern = dictk.rosta(width=200, height=200, density=0.5)
-</code></pre>
-<pre><code class="language-text">shape=(200, 200), dtype=uint8
-</code></pre>
-<h2 id="checkerboard"><a class="header" href="#checkerboard">Checkerboard</a></h2>
-<p>To make it easier to manually identify discrete points in the speckle
-pattern, <code>dictk</code> can also generate a checkerboard test image.</p>
-<p>The help text for <code>checkerboard</code>:</p>
-<pre><code class="language-sh">dictk checkerboard --help
-</code></pre>
-<p>returns</p>
-<pre><code class="language-text">usage: dictk checkerboard [-h] [--count-x COUNT_X] [--count-y COUNT_Y]
-                          [--output OUTPUT] [--format {tiff,png,jpg,svg}]
-                          [width] [height]
-
-positional arguments:
-  width                 Image width in pixels (int), default: 200.
-  height                Image height in pixels (int), default: 200.
-
-options:
-  -h, --help            show this help message and exit
-  --count-x COUNT_X, -x COUNT_X
-                        Number of rectangles along the width (int), default:
-                        8.
-  --count-y COUNT_Y, -y COUNT_Y
-                        Number of rectangles along the height (int), default:
-                        8.
-  --output OUTPUT, -o OUTPUT
-                        Output directory (path), default: current directory.
-  --format {tiff,png,jpg,svg}, -f {tiff,png,jpg,svg}
-                        Output image format (str), default: tiff.
-</code></pre>
-<p>Create a synthetic image, 200 by 200 pixels:</p>
-<pre><code class="language-sh">dictk checkerboard 200 200 --format png -o .
-</code></pre>
-<pre><code class="language-text">Saved image: checkerboard_200w_by_200h_8x8.png
-</code></pre>
-<figure>
-    <img src="getting_started/checkerboard_200w_by_200h_8x8.png" alt="checkerboard" />
-    <figcaption>Checkerboard test image, 200x200 pixels, 8x8 squares.</figcaption>
-</figure>
-<p>The Python equivalent, again returning an array with no file written:</p>
-<pre><code class="language-python">import dictk
-
-board = dictk.checkerboard(width=200, height=200)
-</code></pre>
-<pre><code class="language-text">shape=(200, 200), dtype=uint8
-</code></pre>
-<h2 id="astronaut"><a class="header" href="#astronaut">Astronaut</a></h2>
-<p>Unlike <code>rosta</code> and <code>checkerboard</code>, which procedurally generate a fresh
-synthetic pattern from parameters, <code>astronaut</code> loads a bundled real-world
-photograph and converts it to grayscale — useful for exercising <code>dictk</code>'s
-imaging utilities against something other than a synthetic pattern. The
-source is a NASA portrait of astronaut Eileen Collins, from the NASA Great
-Images database ("No known copyright restrictions, released into the
-public domain."). Its native resolution is 512x512; passing <code>width</code>/
-<code>height</code> other than that resizes the source image rather than generating a
-new one at that size.</p>
-<p>The help text for <code>astronaut</code>:</p>
-<pre><code class="language-sh">dictk astronaut --help
-</code></pre>
-<p>returns</p>
-<pre><code class="language-text">usage: dictk astronaut [-h] [--output OUTPUT] [--format {tiff,png,jpg,svg}]
-                       [width] [height]
-
-positional arguments:
-  width                 Image width in pixels (int), default: 512.
-  height                Image height in pixels (int), default: 512.
-
-options:
-  -h, --help            show this help message and exit
-  --output OUTPUT, -o OUTPUT
-                        Output directory (path), default: current directory.
-  --format {tiff,png,jpg,svg}, -f {tiff,png,jpg,svg}
-                        Output image format (str), default: tiff.
-</code></pre>
-<p>Save it at 300 by 300 pixels — smaller downscales from the native 512x512
-start to lose too much detail:</p>
-<pre><code class="language-sh">dictk astronaut 300 300 --format png -o .
-</code></pre>
-<pre><code class="language-text">Saved image: astronaut_300w_by_300h.png
-</code></pre>
-<figure>
-    <img src="getting_started/astronaut_300w_by_300h.png" alt="astronaut" />
-    <figcaption>NASA portrait of astronaut Eileen Collins, resized to 300x300 pixels.</figcaption>
-</figure>
-<p>The Python equivalent, again returning an array with no file written:</p>
-<pre><code class="language-python">import dictk
-
-photo = dictk.astronaut(width=300, height=300)
-</code></pre>
-<pre><code class="language-text">shape=(300, 300), dtype=uint8
-</code></pre>
-<h2 id="combining-into-a-reference-image"><a class="header" href="#combining-into-a-reference-image">Combining into a reference image</a></h2>
-<p><a href="getting_started/../api/dictk/image.html#combine"><code>combine</code></a> works on any
-two grayscale images of the same shape, so it isn't limited to combining
-the two synthetic images below —
-<a href="getting_started/image_generation.html#speckle--astronaut">Speckle + Astronaut</a> further down combines <code>rosta</code>
-with a real photograph instead.</p>
-<h3 id="speckle--checkerboard"><a class="header" href="#speckle--checkerboard">Speckle + Checkerboard</a></h3>
-<p>We combine the <code>rosta</code> speckle pattern with the checkerboard into a
-<strong>reference image</strong> <code>checkerboard0</code> by averaging their pixel values and
-normalizing back to <code>uint8</code>:</p>
-<pre><code class="language-python">from dictk.image import combine, read, write
-
-speckle = read(path="rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
-checker = read(path="checkerboard_200w_by_200h_8x8.png")
-checkerboard0 = combine(a=speckle, b=checker)
-write(arr=checkerboard0, path="checkerboard0.png")
-</code></pre>
-<pre><code class="language-text">Saved image: checkerboard0.png
-</code></pre>
-<figure>
-    <img src="getting_started/checkerboard0.png" alt="reference image checkerboard0" />
-    <figcaption>Reference image checkerboard0, 200x200 pixels.</figcaption>
-</figure>
-<p>Because both inputs are averaged and rescaled together, the checkerboard's
-squares stay clearly black or white while the speckle pattern shows up as
-gray texture within them:</p>
-<ul>
-<li>Where the checkerboard is black, speckle white maps to gray and speckle
-black stays black.</li>
-<li>Where the checkerboard is white, speckle black maps to gray and speckle
-white stays white.</li>
-</ul>
-<p>That trimodal structure is visible in the pixel-intensity histograms below:
-speckle and checkerboard are both roughly bimodal (dark/light), while
-<code>checkerboard0</code> picks up a distinct middle hump from the
-black/white-speckle-on-opposite checkerboard combinations.</p>
-<pre><code class="language-python">from dictk.image import read, histogram_save
-
-speckle = read(path="rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
-checker = read(path="checkerboard_200w_by_200h_8x8.png")
-checkerboard0 = read(path="checkerboard0.png")
-
-histogram_save(arr=speckle, path="rosta_histogram.png")
-histogram_save(arr=checker, path="checkerboard_histogram.png")
-histogram_save(arr=checkerboard0, path="checkerboard0_histogram.png")
-</code></pre>
-<pre><code class="language-text">Saved histograms: rosta_histogram.png, checkerboard_histogram.png, checkerboard0_histogram.png
-</code></pre>
-<div class="table-wrapper"><table><thead><tr><th>rosta</th><th>checkerboard</th><th>checkerboard0</th></tr></thead><tbody>
-<tr><td><img src="getting_started/rosta_histogram.png" alt="rosta histogram" /></td><td><img src="getting_started/checkerboard_histogram.png" alt="checkerboard histogram" /></td><td><img src="getting_started/checkerboard0_histogram.png" alt="checkerboard0 histogram" /></td></tr>
-</tbody></table>
-</div>
-<h3 id="speckle--astronaut"><a class="header" href="#speckle--astronaut">Speckle + Astronaut</a></h3>
-<p>The checkerboard above is a stand-in for an actual specimen — in a real
-DIC setup, the speckle pattern is applied directly to the surface being
-measured, not swapped in from another generator. Combining <code>rosta</code> with
-the <code>astronaut</code> photo instead of the checkerboard is closer to that: a
-speckle pattern overlaid on a realistic, non-uniform grayscale image.</p>
-<p>This time the two source images are never written to disk at all — both
-<a href="getting_started/../api/dictk.html#rosta"><code>dictk.rosta</code></a> and
-<a href="getting_started/../api/dictk.html#astronaut"><code>dictk.astronaut</code></a> return arrays directly,
-which <a href="getting_started/../api/dictk/image.html#combine"><code>combine</code></a> accepts
-as-is, so only the combined result <code>astronaut0</code> is saved:</p>
-<pre><code class="language-python">import dictk
-from dictk.image import combine, write
-
-speckle = dictk.rosta(width=300, height=300, density=0.5)
-photo = dictk.astronaut(width=300, height=300)
-astronaut0 = combine(a=speckle, b=photo)
-write(arr=astronaut0, path="astronaut0.png")
-</code></pre>
-<pre><code class="language-text">Saved image: astronaut0.png
-</code></pre>
-<figure>
-    <img src="getting_started/astronaut0.png" alt="reference image astronaut0: rosta speckle over the astronaut photo" />
-    <figcaption>Reference image astronaut0: rosta speckle pattern combined with the astronaut photo, 300x300 pixels.</figcaption>
-</figure>
-<p>Both <code>checkerboard0.png</code> and <code>astronaut0.png</code> are also bundled in
-<code>src/dictk/data/</code>, alongside the source <code>astronaut.png</code>, so later examples
-can reuse them without regenerating from scratch each time.</p>
-<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="subimage-generation"><a class="header" href="#subimage-generation">Subimage Generation</a></h1>
-<p><a href="getting_started/../api/dictk/image.html#subimage"><code>dictk.image.subimage</code></a> extracts a
-rectangular crop from a source image: a <code>width</code> x <code>height</code> region whose
-top-left corner sits at <code>origin</code>, expressed in the source image's own
-pixel reference frame (top-left corner <code>(0, 0)</code>). <code>origin</code> may place the
-requested region partially or completely outside the source image —
-rather than raising an error, <code>subimage</code> fills whatever doesn't overlap
-with black (zero) pixels, so the result is always a well-formed
-<code>height x width</code> array. This is the building block later tutorials use to
-pull a kernel or search area out of a larger reference/current image pair
-around a point of interest.</p>
-<h2 id="reference-image"><a class="header" href="#reference-image">Reference image</a></h2>
-<p>The examples below reuse <code>astronaut0</code>, the speckle pattern combined with
-the astronaut photo introduced in <a href="getting_started/./image_generation.html#speckle--astronaut">Image
-Generation</a>:</p>
-<pre><code class="language-python">import dictk
-from dictk.image import combine, write
-
-speckle = dictk.rosta(width=300, height=300, density=0.5)
-photo = dictk.astronaut(width=300, height=300)
-astronaut0 = combine(a=speckle, b=photo)
-write(arr=astronaut0, path="astronaut0.png")
-</code></pre>
-<pre><code class="language-text">Saved image: astronaut0.png
-</code></pre>
-<h2 id="python-api"><a class="header" href="#python-api">Python API</a></h2>
-<p><a href="getting_started/../api/dictk/image.html#PixelCoordinate"><code>dictk.image.PixelCoordinate</code></a>
-is a simple <code>(x, y)</code> NamedTuple used for <code>origin</code>.
-<a href="getting_started/../api/dictk/image.html#subimage"><code>dictk.image.subimage</code></a> itself
-returns the cropped array directly, with no file written. The examples
-below use
-<a href="getting_started/../api/dictk/image.html#subimage_comparison_plot"><code>subimage_comparison_plot</code></a>,
-which saves a two-panel figure: the left panel shows where the region
-falls relative to the source image (blue/red boxes), and the right panel
-shows the extracted result on its own, in its own local reference frame —
-top-left corner <code>(0, 0)</code> — sharing the <em>same</em> axis limits as the left
-panel so the two red boxes render at matching scale. It's built from two
-smaller single-panel functions, also available individually:
-<a href="getting_started/../api/dictk/image.html#subimage_bounds_plot"><code>subimage_bounds_plot</code></a>
-(the left panel alone) and
-<a href="getting_started/../api/dictk/image.html#subimage_plot"><code>subimage_plot</code></a> (the right
-panel alone, but zoomed to the subimage's own size rather than sharing
-the source image's scale).</p>
-<h3 id="square-fully-inside"><a class="header" href="#square-fully-inside">Square, fully inside</a></h3>
-<p>An 80x80 square region entirely within <code>astronaut0</code>'s 300x300 bounds.
-<a href="getting_started/../api/dictk/image.html#subimage_comparison_plot"><code>subimage_comparison_plot</code></a>
-draws both panels side by side, sharing the <em>same</em> axis limits, so the
-red box in the right panel renders at identical scale to the one on the
-left — instead of the right panel zooming in to fit just the 80x80
-crop:</p>
-<pre><code class="language-python">from dictk.image import PixelCoordinate, subimage_comparison_plot
-
-origin = PixelCoordinate(x=100, y=40)
-subimage_comparison_plot(image=astronaut0, origin=origin, width=80, height=80, path="subimage_comparison_80w_by_80h_at_100_40.png")
-</code></pre>
-<pre><code class="language-text">Saved: subimage_comparison_80w_by_80h_at_100_40.png
-</code></pre>
-<figure>
-    <img src="getting_started/subimage_comparison_80w_by_80h_at_100_40.png" alt="square subimage, fully inside, source and extraction side by side at matching scale" />
-    <figcaption>Left: square subimage (80x80) at origin (100, 40), lying entirely within the source image bounds. The blue 'o' is the origin of the source image (0, 0); the red 'o' is the origin of the subimage in the source image's reference frame (100, 40). Right: the same subimage extracted on its own, in its own local reference frame — the red 'o' here is (0, 0).</figcaption>
-</figure>
-<h3 id="rectangle-fully-inside"><a class="header" href="#rectangle-fully-inside">Rectangle, fully inside</a></h3>
-<p>A 180x70 region — wider than it is tall — also entirely within the
-source image bounds:</p>
-<pre><code class="language-python">from dictk.image import PixelCoordinate, subimage_comparison_plot
-
-origin = PixelCoordinate(x=50, y=200)
-subimage_comparison_plot(image=astronaut0, origin=origin, width=180, height=70, path="subimage_comparison_180w_by_70h_at_50_200.png")
-</code></pre>
-<pre><code class="language-text">Saved: subimage_comparison_180w_by_70h_at_50_200.png
-</code></pre>
-<figure>
-    <img src="getting_started/subimage_comparison_180w_by_70h_at_50_200.png" alt="rectangular subimage, fully inside, source and extraction side by side at matching scale" />
-    <figcaption>Left: rectangular subimage (180x70) at origin (50, 200), lying entirely within the source image bounds. The blue 'o' is the origin of the source image (0, 0); the red 'o' is the origin of the subimage in the source image's reference frame (50, 200). Right: the same subimage extracted on its own, in its own local reference frame — the red 'o' here is (0, 0).</figcaption>
-</figure>
-<h3 id="partially-outside"><a class="header" href="#partially-outside">Partially outside</a></h3>
-<p>A 120x120 region with a negative origin, straddling the source image's
-top-left corner. <code>subimage</code> fills the part of the region above and to
-the left of the source with black:</p>
-<pre><code class="language-python">from dictk.image import PixelCoordinate, subimage_comparison_plot
-
-origin = PixelCoordinate(x=-20, y=-40)
-subimage_comparison_plot(image=astronaut0, origin=origin, width=120, height=120, path="subimage_comparison_120w_by_120h_at_-20_-40.png")
-</code></pre>
-<pre><code class="language-text">Saved: subimage_comparison_120w_by_120h_at_-20_-40.png
-</code></pre>
-<figure>
-    <img src="getting_started/subimage_comparison_120w_by_120h_at_-20_-40.png" alt="subimage partially outside bounds, source and extraction side by side at matching scale" />
-    <figcaption>Left: subimage (120x120) at origin (-20, -40), lying partially outside the source image bounds (straddling its top-left corner). The blue 'o' is the origin of the source image (0, 0); the red 'o' is the origin of the subimage in the source image's reference frame (-20, -40). Right: the same subimage extracted on its own, in its own local reference frame — the red 'o' here is (0, 0); the black band along the top and left is zero-padding, where the requested region fell outside <code>astronaut0</code>.</figcaption>
-</figure>
-<h3 id="completely-outside"><a class="header" href="#completely-outside">Completely outside</a></h3>
-<p>A 40x100 region entirely beyond the source image's bounds — its x-range
-(310 to 350) shares no pixels with the source's (0 to 300), so there is
-no overlap at all and the result is entirely black:</p>
-<pre><code class="language-python">from dictk.image import PixelCoordinate, subimage_comparison_plot
-
-origin = PixelCoordinate(x=310, y=250)
-subimage_comparison_plot(image=astronaut0, origin=origin, width=40, height=100, path="subimage_comparison_40w_by_100h_at_310_250.png")
-</code></pre>
-<pre><code class="language-text">Saved: subimage_comparison_40w_by_100h_at_310_250.png
-</code></pre>
-<figure>
-    <img src="getting_started/subimage_comparison_40w_by_100h_at_310_250.png" alt="subimage completely outside bounds, source and extraction side by side at matching scale" />
-    <figcaption>Left: subimage (40x100) at origin (310, 250), lying entirely outside the source image bounds. The blue 'o' is the origin of the source image (0, 0); the red 'o' is the origin of the subimage in the source image's reference frame (310, 250). Right: the same subimage extracted on its own, in its own local reference frame — the red 'o' here is (0, 0); entirely zero-padded black, since none of the requested region overlapped <code>astronaut0</code>.</figcaption>
-</figure>
-<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="image-preprocessing"><a class="header" href="#image-preprocessing">Image Preprocessing</a></h1>
-<p>Certain preprocessing steps can make digital image correlation more robust
-to differences in brightness and contrast between a reference and deformed
-image. This page covers two of them, using the <a href="getting_started/./image_generation.html#astronaut">astronaut reference
-image</a> from the previous page as an
-example.</p>
-<h2 id="brightness"><a class="header" href="#brightness">Brightness</a></h2>
-<p><a href="getting_started/../api/dictk/image.html#brightness"><strong>Brightness</strong></a> shifts the entire
-pixel-intensity histogram up or down by a constant amount — the whole
-image gets lighter or darker together, dark areas included. Pushed too
-far, dark regions wash out to a flat gray and highlights clip at pure
-white (255), permanently losing detail.</p>
-<pre><code class="language-python">import dictk
-from dictk.image import brightness, histogram_save, write
-
-photo = dictk.astronaut(width=300, height=300)
-write(arr=photo, path="astronaut_original.png")
-histogram_save(arr=photo, path="astronaut_original_histogram.png")
-
-bright_1_5 = brightness(arr=photo, factor=1.5)
-write(arr=bright_1_5, path="astronaut_brightness_1.5.png")
-histogram_save(arr=bright_1_5, path="astronaut_brightness_1.5_histogram.png")
-
-bright_2_0 = brightness(arr=photo, factor=2.0)
-write(arr=bright_2_0, path="astronaut_brightness_2.0.png")
-histogram_save(arr=bright_2_0, path="astronaut_brightness_2.0_histogram.png")
-</code></pre>
-<pre><code class="language-text">Saved: astronaut_original.png, astronaut_brightness_1.5.png, astronaut_brightness_2.0.png
-</code></pre>
-<div class="table-wrapper"><table><thead><tr><th>factor=1.0 (original)</th><th>factor=1.5</th><th>factor=2.0</th></tr></thead><tbody>
-<tr><td><img src="getting_started/astronaut_original.png" alt="original" /></td><td><img src="getting_started/astronaut_brightness_1.5.png" alt="brightness 1.5" /></td><td><img src="getting_started/astronaut_brightness_2.0.png" alt="brightness 2.0" /></td></tr>
-</tbody></table>
-</div><div class="table-wrapper"><table><thead><tr><th>factor=1.0 (original)</th><th>factor=1.5</th><th>factor=2.0</th></tr></thead><tbody>
-<tr><td><img src="getting_started/astronaut_original_histogram.png" alt="original histogram" /></td><td><img src="getting_started/astronaut_brightness_1.5_histogram.png" alt="brightness 1.5 histogram" /></td><td><img src="getting_started/astronaut_brightness_2.0_histogram.png" alt="brightness 2.0 histogram" /></td></tr>
-</tbody></table>
-</div>
-<p>At factor=1.5 the histogram shifts right as a whole — midtones move into
-the brighter half and the mean climbs, with a few highlights starting to
-clip at 255. At factor=2.0 the shift is large enough that a big share of
-pixels pile up at that 255 ceiling, visible as a tall spike at the
-histogram's right edge: real detail that's been clipped away and can't be
-recovered.</p>
-<h2 id="contrast"><a class="header" href="#contrast">Contrast</a></h2>
-<p><a href="getting_started/../api/dictk/image.html#contrast"><strong>Contrast</strong></a> is the spread between
-an image's darkest and lightest pixels. Increasing contrast stretches the
-histogram outward from its own mean — darks get darker, lights get
-lighter — while the mean itself stays roughly
-where it was.</p>
-<pre><code class="language-python">import dictk
-from dictk.image import contrast, histogram_save, write
-
-photo = dictk.astronaut(width=300, height=300)
-
-contrast_1_5 = contrast(arr=photo, factor=1.5)
-write(arr=contrast_1_5, path="astronaut_contrast_1.5.png")
-histogram_save(arr=contrast_1_5, path="astronaut_contrast_1.5_histogram.png")
-
-contrast_2_0 = contrast(arr=photo, factor=2.0)
-write(arr=contrast_2_0, path="astronaut_contrast_2.0.png")
-histogram_save(arr=contrast_2_0, path="astronaut_contrast_2.0_histogram.png")
-</code></pre>
-<pre><code class="language-text">Saved: astronaut_contrast_1.5.png, astronaut_contrast_2.0.png
-</code></pre>
-<div class="table-wrapper"><table><thead><tr><th>factor=1.0 (original)</th><th>factor=1.5</th><th>factor=2.0</th></tr></thead><tbody>
-<tr><td><img src="getting_started/astronaut_original.png" alt="original" /></td><td><img src="getting_started/astronaut_contrast_1.5.png" alt="contrast 1.5" /></td><td><img src="getting_started/astronaut_contrast_2.0.png" alt="contrast 2.0" /></td></tr>
-</tbody></table>
-</div><div class="table-wrapper"><table><thead><tr><th>factor=1.0 (original)</th><th>factor=1.5</th><th>factor=2.0</th></tr></thead><tbody>
-<tr><td><img src="getting_started/astronaut_original_histogram.png" alt="original histogram" /></td><td><img src="getting_started/astronaut_contrast_1.5_histogram.png" alt="contrast 1.5 histogram" /></td><td><img src="getting_started/astronaut_contrast_2.0_histogram.png" alt="contrast 2.0 histogram" /></td></tr>
-</tbody></table>
-</div>
-<p>At factor=1.5 the histogram spreads outward from the mean rather than
-shifting — the astronaut's silhouette and helmet edges get sharper, while
-the mean barely moves. At factor=2.0 the spread is wide enough that more
-pixels pile up at both the 0 and 255 ends, crushing fine midtone detail
-even as high-contrast edges sharpen further.</p>
-<blockquote>
-<p><strong>Key Insight:</strong> Contrast stretches the histogram, while brightness
-translates it.</p>
-</blockquote>
-<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="image-transformation"><a class="header" href="#image-transformation">Image Transformation</a></h1>
-<p>Image deformations, also called <em>transformations</em> in the computer vision
-literature (see Szeliski<sup class="footnote-reference" id="fr-Szeliski_2022-1"><a href="#footnote-Szeliski_2022">1</a></sup>), fall into the categories shown
-below:</p>
-<figure>
-    <img src="getting_started/2d-planar-transformations.jpg" alt="2d-planar-transformations" />
-    <figcaption>
-        Figure: Categories of 2D planar transformations from Szeliski.
-    </figcaption>
-</figure>
-<p>Each category preserves a different, nested set of geometric properties
-— every property a more restrictive category preserves is also
-preserved by every category to its left:</p>
-<div class="table-wrapper"><table><thead><tr><th>Property</th><th>Translation</th><th>Euclidean</th><th>Similarity</th><th>Affine</th><th>Projective</th></tr></thead><tbody>
-<tr><td>Straight lines stay straight</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
-<tr><td>Parallel lines stay parallel</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td><td>No</td></tr>
-<tr><td>Angles preserved</td><td>Yes</td><td>Yes</td><td>Yes</td><td>No</td><td>No</td></tr>
-<tr><td>Lengths/distances preserved</td><td>Yes</td><td>Yes</td><td>No</td><td>No</td><td>No</td></tr>
-<tr><td>Absolute orientation preserved (no rotation)</td><td>Yes</td><td>No</td><td>No</td><td>No</td><td>No</td></tr>
-</tbody></table>
-</div>
-<h2 id="pure-translation-rigid-body-motion"><a class="header" href="#pure-translation-rigid-body-motion">Pure Translation (Rigid Body Motion)</a></h2>
-<p>As the simplest of the categories above — no change in shape or size —
-<a href="getting_started/../api/dictk/image.html#translate"><code>dictk.image.translate</code></a> shifts
-every pixel by a fixed displacement. This example shifts the image by
-dx=-60 pixels in x and dy=+80 pixels in y, representing rigid body
-motion where the material moves without deforming.</p>
-<pre><code class="language-python">import dictk
-from dictk.image import translate, write
-
-photo = dictk.astronaut(width=300, height=300)
-write(arr=photo, path="astronaut_translate_original.png")
-
-translated = translate(arr=photo, dx=-60, dy=80)
-write(arr=translated, path="astronaut_translate_rigid_body.png")
-</code></pre>
-<pre><code class="language-text">Saved: astronaut_translate_original.png, astronaut_translate_rigid_body.png
-</code></pre>
-<div class="table-wrapper"><table><thead><tr><th>Translation</th><th>Image</th></tr></thead><tbody>
-<tr><td>Original</td><td><img src="getting_started/astronaut_translate_original.png" alt="original" /></td></tr>
-<tr><td>dx=-60, dy=+80</td><td><img src="getting_started/astronaut_translate_rigid_body.png" alt="rigid body translation" /></td></tr>
-</tbody></table>
-</div>
-<h2 id="pure-rotation"><a class="header" href="#pure-rotation">Pure Rotation</a></h2>
-<p>A 30° counterclockwise rotation, another rigid body motion that preserves
-distances and angles.
-<a href="getting_started/../api/dictk/image.html#rotate"><code>dictk.image.rotate</code></a> pivots on the
-image's top-left corner (0, 0), consistent with <code>stretch</code> and
-<code>translate</code>'s pivot choice in this codebase — unlike the more typical
-"object spins in place" rotation about the center, most content swings
-away from that fixed corner, similar to a door on a hinge.</p>
-<pre><code class="language-python">import dictk
-from dictk.image import rotate, write
-
-photo = dictk.astronaut(width=300, height=300)
-write(arr=photo, path="astronaut_rotate_original.png")
-
-rotated = rotate(arr=photo, angle=30.0)
-write(arr=rotated, path="astronaut_rotate_30deg.png")
-</code></pre>
-<pre><code class="language-text">Saved: astronaut_rotate_original.png, astronaut_rotate_30deg.png
-</code></pre>
-<div class="table-wrapper"><table><thead><tr><th>Rotation</th><th>Image</th></tr></thead><tbody>
-<tr><td>Original</td><td><img src="getting_started/astronaut_rotate_original.png" alt="original" /></td></tr>
-<tr><td>30° (origin-pivoted)</td><td><img src="getting_started/astronaut_rotate_30deg.png" alt="30 degree rotation" /></td></tr>
-</tbody></table>
-</div>
-<h2 id="x-axis-stretch-extension"><a class="header" href="#x-axis-stretch-extension">X-Axis Stretch (Extension)</a></h2>
-<p>As a concrete example of the <em>similarity</em> category above,
-<a href="getting_started/../api/dictk/image.html#stretch"><code>dictk.image.stretch</code></a> applies a
-uniaxial stretch along the x-axis: the image's top-left corner (x=0, y=0)
-stays fixed, and content grows away from it, using backward mapping with
-bilinear interpolation so the result has no gaps (unlike naively moving
-each source pixel forward, which can leave holes). The two stretches
-below range from a small, realistic deformation (5%, similar in magnitude
-to a modest tensile strain in a materials test) up to a much larger one
-(50%).</p>
-<pre><code class="language-python">import dictk
-from dictk.image import stretch, write
-
-photo = dictk.astronaut(width=300, height=300)
-write(arr=photo, path="astronaut_stretch_original.png")
-
-stretch_5pct = stretch(arr=photo, factor_x=1.05)
-write(arr=stretch_5pct, path="astronaut_stretch_x_5pct.png")
-
-stretch_50pct = stretch(arr=photo, factor_x=1.50)
-write(arr=stretch_50pct, path="astronaut_stretch_x_50pct.png")
-</code></pre>
-<pre><code class="language-text">Saved: astronaut_stretch_original.png, astronaut_stretch_x_5pct.png, astronaut_stretch_x_50pct.png
-</code></pre>
-<div class="table-wrapper"><table><thead><tr><th>Stretch</th><th>Image</th></tr></thead><tbody>
-<tr><td>Original</td><td><img src="getting_started/astronaut_stretch_original.png" alt="original" /></td></tr>
-<tr><td>5% (factor_x=1.05)</td><td><img src="getting_started/astronaut_stretch_x_5pct.png" alt="5% x-axis stretch" /></td></tr>
-<tr><td>50% (factor_x=1.50)</td><td><img src="getting_started/astronaut_stretch_x_50pct.png" alt="50% x-axis stretch" /></td></tr>
-</tbody></table>
-</div>
-<h2 id="y-axis-stretch-compression"><a class="header" href="#y-axis-stretch-compression">Y-Axis Stretch (Compression)</a></h2>
-<p>The same <a href="getting_started/../api/dictk/image.html#stretch"><code>dictk.image.stretch</code></a>
-function compresses along the y-axis with <code>factor_y &lt; 1.0</code>. Pivoting on
-the origin means the top edge (y=0) stays fixed while content shrinks
-toward it, leaving a black margin along the bottom — the mirror image of
-the x-axis stretch case, where growth away from the origin never leaves a
-gap.</p>
-<pre><code class="language-python">import dictk
-from dictk.image import stretch, write
-
-photo = dictk.astronaut(width=300, height=300)
-write(arr=photo, path="astronaut_compress_original.png")
-
-compress_neg5pct = stretch(arr=photo, factor_y=0.95)
-write(arr=compress_neg5pct, path="astronaut_compress_y_neg5pct.png")
-
-compress_neg50pct = stretch(arr=photo, factor_y=0.50)
-write(arr=compress_neg50pct, path="astronaut_compress_y_neg50pct.png")
-</code></pre>
-<pre><code class="language-text">Saved: astronaut_compress_original.png, astronaut_compress_y_neg5pct.png, astronaut_compress_y_neg50pct.png
-</code></pre>
-<div class="table-wrapper"><table><thead><tr><th>Compression</th><th>Image</th></tr></thead><tbody>
-<tr><td>Original</td><td><img src="getting_started/astronaut_compress_original.png" alt="original" /></td></tr>
-<tr><td>-5% (factor_y=0.95)</td><td><img src="getting_started/astronaut_compress_y_neg5pct.png" alt="-5% y-axis compression" /></td></tr>
-<tr><td>-50% (factor_y=0.50)</td><td><img src="getting_started/astronaut_compress_y_neg50pct.png" alt="-50% y-axis compression" /></td></tr>
-</tbody></table>
-</div>
-<h2 id="simple-shear"><a class="header" href="#simple-shear">Simple Shear</a></h2>
-<p>A shear deformation with γ = 0.5, where horizontal planes slide relative
-to each other by an amount proportional to their y-coordinate — the
-higher up a row of pixels, the further it shifts sideways.
-<a href="getting_started/../api/dictk/image.html#shear"><code>dictk.image.shear</code></a> pivots on the
-image's top-left corner (0, 0), consistent with the other transform
-functions in this codebase.</p>
-<pre><code class="language-python">import dictk
-from dictk.image import shear, write
-
-photo = dictk.astronaut(width=300, height=300)
-write(arr=photo, path="astronaut_shear_original.png")
-
-sheared = shear(arr=photo, shear_x=0.5)
-write(arr=sheared, path="astronaut_shear_x_0.5.png")
-</code></pre>
-<pre><code class="language-text">Saved: astronaut_shear_original.png, astronaut_shear_x_0.5.png
-</code></pre>
-<div class="table-wrapper"><table><thead><tr><th>Shear</th><th>Image</th></tr></thead><tbody>
-<tr><td>Original</td><td><img src="getting_started/astronaut_shear_original.png" alt="original" /></td></tr>
-<tr><td>γ = 0.5 (shear_x=0.5)</td><td><img src="getting_started/astronaut_shear_x_0.5.png" alt="simple shear" /></td></tr>
-</tbody></table>
-</div>
-<h2 id="complex-deformation"><a class="header" href="#complex-deformation">Complex Deformation</a></h2>
-<p>Combines rotation (15°) with anisotropic stretching (1.3x in x, 0.8x in
-y) — realistic loading scenarios where materials experience multiple
-simultaneous deformation modes, typically the hardest case for
-correlation algorithms.
-<a href="getting_started/../api/dictk/image.html#complex_deform"><code>dictk.image.complex_deform</code></a>
-composes the two into a single deformation gradient (stretch applied
-first, then rotation) and applies it in one backward-mapping pass, so
-the result isn't blurred by interpolating twice as calling <code>stretch</code>
-and then <code>rotate</code> separately would.</p>
-<pre><code class="language-python">import dictk
-from dictk.image import complex_deform, write
-
-photo = dictk.astronaut(width=300, height=300)
-write(arr=photo, path="astronaut_complex_original.png")
-
-combined = complex_deform(arr=photo, factor_x=1.3, factor_y=0.8, angle=15.0)
-write(arr=combined, path="astronaut_complex_deform.png")
-</code></pre>
-<pre><code class="language-text">Saved: astronaut_complex_original.png, astronaut_complex_deform.png
-</code></pre>
-<div class="table-wrapper"><table><thead><tr><th>Composed Deformation</th><th>Image</th></tr></thead><tbody>
-<tr><td>Original</td><td><img src="getting_started/astronaut_complex_original.png" alt="original" /></td></tr>
-<tr><td>factor_x=1.3, factor_y=0.8, angle=15°</td><td><img src="getting_started/astronaut_complex_deform.png" alt="composed deformation" /></td></tr>
-</tbody></table>
-</div>
-<h2 id="crack-dislocation"><a class="header" href="#crack-dislocation">Crack Dislocation</a></h2>
-<p>A vertical crack splits the image at x = width/2: the left half shifts
-down 4 pixels and the right half shifts up 4 pixels, producing a
-displacement field that jumps discontinuously across the crack line —
-unlike every other example on this page, which deforms smoothly.
-Standard DIC assumes smooth displacements and cannot capture this jump;
-cases like this motivate the Heaviside finite-element formulation.</p>
-<pre><code class="language-python">import dictk
-from dictk.image import crack_dislocation, write
-
-photo = dictk.astronaut(width=300, height=300)
-write(arr=photo, path="astronaut_crack_plain_original.png")
-
-cracked_plain = crack_dislocation(arr=photo, offset=4.0)
-write(arr=cracked_plain, path="astronaut_crack_plain_dislocation.png")
-</code></pre>
-<pre><code class="language-text">Saved: astronaut_crack_plain_original.png, astronaut_crack_plain_dislocation.png
-</code></pre>
-<div class="table-wrapper"><table><thead><tr><th>Crack Dislocation</th><th>Image</th></tr></thead><tbody>
-<tr><td>Original</td><td><img src="getting_started/astronaut_crack_plain_original.png" alt="original" /></td></tr>
-<tr><td>offset=4 pixels</td><td><img src="getting_started/astronaut_crack_plain_dislocation.png" alt="crack dislocation" /></td></tr>
-</tbody></table>
-</div>
-<h2 id="references"><a class="header" href="#references">References</a></h2>
-<hr>
-<ol class="footnote-definition"><li id="footnote-Szeliski_2022">
-<p>Szeliski R. Computer vision: algorithms and applications, 2nd Edition, Springer Nature; 2022 Jan 3. <a href="https://1drv.ms/b/c/3cc1bee5e2795295/IQBSP0s8pYRBRJArjzAAx3PbAcZ0PUh149lv7Z85uiBp-ms?e=FUynzc">download</a> (43 MB) <a href="#fr-Szeliski_2022-1">↩</a></p>
-</li>
-</ol><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="single-point-motion"><a class="header" href="#single-point-motion">Single Point Motion</a></h1>
 <p>Let <strong>origin</strong> <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span></span></span></span> be located at the <strong>top, left</strong> of the image. We attach
 reference frame <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathcal" style="margin-right:0.09931em;">F</span></span></span></span> to the origin, with the <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span>-axis running
 left-to-right and the <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>-axis running top-to-bottom — the same pixel
-reference frame used throughout this guide (see <a href="getting_started/./subimage.html">Subimage
+reference frame used throughout this guide (see <a href="./subimage.html">Subimage
 Generation</a>).</p>
 <p>Consider a single point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span>, fixed to a physical location on the object
 being imaged. In the <strong>reference image</strong> <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8095em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">i</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, this point is at a known
@@ -859,12 +193,12 @@ Between the reference image and a later <strong>current image</strong> <span cla
 object (and therefore <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span>) may move. Finding <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span>'s new location
 <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6886em;vertical-align:-0.2441em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span></span></span></span> — its <strong>current configuration</strong> — in <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8095em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">i</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, given only
 <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6886em;vertical-align:-0.2441em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span></span></span></span>, is the problem this page works through, using
-<a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a>.</p>
+<a href="../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a>.</p>
 <h2 id="reference-configuration"><a class="header" href="#reference-configuration">Reference Configuration</a></h2>
 <p>The examples below reuse <code>astronaut0</code>, the speckle pattern combined with
-the astronaut photo introduced in <a href="getting_started/./image_generation.html#speckle--astronaut">Image
+the astronaut photo introduced in <a href="./image_generation.html#speckle--astronaut">Image
 Generation</a> and used again in
-<a href="getting_started/./subimage.html#reference-image">Subimage Generation</a> — here called
+<a href="./subimage.html#reference-image">Subimage Generation</a> — here called
 <code>reference_image</code>, matching <code>locate</code>'s own parameter name:</p>
 <pre><code class="language-python">import dictk
 from dictk.image import combine, PixelCoordinate, point_plot, ArrowAnnotation
@@ -887,15 +221,15 @@ point_plot(
 <pre><code class="language-text">Saved: single_point_motion_p0.png
 </code></pre>
 <figure>
-    <img src="getting_started/single_point_motion_p0.png" alt="reference image with reference configuration p0 marked by a gold arrow from the origin" />
+    <img src="single_point_motion_p0.png" alt="reference image with reference configuration p0 marked by a gold arrow from the origin" />
     <figcaption>Reference image <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8095em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">i</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> and reference configuration (gold arrow) <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6886em;vertical-align:-0.2441em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">100</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">75</span><span class="mclose">)</span></span></span></span> pixels.</figcaption>
 </figure>
 <h2 id="current-configuration-and-displacement"><a class="header" href="#current-configuration-and-displacement">Current Configuration and Displacement</a></h2>
 <p>For this page, the current image <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8095em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">i</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is generated with
-<a href="getting_started/../api/dictk/image.html#translate"><code>dictk.image.translate</code></a> (see <a href="getting_started/./transformation.html#pure-translation-rigid-body-motion">Image
+<a href="../api/dictk/image.html#translate"><code>dictk.image.translate</code></a> (see <a href="./transformation.html#pure-translation-rigid-body-motion">Image
 Transformation</a>): every pixel of
 <code>reference_image</code> shifts by the same <code>(dx, dy)</code>, a <strong>rigid body
-translation</strong> — one of the simplest deformation categories (see <a href="getting_started/./transformation.html">Image
+translation</strong> — one of the simplest deformation categories (see <a href="./transformation.html">Image
 Transformation</a> for the full set). Because the whole
 image moves together, point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span>'s new location follows directly:</p>
 <pre><code class="language-python">from dictk.image import translate
@@ -923,7 +257,7 @@ the current configuration <span class="katex"><span class="katex-html" aria-hidd
 <pre><code class="language-text">Saved: single_point_motion_p1_displacement.png
 </code></pre>
 <figure>
-    <img src="getting_started/single_point_motion_p1_displacement.png" alt="current image with current configuration p1 marked by a cyan arrow from the origin, and displacement marked by a magenta arrow from p0 to p1" />
+    <img src="single_point_motion_p1_displacement.png" alt="current image with current configuration p1 marked by a cyan arrow from the origin, and displacement marked by a magenta arrow from p0 to p1" />
     <figcaption>Current image <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8095em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">i</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> with current configuration (cyan arrow) <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6886em;vertical-align:-0.2441em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">94</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">83</span><span class="mclose">)</span></span></span></span> pixels, and displacement (magenta arrow) <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03785em;">δ</span><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">−</span><span class="mord">6</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">8</span><span class="mclose">)</span></span></span></span> pixels.</figcaption>
 </figure>
 <p>Of course, <code>p1</code> above was only known in advance because we generated
@@ -965,7 +299,7 @@ subimage_comparison_plot(
 <pre><code class="language-text">Saved: single_point_motion_kernel.png
 </code></pre>
 <figure>
-    <img src="getting_started/single_point_motion_kernel.png" alt="kernel placement in the reference image, and the extracted kernel itself" />
+    <img src="single_point_motion_kernel.png" alt="kernel placement in the reference image, and the extracted kernel itself" />
     <figcaption>Left: the kernel (red box), a 50x50 region of <code>reference_image</code> centered on <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6886em;vertical-align:-0.2441em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span></span></span></span>, with origin <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">O</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.09931em;">F</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">75</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">50</span><span class="mclose">)</span></span></span></span> pixels (red 'o'). Right: the extracted kernel on its own, in its own local reference frame <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathcal" style="margin-right:0.01445em;">K</span></span></span></span>.</figcaption>
 </figure>
 <p>The kernel has its own <em>local</em> coordinate system <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathcal" style="margin-right:0.01445em;">K</span></span></span></span>, with
@@ -996,7 +330,7 @@ subimage_comparison_plot(
 <pre><code class="language-text">Saved: single_point_motion_search.png
 </code></pre>
 <figure>
-    <img src="getting_started/single_point_motion_search.png" alt="search area placement in the current image, and the extracted search area itself" />
+    <img src="single_point_motion_search.png" alt="search area placement in the current image, and the extracted search area itself" />
     <figcaption>Left: the search area (red box), a 100x100 region of <code>current_image</code> centered on <code>search_center</code>, with origin <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">OS</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.09931em;">F</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">50</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">25</span><span class="mclose">)</span></span></span></span> pixels (red 'o'). Right: the extracted search area on its own, in its own local reference frame <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathcal" style="margin-right:0.075em;">S</span></span></span></span>.</figcaption>
 </figure>
 <p>The search area likewise has its own local frame <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathcal" style="margin-right:0.075em;">S</span></span></span></span>, origin
@@ -1016,7 +350,7 @@ the same kernel-local offset found above:</p>
 the shared origin <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span></span></span></span> to <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7519em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7519em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span></span></span></span>:</p>
 <p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.6185em;vertical-align:-0.6952em;"></span><span class="mord"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9233em;"><span style="top:-3.6185em;"><span class="pstrut" style="height:3.6185em;"></span><span class="boxpad"><span class="mord"><span class="mord"><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">O</span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6828em;"><span style="top:-2.786em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.09931em;">F</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">OS</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.09931em;">F</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mathnormal mtight" style="margin-right:0.13889em;">P</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.01445em;">K</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span></span></span></span></span><span style="top:-2.9233em;"><span class="pstrut" style="height:3.6185em;"></span><span class="stretchy fbox" style="height:1.6185em;border-style:solid;border-width:0.04em;"></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.6952em;"><span></span></span></span></span></span></span></span></span></span></p>
 <p>This is exactly what
-<a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> computes
+<a href="../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> computes
 internally — via
 <a href="https://scikit-image.org/docs/stable/api/skimage.registration.html#skimage.registration.phase_cross_correlation"><code>skimage.registration.phase_cross_correlation</code></a>
 for <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span></span></span></span> — so as a caller, you don't assemble
@@ -1083,7 +417,7 @@ point_plot(
 <pre><code class="language-text">Saved: single_point_motion_solution_vectors.png
 </code></pre>
 <figure>
-    <img src="getting_started/single_point_motion_solution_vectors.png" alt="chained vector solution: blue arrow from origin to search area origin, orange arrow to the located kernel, black arrow to the found point" />
+    <img src="single_point_motion_solution_vectors.png" alt="chained vector solution: blue arrow from origin to search area origin, orange arrow to the located kernel, black arrow to the found point" />
     <figcaption>The current configuration <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6886em;vertical-align:-0.2441em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span></span></span></span> (tip of the black arrow) as the vector chain <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">OS</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.09931em;">F</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span></span></span></span> (blue) <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9385em;vertical-align:-0.3552em;"></span><span class="mord">+</span><span class="mspace"> </span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span></span></span></span> (orange) <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9385em;vertical-align:-0.3552em;"></span><span class="mord">+</span><span class="mspace"> </span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mathnormal mtight" style="margin-right:0.13889em;">P</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.01445em;">K</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span></span></span></span> (black), drawn on <code>current_image</code>.</figcaption>
 </figure>
 <div class="table-wrapper"><table><thead><tr><th style="text-align: left">vector, value</th><th>description</th></tr></thead><tbody>
@@ -1092,463 +426,18 @@ point_plot(
 <tr><td style="text-align: left"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mathnormal mtight" style="margin-right:0.13889em;">P</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.01445em;">K</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">25</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">25</span><span class="mclose">)</span></span></span></span> =</td><td>point's fixed position within the kernel (black arrow)</td></tr>
 <tr><td style="text-align: left"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">O</span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6828em;"><span style="top:-2.786em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.09931em;">F</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">94</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">83</span><span class="mclose">)</span></span></span></span></td><td>current position <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6886em;vertical-align:-0.2441em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span></span></span></span>, matching <code>found</code> above</td></tr>
 </tbody></table>
-</div><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="image-processing"><a class="header" href="#image-processing">Image Processing</a></h1>
-<p><em>(placeholder — coming soon)</em></p>
-<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="contributing-to-dictk"><a class="header" href="#contributing-to-dictk">Contributing to dictk</a></h1>
-<p>dictk is developed on <a href="https://github.com/hovey/dictk">GitHub</a> using
-<a href="https://git-scm.com/">Git</a> for version control. Git is the tool that tracks
-changes to the source on your own computer; GitHub is the hosting service
-that holds the canonical copy of the repository, tracks issues and pull
-requests, and runs the CI/CD pipeline described <a href="contributing.html#cicd-architecture">below</a>.</p>
-<h2 id="cloning-vs-forking"><a class="header" href="#cloning-vs-forking">Cloning vs. forking</a></h2>
-<p>Contributors can get a working copy of dictk by either cloning or forking
-the repository.</p>
-<div class="table-wrapper"><table><thead><tr><th>Cloning</th><th>Forking</th></tr></thead><tbody>
-<tr><td>A <strong>Git</strong> action: it creates a copy of the repository on your own computer.</td><td>A <strong>GitHub</strong> action: it creates a personal copy of the entire project under your own GitHub account.</td></tr>
-<tr><td>For <strong>authorized collaborators</strong> who can push changes directly to the main project.</td><td>For <strong>external contributors</strong> to make changes without affecting the original repository, then submit a pull request to share those changes.</td></tr>
-</tbody></table>
 </div>
-<h2 id="getting-the-source-code"><a class="header" href="#getting-the-source-code">Getting the source code</a></h2>
-<p>Collaborators should clone directly:</p>
-<pre><code class="language-bash">git clone git@github.com:hovey/dictk.git
-cd dictk
-</code></pre>
-<p>External contributors should first fork the repository to their own GitHub
-account, then clone their fork locally.</p>
-<h2 id="installation-1"><a class="header" href="#installation-1">Installation</a></h2>
-<h3 id="using-uv-recommended"><a class="header" href="#using-uv-recommended">Using <code>uv</code> (recommended)</a></h3>
-<p>Install <a href="https://docs.astral.sh/uv/">uv</a> if you don't already have it:</p>
-<pre><code class="language-bash"># macOS / Linux
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# or via Homebrew
-brew install uv
-</code></pre>
-<p>Then, from the repository root:</p>
-<pre><code class="language-bash">uv sync --all-extras --dev
-</code></pre>
-<p>This creates a <code>.venv</code> and installs <code>dictk</code> plus its dev dependencies
-(<code>pytest</code>, <code>pytest-cov</code>, <code>ruff</code>). Run commands inside that environment with
-the <code>uv run</code> prefix, e.g. <code>uv run pytest</code>.</p>
-<h3 id="using-venv-and-pip-alternative"><a class="header" href="#using-venv-and-pip-alternative">Using <code>venv</code> and <code>pip</code> (alternative)</a></h3>
-<pre><code class="language-bash">python3 -m venv .venv
-
-source .venv/bin/activate       # bash/zsh
-source .venv/bin/activate.fish  # fish
-.venv\Scripts\activate          # Windows
-
-pip install -e ".[dev]"
-</code></pre>
-<h2 id="git-workflow"><a class="header" href="#git-workflow">Git workflow</a></h2>
-<h3 id="branching-model"><a class="header" href="#branching-model">Branching model</a></h3>
-<p><code>main</code> and <code>dev</code> are both long-lived: <code>dev</code> is branched from <code>main</code>, and
-<code>main</code> only moves forward via merges from <code>dev</code> (each push to <code>main</code> is a
-potential release — see <a href="contributing.html#releasing">"Releasing"</a> below). Actual development happens one
-level further out, on <code>dev-feature</code>, a branch cut from <code>dev</code>.</p>
-<pre><code>main          ●───────────────●───────────  (releases only, tagged)
-                   \                \
-dev           ●─────●───●───●───●────●────  (integration branch)
-               \       \         \
-dev-feature     ●───●   ●─●───●   ●──●      (your work)
-</code></pre>
-<p><code>dev-feature</code> above is a placeholder — name each branch <code>dev-&lt;short-description&gt;</code>
-so its purpose is clear at a glance. For example:</p>
-<ul>
-<li><code>dev-cicd</code> — CI/CD pipeline or workflow-file changes</li>
-<li><code>dev-algorithm-refactor</code> — refactoring an existing algorithm or module</li>
-<li><code>dev-imaging</code> — new imaging transformations/workflows</li>
-<li><code>dev-docs</code> — documentation-only updates</li>
-</ul>
-<h3 id="starting-a-dev-feature-branch"><a class="header" href="#starting-a-dev-feature-branch">Starting a dev-feature branch</a></h3>
-<pre><code class="language-bash">git checkout dev
-git pull origin dev
-git checkout -b dev-feature
-</code></pre>
-<h3 id="keeping-your-dev-feature-branch-up-to-date-with-dev"><a class="header" href="#keeping-your-dev-feature-branch-up-to-date-with-dev">Keeping your dev-feature branch up to date with <code>dev</code></a></h3>
-<p>Before opening a PR, or periodically during long-lived work, bring in <code>dev</code>'s
-latest changes.</p>
-<p><strong>Option 1: Merge</strong> (safer, keeps history of both branches)</p>
-<pre><code class="language-bash">git checkout dev
-git pull origin dev
-git checkout dev-feature
-git merge dev
-</code></pre>
-<p>If there are conflicts, git will tell you which files — resolve them, then:</p>
-<pre><code class="language-bash">git add &lt;resolved-files&gt;
-git commit
-</code></pre>
-<p><strong>Option 2: Rebase</strong> (cleaner, linear history)</p>
-<pre><code class="language-bash">git checkout dev
-git pull origin dev
-git checkout dev-feature
-git rebase dev
-</code></pre>
-<p>If conflicts come up during rebase, fix them then run <code>git add &lt;files&gt;</code>
-followed by <code>git rebase --continue</code> (repeat until done). To bail out at any
-point: <code>git rebase --abort</code>.</p>
-<p><strong>Pushing after either approach</strong> — if <code>dev-feature</code> was already pushed and
-has commits others might be using:</p>
-<ul>
-<li>After a <strong>merge</strong>: <code>git push origin dev-feature</code></li>
-<li>After a <strong>rebase</strong>: <code>git push origin dev-feature --force-with-lease</code>
-(rebase rewrites history, so you need a force push — <code>--force-with-lease</code>
-is safer than <code>--force</code> since it won't overwrite someone else's pushed
-work)</li>
-</ul>
-<p><strong>Which to pick</strong></p>
-<ul>
-<li>Use <strong>merge</strong> if the branch is shared with others or you want a clear record of when <code>dev</code>'s changes came in</li>
-<li>Use <strong>rebase</strong> if it's mostly just your own branch and you want a clean, linear commit history without merge bubbles.</li>
-</ul>
-<p><strong>Tip</strong> — before doing either, it's worth running:</p>
-<pre><code class="language-bash">git log dev-feature..dev --oneline
-</code></pre>
-<p>to preview what's coming in, so conflicts aren't a total surprise.</p>
-<h2 id="development-workflow"><a class="header" href="#development-workflow">Development workflow</a></h2>
-<p>Developers work locally and periodically push to their <code>dev-&lt;feature&gt;</code>
-branch. Before pushing changes, developers should check code quality
-locally rather than solely relying on CI to catch problems. This means
-running tests, linting, format checking (ruff), code coverage, and
-confirming that the documentation (mdBook + pdoc) builds locally. Catching
-issues locally is faster than waiting on a CI run, and it keeps the CI
-pipeline green for everyone else.</p>
-<h3 id="running-tests"><a class="header" href="#running-tests">Running tests</a></h3>
-<pre><code class="language-bash">uv run pytest
-</code></pre>
-<p>With coverage (matches what CI runs):</p>
-<pre><code class="language-bash">uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html
-</code></pre>
-<p>Coverage HTML report is written to <code>htmlcov/index.html</code>.</p>
-<h3 id="linting-and-formatting"><a class="header" href="#linting-and-formatting">Linting and formatting</a></h3>
-<p><a href="https://docs.astral.sh/ruff/">ruff</a> handles both formatting and linting.</p>
-<pre><code class="language-bash">uv run ruff format          # auto-format
-uv run ruff format --check  # verify formatting without changing files (CI runs this)
-uv run ruff check           # lint
-</code></pre>
-<h3 id="building-the-docs"><a class="header" href="#building-the-docs">Building the docs</a></h3>
-<p>Documentation is an <a href="https://rust-lang.github.io/mdBook/">mdBook</a> under
-<code>docs/userguide/</code>, with two preprocessors enabled:
-<a href="https://github.com/FauconFan/mdbook-cmdrun">mdbook-cmdrun</a>, so pages can
-embed live, always-accurate command output (see the "Image Generation"
-page for an example) instead of pasted-by-hand output, and
-<a href="https://github.com/lzanini/mdbook-katex">mdbook-katex</a>, so pages can
-include <code>$$...$$</code> LaTeX math blocks (see the "Single Point Motion" page).
-Neither is a Python dependency:</p>
-<pre><code class="language-bash"># mdbook must be pinned to 0.4.52: mdbook-cmdrun and mdbook-katex's 0.9.x
-# line both depend on the mdbook crate's 0.4.x preprocessor JSON schema,
-# which changed in mdbook 0.5 and broke compatibility
-# (https://github.com/FauconFan/mdbook-cmdrun/issues/22, open as of this
-# writing; mdbook-katex made the same jump at its own 0.10.0). Do not
-# `brew install mdbook` or `cargo install mdbook`/`mdbook-katex` without a
-# --version pin, or the build will fail with "Unable to parse the input".
-cargo install mdbook --version 0.4.52
-cargo install mdbook-cmdrun
-cargo install mdbook-katex --version 0.9.4
-</code></pre>
-<p>If you already have a newer <code>mdbook</code> from Homebrew or elsewhere on your
-<code>PATH</code>, make sure <code>~/.cargo/bin</code> comes first (or check <code>mdbook --version</code>
-reports <code>0.4.52</code> before building).</p>
-<pre><code class="language-bash"># mdbook-cmdrun resolves each cmdrun command's working directory relative
-# to the process's cwd, so you must `cd` into docs/userguide first — running
-# `mdbook build docs/userguide` from the repo root will fail with
-# "Fail to run shell".
-cd docs/userguide
-uv run mdbook build           # build once, output in docs/userguide/book/
-uv run mdbook serve           # live preview at http://localhost:3000
-</code></pre>
-<p><code>uv run</code> puts dictk's own CLI on <code>PATH</code> for the build, since some
-<code>cmdrun</code> directives invoke <code>dictk</code> directly.</p>
-<h3 id="building-the-api-docs"><a class="header" href="#building-the-api-docs">Building the API docs</a></h3>
-<p>Python API reference docs (function signatures, docstrings) are generated
-from source with <a href="https://pdoc.dev/">pdoc</a>, a dev dependency:</p>
-<pre><code class="language-bash">uv run pdoc dictk dictk.image dictk.translation dictk.cli -o docs/api
-</code></pre>
-<p><code>dictk.rosta</code> doesn't need to be listed explicitly — pdoc's submodule
-discovery respects a package's <code>__all__</code>, and <code>rosta</code> is exported there (see
-below), so it's picked up automatically. The other submodules (<code>image</code>,
-<code>translation</code>, <code>cli</code>) aren't in <code>__all__</code> — <code>dictk/__init__.py</code> only lists
-the individual functions it re-exports, not module names — so pdoc's
-automatic package walk skips them unless named explicitly on the command
-line, per
-<a href="https://pdoc.dev/docs/pdoc.html#what-objects-are-documented">pdoc's <code>__all__</code> handling</a>. If you add a new top-level submodule, add it to this
-command too, or it will silently go undocumented.</p>
-<pre><code class="language-bash">uv run pdoc dictk dictk.image dictk.translation dictk.cli   # live preview, serves on localhost
-</code></pre>
-<p>Output goes to <code>docs/api/</code> (gitignored, regenerated on demand). CI builds
-this too and publishes it alongside the mdBook user guide — see
-<a href="contributing.html#cicd-architecture">"CI/CD architecture"</a> below.</p>
-<h3 id="building-the-coverage-badge"><a class="header" href="#building-the-coverage-badge">Building the coverage badge</a></h3>
-<p>The README's coverage badge is a real SVG generated from <code>coverage.xml</code> with
-<a href="https://smarie.github.io/python-genbadge/">genbadge</a>, a dev dependency —
-not a static label:</p>
-<pre><code class="language-bash">uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html
-uv run genbadge coverage -i coverage.xml -o coverage-badge.svg
-</code></pre>
-<p>In CI this runs in the <code>docs</code> job (not <code>test</code>) using the coverage.xml
-produced by the <code>test</code> job's <code>report-coverage</code> artifact, so the badge only
-updates on pushes to <code>main</code> or <code>dev</code> — same cadence as the Docs and API
-badges, not per-PR. Both <code>coverage-badge.svg</code> and the full <code>htmlcov/</code> report
-are staged into the deployed site under that branch's subdirectory
-(<code>&lt;branch&gt;/badges/coverage.svg</code> and <code>&lt;branch&gt;/coverage/</code> respectively) — see
-<a href="contributing.html#cicd-architecture">"CI/CD architecture"</a> below.</p>
-<h3 id="running-pylint-informational"><a class="header" href="#running-pylint-informational">Running pylint (informational)</a></h3>
-<p>ruff (<code>ruff format --check</code> and <code>ruff check</code>) is what actually gates CI —
-see <a href="contributing.html#linting-and-formatting">"Linting and formatting"</a> above. <a href="https://pylint.readthedocs.io/">pylint</a>
-also runs, but only in the <code>docs</code> job, and only informationally: it can't
-fail the build. It exists purely because ruff has no equivalent of pylint's
-<code>Your code has been rated at X.XX/10</code> score, and the README's lint badge
-wants a score, not just a pass/fail (which the CI badge already covers).
-Since pylint and ruff check overlapping-but-different rule sets, expect
-pylint to flag a few things ruff doesn't (and vice versa) — that's expected
-duplication from running two linters, not a bug in either.</p>
-<pre><code class="language-bash">uv run pylint src/dictk --output-format=text --reports=yes &gt; pylint-report.txt
-uv run python .github/scripts/render_pylint_report.py \
-  --input pylint-report.txt --output pylint-report.html
-</code></pre>
-<p>The badge itself is built by extracting the score from that output and
-requesting a matching badge from shields.io — see the "Run pylint
-(informational) and generate lint badge/report" step in <code>ci.yml</code> for the
-exact score-extraction and color-threshold logic. <code>pylint-report.html</code> is
-staged into the deployed site at <code>&lt;branch&gt;/reports/lint/</code>, and the badge at
-<code>&lt;branch&gt;/badges/lint.svg</code> — same cadence as the other gh-pages badges
-(updates on pushes to <code>main</code> or <code>dev</code>).</p>
-<h3 id="building-the-status-dashboard"><a class="header" href="#building-the-status-dashboard">Building the status dashboard</a></h3>
-<p><code>&lt;branch&gt;/dashboard/</code> on the deployed site is a single page linking every
-badge and report above for that branch, generated by
-<code>.github/scripts/render_dashboard.py</code>. It exists because the mdBook user
-guide occupies that branch's subdirectory root, so there's no natural
-landing page that lists the API reference, coverage report, and lint report
-together — rather than expecting visitors to already know those paths, or
-scattering the links across the README only. It doesn't require any of the
-other artifacts to already exist locally (it only generates links to them,
-using paths relative to <code>&lt;branch&gt;/dashboard/</code>, e.g. <code>../coverage/</code>):</p>
-<pre><code class="language-bash">uv run python .github/scripts/render_dashboard.py \
-  --github-repo hovey/dictk \
-  --run-id local \
-  --sha "$(git rev-parse HEAD)" \
-  --ref-name "$(git rev-parse --abbrev-ref HEAD)" \
-  --timestamp "$(date -u +'%Y-%m-%d %H:%M:%S UTC')" \
-  --output dashboard.html
-</code></pre>
-<p>In CI, <code>${{ github.run_id }}</code>, <code>${{ github.sha }}</code>, and <code>${{ github.ref_name }}</code>
-fill in the run metadata instead. <code>dashboard.html</code> is staged into the
-deployed site at <code>&lt;branch&gt;/dashboard/</code>.</p>
-<h3 id="building-the-root-landing-page"><a class="header" href="#building-the-root-landing-page">Building the root landing page</a></h3>
-<p>The site root (<code>/</code>) doesn't belong to either branch — <code>main</code> and <code>dev</code> each
-deploy to their own subdirectory (see <a href="contributing.html#cicd-architecture">"CI/CD
-architecture"</a> below), so the root is a two-column
-dashboard (main "Released" in blue, dev "Development" in orange) linking to
-each branch's user guide, API reference, dashboard, coverage, and lint
-badges, styled with the Tailwind CDN build — modeled on
-<a href="https://sandialabs.github.io/rattlesnake-vibration-controller/">sandialabs/rattlesnake-vibration-controller's gh-pages
-dashboard</a>.
-It's generated by <code>.github/scripts/render_landing.py</code> and regenerated on
-every deploy from whichever branch ran most recently (only the footer's
-timestamp/commit/CI-run attribution changes between deploys — the two
-columns' links are static):</p>
-<pre><code class="language-bash">uv run python .github/scripts/render_landing.py \
-  --github-repo hovey/dictk \
-  --run-id local \
-  --sha "$(git rev-parse HEAD)" \
-  --ref-name "$(git rev-parse --abbrev-ref HEAD)" \
-  --timestamp "$(date -u +'%Y-%m-%d %H:%M:%S UTC')" \
-  --output landing.html
-</code></pre>
-<p><code>landing.html</code> is staged as <code>index.html</code> at the deployed site's root.</p>
-<h3 id="before-pushing"><a class="header" href="#before-pushing">Before pushing</a></h3>
-<p>There's no <code>preflight</code> command yet (see rattlesnake-vibration-controller's
-<code>preflight.py</code> for an example of what that could grow into) — for now, run
-the checks manually:</p>
-<pre><code class="language-bash">uv run ruff format --check
-uv run ruff check
-uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html
-(cd docs/userguide &amp;&amp; uv run mdbook build)
-uv run pdoc dictk dictk.image dictk.translation dictk.cli -o docs/api
-uv run genbadge coverage -i coverage.xml -o coverage-badge.svg
-uv run pylint src/dictk --output-format=text --reports=yes
-</code></pre>
-<p>These are exactly the checks the <code>test</code> and <code>docs</code> jobs run in CI.</p>
-<h2 id="cicd-architecture"><a class="header" href="#cicd-architecture">CI/CD architecture</a></h2>
-<p>CI and releasing live in two workflows: <code>.github/workflows/ci.yml</code> (checks
-and docs, on every push/PR) and <code>.github/workflows/release.yml</code> (publishing,
-on a version tag push).</p>
-<p><code>ci.yml</code> has two jobs, plus a <code>workflow_call</code> trigger so <code>release.yml</code> can
-invoke it as a reusable workflow:</p>
-<ul>
-<li>
-<p><strong><code>test</code></strong> — runs on every push, pull request, and when called from
-<code>release.yml</code>. Installs dependencies with <code>uv sync</code>, runs <code>uv build</code> as a
-build sanity check, <code>ruff format --check</code>, <code>ruff check</code>, and <code>pytest --cov</code>.
-Uploads the coverage report as a build artifact.</p>
-</li>
-<li>
-<p><strong><code>docs</code></strong> — runs only on pushes to <code>main</code> or <code>dev</code>, after <code>test</code> passes
-(this <code>if</code> condition also means it's skipped when <code>release.yml</code> calls
-<code>ci.yml</code> from a tag push, since the ref won't be <code>refs/heads/main</code> or
-<code>refs/heads/dev</code>). Installs the pinned <code>mdbook</code> 0.4.52, <code>mdbook-cmdrun</code>,
-and <code>mdbook-katex</code> (cached via <code>actions/cache</code>), downloads the <code>test</code>
-job's coverage artifact, builds the mdBook user guide with dictk's own
-CLI on <code>PATH</code>, builds the pdoc API reference, generates a coverage badge from
-<code>coverage.xml</code> with <a href="https://smarie.github.io/python-genbadge/">genbadge</a>,
-runs pylint informationally to get a 0-10 score (fetched as a shields.io
-badge) and a full findings report, renders a status dashboard linking all
-of the above, and stages all of it into one directory (user guide at the
-root, API reference under <code>api/</code>, badges under <code>badges/coverage.svg</code> and
-<code>badges/lint.svg</code>, full HTML coverage report under <code>coverage/</code>, full
-pylint report under <code>reports/lint/</code>, dashboard under <code>dashboard/</code>).</p>
-<p>That staged directory becomes the <em>whole subtree</em> for whichever branch
-triggered the run — deployed to <code>main/</code> or <code>dev/</code> on the <code>gh-pages</code>
-branch (published via GitHub Pages), alongside a regenerated root
-<code>index.html</code> landing page linking to both (see <a href="contributing.html#building-the-root-landing-page">"Building the root
-landing page"</a> above). Deployment is a
-manual clone-of-<code>gh-pages</code> → replace only <code>${DEPLOY_SUBDIR}/</code> and
-<code>index.html</code> → commit → push, not <code>peaceiris/actions-gh-pages</code>: that
-action replaces the whole <code>publish_dir</code> (or, with <code>keep_files</code>, tries to
-preserve everything else, which is imprecise if <code>main</code> and <code>dev</code> deploy
-close together and risks one branch's content clobbering the other's — a
-problem <a href="https://github.com/sandialabs/rattlesnake-vibration-controller">sandialabs/rattlesnake-vibration-controller's
-<code>ci.yml</code></a>
-hit and solved the same way). The job's <code>concurrency</code> group
-(<code>gh-pages-deploy</code>, <code>cancel-in-progress: false</code>) serializes <code>main</code>'s and
-<code>dev</code>'s deploys so this step never runs for both at once.</p>
-</li>
-</ul>
-<p><code>release.yml</code> triggers on pushing a tag matching <code>v*</code> and runs, in order:</p>
-<ul>
-<li><strong><code>validate_tag</code></strong> — verifies the tag is valid <a href="https://peps.python.org/pep-0440/">PEP 440</a>,
-that it's strictly newer than every existing tag, and that its branch
-matches its prerelease status: a prerelease tag (<code>a</code>/<code>b</code>/<code>rc</code>/<code>.dev</code> suffix)
-must be reachable from <code>origin/dev</code>; a stable/post tag must be reachable
-from <code>origin/main</code> specifically. Outputs <code>is_prerelease</code> for the jobs below.</li>
-<li><strong><code>test</code></strong> — <code>needs: validate_tag</code>, calls <code>ci.yml</code>'s <code>test</code> job fresh at the
-tagged commit (not reused from an earlier push-to-main run).</li>
-<li><strong><code>build</code></strong> — <code>needs: test</code>. Runs <code>uv build</code>, generates a build-provenance
-attestation for the dist files, and uploads them as an artifact.</li>
-<li><strong><code>github-release</code></strong> — <code>needs: [build, validate_tag]</code>. Creates a GitHub
-Release with auto-generated notes, attaching the dist files, marked
-prerelease or not per <code>validate_tag</code>'s output.</li>
-<li><strong><code>publish_testpypi</code></strong> / <strong><code>publish_pypi</code></strong> — <code>needs: [build, github-release, validate_tag]</code>, gated on <code>is_prerelease</code> being <code>true</code>/<code>false</code> respectively.
-Publishes to TestPyPI or PyPI. See <a href="contributing.html#releasing">"Releasing"</a> below.</li>
-</ul>
-<p>This is intentionally a minimal setup — no matrix OS/Python testing, no
-containerized builds. pytribeam's <code>ci.yml</code> and
-rattlesnake-vibration-controller's <code>ci.yml</code>/<code>release.yml</code> are useful
-references for growing any of this out later (dictk's <code>release.yml</code> is in
-fact modeled on rattlesnake-vibration-controller's, with one addition: tying
-the branch check to prerelease status, described above).</p>
-<h2 id="versioning"><a class="header" href="#versioning">Versioning</a></h2>
-<p>Versions are derived automatically from git tags via
-<a href="https://github.com/ofek/hatch-vcs">hatch-vcs</a> — there is no hand-maintained
-version string anywhere in the source. Tag format is a <code>v</code>-prefixed
-<a href="https://peps.python.org/pep-0440/">PEP 440</a> version, e.g. <code>v0.1.0</code>.</p>
-<p>If the current commit isn't exactly at a tag (or the working tree is dirty),
-<code>hatch-vcs</code> appends a local version segment (e.g. <code>0.1.dev1+gd975d09</code>).
-<strong>PyPI and TestPyPI reject uploads with a local version segment</strong>, so a
-publishable commit must be exactly the tagged commit.</p>
-<h3 id="tags-and-semantic-versioning"><a class="header" href="#tags-and-semantic-versioning">Tags and semantic versioning</a></h3>
-<p>Tags follow <a href="https://peps.python.org/pep-0440/">PEP 440</a>, which requires
-version strings to follow this structure:</p>
-<pre><code>N.N.N[{a|b|rc}N][.postN][.devN]
-</code></pre>
-<h4 id="example-tags"><a class="header" href="#example-tags">Example tags</a></h4>
-<p>Prerelease tags:</p>
-<div class="table-wrapper"><table><thead><tr><th>tag</th><th>description</th></tr></thead><tbody>
-<tr><td><code>v1.1.0a1</code></td><td>The first <strong>alpha</strong> for version 1.1.0</td></tr>
-<tr><td><code>v1.1.0b2</code></td><td>The second <strong>beta</strong> for version 1.1.0</td></tr>
-<tr><td><code>v1.1.0rc1</code></td><td>The first <strong>release candidate</strong> for version 1.1.0</td></tr>
-</tbody></table>
-</div>
-<p>A <strong>release candidate</strong> is made during the final testing stage before a full
-release.</p>
-<p>Stable release tags (e.g., starting from a <code>v1.0.0</code> release):</p>
-<div class="table-wrapper"><table><thead><tr><th>tag</th><th>description</th></tr></thead><tbody>
-<tr><td><code>v1.0.1</code></td><td><strong>Patch release</strong>: backwards-compatible bug fixes</td></tr>
-<tr><td><code>v1.1.0</code></td><td><strong>Minor release</strong>: new features that are backwards-compatible</td></tr>
-<tr><td><code>v2.0.0</code></td><td><strong>Major release</strong>: significant changes or breaking API updates</td></tr>
-</tbody></table>
-</div>
-<p>Development and post-release tags:</p>
-<div class="table-wrapper"><table><thead><tr><th>tag</th><th>description</th></tr></thead><tbody>
-<tr><td><code>v1.1.0.dev1</code></td><td>A version currently under development</td></tr>
-<tr><td><code>v1.0.0.post1</code></td><td>Fix a minor error in the release process, such as a typo in the documentation, without changing the code</td></tr>
-</tbody></table>
-</div>
-<h3 id="release-on-tag"><a class="header" href="#release-on-tag">Release on tag</a></h3>
-<p>Pushing a tag is what triggers <code>release.yml</code> (see
-<a href="contributing.html#cicd-architecture">"CI/CD architecture"</a> above) — there's no separate
-commit-message keyword. Which registry it publishes to is decided by the
-tag's own shape: a prerelease tag (<code>a</code>/<code>b</code>/<code>rc</code>/<code>.dev</code> suffix) publishes to
-TestPyPI, a stable/post tag publishes to PyPI. The branch the tag is cut from
-has to match: prerelease tags on <code>dev</code>, stable/post tags on <code>main</code>. See
-<a href="contributing.html#merging-dev-into-main">"Merging <code>dev</code> into <code>main</code>"</a> and
-<a href="contributing.html#publishing-a-release">"Publishing a release"</a> below for the actual
-commands.</p>
-<h2 id="releasing"><a class="header" href="#releasing">Releasing</a></h2>
-<p>Releases are triggered by pushing a git tag matching <code>v*</code> — see
-<a href="contributing.html#release-on-tag">"Release on tag"</a> above. <code>validate_tag</code> (the first job in <code>release.yml</code>) checks the tag is
-valid PEP 440, strictly newer than every existing tag, and cut from the
-branch its prerelease status requires (<code>dev</code> for prerelease, <code>main</code> for
-stable/post). Because the release jobs build whatever <code>hatch-vcs</code> resolves at
-the tagged commit, the tag must point at the exact commit you want published.</p>
-<h3 id="merging-dev-into-main"><a class="header" href="#merging-dev-into-main">Merging <code>dev</code> into <code>main</code></a></h3>
-<p><code>main</code> is a protected branch — it only accepts changes through a merged pull
-request, even for repo admins, so <code>git push origin main</code> will be rejected.
-This step is only needed before a <strong>stable</strong> release (prereleases tag <code>dev</code>
-directly — see <a href="contributing.html#publishing-a-release">"Publishing a release"</a> below). Merge
-<code>dev</code> into <code>main</code> through a PR:</p>
-<pre><code class="language-bash">git checkout dev
-git pull origin dev
-gh pr create --base main --head dev --title "Merge dev into main" --body ""
-gh pr merge --merge
-</code></pre>
-<p>No approving review is required, so you can merge your own PR.</p>
-<h3 id="one-time-setup-already-done-for-this-repo"><a class="header" href="#one-time-setup-already-done-for-this-repo">One-time setup (already done for this repo)</a></h3>
-<ol>
-<li>GitHub → repo Settings → Environments: create <code>testpypi</code> and <code>pypi</code>
-environments. <code>pypi</code> has a "Required reviewers" rule (you) configured, so
-a real release needs manual approval in the Actions UI before publishing
-— <code>testpypi</code> doesn't need this.</li>
-<li>On <a href="https://test.pypi.org">test.pypi.org</a> and
-<a href="https://pypi.org">pypi.org</a>, under the <code>dictk</code> project's "Publishing"
-settings, add a trusted publisher: owner <code>hovey</code>, repository <code>dictk</code>,
-<strong>workflow file <code>release.yml</code></strong> (not <code>ci.yml</code> — publishing happens in the
-tag-triggered workflow), environment name <code>testpypi</code> (for TestPyPI) or
-<code>pypi</code> (for PyPI).</li>
-</ol>
-<p>No API tokens are stored anywhere — publishing uses OIDC trusted publishing
-via the <code>id-token: write</code> permission.</p>
-<h3 id="publishing-a-release"><a class="header" href="#publishing-a-release">Publishing a release</a></h3>
-<p><strong>Prerelease (TestPyPI)</strong> — tag <code>dev</code> directly, no PR needed:</p>
-<pre><code class="language-bash">git checkout dev
-git pull origin dev
-git tag v0.1.0rc1
-git push origin v0.1.0rc1
-</code></pre>
-<p><strong>Stable (PyPI)</strong> — merge <code>dev</code> into <code>main</code> first (see
-<a href="contributing.html#merging-dev-into-main">"Merging <code>dev</code> into <code>main</code>"</a> above), then tag
-<code>main</code>:</p>
-<pre><code class="language-bash">git checkout main
-git pull origin main
-git tag v0.1.0
-git push origin v0.1.0
-</code></pre>
-<p>Either way, watch the Actions tab: <code>validate_tag</code> → <code>test</code> → <code>build</code> →
-<code>github-release</code> → <code>publish_testpypi</code>/<code>publish_pypi</code>. For a prerelease, check
-<code>https://test.pypi.org/project/dictk/</code> once it succeeds. For a stable
-release, the <code>publish_pypi</code> job pauses for your approval (the <code>pypi</code>
-environment's required reviewer) before it runs; approve it from the Actions
-run page, then check <code>https://pypi.org/project/dictk/</code>.</p>
-<p>Uploads to PyPI (and TestPyPI) are permanent — a given version's files can
-never be re-uploaded or deleted, only "yanked". Prefer testing on TestPyPI
-first, as with <code>v0.1.0rc1</code> above, before publishing the stable release.</p>
-
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../getting_started/transformation.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
 
+                            <a rel="next prefetch" href="../getting_started/processing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -1556,7 +445,13 @@ first, as with <code>v0.1.0rc1</code> above, before publishing the stable releas
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../getting_started/transformation.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
 
+                    <a rel="next prefetch" href="../getting_started/processing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
             </nav>
 
         </div>
@@ -1569,21 +464,16 @@ first, as with <code>v0.1.0rc1</code> above, before publishing the stable releas
         </script>
 
 
-        <script src="elasticlunr.min.js"></script>
-        <script src="mark.min.js"></script>
-        <script src="searcher.js"></script>
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
 
-        <script src="clipboard.min.js"></script>
-        <script src="highlight.js"></script>
-        <script src="book.js"></script>
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
 
         <!-- Custom JS scripts -->
 
-        <script>
-        window.addEventListener('load', function() {
-            window.setTimeout(window.print, 100);
-        });
-        </script>
 
 
     </div>
