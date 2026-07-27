@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Image Preprocessing - dictk User Guide</title>
+        <title>Subimage Generation - dictk User Guide</title>
 
 
         <!-- Custom HTML head -->
@@ -178,95 +178,145 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="image-preprocessing"><a class="header" href="#image-preprocessing">Image Preprocessing</a></h1>
-<p>Certain preprocessing steps can make digital image correlation more robust
-to differences in brightness and contrast between a reference and deformed
-image. This page covers two of them, using the <a href="./image_generation.html#astronaut">astronaut reference
-image</a> from the previous page as an
-example.</p>
-<h2 id="brightness"><a class="header" href="#brightness">Brightness</a></h2>
-<p><a href="../api/dictk/imaging.html#brightness"><strong>Brightness</strong></a> shifts the entire
-pixel-intensity histogram up or down by a constant amount — the whole
-image gets lighter or darker together, dark areas included. Pushed too
-far, dark regions wash out to a flat gray and highlights clip at pure
-white (255), permanently losing detail.</p>
+                        <h1 id="subimage-generation"><a class="header" href="#subimage-generation">Subimage Generation</a></h1>
+<p><a href="../api/dictk/imaging.html#subimage"><code>dictk.imaging.subimage</code></a> extracts a
+rectangular crop from a source image: a <code>width</code> x <code>height</code> region whose
+top-left corner sits at <code>origin</code>, expressed in the source image's own
+pixel reference frame (top-left corner <code>(0, 0)</code>). <code>origin</code> may place the
+requested region partially or completely outside the source image —
+rather than raising an error, <code>subimage</code> fills whatever doesn't overlap
+with black (zero) pixels, so the result is always a well-formed
+<code>height x width</code> array. This is the building block later tutorials use to
+pull a kernel or search area out of a larger reference/current image pair
+around a point of interest.</p>
+<h2 id="reference-image"><a class="header" href="#reference-image">Reference image</a></h2>
+<p>The examples below reuse <code>astronaut0</code>, the speckle pattern combined with
+the astronaut photo introduced in <a href="./image_generation.html#speckle--astronaut">Image
+Generation</a>:</p>
 <pre><code class="language-python">import dictk
-from dictk.imaging import brightness, save_histogram, write_image
+from dictk.imaging import combine_images, write_image
 
+speckle = dictk.rosta(300, 300, density=0.5)
 photo = dictk.astronaut(300, 300)
-write_image(photo, "astronaut_original.png")
-save_histogram(photo, "astronaut_original_histogram.png")
-
-bright_1_5 = brightness(photo, 1.5)
-write_image(bright_1_5, "astronaut_brightness_1.5.png")
-save_histogram(bright_1_5, "astronaut_brightness_1.5_histogram.png")
-
-bright_2_0 = brightness(photo, 2.0)
-write_image(bright_2_0, "astronaut_brightness_2.0.png")
-save_histogram(bright_2_0, "astronaut_brightness_2.0_histogram.png")
+astronaut0 = combine_images(speckle, photo)
+write_image(astronaut0, "astronaut0.png")
 </code></pre>
-<pre><code class="language-text">Saved: astronaut_original.png, astronaut_brightness_1.5.png, astronaut_brightness_2.0.png
+<pre><code class="language-text">Saved image: astronaut0.png
 </code></pre>
-<div class="table-wrapper"><table><thead><tr><th>factor=1.0 (original)</th><th>factor=1.5</th><th>factor=2.0</th></tr></thead><tbody>
-<tr><td><img src="astronaut_original.png" alt="original" /></td><td><img src="astronaut_brightness_1.5.png" alt="brightness 1.5" /></td><td><img src="astronaut_brightness_2.0.png" alt="brightness 2.0" /></td></tr>
-</tbody></table>
-</div><div class="table-wrapper"><table><thead><tr><th>factor=1.0 (original)</th><th>factor=1.5</th><th>factor=2.0</th></tr></thead><tbody>
-<tr><td><img src="astronaut_original_histogram.png" alt="original histogram" /></td><td><img src="astronaut_brightness_1.5_histogram.png" alt="brightness 1.5 histogram" /></td><td><img src="astronaut_brightness_2.0_histogram.png" alt="brightness 2.0 histogram" /></td></tr>
-</tbody></table>
-</div>
-<p>At factor=1.5 the histogram shifts right as a whole — midtones move into
-the brighter half and the mean climbs, with a few highlights starting to
-clip at 255. At factor=2.0 the shift is large enough that a big share of
-pixels pile up at that 255 ceiling, visible as a tall spike at the
-histogram's right edge: real detail that's been clipped away and can't be
-recovered.</p>
-<h2 id="contrast"><a class="header" href="#contrast">Contrast</a></h2>
-<p><a href="../api/dictk/imaging.html#contrast"><strong>Contrast</strong></a> is the spread between
-an image's darkest and lightest pixels. Increasing contrast stretches the
-histogram outward from its own mean — darks get darker, lights get
-lighter — while the mean itself stays roughly
-where it was.</p>
-<pre><code class="language-python">import dictk
-from dictk.imaging import contrast, save_histogram, write_image
-
-photo = dictk.astronaut(300, 300)
-
-contrast_1_5 = contrast(photo, 1.5)
-write_image(contrast_1_5, "astronaut_contrast_1.5.png")
-save_histogram(contrast_1_5, "astronaut_contrast_1.5_histogram.png")
-
-contrast_2_0 = contrast(photo, 2.0)
-write_image(contrast_2_0, "astronaut_contrast_2.0.png")
-save_histogram(contrast_2_0, "astronaut_contrast_2.0_histogram.png")
+<h2 id="cli"><a class="header" href="#cli">CLI</a></h2>
+<p><code>dictk subimage-bounds</code> visualizes where a subimage would be cropped
+from, drawing the source image's own bounds in blue and the requested
+region in red, saved as a PNG:</p>
+<pre><code class="language-sh">dictk subimage-bounds --help
 </code></pre>
-<pre><code class="language-text">Saved: astronaut_contrast_1.5.png, astronaut_contrast_2.0.png
+<pre><code class="language-text">usage: dictk subimage-bounds [-h] [--output OUTPUT]
+                             source origin_x origin_y width height
+
+positional arguments:
+  source                Path to the source image file (path), required.
+  origin_x              Subimage origin x-coordinate in pixels (int),
+                        required.
+  origin_y              Subimage origin y-coordinate in pixels (int),
+                        required.
+  width                 Subimage width in pixels (int), required.
+  height                Subimage height in pixels (int), required.
+
+options:
+  -h, --help            show this help message and exit
+  --output OUTPUT, -o OUTPUT
+                        Output directory (path), default: current directory.
 </code></pre>
-<div class="table-wrapper"><table><thead><tr><th>factor=1.0 (original)</th><th>factor=1.5</th><th>factor=2.0</th></tr></thead><tbody>
-<tr><td><img src="astronaut_original.png" alt="original" /></td><td><img src="astronaut_contrast_1.5.png" alt="contrast 1.5" /></td><td><img src="astronaut_contrast_2.0.png" alt="contrast 2.0" /></td></tr>
-</tbody></table>
-</div><div class="table-wrapper"><table><thead><tr><th>factor=1.0 (original)</th><th>factor=1.5</th><th>factor=2.0</th></tr></thead><tbody>
-<tr><td><img src="astronaut_original_histogram.png" alt="original histogram" /></td><td><img src="astronaut_contrast_1.5_histogram.png" alt="contrast 1.5 histogram" /></td><td><img src="astronaut_contrast_2.0_histogram.png" alt="contrast 2.0 histogram" /></td></tr>
-</tbody></table>
-</div>
-<p>At factor=1.5 the histogram spreads outward from the mean rather than
-shifting — the astronaut's silhouette and helmet edges get sharper, while
-the mean barely moves. At factor=2.0 the spread is wide enough that more
-pixels pile up at both the 0 and 255 ends, crushing fine midtone detail
-even as high-contrast edges sharpen further.</p>
-<blockquote>
-<p><strong>Key Insight:</strong> Contrast stretches the histogram, while brightness
-translates it.</p>
-</blockquote>
+<h3 id="square-fully-inside"><a class="header" href="#square-fully-inside">Square, fully inside</a></h3>
+<p>An 80x80 square region entirely within <code>astronaut0</code>'s 300x300 bounds:</p>
+<pre><code class="language-sh">dictk subimage-bounds astronaut0.png 100 100 80 80 -o .
+</code></pre>
+<pre><code class="language-text">Saved image: subimage_bounds_80w_by_80h_at_100_100.png
+</code></pre>
+<figure>
+    <img src="subimage_bounds_80w_by_80h_at_100_100.png" alt="square subimage, fully inside" />
+    <figcaption>Square subimage (80x80) at origin (100, 100), entirely within bounds.</figcaption>
+</figure>
+<h3 id="rectangle-fully-inside"><a class="header" href="#rectangle-fully-inside">Rectangle, fully inside</a></h3>
+<p>A 180x70 region — wider than it is tall — also entirely within bounds:</p>
+<pre><code class="language-sh">dictk subimage-bounds astronaut0.png 50 180 180 70 -o .
+</code></pre>
+<pre><code class="language-text">Saved image: subimage_bounds_180w_by_70h_at_50_180.png
+</code></pre>
+<figure>
+    <img src="subimage_bounds_180w_by_70h_at_50_180.png" alt="rectangular subimage, fully inside" />
+    <figcaption>Rectangular subimage (180x70) at origin (50, 180), entirely within bounds.</figcaption>
+</figure>
+<h3 id="partially-outside"><a class="header" href="#partially-outside">Partially outside</a></h3>
+<p>A 120x120 region with a negative origin, straddling the source image's
+top-left corner. <code>subimage</code> fills the part of the region above and to
+the left of the source with black:</p>
+<pre><code class="language-sh">dictk subimage-bounds astronaut0.png -40 -40 120 120 -o .
+</code></pre>
+<pre><code class="language-text">Saved image: subimage_bounds_120w_by_120h_at_-40_-40.png
+</code></pre>
+<figure>
+    <img src="subimage_bounds_120w_by_120h_at_-40_-40.png" alt="subimage partially outside bounds" />
+    <figcaption>Subimage (120x120) at origin (-40, -40), straddling the source image's top-left corner.</figcaption>
+</figure>
+<h3 id="completely-outside"><a class="header" href="#completely-outside">Completely outside</a></h3>
+<p>An 80x80 region entirely beyond the source image's bounds — no overlap
+at all, so the result is entirely black:</p>
+<pre><code class="language-sh">dictk subimage-bounds astronaut0.png 320 320 80 80 -o .
+</code></pre>
+<pre><code class="language-text">Saved image: subimage_bounds_80w_by_80h_at_320_320.png
+</code></pre>
+<figure>
+    <img src="subimage_bounds_80w_by_80h_at_320_320.png" alt="subimage completely outside bounds" />
+    <figcaption>Subimage (80x80) at origin (320, 320), entirely beyond the source image.</figcaption>
+</figure>
+<h2 id="python-api"><a class="header" href="#python-api">Python API</a></h2>
+<p><a href="../api/dictk/imaging.html#subimage"><code>dictk.imaging.subimage</code></a> returns
+the cropped array directly, with no file written — the CLI's
+<code>subimage-bounds</code> command is a visualization built on top of it, not the
+only way to call it.
+<a href="../api/dictk/imaging.html#PixelCoordinate"><code>dictk.imaging.PixelCoordinate</code></a>
+is a simple <code>(x, y)</code> NamedTuple used for <code>origin</code>.</p>
+<pre><code class="language-python">from dictk import astronaut, rosta
+from dictk.imaging import PixelCoordinate, combine_images, subimage, write_image
+
+speckle = rosta(300, 300, density=0.5)
+photo = astronaut(300, 300)
+astronaut0 = combine_images(speckle, photo)
+
+# The "Partially outside" case above: origin (-40, -40) straddles the
+# top-left corner, so the top-left of the result is zero-padded.
+region = subimage(astronaut0, PixelCoordinate(x=-40, y=-40), width=120, height=120)
+write_image(region, "subimage_-40_-40_120x120.png")
+print(f"shape={region.shape}, dtype={region.dtype}, top-left pixel={region[0, 0]}")
+</code></pre>
+<pre><code class="language-text">shape=(120, 120), dtype=uint8, top-left pixel=0
+</code></pre>
+<figure>
+    <img src="subimage_-40_-40_120x120.png" alt="the extracted, zero-padded subimage itself" />
+    <figcaption>The extracted subimage itself (120x120): black along the top and left, where the requested region fell outside <code>astronaut0</code>.</figcaption>
+</figure>
+<p><a href="../api/dictk/imaging.html#plot_subimage_bounds"><code>dictk.imaging.plot_subimage_bounds</code></a>
+is the function behind the CLI command above, callable directly on an
+in-memory array without writing the source image to disk first:</p>
+<pre><code class="language-python">from dictk.imaging import PixelCoordinate, plot_subimage_bounds
+
+plot_subimage_bounds(
+    astronaut0, PixelCoordinate(x=-40, y=-40), width=120, height=120,
+    path="subimage_bounds_api.png",
+)
+</code></pre>
+<pre><code class="language-text">Saved image: subimage_bounds_api.png
+</code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../getting_started/subimage.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../getting_started/image_generation.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../getting_started/transformation.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../getting_started/preprocessing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -276,11 +326,11 @@ translates it.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../getting_started/subimage.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../getting_started/image_generation.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../getting_started/transformation.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../getting_started/preprocessing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

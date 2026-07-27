@@ -16,13 +16,16 @@ produce this report and the README's pylint score badge. See
 <pre>************* Module dictk.rosta
 src/dictk/rosta.py:99:0: R0913: Too many arguments (6/5) (too-many-arguments)
 ************* Module dictk.cli
-src/dictk/cli.py:20:0: R0913: Too many arguments (6/5) (too-many-arguments)
-src/dictk/cli.py:20:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
+src/dictk/cli.py:27:0: R0913: Too many arguments (6/5) (too-many-arguments)
+src/dictk/cli.py:27:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
+************* Module dictk.imaging
+src/dictk/imaging.py:80:0: R0913: Too many arguments (6/5) (too-many-arguments)
+src/dictk/imaging.py:80:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
 
 
 Report
 ======
-280 statements analysed.
+355 statements analysed.
 
 Statistics by type
 ------------------
@@ -32,11 +35,11 @@ Statistics by type
 +=========+=======+===========+===========+============+=========+
 |module   |4      |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
-|class    |2      |NC         |NC         |100.00      |0.00     |
+|class    |3      |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
 |method   |1      |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
-|function |30     |NC         |NC         |100.00      |0.00     |
+|function |34     |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
 
 
@@ -48,6 +51,7 @@ External dependencies
     imageio 
       \-v3 (dictk.imaging)
     matplotlib 
+      \-patches (dictk.imaging)
       \-pyplot (dictk.imaging)
     numpy (dictk.cli,dictk.imaging,dictk.rosta)
     scipy 
@@ -56,7 +60,7 @@ External dependencies
 
 
 
-1021 lines have been analyzed
+1244 lines have been analyzed
 
 Raw metrics
 -----------
@@ -64,13 +68,13 @@ Raw metrics
 +----------+-------+------+---------+-----------+
 |type      |number |%     |previous |difference |
 +==========+=======+======+=========+===========+
-|code      |444    |43.49 |NC       |NC         |
+|code      |584    |46.95 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|docstring |436    |42.70 |NC       |NC         |
+|docstring |495    |39.79 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|comment   |14     |1.37  |NC       |NC         |
+|comment   |14     |1.13  |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|empty     |127    |12.44 |NC       |NC         |
+|empty     |151    |12.14 |NC       |NC         |
 +----------+-------+------+---------+-----------+
 
 
@@ -96,7 +100,7 @@ Messages by category
 +===========+=======+=========+===========+
 |convention |0      |NC       |NC         |
 +-----------+-------+---------+-----------+
-|refactor   |3      |NC       |NC         |
+|refactor   |5      |NC       |NC         |
 +-----------+-------+---------+-----------+
 |warning    |0      |NC       |NC         |
 +-----------+-------+---------+-----------+
@@ -108,13 +112,15 @@ Messages by category
 % errors / warnings by module
 -----------------------------
 
-+------------+------+--------+---------+-----------+
-|module      |error |warning |refactor |convention |
-+============+======+========+=========+===========+
-|dictk.cli   |0.00  |0.00    |66.67    |0.00       |
-+------------+------+--------+---------+-----------+
-|dictk.rosta |0.00  |0.00    |33.33    |0.00       |
-+------------+------+--------+---------+-----------+
++--------------+------+--------+---------+-----------+
+|module        |error |warning |refactor |convention |
++==============+======+========+=========+===========+
+|dictk.imaging |0.00  |0.00    |40.00    |0.00       |
++--------------+------+--------+---------+-----------+
+|dictk.cli     |0.00  |0.00    |40.00    |0.00       |
++--------------+------+--------+---------+-----------+
+|dictk.rosta   |0.00  |0.00    |20.00    |0.00       |
++--------------+------+--------+---------+-----------+
 
 
 
@@ -124,16 +130,16 @@ Messages
 +------------------------------+------------+
 |message id                    |occurrences |
 +==============================+============+
-|too-many-arguments            |2           |
+|too-many-arguments            |3           |
 +------------------------------+------------+
-|too-many-positional-arguments |1           |
+|too-many-positional-arguments |2           |
 +------------------------------+------------+
 
 
 
 
 -----------------------------------
-Your code has been rated at 9.89/10
+Your code has been rated at 9.86/10
 </pre>
 </body>
 </html>
