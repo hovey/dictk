@@ -521,6 +521,12 @@ def test_subimage_invalid_size_raises(width, height):
         )
 
 
+def test_subimage_non_2d_image_raises():
+    arr = np.zeros((10, 10, 3), dtype=np.uint8)
+    with pytest.raises(ValueError):
+        subimage(image=arr, origin=PixelCoordinate(x=0, y=0), width=3, height=3)
+
+
 def test_subimage_bounds_plot_writes_file(tmp_path: Path):
     arr = checkerboard(width=40, height=40)
     path = tmp_path / "bounds.png"

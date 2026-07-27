@@ -57,8 +57,10 @@ def subimage(
         A 2D array of shape (height, width), same dtype as `image`.
 
     Raises:
-        ValueError: If width or height is less than 1.
+        ValueError: If `image` is not 2D, or width or height is less than 1.
     """
+    if image.ndim != 2:
+        raise ValueError(f"image must be 2D, got shape {image.shape}")
     if width < 1:
         raise ValueError(f"width {width} must be >= 1")
     if height < 1:
