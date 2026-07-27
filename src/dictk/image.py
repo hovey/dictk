@@ -26,7 +26,7 @@ class PixelCoordinate(NamedTuple):
 
 
 # Shared figure scale (pixels of image data per inch) for
-# plot_subimage_bounds() and plot_subimage(), so each saved figure's size
+# subimage_bounds_plot() and subimage_plot(), so each saved figure's size
 # is proportional to its actual pixel content rather than a fixed default
 # figure size -- letting the two be visually compared for relative size
 # instead of both rendering at roughly the same size regardless of how
@@ -35,7 +35,7 @@ _FIGURE_PIXELS_PER_INCH = 100
 
 
 def subimage(
-    image: np.ndarray, origin: PixelCoordinate, width: int, height: int
+    *, image: np.ndarray, origin: PixelCoordinate, width: int, height: int
 ) -> np.ndarray:
     """Extract a width x height crop of `image` with its top-left corner at `origin`.
 
@@ -86,7 +86,8 @@ def subimage(
     return result
 
 
-def plot_subimage_bounds(
+def subimage_bounds_plot(
+    *,
     image: np.ndarray,
     origin: PixelCoordinate,
     width: int,
@@ -181,7 +182,8 @@ def plot_subimage_bounds(
     plt.close(fig)
 
 
-def plot_subimage(
+def subimage_plot(
+    *,
     image: np.ndarray,
     origin: PixelCoordinate,
     width: int,
@@ -195,9 +197,9 @@ def plot_subimage(
     and plots just that result, labeled with its own local pixel
     coordinates — `(0, 0)` at its own top-left corner — rather than
     `image`'s coordinates. An `'o'` marker is drawn at that local origin
-    `(0, 0)`, matching the red origin marker `plot_subimage_bounds()`
+    `(0, 0)`, matching the red origin marker `subimage_bounds_plot()`
     draws at the same subimage in `image`'s reference frame. Unlike
-    `plot_subimage_bounds()`, which shows where the region falls relative
+    `subimage_bounds_plot()`, which shows where the region falls relative
     to `image`, this shows what the extracted result actually looks like,
     including any zero (black) padding from parts of the region that fell
     outside `image`.
@@ -216,9 +218,9 @@ def plot_subimage(
     Raises:
         ValueError: If width or height is less than 1.
     """
-    region = subimage(image, origin, width, height)
+    region = subimage(image=image, origin=origin, width=width, height=height)
 
-    # Same margin approach as plot_subimage_bounds(), so the red border
+    # Same margin approach as subimage_bounds_plot(), so the red border
     # gets the same small breathing room from the figure edge instead of
     # sitting flush against it.
     margin = max(width, height) * 0.05
@@ -253,7 +255,8 @@ def plot_subimage(
     plt.close(fig)
 
 
-def plot_subimage_comparison(
+def subimage_comparison_plot(
+    *,
     image: np.ndarray,
     origin: PixelCoordinate,
     width: int,
@@ -263,13 +266,13 @@ def plot_subimage_comparison(
 ) -> None:
     """Save a side-by-side comparison of a subimage's placement and its extraction.
 
-    The left panel matches `plot_subimage_bounds()`: `image`'s bounds in
+    The left panel matches `subimage_bounds_plot()`: `image`'s bounds in
     blue, the requested region in red, with an `'o'` marker at each
     rectangle's own origin. The right panel shows the extracted subimage
     (via `subimage()`) with a red border and origin marker, in its own
     local reference frame — but drawn using the *same* axis limits as the
     left panel, rather than being cropped or zoomed to the subimage's own
-    size the way `plot_subimage()` is. That shared scale is what makes
+    size the way `subimage_plot()` is. That shared scale is what makes
     the two red boxes render at identical size by construction — same
     data units per pixel in both panels — rather than approximating it by
     sizing each panel's figure independently around its own content.
@@ -293,7 +296,7 @@ def plot_subimage_comparison(
     if height < 1:
         raise ValueError(f"height {height} must be >= 1")
 
-    region = subimage(image, origin, width, height)
+    region = subimage(image=image, origin=origin, width=width, height=height)
     image_height, image_width = image.shape
 
     margin = max(width, height, image_width, image_height) * 0.05
@@ -398,7 +401,7 @@ def checkerboard(
     return (pattern * 255).astype(np.uint8)
 
 
-def astronaut(width: int = 512, height: int = 512) -> np.ndarray:
+def astronaut(*, width: int = 512, height: int = 512) -> np.ndarray:
     """Load a bundled real-world grayscale reference image.
 
     Same parameters and pixel values as the `dictk astronaut` CLI
@@ -478,7 +481,7 @@ def rgba_to_gray(arr: np.ndarray) -> np.ndarray:
     )
 
 
-def combine(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+def combine(*, a: np.ndarray, b: np.ndarray) -> np.ndarray:
     """Combine two images by averaging their pixel values.
 
     Args:
@@ -865,7 +868,7 @@ def write_svg(arr: np.ndarray, path: Path) -> None:
     Path(path).write_text(svg, encoding="ascii")
 
 
-def write(arr: np.ndarray, path: Path) -> None:
+def write(*, arr: np.ndarray, path: Path) -> None:
     """Write a NumPy array to an image file.
 
     Dispatches on the file extension: `.svg` is handled by `write_svg`

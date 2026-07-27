@@ -46,7 +46,7 @@ def _write_output(arr: np.ndarray, output: Path | None, filename: str) -> int:
     try:
         output_dir.mkdir(parents=True, exist_ok=True)
         path = output_dir / filename
-        write(arr, path)
+        write(arr=arr, path=path)
     except OSError as e:
         print(f"error: {e}", file=sys.stderr)
         return 1

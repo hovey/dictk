@@ -84,11 +84,11 @@ file written:
 ```python
 import dictk
 
-pattern = dictk.rosta(200, 200, density=0.5)
+pattern = dictk.rosta(width=200, height=200, density=0.5)
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; pattern = dictk.rosta(200, 200, density=0.5); print(f'shape={pattern.shape}, dtype={pattern.dtype}')" -->
+<!-- cmdrun python3 -c "import dictk; pattern = dictk.rosta(width=200, height=200, density=0.5); print(f'shape={pattern.shape}, dtype={pattern.dtype}')" -->
 ```
 
 ## Checkerboard
@@ -180,11 +180,11 @@ The Python equivalent, again returning an array with no file written:
 ```python
 import dictk
 
-photo = dictk.astronaut(300, 300)
+photo = dictk.astronaut(width=300, height=300)
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; photo = dictk.astronaut(300, 300); print(f'shape={photo.shape}, dtype={photo.dtype}')" -->
+<!-- cmdrun python3 -c "import dictk; photo = dictk.astronaut(width=300, height=300); print(f'shape={photo.shape}, dtype={photo.dtype}')" -->
 ```
 
 ## Combining into a reference image
@@ -206,12 +206,12 @@ from dictk.image import combine, read, write
 
 speckle = read("rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
 checker = read("checkerboard_200w_by_200h_8x8.png")
-checkerboard0 = combine(speckle, checker)
-write(checkerboard0, "checkerboard0.png")
+checkerboard0 = combine(a=speckle, b=checker)
+write(arr=checkerboard0, path="checkerboard0.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import combine, read, write; speckle = read('rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png'); checker = read('checkerboard_200w_by_200h_8x8.png'); write(combine(speckle, checker), 'checkerboard0.png'); print('Saved image: checkerboard0.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import combine, read, write; speckle = read('rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png'); checker = read('checkerboard_200w_by_200h_8x8.png'); write(arr=combine(a=speckle, b=checker), path='checkerboard0.png'); print('Saved image: checkerboard0.png')" -->
 ```
 
 <figure>
@@ -271,14 +271,14 @@ as-is, so only the combined result `astronaut0` is saved:
 import dictk
 from dictk.image import combine, write
 
-speckle = dictk.rosta(300, 300, density=0.5)
-photo = dictk.astronaut(300, 300)
-astronaut0 = combine(speckle, photo)
-write(astronaut0, "astronaut0.png")
+speckle = dictk.rosta(width=300, height=300, density=0.5)
+photo = dictk.astronaut(width=300, height=300)
+astronaut0 = combine(a=speckle, b=photo)
+write(arr=astronaut0, path="astronaut0.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.image import combine, write; speckle = dictk.rosta(300, 300, density=0.5); photo = dictk.astronaut(300, 300); astronaut0 = combine(speckle, photo); write(astronaut0, 'astronaut0.png'); print('Saved image: astronaut0.png')" -->
+<!-- cmdrun python3 -c "import dictk; from dictk.image import combine, write; speckle = dictk.rosta(width=300, height=300, density=0.5); photo = dictk.astronaut(width=300, height=300); astronaut0 = combine(a=speckle, b=photo); write(arr=astronaut0, path='astronaut0.png'); print('Saved image: astronaut0.png')" -->
 ```
 
 <figure>

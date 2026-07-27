@@ -18,21 +18,21 @@ white (255), permanently losing detail.
 import dictk
 from dictk.image import brightness, save_histogram, write
 
-photo = dictk.astronaut(300, 300)
-write(photo, "astronaut_original.png")
+photo = dictk.astronaut(width=300, height=300)
+write(arr=photo, path="astronaut_original.png")
 save_histogram(photo, "astronaut_original_histogram.png")
 
 bright_1_5 = brightness(photo, 1.5)
-write(bright_1_5, "astronaut_brightness_1.5.png")
+write(arr=bright_1_5, path="astronaut_brightness_1.5.png")
 save_histogram(bright_1_5, "astronaut_brightness_1.5_histogram.png")
 
 bright_2_0 = brightness(photo, 2.0)
-write(bright_2_0, "astronaut_brightness_2.0.png")
+write(arr=bright_2_0, path="astronaut_brightness_2.0.png")
 save_histogram(bright_2_0, "astronaut_brightness_2.0_histogram.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.image import brightness, save_histogram, write; photo = dictk.astronaut(300, 300); write(photo, 'astronaut_original.png'); save_histogram(photo, 'astronaut_original_histogram.png'); bright_1_5 = brightness(photo, 1.5); write(bright_1_5, 'astronaut_brightness_1.5.png'); save_histogram(bright_1_5, 'astronaut_brightness_1.5_histogram.png'); bright_2_0 = brightness(photo, 2.0); write(bright_2_0, 'astronaut_brightness_2.0.png'); save_histogram(bright_2_0, 'astronaut_brightness_2.0_histogram.png'); print('Saved: astronaut_original.png, astronaut_brightness_1.5.png, astronaut_brightness_2.0.png')" -->
+<!-- cmdrun python3 -c "import dictk; from dictk.image import brightness, save_histogram, write; photo = dictk.astronaut(width=300, height=300); write(arr=photo, path='astronaut_original.png'); save_histogram(photo, 'astronaut_original_histogram.png'); bright_1_5 = brightness(photo, 1.5); write(arr=bright_1_5, path='astronaut_brightness_1.5.png'); save_histogram(bright_1_5, 'astronaut_brightness_1.5_histogram.png'); bright_2_0 = brightness(photo, 2.0); write(arr=bright_2_0, path='astronaut_brightness_2.0.png'); save_histogram(bright_2_0, 'astronaut_brightness_2.0_histogram.png'); print('Saved: astronaut_original.png, astronaut_brightness_1.5.png, astronaut_brightness_2.0.png')" -->
 ```
 
 factor=1.0 (original) | factor=1.5 | factor=2.0
@@ -62,19 +62,19 @@ where it was.
 import dictk
 from dictk.image import contrast, save_histogram, write
 
-photo = dictk.astronaut(300, 300)
+photo = dictk.astronaut(width=300, height=300)
 
 contrast_1_5 = contrast(photo, 1.5)
-write(contrast_1_5, "astronaut_contrast_1.5.png")
+write(arr=contrast_1_5, path="astronaut_contrast_1.5.png")
 save_histogram(contrast_1_5, "astronaut_contrast_1.5_histogram.png")
 
 contrast_2_0 = contrast(photo, 2.0)
-write(contrast_2_0, "astronaut_contrast_2.0.png")
+write(arr=contrast_2_0, path="astronaut_contrast_2.0.png")
 save_histogram(contrast_2_0, "astronaut_contrast_2.0_histogram.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.image import contrast, save_histogram, write; photo = dictk.astronaut(300, 300); contrast_1_5 = contrast(photo, 1.5); write(contrast_1_5, 'astronaut_contrast_1.5.png'); save_histogram(contrast_1_5, 'astronaut_contrast_1.5_histogram.png'); contrast_2_0 = contrast(photo, 2.0); write(contrast_2_0, 'astronaut_contrast_2.0.png'); save_histogram(contrast_2_0, 'astronaut_contrast_2.0_histogram.png'); print('Saved: astronaut_contrast_1.5.png, astronaut_contrast_2.0.png')" -->
+<!-- cmdrun python3 -c "import dictk; from dictk.image import contrast, save_histogram, write; photo = dictk.astronaut(width=300, height=300); contrast_1_5 = contrast(photo, 1.5); write(arr=contrast_1_5, path='astronaut_contrast_1.5.png'); save_histogram(contrast_1_5, 'astronaut_contrast_1.5_histogram.png'); contrast_2_0 = contrast(photo, 2.0); write(arr=contrast_2_0, path='astronaut_contrast_2.0.png'); save_histogram(contrast_2_0, 'astronaut_contrast_2.0_histogram.png'); print('Saved: astronaut_contrast_1.5.png, astronaut_contrast_2.0.png')" -->
 ```
 
 factor=1.0 (original) | factor=1.5 | factor=2.0

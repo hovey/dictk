@@ -13,9 +13,9 @@ from dictk.image import (
     contrast,
     crack_dislocation,
     describe,
-    plot_subimage,
-    plot_subimage_bounds,
-    plot_subimage_comparison,
+    subimage_plot,
+    subimage_bounds_plot,
+    subimage_comparison_plot,
     read,
     rgba_to_gray,
     rotate,
@@ -403,7 +403,7 @@ def test_rgba_to_gray_invalid_shape_raises():
 def test_combine_shape_and_dtype():
     a = np.full((10, 10), 100, dtype=np.uint8)
     b = np.full((10, 10), 200, dtype=np.uint8)
-    combined = combine(a, b)
+    combined = combine(a=a, b=b)
     assert combined.shape == (10, 10)
     assert combined.dtype == np.uint8
     assert combined.max() <= 255
@@ -412,7 +412,7 @@ def test_combine_shape_and_dtype():
 def test_combine_normalizes_to_max_255():
     a = np.full((4, 4), 10, dtype=np.uint8)
     b = np.full((4, 4), 10, dtype=np.uint8)
-    combined = combine(a, b)
+    combined = combine(a=a, b=b)
     # Uniform input -> uniform output, scaled to the max value of 255.
     assert np.all(combined == 255)
 
@@ -421,7 +421,7 @@ def test_combine_shape_mismatch_raises():
     a = np.zeros((10, 10), dtype=np.uint8)
     b = np.zeros((5, 5), dtype=np.uint8)
     with pytest.raises(ValueError):
-        combine(a, b)
+        combine(a=a, b=b)
 
 
 def test_describe_grayscale():
@@ -447,7 +447,7 @@ def test_describe_rgba():
 def test_write_raster_formats_round_trip(tmp_path: Path, suffix: str):
     arr = checkerboard(width=16, height=8)
     path = tmp_path / f"out.{suffix}"
-    write(arr, path)
+    write(arr=arr, path=path)
 
     assert path.exists()
     round_tripped = read(path)
@@ -457,7 +457,7 @@ def test_write_raster_formats_round_trip(tmp_path: Path, suffix: str):
 def test_write_svg_produces_embedded_png(tmp_path: Path):
     arr = checkerboard(width=16, height=8)
     path = tmp_path / "out.svg"
-    write(arr, path)
+    write(arr=arr, path=path)
 
     content = path.read_text()
     assert content.startswith("<?xml")
@@ -469,22 +469,22 @@ def test_write_svg_produces_embedded_png(tmp_path: Path):
 
 def test_subimage_fully_inside():
     arr = np.arange(100).reshape(10, 10).astype(np.uint8)
-    result = subimage(arr, PixelCoordinate(x=2, y=3), width=4, height=2)
+    result = subimage(image=arr, origin=PixelCoordinate(x=2, y=3), width=4, height=2)
     assert result.shape == (2, 4)
     assert np.array_equal(result, arr[3:5, 2:6])
 
 
 def test_subimage_square_vs_rectangle_shape():
     arr = np.ones((20, 20), dtype=np.uint8)
-    square = subimage(arr, PixelCoordinate(x=0, y=0), width=5, height=5)
-    rectangle = subimage(arr, PixelCoordinate(x=0, y=0), width=8, height=3)
+    square = subimage(image=arr, origin=PixelCoordinate(x=0, y=0), width=5, height=5)
+    rectangle = subimage(image=arr, origin=PixelCoordinate(x=0, y=0), width=8, height=3)
     assert square.shape == (5, 5)
     assert rectangle.shape == (3, 8)
 
 
 def test_subimage_partially_outside_top_left_is_zero_padded():
     arr = np.full((10, 10), 7, dtype=np.uint8)
-    result = subimage(arr, PixelCoordinate(x=-2, y=-3), width=5, height=5)
+    result = subimage(image=arr, origin=PixelCoordinate(x=-2, y=-3), width=5, height=5)
     assert result.shape == (5, 5)
     # Top-left corner (padding) is zero; bottom-right overlap keeps source values.
     assert result[0, 0] == 0
@@ -493,7 +493,7 @@ def test_subimage_partially_outside_top_left_is_zero_padded():
 
 def test_subimage_partially_outside_bottom_right_is_zero_padded():
     arr = np.full((10, 10), 7, dtype=np.uint8)
-    result = subimage(arr, PixelCoordinate(x=8, y=8), width=4, height=4)
+    result = subimage(image=arr, origin=PixelCoordinate(x=8, y=8), width=4, height=4)
     assert result.shape == (4, 4)
     assert np.array_equal(result[:2, :2], arr[8:10, 8:10])
     assert result[3, 3] == 0
@@ -501,14 +501,14 @@ def test_subimage_partially_outside_bottom_right_is_zero_padded():
 
 def test_subimage_completely_outside_is_all_zero():
     arr = np.full((10, 10), 7, dtype=np.uint8)
-    result = subimage(arr, PixelCoordinate(x=50, y=50), width=4, height=4)
+    result = subimage(image=arr, origin=PixelCoordinate(x=50, y=50), width=4, height=4)
     assert result.shape == (4, 4)
     assert np.all(result == 0)
 
 
 def test_subimage_preserves_dtype():
     arr = np.zeros((10, 10), dtype=np.float64)
-    result = subimage(arr, PixelCoordinate(x=0, y=0), width=3, height=3)
+    result = subimage(image=arr, origin=PixelCoordinate(x=0, y=0), width=3, height=3)
     assert result.dtype == np.float64
 
 
@@ -516,73 +516,77 @@ def test_subimage_preserves_dtype():
 def test_subimage_invalid_size_raises(width, height):
     arr = np.zeros((10, 10), dtype=np.uint8)
     with pytest.raises(ValueError):
-        subimage(arr, PixelCoordinate(x=0, y=0), width=width, height=height)
+        subimage(
+            image=arr, origin=PixelCoordinate(x=0, y=0), width=width, height=height
+        )
 
 
-def test_plot_subimage_bounds_writes_file(tmp_path: Path):
+def test_subimage_bounds_plot_writes_file(tmp_path: Path):
     arr = checkerboard(width=40, height=40)
     path = tmp_path / "bounds.png"
-    plot_subimage_bounds(
-        arr, PixelCoordinate(x=-5, y=10), width=20, height=15, path=path
+    subimage_bounds_plot(
+        image=arr, origin=PixelCoordinate(x=-5, y=10), width=20, height=15, path=path
     )
     assert path.exists()
     assert path.stat().st_size > 0
 
 
 @pytest.mark.parametrize("width,height", [(0, 5), (5, 0)])
-def test_plot_subimage_bounds_invalid_size_raises(tmp_path: Path, width, height):
+def test_subimage_bounds_plot_invalid_size_raises(tmp_path: Path, width, height):
     arr = checkerboard(width=40, height=40)
     with pytest.raises(ValueError):
-        plot_subimage_bounds(
-            arr,
-            PixelCoordinate(x=0, y=0),
+        subimage_bounds_plot(
+            image=arr,
+            origin=PixelCoordinate(x=0, y=0),
             width=width,
             height=height,
             path=tmp_path / "out.png",
         )
 
 
-def test_plot_subimage_writes_file(tmp_path: Path):
+def test_subimage_plot_writes_file(tmp_path: Path):
     arr = checkerboard(width=40, height=40)
     path = tmp_path / "region.png"
-    plot_subimage(arr, PixelCoordinate(x=-5, y=10), width=20, height=15, path=path)
+    subimage_plot(
+        image=arr, origin=PixelCoordinate(x=-5, y=10), width=20, height=15, path=path
+    )
     assert path.exists()
     assert path.stat().st_size > 0
 
 
 @pytest.mark.parametrize("width,height", [(0, 5), (5, 0)])
-def test_plot_subimage_invalid_size_raises(tmp_path: Path, width, height):
+def test_subimage_plot_invalid_size_raises(tmp_path: Path, width, height):
     arr = checkerboard(width=40, height=40)
     with pytest.raises(ValueError):
-        plot_subimage(
-            arr,
-            PixelCoordinate(x=0, y=0),
+        subimage_plot(
+            image=arr,
+            origin=PixelCoordinate(x=0, y=0),
             width=width,
             height=height,
             path=tmp_path / "out.png",
         )
 
 
-def test_plot_subimage_comparison_writes_file(tmp_path: Path):
-    # Larger than the 40x40 used elsewhere in this file: plot_subimage_comparison
+def test_subimage_comparison_plot_writes_file(tmp_path: Path):
+    # Larger than the 40x40 used elsewhere in this file: subimage_comparison_plot
     # renders two side-by-side panels with constrained_layout, which warns
     # ("axes sizes collapsed to zero") on very small figures.
     arr = checkerboard(width=200, height=200)
     path = tmp_path / "comparison.png"
-    plot_subimage_comparison(
-        arr, PixelCoordinate(x=-20, y=40), width=80, height=60, path=path
+    subimage_comparison_plot(
+        image=arr, origin=PixelCoordinate(x=-20, y=40), width=80, height=60, path=path
     )
     assert path.exists()
     assert path.stat().st_size > 0
 
 
 @pytest.mark.parametrize("width,height", [(0, 5), (5, 0)])
-def test_plot_subimage_comparison_invalid_size_raises(tmp_path: Path, width, height):
+def test_subimage_comparison_plot_invalid_size_raises(tmp_path: Path, width, height):
     arr = checkerboard(width=40, height=40)
     with pytest.raises(ValueError):
-        plot_subimage_comparison(
-            arr,
-            PixelCoordinate(x=0, y=0),
+        subimage_comparison_plot(
+            image=arr,
+            origin=PixelCoordinate(x=0, y=0),
             width=width,
             height=height,
             path=tmp_path / "out.png",
