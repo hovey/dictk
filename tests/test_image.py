@@ -450,7 +450,7 @@ def test_write_raster_formats_round_trip(tmp_path: Path, suffix: str):
     write(arr=arr, path=path)
 
     assert path.exists()
-    round_tripped = read(path)
+    round_tripped = read(path=path)
     assert round_tripped.shape == arr.shape
 
 

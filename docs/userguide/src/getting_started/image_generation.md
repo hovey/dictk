@@ -204,14 +204,14 @@ normalizing back to `uint8`:
 ```python
 from dictk.image import combine, read, write
 
-speckle = read("rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
-checker = read("checkerboard_200w_by_200h_8x8.png")
+speckle = read(path="rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
+checker = read(path="checkerboard_200w_by_200h_8x8.png")
 checkerboard0 = combine(a=speckle, b=checker)
 write(arr=checkerboard0, path="checkerboard0.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import combine, read, write; speckle = read('rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png'); checker = read('checkerboard_200w_by_200h_8x8.png'); write(arr=combine(a=speckle, b=checker), path='checkerboard0.png'); print('Saved image: checkerboard0.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import combine, read, write; speckle = read(path='rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png'); checker = read(path='checkerboard_200w_by_200h_8x8.png'); write(arr=combine(a=speckle, b=checker), path='checkerboard0.png'); print('Saved image: checkerboard0.png')" -->
 ```
 
 <figure>
@@ -236,9 +236,9 @@ black/white-speckle-on-opposite checkerboard combinations.
 ```python
 from dictk.image import read, histogram_save
 
-speckle = read("rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
-checker = read("checkerboard_200w_by_200h_8x8.png")
-checkerboard0 = read("checkerboard0.png")
+speckle = read(path="rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
+checker = read(path="checkerboard_200w_by_200h_8x8.png")
+checkerboard0 = read(path="checkerboard0.png")
 
 histogram_save(arr=speckle, path="rosta_histogram.png")
 histogram_save(arr=checker, path="checkerboard_histogram.png")
@@ -246,7 +246,7 @@ histogram_save(arr=checkerboard0, path="checkerboard0_histogram.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, histogram_save; histogram_save(arr=read('rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png'), path='rosta_histogram.png'); histogram_save(arr=read('checkerboard_200w_by_200h_8x8.png'), path='checkerboard_histogram.png'); histogram_save(arr=read('checkerboard0.png'), path='checkerboard0_histogram.png'); print('Saved histograms: rosta_histogram.png, checkerboard_histogram.png, checkerboard0_histogram.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, histogram_save; histogram_save(arr=read(path='rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png'), path='rosta_histogram.png'); histogram_save(arr=read(path='checkerboard_200w_by_200h_8x8.png'), path='checkerboard_histogram.png'); histogram_save(arr=read(path='checkerboard0.png'), path='checkerboard0_histogram.png'); print('Saved histograms: rosta_histogram.png, checkerboard_histogram.png, checkerboard0_histogram.png')" -->
 ```
 
 rosta | checkerboard | checkerboard0

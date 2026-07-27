@@ -433,7 +433,7 @@ def astronaut(*, width: int = 512, height: int = 512) -> np.ndarray:
 
     asset_path = importlib.resources.files("dictk") / "data" / "astronaut.png"
     with importlib.resources.as_file(asset_path) as path:
-        color = read(path)
+        color = read(path=path)
     gray = rgba_to_gray(color)
 
     native_height, native_width = gray.shape
@@ -832,7 +832,7 @@ def crack_dislocation(*, arr: np.ndarray, offset: float = 8.0) -> np.ndarray:
     return _backward_map(arr, xs_source, ys_source)
 
 
-def read(path: Path) -> np.ndarray:
+def read(*, path: Path) -> np.ndarray:
     """Read an image file into a NumPy array.
 
     Args:
