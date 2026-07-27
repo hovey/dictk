@@ -112,7 +112,7 @@ def plot_subimage_bounds(
         height: Height of the region in pixels. Must be >= 1.
         path: Output file path for the figure; format is inferred from
             the extension by matplotlib's savefig (e.g. .png), not
-            dictk's own write_image/write_svg.
+            dictk's own write/write_svg.
         dpi: Resolution of the saved figure.
 
     Raises:
@@ -210,7 +210,7 @@ def plot_subimage(
         height: Height of the region in pixels. Must be >= 1.
         path: Output file path for the figure; format is inferred from
             the extension by matplotlib's savefig (e.g. .png), not
-            dictk's own write_image/write_svg.
+            dictk's own write/write_svg.
         dpi: Resolution of the saved figure.
 
     Raises:
@@ -282,7 +282,7 @@ def plot_subimage_comparison(
         height: Height of the region in pixels. Must be >= 1.
         path: Output file path for the figure; format is inferred from
             the extension by matplotlib's savefig (e.g. .png), not
-            dictk's own write_image/write_svg.
+            dictk's own write/write_svg.
         dpi: Resolution of the saved figure.
 
     Raises:
@@ -430,7 +430,7 @@ def astronaut(width: int = 512, height: int = 512) -> np.ndarray:
 
     asset_path = importlib.resources.files("dictk") / "data" / "astronaut.png"
     with importlib.resources.as_file(asset_path) as path:
-        color = read_image(path)
+        color = read(path)
     gray = rgba_to_gray(color)
 
     native_height, native_width = gray.shape
@@ -478,7 +478,7 @@ def rgba_to_gray(arr: np.ndarray) -> np.ndarray:
     )
 
 
-def combine_images(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+def combine(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     """Combine two images by averaging their pixel values.
 
     Args:
@@ -825,7 +825,7 @@ def crack_dislocation(arr: np.ndarray, offset: float = 8.0) -> np.ndarray:
     return _backward_map(arr, xs_source, ys_source)
 
 
-def read_image(path: Path) -> np.ndarray:
+def read(path: Path) -> np.ndarray:
     """Read an image file into a NumPy array.
 
     Args:
@@ -865,7 +865,7 @@ def write_svg(arr: np.ndarray, path: Path) -> None:
     Path(path).write_text(svg, encoding="ascii")
 
 
-def write_image(arr: np.ndarray, path: Path) -> None:
+def write(arr: np.ndarray, path: Path) -> None:
     """Write a NumPy array to an image file.
 
     Dispatches on the file extension: `.svg` is handled by `write_svg`
@@ -883,7 +883,7 @@ def write_image(arr: np.ndarray, path: Path) -> None:
     iio.imwrite(path, arr)
 
 
-def describe_image(arr: np.ndarray) -> str:
+def describe(arr: np.ndarray) -> str:
     """Format a description of an image array's type, shape, and color format.
 
     Args:
@@ -918,7 +918,7 @@ def save_histogram(arr: np.ndarray, path: Path, dpi: int = 300) -> None:
         arr: The 2D grayscale image array, expected type uint8, range [0, 255].
         path: The output file path for the histogram image; format is
             inferred from the extension by matplotlib's savefig (e.g.
-            .png), not dictk's own write_image/write_svg.
+            .png), not dictk's own write/write_svg.
         dpi: Resolution of the saved figure.
     """
     plt.figure()

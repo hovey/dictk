@@ -11,7 +11,7 @@ import sys
 
 import numpy as np
 
-from dictk.imaging import astronaut, checkerboard, write_image
+from dictk.image import astronaut, checkerboard, write
 from dictk.rosta import rosta
 
 IMAGE_FORMATS = ("tiff", "png", "jpg", "svg")
@@ -46,7 +46,7 @@ def _write_output(arr: np.ndarray, output: Path | None, filename: str) -> int:
     try:
         output_dir.mkdir(parents=True, exist_ok=True)
         path = output_dir / filename
-        write_image(arr, path)
+        write(arr, path)
     except OSError as e:
         print(f"error: {e}", file=sys.stderr)
         return 1

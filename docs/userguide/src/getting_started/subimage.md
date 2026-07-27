@@ -1,6 +1,6 @@
 # Subimage Generation
 
-[`dictk.imaging.subimage`](../api/dictk/imaging.html#subimage) extracts a
+[`dictk.image.subimage`](../api/dictk/image.html#subimage) extracts a
 rectangular crop from a source image: a `width` x `height` region whose
 top-left corner sits at `origin`, expressed in the source image's own
 pixel reference frame (top-left corner `(0, 0)`). `origin` may place the
@@ -19,56 +19,56 @@ Generation](./image_generation.md#speckle--astronaut):
 
 ```python
 import dictk
-from dictk.imaging import combine_images, write_image
+from dictk.image import combine, write
 
 speckle = dictk.rosta(300, 300, density=0.5)
 photo = dictk.astronaut(300, 300)
-astronaut0 = combine_images(speckle, photo)
-write_image(astronaut0, "astronaut0.png")
+astronaut0 = combine(speckle, photo)
+write(astronaut0, "astronaut0.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.imaging import combine_images, write_image; speckle = dictk.rosta(300, 300, density=0.5); photo = dictk.astronaut(300, 300); astronaut0 = combine_images(speckle, photo); write_image(astronaut0, 'astronaut0.png'); print('Saved image: astronaut0.png')" -->
+<!-- cmdrun python3 -c "import dictk; from dictk.image import combine, write; speckle = dictk.rosta(300, 300, density=0.5); photo = dictk.astronaut(300, 300); astronaut0 = combine(speckle, photo); write(astronaut0, 'astronaut0.png'); print('Saved image: astronaut0.png')" -->
 ```
 
 ## Python API
 
-[`dictk.imaging.PixelCoordinate`](../api/dictk/imaging.html#PixelCoordinate)
+[`dictk.image.PixelCoordinate`](../api/dictk/image.html#PixelCoordinate)
 is a simple `(x, y)` NamedTuple used for `origin`.
-[`dictk.imaging.subimage`](../api/dictk/imaging.html#subimage) itself
+[`dictk.image.subimage`](../api/dictk/image.html#subimage) itself
 returns the cropped array directly, with no file written. The examples
 below use
-[`plot_subimage_comparison`](../api/dictk/imaging.html#plot_subimage_comparison),
+[`plot_subimage_comparison`](../api/dictk/image.html#plot_subimage_comparison),
 which saves a two-panel figure: the left panel shows where the region
 falls relative to the source image (blue/red boxes), and the right panel
 shows the extracted result on its own, in its own local reference frame —
 top-left corner `(0, 0)` — sharing the *same* axis limits as the left
 panel so the two red boxes render at matching scale. It's built from two
 smaller single-panel functions, also available individually:
-[`plot_subimage_bounds`](../api/dictk/imaging.html#plot_subimage_bounds)
+[`plot_subimage_bounds`](../api/dictk/image.html#plot_subimage_bounds)
 (the left panel alone) and
-[`plot_subimage`](../api/dictk/imaging.html#plot_subimage) (the right
+[`plot_subimage`](../api/dictk/image.html#plot_subimage) (the right
 panel alone, but zoomed to the subimage's own size rather than sharing
 the source image's scale).
 
 ### Square, fully inside
 
 An 80x80 square region entirely within `astronaut0`'s 300x300 bounds.
-[`plot_subimage_comparison`](../api/dictk/imaging.html#plot_subimage_comparison)
+[`plot_subimage_comparison`](../api/dictk/image.html#plot_subimage_comparison)
 draws both panels side by side, sharing the *same* axis limits, so the
 red box in the right panel renders at identical scale to the one on the
 left — instead of the right panel zooming in to fit just the 80x80
 crop:
 
 ```python
-from dictk.imaging import PixelCoordinate, plot_subimage_comparison
+from dictk.image import PixelCoordinate, plot_subimage_comparison
 
 origin = PixelCoordinate(x=100, y=40)
 plot_subimage_comparison(astronaut0, origin, width=80, height=80, path="subimage_comparison_80w_by_80h_at_100_40.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.imaging import PixelCoordinate, combine_images, plot_subimage_comparison; speckle = dictk.rosta(300, 300, density=0.5); photo = dictk.astronaut(300, 300); astronaut0 = combine_images(speckle, photo); origin = PixelCoordinate(x=100, y=40); plot_subimage_comparison(astronaut0, origin, width=80, height=80, path='subimage_comparison_80w_by_80h_at_100_40.png'); print('Saved: subimage_comparison_80w_by_80h_at_100_40.png')" -->
+<!-- cmdrun python3 -c "import dictk; from dictk.image import PixelCoordinate, combine, plot_subimage_comparison; speckle = dictk.rosta(300, 300, density=0.5); photo = dictk.astronaut(300, 300); astronaut0 = combine(speckle, photo); origin = PixelCoordinate(x=100, y=40); plot_subimage_comparison(astronaut0, origin, width=80, height=80, path='subimage_comparison_80w_by_80h_at_100_40.png'); print('Saved: subimage_comparison_80w_by_80h_at_100_40.png')" -->
 ```
 
 <figure>
@@ -82,14 +82,14 @@ A 180x70 region — wider than it is tall — also entirely within the
 source image bounds:
 
 ```python
-from dictk.imaging import PixelCoordinate, plot_subimage_comparison
+from dictk.image import PixelCoordinate, plot_subimage_comparison
 
 origin = PixelCoordinate(x=50, y=200)
 plot_subimage_comparison(astronaut0, origin, width=180, height=70, path="subimage_comparison_180w_by_70h_at_50_200.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.imaging import PixelCoordinate, combine_images, plot_subimage_comparison; speckle = dictk.rosta(300, 300, density=0.5); photo = dictk.astronaut(300, 300); astronaut0 = combine_images(speckle, photo); origin = PixelCoordinate(x=50, y=200); plot_subimage_comparison(astronaut0, origin, width=180, height=70, path='subimage_comparison_180w_by_70h_at_50_200.png'); print('Saved: subimage_comparison_180w_by_70h_at_50_200.png')" -->
+<!-- cmdrun python3 -c "import dictk; from dictk.image import PixelCoordinate, combine, plot_subimage_comparison; speckle = dictk.rosta(300, 300, density=0.5); photo = dictk.astronaut(300, 300); astronaut0 = combine(speckle, photo); origin = PixelCoordinate(x=50, y=200); plot_subimage_comparison(astronaut0, origin, width=180, height=70, path='subimage_comparison_180w_by_70h_at_50_200.png'); print('Saved: subimage_comparison_180w_by_70h_at_50_200.png')" -->
 ```
 
 <figure>
@@ -104,14 +104,14 @@ top-left corner. `subimage` fills the part of the region above and to
 the left of the source with black:
 
 ```python
-from dictk.imaging import PixelCoordinate, plot_subimage_comparison
+from dictk.image import PixelCoordinate, plot_subimage_comparison
 
 origin = PixelCoordinate(x=-20, y=-40)
 plot_subimage_comparison(astronaut0, origin, width=120, height=120, path="subimage_comparison_120w_by_120h_at_-20_-40.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.imaging import PixelCoordinate, combine_images, plot_subimage_comparison; speckle = dictk.rosta(300, 300, density=0.5); photo = dictk.astronaut(300, 300); astronaut0 = combine_images(speckle, photo); origin = PixelCoordinate(x=-20, y=-40); plot_subimage_comparison(astronaut0, origin, width=120, height=120, path='subimage_comparison_120w_by_120h_at_-20_-40.png'); print('Saved: subimage_comparison_120w_by_120h_at_-20_-40.png')" -->
+<!-- cmdrun python3 -c "import dictk; from dictk.image import PixelCoordinate, combine, plot_subimage_comparison; speckle = dictk.rosta(300, 300, density=0.5); photo = dictk.astronaut(300, 300); astronaut0 = combine(speckle, photo); origin = PixelCoordinate(x=-20, y=-40); plot_subimage_comparison(astronaut0, origin, width=120, height=120, path='subimage_comparison_120w_by_120h_at_-20_-40.png'); print('Saved: subimage_comparison_120w_by_120h_at_-20_-40.png')" -->
 ```
 
 <figure>
@@ -126,14 +126,14 @@ A 40x100 region entirely beyond the source image's bounds — its x-range
 no overlap at all and the result is entirely black:
 
 ```python
-from dictk.imaging import PixelCoordinate, plot_subimage_comparison
+from dictk.image import PixelCoordinate, plot_subimage_comparison
 
 origin = PixelCoordinate(x=310, y=250)
 plot_subimage_comparison(astronaut0, origin, width=40, height=100, path="subimage_comparison_40w_by_100h_at_310_250.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.imaging import PixelCoordinate, combine_images, plot_subimage_comparison; speckle = dictk.rosta(300, 300, density=0.5); photo = dictk.astronaut(300, 300); astronaut0 = combine_images(speckle, photo); origin = PixelCoordinate(x=310, y=250); plot_subimage_comparison(astronaut0, origin, width=40, height=100, path='subimage_comparison_40w_by_100h_at_310_250.png'); print('Saved: subimage_comparison_40w_by_100h_at_310_250.png')" -->
+<!-- cmdrun python3 -c "import dictk; from dictk.image import PixelCoordinate, combine, plot_subimage_comparison; speckle = dictk.rosta(300, 300, density=0.5); photo = dictk.astronaut(300, 300); astronaut0 = combine(speckle, photo); origin = PixelCoordinate(x=310, y=250); plot_subimage_comparison(astronaut0, origin, width=40, height=100, path='subimage_comparison_40w_by_100h_at_310_250.png'); print('Saved: subimage_comparison_40w_by_100h_at_310_250.png')" -->
 ```
 
 <figure>

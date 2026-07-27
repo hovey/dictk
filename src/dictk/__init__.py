@@ -6,14 +6,14 @@ that's their whole job. The corresponding Python API functions
 (`dictk.rosta`, `dictk.checkerboard`, `dictk.astronaut`, ...) do not
 perform any file I/O; they return NumPy arrays only. This keeps the API
 composable in a functional style — arrays
-can be piped through further functions (e.g. `dictk.imaging.combine_images`)
+can be piped through further functions (e.g. `dictk.image.combine`)
 before anything touches disk — and callers who do want a file call
-`dictk.imaging.write_image` explicitly as a separate, deliberate step.
+`dictk.image.write` explicitly as a separate, deliberate step.
 """
 
 from importlib.metadata import PackageNotFoundError, version
 
-from dictk.imaging import astronaut, checkerboard
+from dictk.image import astronaut, checkerboard
 from dictk.rosta import rosta
 
 try:

@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from dictk.cli import main
-from dictk.imaging import read_image
+from dictk.image import read
 
 
 def test_help_exits_cleanly(capsys):
@@ -20,7 +20,7 @@ def test_rosta_create_writes_file(tmp_path: Path):
     files = list(tmp_path.glob("rosta_*.tiff"))
     assert len(files) == 1
 
-    image = read_image(files[0])
+    image = read(files[0])
     assert image.shape == (16, 20)
 
 
@@ -50,7 +50,7 @@ def test_checkerboard_create_writes_file(tmp_path: Path):
     files = list(tmp_path.glob("checkerboard_*.tiff"))
     assert len(files) == 1
 
-    image = read_image(files[0])
+    image = read(files[0])
     assert image.shape == (16, 20)
 
 
@@ -92,7 +92,7 @@ def test_astronaut_create_writes_file(tmp_path: Path):
     files = list(tmp_path.glob("astronaut_*.tiff"))
     assert len(files) == 1
 
-    image = read_image(files[0])
+    image = read(files[0])
     assert image.shape == (20, 40)
 
 
@@ -122,7 +122,7 @@ def test_astronaut_defaults_to_512x512(tmp_path: Path):
     files = list(tmp_path.glob("astronaut_512w_by_512h.tiff"))
     assert len(files) == 1
 
-    image = read_image(files[0])
+    image = read(files[0])
     assert image.shape == (512, 512)
 
 
@@ -133,7 +133,7 @@ def test_astronaut_positional_width_only_defaults_height(tmp_path: Path):
     files = list(tmp_path.glob("astronaut_300w_by_512h.tiff"))
     assert len(files) == 1
 
-    image = read_image(files[0])
+    image = read(files[0])
     assert image.shape == (512, 300)
 
 
@@ -183,7 +183,7 @@ def test_checkerboard_defaults_to_200x200(tmp_path: Path):
     files = list(tmp_path.glob("checkerboard_200w_by_200h_*.tiff"))
     assert len(files) == 1
 
-    image = read_image(files[0])
+    image = read(files[0])
     assert image.shape == (200, 200)
 
 
@@ -194,7 +194,7 @@ def test_checkerboard_positional_width_only_defaults_height(tmp_path: Path):
     files = list(tmp_path.glob("checkerboard_300w_by_200h_*.tiff"))
     assert len(files) == 1
 
-    image = read_image(files[0])
+    image = read(files[0])
     assert image.shape == (200, 300)
 
 
@@ -205,7 +205,7 @@ def test_rosta_defaults_to_200x200(tmp_path: Path):
     files = list(tmp_path.glob("rosta_200w_by_200h_*.tiff"))
     assert len(files) == 1
 
-    image = read_image(files[0])
+    image = read(files[0])
     assert image.shape == (200, 200)
 
 
@@ -216,5 +216,5 @@ def test_rosta_positional_width_only_defaults_height(tmp_path: Path):
     files = list(tmp_path.glob("rosta_300w_by_200h_*.tiff"))
     assert len(files) == 1
 
-    image = read_image(files[0])
+    image = read(files[0])
     assert image.shape == (200, 300)

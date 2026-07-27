@@ -3,27 +3,27 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from dictk.imaging import (
+from dictk.image import (
     PixelCoordinate,
     astronaut,
     brightness,
     checkerboard,
-    combine_images,
+    combine,
     complex_deform,
     contrast,
     crack_dislocation,
-    describe_image,
+    describe,
     plot_subimage,
     plot_subimage_bounds,
     plot_subimage_comparison,
-    read_image,
+    read,
     rgba_to_gray,
     rotate,
     shear,
     stretch,
     subimage,
     translate,
-    write_image,
+    write,
 )
 
 
@@ -400,64 +400,64 @@ def test_rgba_to_gray_invalid_shape_raises():
         rgba_to_gray(np.zeros((2, 2, 5)))
 
 
-def test_combine_images_shape_and_dtype():
+def test_combine_shape_and_dtype():
     a = np.full((10, 10), 100, dtype=np.uint8)
     b = np.full((10, 10), 200, dtype=np.uint8)
-    combined = combine_images(a, b)
+    combined = combine(a, b)
     assert combined.shape == (10, 10)
     assert combined.dtype == np.uint8
     assert combined.max() <= 255
 
 
-def test_combine_images_normalizes_to_max_255():
+def test_combine_normalizes_to_max_255():
     a = np.full((4, 4), 10, dtype=np.uint8)
     b = np.full((4, 4), 10, dtype=np.uint8)
-    combined = combine_images(a, b)
+    combined = combine(a, b)
     # Uniform input -> uniform output, scaled to the max value of 255.
     assert np.all(combined == 255)
 
 
-def test_combine_images_shape_mismatch_raises():
+def test_combine_shape_mismatch_raises():
     a = np.zeros((10, 10), dtype=np.uint8)
     b = np.zeros((5, 5), dtype=np.uint8)
     with pytest.raises(ValueError):
-        combine_images(a, b)
+        combine(a, b)
 
 
-def test_describe_image_grayscale():
+def test_describe_grayscale():
     arr = np.zeros((10, 20), dtype=np.uint8)
-    description = describe_image(arr)
+    description = describe(arr)
     assert "Shape: (10, 20)" in description
     assert "grayscale" in description
 
 
-def test_describe_image_rgb():
+def test_describe_rgb():
     arr = np.zeros((10, 20, 3), dtype=np.uint8)
-    description = describe_image(arr)
+    description = describe(arr)
     assert "RGB" in description
 
 
-def test_describe_image_rgba():
+def test_describe_rgba():
     arr = np.zeros((10, 20, 4), dtype=np.uint8)
-    description = describe_image(arr)
+    description = describe(arr)
     assert "RGBA" in description
 
 
 @pytest.mark.parametrize("suffix", ["tiff", "png", "jpg"])
-def test_write_image_raster_formats_round_trip(tmp_path: Path, suffix: str):
+def test_write_raster_formats_round_trip(tmp_path: Path, suffix: str):
     arr = checkerboard(width=16, height=8)
     path = tmp_path / f"out.{suffix}"
-    write_image(arr, path)
+    write(arr, path)
 
     assert path.exists()
-    round_tripped = read_image(path)
+    round_tripped = read(path)
     assert round_tripped.shape == arr.shape
 
 
-def test_write_image_svg_produces_embedded_png(tmp_path: Path):
+def test_write_svg_produces_embedded_png(tmp_path: Path):
     arr = checkerboard(width=16, height=8)
     path = tmp_path / "out.svg"
-    write_image(arr, path)
+    write(arr, path)
 
     content = path.read_text()
     assert content.startswith("<?xml")
