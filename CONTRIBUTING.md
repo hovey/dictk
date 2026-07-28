@@ -487,7 +487,7 @@ Development and post-release tags:
 | tag | description |
 | --- | --- |
 | `v1.1.0.dev1` | A version currently under development |
-| `v1.0.0.post1` | Fix a minor error in the release process, such as a typo in the documentation, without changing the code |
+| `v1.0.0.post1` | A fix for a minor error in the release process, such as a typo in the documentation, without changing the code |
 
 ### Release on tag
 

@@ -1,11 +1,5 @@
 # Single Point Motion
 
-Let **origin** $O$ be located at the **top, left** of the image. We attach
-reference frame $\mathcal{F}$ to the origin, with the $x$-axis running
-left-to-right and the $y$-axis running top-to-bottom — the same pixel
-reference frame used throughout this guide (see [Subimage
-Generation](./subimage.md)).
-
 Consider a single point $P$, fixed to a physical location on the object
 being imaged. In the **reference image** $i_0$, this point is at a known
 pixel location $\boldsymbol{r}_{OP/\mathcal{F}} = (100, 75)$ pixels — we
@@ -21,23 +15,20 @@ $\boldsymbol{p}_0$, is the problem this page works through, using
 The examples below reuse `astronaut0`, the speckle pattern combined with
 the astronaut photo introduced in [Image
 Generation](./image_generation.md#speckle--astronaut) and used again in
-[Subimage Generation](./subimage.md#reference-image) — here called
+[Subimage Generation](./subimage.md#reference-frames) — here called
 `reference_image`, matching `locate`'s own parameter name:
 
 ```python
-import dictk
-from dictk.image import combine, PixelCoordinate, point_plot, ArrowAnnotation
+from dictk.image import read, PixelCoordinate, point_plot, ArrowAnnotation
 
-speckle = dictk.rosta(width=300, height=300, density=0.5)
-photo = dictk.astronaut(width=300, height=300)
-reference_image = combine(a=speckle, b=photo)
+reference_image = read(path="astronaut0.png")
 
 p0 = PixelCoordinate(x=100, y=75)
 point_plot(
     image=reference_image,
     arrows=[
         ArrowAnnotation(
-            tail=PixelCoordinate(x=0, y=0), head=p0, color="gold", label="p0"
+            tail=PixelCoordinate(x=0, y=0), head=p0, color="yellow", label="p0"
         )
     ],
     path="single_point_motion_p0.png",
@@ -45,12 +36,12 @@ point_plot(
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.image import combine, PixelCoordinate, point_plot, ArrowAnnotation; speckle = dictk.rosta(width=300, height=300, density=0.5); photo = dictk.astronaut(width=300, height=300); reference_image = combine(a=speckle, b=photo); p0 = PixelCoordinate(x=100, y=75); point_plot(image=reference_image, arrows=[ArrowAnnotation(tail=PixelCoordinate(x=0, y=0), head=p0, color='gold', label='p0')], path='single_point_motion_p0.png'); print('Saved: single_point_motion_p0.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, point_plot, ArrowAnnotation; reference_image = read(path='astronaut0.png'); p0 = PixelCoordinate(x=100, y=75); point_plot(image=reference_image, arrows=[ArrowAnnotation(tail=PixelCoordinate(x=0, y=0), head=p0, color='yellow', label='p0')], path='single_point_motion_p0.png'); print('Saved: single_point_motion_p0.png')" -->
 ```
 
 <figure>
-    <img src="single_point_motion_p0.png" alt="reference image with reference configuration p0 marked by a gold arrow from the origin" />
-    <figcaption>Reference image $i_0$ and reference configuration (gold arrow) $\boldsymbol{p}_0 = (100, 75)$ pixels.</figcaption>
+    <img src="single_point_motion_p0.png" alt="reference image with reference configuration p0 marked by a yellow arrow from the origin" />
+    <figcaption>Reference image $i_0$ and reference configuration (yellow arrow) $\boldsymbol{p}_0 = (100, 75)$ pixels.</figcaption>
 </figure>
 
 ## Current Configuration and Displacement
@@ -94,7 +85,7 @@ point_plot(
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.image import combine, translate, PixelCoordinate, point_plot, ArrowAnnotation; speckle = dictk.rosta(width=300, height=300, density=0.5); photo = dictk.astronaut(width=300, height=300); reference_image = combine(a=speckle, b=photo); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); p1 = PixelCoordinate(x=p0.x - 6, y=p0.y + 8); point_plot(image=current_image, arrows=[ArrowAnnotation(tail=PixelCoordinate(x=0, y=0), head=p1, color='cyan', label='p1'), ArrowAnnotation(tail=p0, head=p1, color='magenta', label='displacement')], path='single_point_motion_p1_displacement.png'); print('Saved: single_point_motion_p1_displacement.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, point_plot, ArrowAnnotation; reference_image = read(path='astronaut0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); p1 = PixelCoordinate(x=p0.x - 6, y=p0.y + 8); point_plot(image=current_image, arrows=[ArrowAnnotation(tail=PixelCoordinate(x=0, y=0), head=p1, color='cyan', label='p1'), ArrowAnnotation(tail=p0, head=p1, color='magenta', label='displacement')], path='single_point_motion_p1_displacement.png'); print('Saved: single_point_motion_p1_displacement.png')" -->
 ```
 
 <figure>
@@ -127,6 +118,13 @@ called a **search window**, **scanning zone**, or **area of interest
 itself. Here, with no better guess available, we reuse $\boldsymbol{p}_0$
 itself as `search_center`.
 
+Both the kernel and search area are themselves **subimages** of a larger
+image — see [Subimage Generation](./subimage.md#reference-frames), where
+every subimage has its own local frame. This page needs two such
+subimages at once, so rather than reusing that page's generic
+$\mathcal{G}$, each gets its own label below: $\mathcal{K}$ for the
+kernel, $\mathcal{S}$ for the search area.
+
 ### Kernel
 
 From `reference_image`, extract the kernel surrounding $\boldsymbol{p}_0$,
@@ -142,17 +140,21 @@ subimage_comparison_plot(
     origin=kernel_origin,
     width=2 * kernel_margin,
     height=2 * kernel_margin,
+    point=p0,
+    point_color="yellow",
+    subimage_label="kernel",
+    color="green",
     path="single_point_motion_kernel.png",
 )
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.image import combine, PixelCoordinate, subimage_comparison_plot; speckle = dictk.rosta(width=300, height=300, density=0.5); photo = dictk.astronaut(width=300, height=300); reference_image = combine(a=speckle, b=photo); p0 = PixelCoordinate(x=100, y=75); kernel_margin = 25; kernel_origin = PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin); subimage_comparison_plot(image=reference_image, origin=kernel_origin, width=2 * kernel_margin, height=2 * kernel_margin, path='single_point_motion_kernel.png'); print('Saved: single_point_motion_kernel.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, subimage_comparison_plot; reference_image = read(path='astronaut0.png'); p0 = PixelCoordinate(x=100, y=75); kernel_margin = 25; kernel_origin = PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin); subimage_comparison_plot(image=reference_image, origin=kernel_origin, width=2 * kernel_margin, height=2 * kernel_margin, point=p0, point_color='yellow', subimage_label='kernel', color='green', path='single_point_motion_kernel.png'); print('Saved: single_point_motion_kernel.png')" -->
 ```
 
 <figure>
-    <img src="single_point_motion_kernel.png" alt="kernel placement in the reference image, and the extracted kernel itself" />
-    <figcaption>Left: the kernel (red box), a 50x50 region of <code>reference_image</code> centered on $\boldsymbol{p}_0$, with origin $\boldsymbol{r}_{OK/\mathcal{F}} = (75, 50)$ pixels (red 'o'). Right: the extracted kernel on its own, in its own local reference frame $\mathcal{K}$.</figcaption>
+    <img src="single_point_motion_kernel.png" alt="kernel placement in the reference image with point P marked by a yellow dot, and the extracted kernel itself with point P marked by a yellow dot" />
+    <figcaption>Left: the kernel (green box), a 50x50 region of <code>reference_image</code> centered on $\boldsymbol{p}_0$, with origin $\boldsymbol{r}_{OK/\mathcal{F}} = (75, 50)$ pixels (green 'o'); point $P$ itself is the yellow dot at $\boldsymbol{p}_0 = (100, 75)$. Right: the extracted kernel on its own, in its own local reference frame $\mathcal{K}$; the same point $P$ (yellow dot) is now at $\boldsymbol{r}_{KP/\mathcal{K}} = (25, 25)$.</figcaption>
 </figure>
 
 The kernel has its own *local* coordinate system $\mathcal{K}$, with
@@ -183,12 +185,13 @@ subimage_comparison_plot(
     origin=search_origin,
     width=2 * search_margin,
     height=2 * search_margin,
+    subimage_label="search area",
     path="single_point_motion_search.png",
 )
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.image import combine, translate, PixelCoordinate, subimage_comparison_plot; speckle = dictk.rosta(width=300, height=300, density=0.5); photo = dictk.astronaut(width=300, height=300); reference_image = combine(a=speckle, b=photo); current_image = translate(arr=reference_image, dx=-6, dy=8); p0 = PixelCoordinate(x=100, y=75); search_margin = 50; search_center = p0; search_origin = PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin); subimage_comparison_plot(image=current_image, origin=search_origin, width=2 * search_margin, height=2 * search_margin, path='single_point_motion_search.png'); print('Saved: single_point_motion_search.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage_comparison_plot; reference_image = read(path='astronaut0.png'); current_image = translate(arr=reference_image, dx=-6, dy=8); p0 = PixelCoordinate(x=100, y=75); search_margin = 50; search_center = p0; search_origin = PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin); subimage_comparison_plot(image=current_image, origin=search_origin, width=2 * search_margin, height=2 * search_margin, subimage_label='search area', path='single_point_motion_search.png'); print('Saved: single_point_motion_search.png')" -->
 ```
 
 <figure>
@@ -257,7 +260,7 @@ print(f"displacement = ({found.x - p0.x}, {found.y - p0.y})")
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.image import combine, translate, PixelCoordinate; from dictk.translation import locate; speckle = dictk.rosta(width=300, height=300, density=0.5); photo = dictk.astronaut(width=300, height=300); reference_image = combine(a=speckle, b=photo); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; search_margin = 50; search_center = p0; found = locate(reference_image=reference_image, current_image=current_image, reference_point=p0, search_center=search_center, kernel_margin_width=kernel_margin, kernel_margin_height=kernel_margin, search_margin_width=search_margin, search_margin_height=search_margin); print(f'found = {found}'); print(f'displacement = ({found.x - p0.x}, {found.y - p0.y})')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate; from dictk.translation import locate; reference_image = read(path='astronaut0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; search_margin = 50; search_center = p0; found = locate(reference_image=reference_image, current_image=current_image, reference_point=p0, search_center=search_center, kernel_margin_width=kernel_margin, kernel_margin_height=kernel_margin, search_margin_width=search_margin, search_margin_height=search_margin); print(f'found = {found}'); print(f'displacement = ({found.x - p0.x}, {found.y - p0.y})')" -->
 ```
 
 `found` matches the ground-truth $\boldsymbol{p}_1 = (94, 83)$ pixels from
@@ -307,7 +310,7 @@ point_plot(
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.image import combine, translate, PixelCoordinate, point_plot, ArrowAnnotation; from dictk.translation import locate; speckle = dictk.rosta(width=300, height=300, density=0.5); photo = dictk.astronaut(width=300, height=300); reference_image = combine(a=speckle, b=photo); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; search_margin = 50; search_center = p0; search_origin = PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin); found = locate(reference_image=reference_image, current_image=current_image, reference_point=p0, search_center=search_center, kernel_margin_width=kernel_margin, kernel_margin_height=kernel_margin, search_margin_width=search_margin, search_margin_height=search_margin); r_sk = PixelCoordinate(x=found.x - search_origin.x - kernel_margin, y=found.y - search_origin.y - kernel_margin); point_plot(image=current_image, arrows=[ArrowAnnotation(tail=PixelCoordinate(x=0, y=0), head=search_origin, color='blue', label='r_OS: search area origin'), ArrowAnnotation(tail=search_origin, head=PixelCoordinate(x=search_origin.x + r_sk.x, y=search_origin.y + r_sk.y), color='orange', label='r_SK: kernel found in search area'), ArrowAnnotation(tail=PixelCoordinate(x=search_origin.x + r_sk.x, y=search_origin.y + r_sk.y), head=found, color='black', label='r_KP: point within kernel')], path='single_point_motion_solution_vectors.png'); print('Saved: single_point_motion_solution_vectors.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, point_plot, ArrowAnnotation; from dictk.translation import locate; reference_image = read(path='astronaut0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; search_margin = 50; search_center = p0; search_origin = PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin); found = locate(reference_image=reference_image, current_image=current_image, reference_point=p0, search_center=search_center, kernel_margin_width=kernel_margin, kernel_margin_height=kernel_margin, search_margin_width=search_margin, search_margin_height=search_margin); r_sk = PixelCoordinate(x=found.x - search_origin.x - kernel_margin, y=found.y - search_origin.y - kernel_margin); point_plot(image=current_image, arrows=[ArrowAnnotation(tail=PixelCoordinate(x=0, y=0), head=search_origin, color='blue', label='r_OS: search area origin'), ArrowAnnotation(tail=search_origin, head=PixelCoordinate(x=search_origin.x + r_sk.x, y=search_origin.y + r_sk.y), color='orange', label='r_SK: kernel found in search area'), ArrowAnnotation(tail=PixelCoordinate(x=search_origin.x + r_sk.x, y=search_origin.y + r_sk.y), head=found, color='black', label='r_KP: point within kernel')], path='single_point_motion_solution_vectors.png'); print('Saved: single_point_motion_solution_vectors.png')" -->
 ```
 
 <figure>

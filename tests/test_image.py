@@ -589,6 +589,67 @@ def test_subimage_comparison_plot_writes_file(tmp_path: Path):
     assert path.stat().st_size > 0
 
 
+def test_subimage_comparison_plot_with_point_writes_file(tmp_path: Path):
+    arr = checkerboard(width=200, height=200)
+    path = tmp_path / "comparison_with_point.png"
+    subimage_comparison_plot(
+        image=arr,
+        origin=PixelCoordinate(x=20, y=40),
+        width=80,
+        height=60,
+        point=PixelCoordinate(x=50, y=60),
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_subimage_comparison_plot_with_point_color_writes_file(tmp_path: Path):
+    arr = checkerboard(width=200, height=200)
+    path = tmp_path / "comparison_with_point_color.png"
+    subimage_comparison_plot(
+        image=arr,
+        origin=PixelCoordinate(x=20, y=40),
+        width=80,
+        height=60,
+        point=PixelCoordinate(x=50, y=60),
+        point_color="orange",
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_subimage_comparison_plot_with_subimage_label_writes_file(tmp_path: Path):
+    arr = checkerboard(width=200, height=200)
+    path = tmp_path / "comparison_with_label.png"
+    subimage_comparison_plot(
+        image=arr,
+        origin=PixelCoordinate(x=20, y=40),
+        width=80,
+        height=60,
+        subimage_label="kernel",
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_subimage_comparison_plot_with_color_writes_file(tmp_path: Path):
+    arr = checkerboard(width=200, height=200)
+    path = tmp_path / "comparison_with_color.png"
+    subimage_comparison_plot(
+        image=arr,
+        origin=PixelCoordinate(x=20, y=40),
+        width=80,
+        height=60,
+        color="orange",
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
 @pytest.mark.parametrize("width,height", [(0, 5), (5, 0)])
 def test_subimage_comparison_plot_invalid_size_raises(tmp_path: Path, width, height):
     arr = checkerboard(width=40, height=40)

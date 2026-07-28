@@ -265,20 +265,25 @@ def subimage_comparison_plot(
     width: int,
     height: int,
     path: Path,
+    point: PixelCoordinate | None = None,
+    point_color: str = "gold",
+    subimage_label: str | None = None,
+    color: str = "red",
     dpi: int = 300,
 ) -> None:
     """Save a side-by-side comparison of a subimage's placement and its extraction.
 
     The left panel matches `subimage_bounds_plot()`: `image`'s bounds in
-    blue, the requested region in red, with an `'o'` marker at each
-    rectangle's own origin. The right panel shows the extracted subimage
-    (via `subimage()`) with a red border and origin marker, in its own
-    local reference frame — but drawn using the *same* axis limits as the
-    left panel, rather than being cropped or zoomed to the subimage's own
-    size the way `subimage_plot()` is. That shared scale is what makes
-    the two red boxes render at identical size by construction — same
-    data units per pixel in both panels — rather than approximating it by
-    sizing each panel's figure independently around its own content.
+    blue, the requested region in `color` (red by default), with an `'o'`
+    marker at each rectangle's own origin. The right panel shows the
+    extracted subimage (via `subimage()`) with a `color` border and
+    origin marker, in its own local reference frame — but drawn using the
+    *same* axis limits as the left panel, rather than being cropped or
+    zoomed to the subimage's own size the way `subimage_plot()` is. That
+    shared scale is what makes the two boxes render at identical size by
+    construction — same data units per pixel in both panels — rather than
+    approximating it by sizing each panel's figure independently around
+    its own content.
 
     Args:
         image: Source 2D grayscale image array.
@@ -289,6 +294,20 @@ def subimage_comparison_plot(
         path: Output file path for the figure; format is inferred from
             the extension by matplotlib's savefig (e.g. .png), not
             dictk's own write/write_svg.
+        point: An optional point of interest, in `image`'s pixel reference
+            frame, marked with a `point_color` dot on both panels — at
+            `point` itself on the left, and at `point` translated into
+            the subimage's own local frame (`point` minus `origin`) on
+            the right, since that's the same physical point expressed in
+            each panel's own coordinates.
+        point_color: Matplotlib color name for `point`'s marker. Ignored
+            if `point` isn't given.
+        subimage_label: An optional short label identifying what this
+            subimage represents (e.g. `"kernel"`), appended to the right
+            panel's "subimage" title as "subimage (label)". Left as-is
+            ("subimage") when not given.
+        color: Matplotlib color name for the subimage's bounding box and
+            origin marker, on both panels.
         dpi: Resolution of the saved figure.
 
     Raises:
@@ -332,13 +351,15 @@ def subimage_comparison_plot(
             (origin.x, origin.y),
             width,
             height,
-            edgecolor="red",
+            edgecolor=color,
             facecolor="none",
             linewidth=1.5,
         )
     )
     ax_left.plot(0, 0, marker="o", color="blue", markersize=6)
-    ax_left.plot(origin.x, origin.y, marker="o", color="red", markersize=6)
+    ax_left.plot(origin.x, origin.y, marker="o", color=color, markersize=6)
+    if point is not None:
+        ax_left.plot(point.x, point.y, marker="o", color=point_color, markersize=6)
     ax_left.set_xlim(x_min, x_max)
     ax_left.set_ylim(y_max, y_min)  # inverted: image y increases downward
     ax_left.set_xlabel("x (pixels)")
@@ -351,19 +372,25 @@ def subimage_comparison_plot(
             (0, 0),
             width,
             height,
-            edgecolor="red",
+            edgecolor=color,
             facecolor="none",
             linewidth=1.5,
         )
     )
-    ax_right.plot(0, 0, marker="o", color="red", markersize=6)
+    ax_right.plot(0, 0, marker="o", color=color, markersize=6)
+    if point is not None:
+        ax_right.plot(
+            point.x - origin.x, point.y - origin.y, marker="o", color=point_color, markersize=6
+        )
     # Same limits as ax_left, not the subimage's own tight size -- this is
     # the whole point: identical data-units-per-pixel in both panels.
     ax_right.set_xlim(x_min, x_max)
     ax_right.set_ylim(y_max, y_min)
     ax_right.set_xlabel("x (pixels)")
     ax_right.set_ylabel("y (pixels)")
-    ax_right.set_title("subimage")
+    ax_right.set_title(
+        f"subimage ({subimage_label})" if subimage_label is not None else "subimage"
+    )
 
     plt.savefig(path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)

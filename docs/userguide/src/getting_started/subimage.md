@@ -1,10 +1,9 @@
 # Subimage Generation
 
-Now we consider extracting a **subimage** (also called a **subset**) from a
-subject image. A subimages is a useful precursor to image computation
-that allows us to narrow the amount of data used for the computation,
-making the computation more efficient than if we were to consider the
-image in full.
+Now we consider extracting a **subimage** from a
+subject image. A subimage is a useful precursor to image computation:
+narrowing the data down to a region of interest makes the computation
+more efficient than considering the full image.
 
 ## Reference Frames
 
@@ -35,7 +34,7 @@ reference_frame_plot(image=astronaut0, path="reference_frame.png")
 
 When we extract a subimage from an image, it is useful to be explicit
 about reference frames: the subimage has its own frame $\mathcal{G}$,
-located within the image's frame $\mathcal{F}$.  The [Python
+located within the image's frame $\mathcal{F}$. The [Python
 API](#python-api) section below demonstrates this concept.
 
 ## Python API
@@ -53,7 +52,7 @@ point of interest.
 [`dictk.image.PixelCoordinate`](../api/dictk/image.html#PixelCoordinate)
 is a simple `(x, y)` NamedTuple used for `origin`.
 [`dictk.image.subimage`](../api/dictk/image.html#subimage) itself
-returns the cropped array directly, with no file written. 
+returns the cropped array directly, with no file written.
 
 The examples below use
 [`subimage_comparison_plot`](../api/dictk/image.html#subimage_comparison_plot),
@@ -90,7 +89,7 @@ subimage_comparison_plot(image=astronaut0, origin=origin, width=80, height=80, p
 
 <figure>
     <img src="subimage_comparison_80w_by_80h_at_100_40.png" alt="square subimage, fully inside, source and extraction side by side at matching scale" />
-    <figcaption>Left: image with reference frame $\mathcal{F}$ in blue, with square subimage (80x80) origin $Q=(100, 40)_{\mathcal{F}}$, lying entirely within the source image bounds. The blue dot is the origin of the source image (0, 0); the red dot is the origin of the subimage in the source image's reference frame (100, 40). Right: subimage with reference frame $\mathcal{G}$ in red, with origin $Q=(0, 0)_{\mathcal{G}}$.</figcaption>
+    <figcaption>Left: image (reference frame $\mathcal{F}$, blue), showing square subimage (80x80), origin $Q=(100, 40)_{\mathcal{F}}$, lying entirely within the source image bounds. The blue dot is the origin of the source image (0, 0); the red dot is the origin of the subimage in the source image's reference frame (100, 40). Right: subimage (reference frame $\mathcal{G}$, red), origin $Q=(0, 0)_{\mathcal{G}}$.</figcaption>
 </figure>
 
 ### Rectangle, fully inside
@@ -111,7 +110,7 @@ subimage_comparison_plot(image=astronaut0, origin=origin, width=180, height=70, 
 
 <figure>
     <img src="subimage_comparison_180w_by_70h_at_50_200.png" alt="rectangular subimage, fully inside, source and extraction side by side at matching scale" />
-    <figcaption>Left: image with reference frame $\mathcal{F}$ in blue, with rectangular subimage (180x70) origin $Q=(50, 200)_{\mathcal{F}}$, lying entirely within the source image bounds. The blue dot is the origin of the source image (0, 0); the red dot is the origin of the subimage in the source image's reference frame (50, 200). Right: subimage with reference frame $\mathcal{G}$ in red, with origin $Q=(0, 0)_{\mathcal{G}}$.</figcaption>
+    <figcaption>Left: image (reference frame $\mathcal{F}$, blue), showing rectangular subimage (180x70), origin $Q=(50, 200)_{\mathcal{F}}$, lying entirely within the source image bounds. The blue dot is the origin of the source image (0, 0); the red dot is the origin of the subimage in the source image's reference frame (50, 200). Right: subimage (reference frame $\mathcal{G}$, red), origin $Q=(0, 0)_{\mathcal{G}}$.</figcaption>
 </figure>
 
 ### Partially outside
@@ -133,7 +132,7 @@ subimage_comparison_plot(image=astronaut0, origin=origin, width=120, height=120,
 
 <figure>
     <img src="subimage_comparison_120w_by_120h_at_-20_-40.png" alt="subimage partially outside bounds, source and extraction side by side at matching scale" />
-    <figcaption>Left: image with reference frame $\mathcal{F}$ in blue, with subimage (120x120) origin $Q=(-20, -40)_{\mathcal{F}}$, lying partially outside the source image bounds (straddling its top-left corner). The blue dot is the origin of the source image (0, 0); the red dot is the origin of the subimage in the source image's reference frame (-20, -40). Right: subimage with reference frame $\mathcal{G}$ in red, with origin $Q=(0, 0)_{\mathcal{G}}$; the black band along the top and left is zero-padding, where the requested region fell outside <code>astronaut0</code>.</figcaption>
+    <figcaption>Left: image (reference frame $\mathcal{F}$, blue), showing subimage (120x120), origin $Q=(-20, -40)_{\mathcal{F}}$, lying partially outside the source image bounds (straddling its top-left corner). The blue dot is the origin of the source image (0, 0); the red dot is the origin of the subimage in the source image's reference frame (-20, -40). Right: subimage (reference frame $\mathcal{G}$, red), origin $Q=(0, 0)_{\mathcal{G}}$; the black band along the top and left is zero-padding, where the requested region fell outside <code>astronaut0</code>.</figcaption>
 </figure>
 
 ### Completely outside
@@ -155,5 +154,5 @@ subimage_comparison_plot(image=astronaut0, origin=origin, width=40, height=100, 
 
 <figure>
     <img src="subimage_comparison_40w_by_100h_at_310_250.png" alt="subimage completely outside bounds, source and extraction side by side at matching scale" />
-    <figcaption>Left: image with reference frame $\mathcal{F}$ in blue, with subimage (40x100) origin $Q=(310, 250)_{\mathcal{F}}$, lying entirely outside the source image bounds. The blue dot is the origin of the source image (0, 0); the red dot is the origin of the subimage in the source image's reference frame (310, 250). Right: subimage with reference frame $\mathcal{G}$ in red, with origin $Q=(0, 0)_{\mathcal{G}}$; entirely zero-padded black, since none of the requested region overlapped <code>astronaut0</code>.</figcaption>
+    <figcaption>Left: image (reference frame $\mathcal{F}$, blue), showing subimage (40x100), origin $Q=(310, 250)_{\mathcal{F}}$, lying entirely outside the source image bounds. The blue dot is the origin of the source image (0, 0); the red dot is the origin of the subimage in the source image's reference frame (310, 250). Right: subimage (reference frame $\mathcal{G}$, red), origin $Q=(0, 0)_{\mathcal{G}}$; entirely zero-padded black, since none of the requested region overlapped <code>astronaut0</code>.</figcaption>
 </figure>
