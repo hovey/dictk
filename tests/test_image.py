@@ -5,7 +5,9 @@ import pytest
 
 from dictk.image import (
     ArrowAnnotation,
+    BoxAnnotation,
     PixelCoordinate,
+    PointAnnotation,
     astronaut,
     brightness,
     checkerboard,
@@ -620,6 +622,24 @@ def test_subimage_comparison_plot_with_point_color_writes_file(tmp_path: Path):
     assert path.stat().st_size > 0
 
 
+def test_subimage_comparison_plot_with_point_and_origin_labels_writes_file(tmp_path: Path):
+    arr = checkerboard(width=200, height=200)
+    path = tmp_path / "comparison_with_labels.png"
+    subimage_comparison_plot(
+        image=arr,
+        origin=PixelCoordinate(x=20, y=40),
+        width=80,
+        height=60,
+        point=PixelCoordinate(x=50, y=60),
+        point_label="P",
+        origin_label="K",
+        source_origin_label="O",
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
 def test_subimage_comparison_plot_with_subimage_label_writes_file(tmp_path: Path):
     arr = checkerboard(width=200, height=200)
     path = tmp_path / "comparison_with_label.png"
@@ -711,6 +731,79 @@ def test_point_plot_empty_arrows_raises(tmp_path: Path):
     arr = checkerboard(width=40, height=40)
     with pytest.raises(ValueError):
         point_plot(image=arr, arrows=[], path=tmp_path / "out.png")
+
+
+def test_point_plot_with_boxes_writes_file(tmp_path: Path):
+    arr = checkerboard(width=200, height=200)
+    path = tmp_path / "points_with_boxes.png"
+    point_plot(
+        image=arr,
+        arrows=[
+            ArrowAnnotation(
+                tail=PixelCoordinate(x=0, y=0),
+                head=PixelCoordinate(x=100, y=75),
+                color="blue",
+                label="arrow",
+            )
+        ],
+        boxes=[
+            BoxAnnotation(
+                origin=PixelCoordinate(x=20, y=30),
+                width=40,
+                height=50,
+                color="green",
+                label="box",
+            )
+        ],
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_plot_with_points_writes_file(tmp_path: Path):
+    arr = checkerboard(width=200, height=200)
+    path = tmp_path / "points_with_labels.png"
+    point_plot(
+        image=arr,
+        arrows=[
+            ArrowAnnotation(
+                tail=PixelCoordinate(x=0, y=0),
+                head=PixelCoordinate(x=100, y=75),
+                color="blue",
+                label="arrow",
+            )
+        ],
+        points=[
+            PointAnnotation(position=PixelCoordinate(x=0, y=0), label="$O$", color="blue"),
+            PointAnnotation(
+                position=PixelCoordinate(x=100, y=75), label="$P$", color="black"
+            ),
+        ],
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_plot_without_legend_writes_file(tmp_path: Path):
+    arr = checkerboard(width=40, height=40)
+    path = tmp_path / "points_no_legend.png"
+    point_plot(
+        image=arr,
+        arrows=[
+            ArrowAnnotation(
+                tail=PixelCoordinate(x=0, y=0),
+                head=PixelCoordinate(x=20, y=20),
+                color="blue",
+                label="arrow",
+            )
+        ],
+        legend=False,
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
 
 
 def test_reference_frame_plot_writes_file(tmp_path: Path):

@@ -9,6 +9,7 @@ from typing import NamedTuple
 import imageio.v3 as iio
 import numpy as np
 from matplotlib import patches
+from matplotlib import patheffects
 from matplotlib import pyplot as plt
 from scipy.interpolate import RegularGridInterpolator
 from scipy.ndimage import zoom
@@ -267,8 +268,11 @@ def subimage_comparison_plot(
     path: Path,
     point: PixelCoordinate | None = None,
     point_color: str = "gold",
+    point_label: str | None = None,
     subimage_label: str | None = None,
     color: str = "red",
+    origin_label: str | None = None,
+    source_origin_label: str | None = None,
     dpi: int = 300,
 ) -> None:
     """Save a side-by-side comparison of a subimage's placement and its extraction.
@@ -302,12 +306,21 @@ def subimage_comparison_plot(
             each panel's own coordinates.
         point_color: Matplotlib color name for `point`'s marker. Ignored
             if `point` isn't given.
+        point_label: An optional short text label (e.g. `"P"`) drawn next
+            to `point`'s marker, on both panels. Ignored if `point` isn't
+            given.
         subimage_label: An optional short label identifying what this
             subimage represents (e.g. `"kernel"`), appended to the right
             panel's "subimage" title as "subimage (label)". Left as-is
             ("subimage") when not given.
         color: Matplotlib color name for the subimage's bounding box and
             origin marker, on both panels.
+        origin_label: An optional short text label (e.g. `"K"`) drawn
+            next to the subimage's own origin marker, on both panels.
+        source_origin_label: An optional short text label (e.g. `"O"`)
+            drawn next to `image`'s own origin marker (the blue dot),
+            on the left panel only -- the right panel has no equivalent
+            marker for it.
         dpi: Resolution of the saved figure.
 
     Raises:
@@ -326,6 +339,13 @@ def subimage_comparison_plot(
     x_max = max(image_width, origin.x + width) + margin
     y_min = min(0, origin.y) - margin
     y_max = max(image_height, origin.y + height) + margin
+
+    # Small up-right offset for marker labels, so label text doesn't sit
+    # directly on top of its own marker.
+    label_offset = max(image_width, image_height) * 0.03
+    # A thin white outline keeps every marker label legible against
+    # whatever's directly behind it in the image content.
+    label_outline = [patheffects.withStroke(linewidth=1, foreground="white")]
 
     panel_width = (x_max - x_min) / _FIGURE_PIXELS_PER_INCH
     panel_height = (y_max - y_min) / _FIGURE_PIXELS_PER_INCH
@@ -360,6 +380,38 @@ def subimage_comparison_plot(
     ax_left.plot(origin.x, origin.y, marker="o", color=color, markersize=6)
     if point is not None:
         ax_left.plot(point.x, point.y, marker="o", color=point_color, markersize=6)
+    if source_origin_label is not None:
+        # (0, 0) is always the top-left corner of the full image, where
+        # "up" leads into the thin outer margin -- placed down-right,
+        # into the image interior, instead.
+        ax_left.text(
+            label_offset,
+            label_offset,
+            source_origin_label,
+            color="blue",
+            fontsize=12,
+            ha="left",
+            va="top",
+            path_effects=label_outline,
+        )
+    if origin_label is not None:
+        ax_left.text(
+            origin.x + label_offset,
+            origin.y - label_offset,
+            origin_label,
+            color=color,
+            fontsize=12,
+            path_effects=label_outline,
+        )
+    if point is not None and point_label is not None:
+        ax_left.text(
+            point.x + label_offset,
+            point.y - label_offset,
+            point_label,
+            color=point_color,
+            fontsize=12,
+            path_effects=label_outline,
+        )
     ax_left.set_xlim(x_min, x_max)
     ax_left.set_ylim(y_max, y_min)  # inverted: image y increases downward
     ax_left.set_xlabel("x (pixels)")
@@ -381,6 +433,28 @@ def subimage_comparison_plot(
     if point is not None:
         ax_right.plot(
             point.x - origin.x, point.y - origin.y, marker="o", color=point_color, markersize=6
+        )
+    if origin_label is not None:
+        # (0, 0) here is always the subimage's own top-left corner, same
+        # margin concern as source_origin_label above -- down-right too.
+        ax_right.text(
+            label_offset,
+            label_offset,
+            origin_label,
+            color=color,
+            fontsize=12,
+            ha="left",
+            va="top",
+            path_effects=label_outline,
+        )
+    if point is not None and point_label is not None:
+        ax_right.text(
+            point.x - origin.x + label_offset,
+            point.y - origin.y - label_offset,
+            point_label,
+            color=point_color,
+            fontsize=12,
+            path_effects=label_outline,
         )
     # Same limits as ax_left, not the subimage's own tight size -- this is
     # the whole point: identical data-units-per-pixel in both panels.
@@ -412,19 +486,79 @@ class ArrowAnnotation(NamedTuple):
     label: str
 
 
+class BoxAnnotation(NamedTuple):
+    """A labeled, colored rectangle (with an origin marker) to overlay on an image.
+
+    Attributes:
+        origin: Top-left corner of the rectangle, in the image's pixel
+            reference frame; see `subimage()`.
+        width: Width of the rectangle in pixels.
+        height: Height of the rectangle in pixels.
+        color: Matplotlib color name for the rectangle, its origin
+            marker, and its legend entry.
+        label: Legend label for the rectangle.
+    """
+
+    origin: PixelCoordinate
+    width: int
+    height: int
+    color: str
+    label: str
+
+
+class PointAnnotation(NamedTuple):
+    """A short colored text label to draw at a point on an image, with no marker of its own.
+
+    Meant for labeling a point that already has its own marker drawn some
+    other way (e.g. an `ArrowAnnotation`'s head/tail, or a `BoxAnnotation`'s
+    origin) with a short symbol, like `"$P$"`.
+
+    Attributes:
+        position: Location of the label, in the image's pixel reference frame.
+        label: Short text to draw (e.g. `"$P$"`); LaTeX math (`$...$`) is
+            rendered via matplotlib's built-in mathtext.
+        color: Matplotlib color name for the label text.
+    """
+
+    position: PixelCoordinate
+    label: str
+    color: str
+
+
 def point_plot(
-    *, image: np.ndarray, arrows: Sequence[ArrowAnnotation], path: Path, dpi: int = 300
+    *,
+    image: np.ndarray,
+    arrows: Sequence[ArrowAnnotation],
+    boxes: Sequence[BoxAnnotation] = (),
+    points: Sequence[PointAnnotation] = (),
+    legend: bool = True,
+    path: Path,
+    dpi: int = 300,
 ) -> None:
-    """Save a figure overlaying one or more labeled arrows on `image`.
+    """Save a figure overlaying one or more labeled arrows (and boxes) on `image`.
 
     Each `ArrowAnnotation` draws a straight arrow from `tail` to `head`, in
     `image`'s own pixel reference frame — e.g. from the origin `(0, 0)` to a
-    point of interest, or between two points to show a displacement.
+    point of interest, or between two points to show a displacement. Each
+    `BoxAnnotation` draws a rectangle with an `'o'` marker at its own
+    origin, layered behind the arrows but in front of `image` -- e.g. to
+    show where a kernel or search area sits on a figure that's mainly
+    about the arrows drawn on top of it. Each `PointAnnotation` draws a
+    short text label (with a thin white outline, so it stays legible
+    against the image) next to a point already marked some other way.
 
     Args:
         image: Source 2D grayscale image array.
         arrows: One or more arrows to overlay, each with its own color and
             legend label.
+        boxes: Zero or more rectangles to overlay underneath the arrows,
+            each with its own color and legend label.
+        points: Zero or more short text labels to draw, each next to a
+            point already marked by an arrow or box elsewhere in the
+            figure.
+        legend: Whether to draw the arrow/box legend. Set to False when
+            the arrow/box labels are already explained elsewhere (e.g. a
+            figure caption) and would just clutter the figure.
         path: Output file path for the figure; format is inferred from the
             extension by matplotlib's savefig (e.g. .png), not dictk's own
             write/write_svg.
@@ -440,11 +574,23 @@ def point_plot(
 
     endpoints_x = [pt.x for arrow in arrows for pt in (arrow.tail, arrow.head)]
     endpoints_y = [pt.y for arrow in arrows for pt in (arrow.tail, arrow.head)]
+    for box in boxes:
+        endpoints_x += [box.origin.x, box.origin.x + box.width]
+        endpoints_y += [box.origin.y, box.origin.y + box.height]
+    endpoints_x += [point.position.x for point in points]
+    endpoints_y += [point.position.y for point in points]
     margin = max(image_width, image_height) * 0.05
     x_min = min(0, *endpoints_x) - margin
     x_max = max(image_width, *endpoints_x) + margin
     y_min = min(0, *endpoints_y) - margin
     y_max = max(image_height, *endpoints_y) + margin
+
+    # Small down-right offset for point labels, so label text doesn't sit
+    # directly on top of its own marker (and doesn't overflow into the
+    # thin outer margin the way an up-left/up-right offset could for a
+    # point sitting at a box's own top-left corner).
+    label_offset = max(image_width, image_height) * 0.03
+    label_outline = [patheffects.withStroke(linewidth=1, foreground="white")]
 
     figsize = (
         (x_max - x_min) / _FIGURE_PIXELS_PER_INCH,
@@ -454,6 +600,19 @@ def point_plot(
     ax.imshow(
         image, cmap="gray", origin="upper", extent=(0, image_width, image_height, 0)
     )
+
+    for box in boxes:
+        ax.add_patch(
+            patches.Rectangle(
+                (box.origin.x, box.origin.y),
+                box.width,
+                box.height,
+                edgecolor=box.color,
+                facecolor="none",
+                linewidth=1.5,
+            )
+        )
+        ax.plot(box.origin.x, box.origin.y, marker="o", color=box.color, markersize=6)
 
     for arrow in arrows:
         ax.annotate(
@@ -467,22 +626,40 @@ def point_plot(
                 "shrink": 0,
             },
         )
+
+    # Drawn last (on top of the arrows), so a label sitting where an arrow
+    # starts or ends doesn't get partly covered by the arrow itself.
+    for point in points:
+        ax.text(
+            point.position.x + label_offset,
+            point.position.y + label_offset,
+            point.label,
+            color=point.color,
+            fontsize=12,
+            ha="left",
+            va="top",
+            path_effects=label_outline,
+        )
     # ax.annotate's arrows don't register with the legend on their own, so
-    # proxy line handles stand in for each arrow's color/label.
+    # proxy line handles stand in for each arrow's (and box's) color/label.
     handles = [
         plt.Line2D([0], [0], color=arrow.color, lw=1.5, label=arrow.label)
         for arrow in arrows
+    ] + [
+        patches.Patch(edgecolor=box.color, facecolor="none", label=box.label)
+        for box in boxes
     ]
 
     ax.set_xlim(x_min, x_max)
     ax.set_ylim(y_max, y_min)  # inverted: image y increases downward
     ax.set_xlabel("x (pixels)")
     ax.set_ylabel("y (pixels)")
-    # Same fully-outside legend placement as subimage_bounds_plot(), so it
-    # never overlaps the image regardless of arrow placement.
-    ax.legend(
-        handles=handles, loc="center left", bbox_to_anchor=(1.02, 0.5), fontsize=8
-    )
+    if legend:
+        # Same fully-outside legend placement as subimage_bounds_plot(), so
+        # it never overlaps the image regardless of arrow placement.
+        ax.legend(
+            handles=handles, loc="center left", bbox_to_anchor=(1.02, 0.5), fontsize=8
+        )
 
     plt.savefig(path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
