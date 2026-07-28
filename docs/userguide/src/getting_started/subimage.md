@@ -1,50 +1,68 @@
 # Subimage Generation
 
-[`dictk.image.subimage`](../api/dictk/image.html#subimage) extracts a
-rectangular crop from a source image: a `width` x `height` region whose
-top-left corner sits at `origin`, expressed in the source image's own
-pixel reference frame (top-left corner `(0, 0)`). `origin` may place the
-requested region partially or completely outside the source image —
-rather than raising an error, `subimage` fills whatever doesn't overlap
-with black (zero) pixels, so the result is always a well-formed
-`height x width` array. This is the building block later tutorials use to
-pull a kernel or search area out of a larger reference/current image pair
-around a point of interest.
+Now we consider extracting a **subimage** (also called a **subset**) from a
+subject image. A subimages is a useful precursor to image computation
+that allows us to narrow the amount of data used for the computation,
+making the computation more efficient than if we were to consider the
+image in full.
 
-## Reference image
+## Reference Frames
 
-The examples below reuse `astronaut0`, the speckle pattern combined with
-the astronaut photo introduced in [Image
+When we have just a single image, we have a single, trivial reference
+frame $\mathcal{F}$: origin $O$ (blue dot) at the top-left corner, with
+the $x$-axis (red) running left-to-right and the $y$-axis (green)
+running top-to-bottom. `origin`, and every pixel coordinate on this
+page, is expressed in this frame — one that's always implicitly
+present, even in the left panel below where nothing is drawn to show
+it. `astronaut0` here is the same reference image created in [Image
 Generation](./image_generation.md#speckle--astronaut):
 
 ```python
-import dictk
-from dictk.image import combine, write
+from dictk.image import read, reference_frame_plot
 
-speckle = dictk.rosta(width=300, height=300, density=0.5)
-photo = dictk.astronaut(width=300, height=300)
-astronaut0 = combine(a=speckle, b=photo)
-write(arr=astronaut0, path="astronaut0.png")
+astronaut0 = read(path="astronaut0.png")
+reference_frame_plot(image=astronaut0, path="reference_frame.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.image import combine, write; speckle = dictk.rosta(width=300, height=300, density=0.5); photo = dictk.astronaut(width=300, height=300); astronaut0 = combine(a=speckle, b=photo); write(arr=astronaut0, path='astronaut0.png'); print('Saved image: astronaut0.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, reference_frame_plot; astronaut0 = read(path='astronaut0.png'); reference_frame_plot(image=astronaut0, path='reference_frame.png'); print('Saved: reference_frame.png')" -->
 ```
 
+<figure>
+    <img src="reference_frame.png" alt="left: astronaut0 alone with no annotation; right: the same image with a blue box around its 300x300 bounds, a blue dot at the origin, and red/green arrows marking the x- and y-axes" />
+    <figcaption>Left: <code>astronaut0</code> (300x300 pixels) alone. Right: the same image with its reference frame $\mathcal{F}$ made explicit and labeled near the origin — origin $O$ (blue dot) at the top-left corner, $x$-axis (red), and $y$-axis (green), used throughout this page.</figcaption>
+</figure>
+
+When we extract a subimage from an image, it is useful to be explicit
+about reference frames: the subimage has its own frame $\mathcal{G}$,
+located within the image's frame $\mathcal{F}$.  The [Python
+API](#python-api) section below demonstrates this concept.
+
 ## Python API
+
+[`dictk.image.subimage`](../api/dictk/image.html#subimage) extracts a
+rectangular crop from a source image: a `width` x `height` region whose
+top-left corner sits at `origin`. `origin` may place the requested
+region partially or completely outside the source image — rather than
+raising an error, `subimage` fills whatever doesn't overlap with black
+(zero) pixels, so the result is always a well-formed `height x width`
+array. This is the building block later tutorials use to pull a kernel
+or search area out of a larger reference/current image pair around a
+point of interest.
 
 [`dictk.image.PixelCoordinate`](../api/dictk/image.html#PixelCoordinate)
 is a simple `(x, y)` NamedTuple used for `origin`.
 [`dictk.image.subimage`](../api/dictk/image.html#subimage) itself
-returns the cropped array directly, with no file written. The examples
-below use
+returns the cropped array directly, with no file written. 
+
+The examples below use
 [`subimage_comparison_plot`](../api/dictk/image.html#subimage_comparison_plot),
 which saves a two-panel figure: the left panel shows where the region
 falls relative to the source image (blue/red boxes), and the right panel
-shows the extracted result on its own, in its own local reference frame —
-top-left corner `(0, 0)` — sharing the *same* axis limits as the left
-panel so the two red boxes render at matching scale. It's built from two
-smaller single-panel functions, also available individually:
+shows the extracted result on its own, in its own local frame
+$\mathcal{G}$ — sharing the *same* axis limits as the left panel so the
+two red boxes render at matching scale. It's built from two smaller
+single-panel functions, also available individually:
 [`subimage_bounds_plot`](../api/dictk/image.html#subimage_bounds_plot)
 (the left panel alone) and
 [`subimage_plot`](../api/dictk/image.html#subimage_plot) (the right
@@ -57,8 +75,7 @@ An 80x80 square region entirely within `astronaut0`'s 300x300 bounds.
 [`subimage_comparison_plot`](../api/dictk/image.html#subimage_comparison_plot)
 draws both panels side by side, sharing the *same* axis limits, so the
 red box in the right panel renders at identical scale to the one on the
-left — instead of the right panel zooming in to fit just the 80x80
-crop:
+left.
 
 ```python
 from dictk.image import PixelCoordinate, subimage_comparison_plot
@@ -73,7 +90,7 @@ subimage_comparison_plot(image=astronaut0, origin=origin, width=80, height=80, p
 
 <figure>
     <img src="subimage_comparison_80w_by_80h_at_100_40.png" alt="square subimage, fully inside, source and extraction side by side at matching scale" />
-    <figcaption>Left: square subimage (80x80) at origin (100, 40), lying entirely within the source image bounds. The blue 'o' is the origin of the source image (0, 0); the red 'o' is the origin of the subimage in the source image's reference frame (100, 40). Right: the same subimage extracted on its own, in its own local reference frame — the red 'o' here is (0, 0).</figcaption>
+    <figcaption>Left: image with reference frame $\mathcal{F}$ in blue, with square subimage (80x80) origin $Q=(100, 40)_{\mathcal{F}}$, lying entirely within the source image bounds. The blue dot is the origin of the source image (0, 0); the red dot is the origin of the subimage in the source image's reference frame (100, 40). Right: subimage with reference frame $\mathcal{G}$ in red, with origin $Q=(0, 0)_{\mathcal{G}}$.</figcaption>
 </figure>
 
 ### Rectangle, fully inside
@@ -94,7 +111,7 @@ subimage_comparison_plot(image=astronaut0, origin=origin, width=180, height=70, 
 
 <figure>
     <img src="subimage_comparison_180w_by_70h_at_50_200.png" alt="rectangular subimage, fully inside, source and extraction side by side at matching scale" />
-    <figcaption>Left: rectangular subimage (180x70) at origin (50, 200), lying entirely within the source image bounds. The blue 'o' is the origin of the source image (0, 0); the red 'o' is the origin of the subimage in the source image's reference frame (50, 200). Right: the same subimage extracted on its own, in its own local reference frame — the red 'o' here is (0, 0).</figcaption>
+    <figcaption>Left: image with reference frame $\mathcal{F}$ in blue, with rectangular subimage (180x70) origin $Q=(50, 200)_{\mathcal{F}}$, lying entirely within the source image bounds. The blue dot is the origin of the source image (0, 0); the red dot is the origin of the subimage in the source image's reference frame (50, 200). Right: subimage with reference frame $\mathcal{G}$ in red, with origin $Q=(0, 0)_{\mathcal{G}}$.</figcaption>
 </figure>
 
 ### Partially outside
@@ -116,7 +133,7 @@ subimage_comparison_plot(image=astronaut0, origin=origin, width=120, height=120,
 
 <figure>
     <img src="subimage_comparison_120w_by_120h_at_-20_-40.png" alt="subimage partially outside bounds, source and extraction side by side at matching scale" />
-    <figcaption>Left: subimage (120x120) at origin (-20, -40), lying partially outside the source image bounds (straddling its top-left corner). The blue 'o' is the origin of the source image (0, 0); the red 'o' is the origin of the subimage in the source image's reference frame (-20, -40). Right: the same subimage extracted on its own, in its own local reference frame — the red 'o' here is (0, 0); the black band along the top and left is zero-padding, where the requested region fell outside <code>astronaut0</code>.</figcaption>
+    <figcaption>Left: image with reference frame $\mathcal{F}$ in blue, with subimage (120x120) origin $Q=(-20, -40)_{\mathcal{F}}$, lying partially outside the source image bounds (straddling its top-left corner). The blue dot is the origin of the source image (0, 0); the red dot is the origin of the subimage in the source image's reference frame (-20, -40). Right: subimage with reference frame $\mathcal{G}$ in red, with origin $Q=(0, 0)_{\mathcal{G}}$; the black band along the top and left is zero-padding, where the requested region fell outside <code>astronaut0</code>.</figcaption>
 </figure>
 
 ### Completely outside
@@ -138,5 +155,5 @@ subimage_comparison_plot(image=astronaut0, origin=origin, width=40, height=100, 
 
 <figure>
     <img src="subimage_comparison_40w_by_100h_at_310_250.png" alt="subimage completely outside bounds, source and extraction side by side at matching scale" />
-    <figcaption>Left: subimage (40x100) at origin (310, 250), lying entirely outside the source image bounds. The blue 'o' is the origin of the source image (0, 0); the red 'o' is the origin of the subimage in the source image's reference frame (310, 250). Right: the same subimage extracted on its own, in its own local reference frame — the red 'o' here is (0, 0); entirely zero-padded black, since none of the requested region overlapped <code>astronaut0</code>.</figcaption>
+    <figcaption>Left: image with reference frame $\mathcal{F}$ in blue, with subimage (40x100) origin $Q=(310, 250)_{\mathcal{F}}$, lying entirely outside the source image bounds. The blue dot is the origin of the source image (0, 0); the red dot is the origin of the subimage in the source image's reference frame (310, 250). Right: subimage with reference frame $\mathcal{G}$ in red, with origin $Q=(0, 0)_{\mathcal{G}}$; entirely zero-padded black, since none of the requested region overlapped <code>astronaut0</code>.</figcaption>
 </figure>

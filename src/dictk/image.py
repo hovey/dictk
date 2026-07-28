@@ -461,6 +461,119 @@ def point_plot(
     plt.close(fig)
 
 
+def reference_frame_plot(*, image: np.ndarray, path: Path, dpi: int = 300) -> None:
+    """Save a side-by-side figure contrasting `image` with its reference frame made explicit.
+
+    Left panel: `image` alone, with no annotation — no axes box, ticks, or
+    labels either — a reminder that a pixel reference frame is always
+    implicitly present, even when nothing is drawn to show it. Right
+    panel: the same `image`, with its bounds outlined in blue and a blue
+    'o' marker at its origin `(0, 0)` (top-left corner) — the same style
+    `subimage_bounds_plot()` uses for a source image — plus a red arrow
+    along the x-axis and a green arrow along the y-axis, both starting
+    from that origin, making the top-left-origin, y-increases-downward
+    pixel convention used throughout this codebase explicit, labeled with
+    the calligraphic frame symbol "F" just above and to the left of the
+    origin marker. The "x"/"y" axis labels sit in the margin outside the
+    blue frame, rather than on top of it, so they don't overlap its
+    border.
+
+    Args:
+        image: Source 2D grayscale image array.
+        path: Output file path for the figure; format is inferred from
+            the extension by matplotlib's savefig (e.g. .png), not
+            dictk's own write/write_svg.
+        dpi: Resolution of the saved figure.
+    """
+    image_height, image_width = image.shape
+    axis_length = min(image_width, image_height) * 0.2
+
+    margin = max(image_width, image_height) * 0.05
+    # The "x"/"y" labels need enough margin to sit clear of both the blue
+    # frame and the axes spine; the label's rendered size only depends on
+    # its font size and the data-units-per-inch scale figsize is built
+    # from, not on image size, so a small image's default margin (5% of
+    # its own dimensions) can otherwise be too little to fit it.
+    label_font_size = 12
+    frame_label_font_size = 14
+    min_margin_for_labels = (
+        max(label_font_size, frame_label_font_size) * 2.2 / 72 * _FIGURE_PIXELS_PER_INCH
+    )
+    margin = max(margin, min_margin_for_labels)
+
+    x_min, x_max = -margin, image_width + margin
+    y_min, y_max = -margin, image_height + margin
+
+    panel_width = (x_max - x_min) / _FIGURE_PIXELS_PER_INCH
+    panel_height = (y_max - y_min) / _FIGURE_PIXELS_PER_INCH
+    fig, (ax_left, ax_right) = plt.subplots(
+        1, 2, figsize=(panel_width * 2, panel_height), constrained_layout=True
+    )
+
+    for ax in (ax_left, ax_right):
+        ax.imshow(
+            image,
+            cmap="gray",
+            origin="upper",
+            extent=(0, image_width, image_height, 0),
+        )
+        ax.set_xlim(x_min, x_max)
+        ax.set_ylim(y_max, y_min)  # inverted: image y increases downward
+
+    ax_left.set_title("image")
+    ax_left.axis("off")
+
+    ax_right.set_xlabel("x (pixels)")
+    ax_right.set_ylabel("y (pixels)")
+
+    ax_right.add_patch(
+        patches.Rectangle(
+            (0, 0),
+            image_width,
+            image_height,
+            edgecolor="blue",
+            facecolor="none",
+            linewidth=1.5,
+        )
+    )
+    ax_right.plot(0, 0, marker="o", color="blue", markersize=8)
+
+    # Frame label sits just above and to the left of the origin marker,
+    # in the empty diagonal corner the x-/y-axis arrows leave untouched.
+    frame_label_offset = margin * 0.35
+    ax_right.text(
+        -frame_label_offset,
+        -frame_label_offset,
+        r"$\mathcal{F}$",
+        color="blue",
+        fontsize=frame_label_font_size,
+        ha="right",
+        va="bottom",
+    )
+
+    # Labels sit centered in the margin strip between the blue frame and
+    # the axes spine, rather than at the arrowhead itself, so they don't
+    # touch either (the arrows run flush along the top/left edges of the
+    # frame's border).
+    label_offset = margin / 2
+    for axis_head, label_pos, color, label, ha, va in (
+        ((axis_length, 0), (axis_length, -label_offset), "red", "x", "center", "bottom"),
+        ((0, axis_length), (-label_offset, axis_length), "green", "y", "right", "center"),
+    ):
+        ax_right.annotate(
+            "",
+            xy=axis_head,
+            xytext=(0, 0),
+            arrowprops={"color": color, "width": 1.5, "headwidth": 8, "shrink": 0},
+        )
+        ax_right.text(*label_pos, label, color=color, fontsize=label_font_size, ha=ha, va=va)
+
+    ax_right.set_title("reference frame")
+
+    plt.savefig(path, dpi=dpi, bbox_inches="tight")
+    plt.close(fig)
+
+
 def checkerboard(
     *, width: int, height: int, count_x: int = 8, count_y: int = 8
 ) -> np.ndarray:

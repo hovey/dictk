@@ -15,6 +15,7 @@ from dictk.image import (
     crack_dislocation,
     describe,
     point_plot,
+    reference_frame_plot,
     subimage_plot,
     subimage_bounds_plot,
     subimage_comparison_plot,
@@ -649,3 +650,19 @@ def test_point_plot_empty_arrows_raises(tmp_path: Path):
     arr = checkerboard(width=40, height=40)
     with pytest.raises(ValueError):
         point_plot(image=arr, arrows=[], path=tmp_path / "out.png")
+
+
+def test_reference_frame_plot_writes_file(tmp_path: Path):
+    arr = checkerboard(width=300, height=300)
+    path = tmp_path / "reference_frame.png"
+    reference_frame_plot(image=arr, path=path)
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_reference_frame_plot_non_square_image(tmp_path: Path):
+    arr = checkerboard(width=200, height=100)
+    path = tmp_path / "reference_frame.png"
+    reference_frame_plot(image=arr, path=path)
+    assert path.exists()
+    assert path.stat().st_size > 0
