@@ -180,43 +180,56 @@
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="subimage-generation"><a class="header" href="#subimage-generation">Subimage Generation</a></h1>
+<p>Now we consider extracting a <strong>subimage</strong> from a
+subject image. A subimage is a useful precursor to image computation:
+narrowing the data down to a region of interest makes the computation
+more efficient than considering the full image.</p>
+<h2 id="reference-frames"><a class="header" href="#reference-frames">Reference Frames</a></h2>
+<p>When we have just a single image, we have a single, trivial reference
+frame <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathcal" style="margin-right:0.09931em;">F</span></span></span></span>: origin <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span></span></span></span> (blue dot) at the top-left corner, with
+the <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span>-axis (red) running left-to-right and the <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>-axis (green)
+running top-to-bottom. <code>origin</code>, and every pixel coordinate on this
+page, is expressed in this frame — one that's always implicitly
+present, even in the left panel below where nothing is drawn to show
+it. <code>astronaut0</code> here is the same reference image created in <a href="./image_generation.html#speckle--astronaut">Image
+Generation</a>:</p>
+<pre><code class="language-python">from dictk.image import read, reference_frame_plot
+
+astronaut0 = read(path="astronaut0.png")
+reference_frame_plot(image=astronaut0, path="reference_frame.png")
+</code></pre>
+<pre><code class="language-text">Saved: reference_frame.png
+</code></pre>
+<figure>
+    <img src="reference_frame.png" alt="left: astronaut0 alone with no annotation; right: the same image with a blue box around its 300x300 bounds, a blue dot at the origin, and red/green arrows marking the x- and y-axes" />
+    <figcaption>Left: <code>astronaut0</code> (300x300 pixels) alone. Right: the same image with its reference frame <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathcal" style="margin-right:0.09931em;">F</span></span></span></span> made explicit and labeled near the origin — origin <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span></span></span></span> (blue dot) at the top-left corner, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span>-axis (red), and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>-axis (green), used throughout this page.</figcaption>
+</figure>
+<p>When we extract a subimage from an image, it is useful to be explicit
+about reference frames: the subimage has its own frame <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7805em;vertical-align:-0.0972em;"></span><span class="mord mathcal" style="margin-right:0.0593em;">G</span></span></span></span>,
+located within the image's frame <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathcal" style="margin-right:0.09931em;">F</span></span></span></span>. The <a href="#python-api">Python
+API</a> section below demonstrates this concept.</p>
+<h2 id="python-api"><a class="header" href="#python-api">Python API</a></h2>
 <p><a href="../api/dictk/image.html#subimage"><code>dictk.image.subimage</code></a> extracts a
 rectangular crop from a source image: a <code>width</code> x <code>height</code> region whose
-top-left corner sits at <code>origin</code>, expressed in the source image's own
-pixel reference frame (top-left corner <code>(0, 0)</code>). <code>origin</code> may place the
-requested region partially or completely outside the source image —
-rather than raising an error, <code>subimage</code> fills whatever doesn't overlap
-with black (zero) pixels, so the result is always a well-formed
-<code>height x width</code> array. This is the building block later tutorials use to
-pull a kernel or search area out of a larger reference/current image pair
-around a point of interest.</p>
-<h2 id="reference-image"><a class="header" href="#reference-image">Reference image</a></h2>
-<p>The examples below reuse <code>astronaut0</code>, the speckle pattern combined with
-the astronaut photo introduced in <a href="./image_generation.html#speckle--astronaut">Image
-Generation</a>:</p>
-<pre><code class="language-python">import dictk
-from dictk.image import combine, write
-
-speckle = dictk.rosta(width=300, height=300, density=0.5)
-photo = dictk.astronaut(width=300, height=300)
-astronaut0 = combine(a=speckle, b=photo)
-write(arr=astronaut0, path="astronaut0.png")
-</code></pre>
-<pre><code class="language-text">Saved image: astronaut0.png
-</code></pre>
-<h2 id="python-api"><a class="header" href="#python-api">Python API</a></h2>
+top-left corner sits at <code>origin</code>. <code>origin</code> may place the requested
+region partially or completely outside the source image — rather than
+raising an error, <code>subimage</code> fills whatever doesn't overlap with black
+(zero) pixels, so the result is always a well-formed <code>height x width</code>
+array. This is the building block later tutorials use to pull a kernel
+or search area out of a larger reference/current image pair around a
+point of interest.</p>
 <p><a href="../api/dictk/image.html#PixelCoordinate"><code>dictk.image.PixelCoordinate</code></a>
 is a simple <code>(x, y)</code> NamedTuple used for <code>origin</code>.
 <a href="../api/dictk/image.html#subimage"><code>dictk.image.subimage</code></a> itself
-returns the cropped array directly, with no file written. The examples
-below use
+returns the cropped array directly, with no file written.</p>
+<p>The examples below use
 <a href="../api/dictk/image.html#subimage_comparison_plot"><code>subimage_comparison_plot</code></a>,
 which saves a two-panel figure: the left panel shows where the region
 falls relative to the source image (blue/red boxes), and the right panel
-shows the extracted result on its own, in its own local reference frame —
-top-left corner <code>(0, 0)</code> — sharing the <em>same</em> axis limits as the left
-panel so the two red boxes render at matching scale. It's built from two
-smaller single-panel functions, also available individually:
+shows the extracted result on its own, in its own local frame
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7805em;vertical-align:-0.0972em;"></span><span class="mord mathcal" style="margin-right:0.0593em;">G</span></span></span></span> — sharing the <em>same</em> axis limits as the left panel so the
+two red boxes render at matching scale. It's built from two smaller
+single-panel functions, also available individually:
 <a href="../api/dictk/image.html#subimage_bounds_plot"><code>subimage_bounds_plot</code></a>
 (the left panel alone) and
 <a href="../api/dictk/image.html#subimage_plot"><code>subimage_plot</code></a> (the right
@@ -227,8 +240,7 @@ the source image's scale).</p>
 <a href="../api/dictk/image.html#subimage_comparison_plot"><code>subimage_comparison_plot</code></a>
 draws both panels side by side, sharing the <em>same</em> axis limits, so the
 red box in the right panel renders at identical scale to the one on the
-left — instead of the right panel zooming in to fit just the 80x80
-crop:</p>
+left.</p>
 <pre><code class="language-python">from dictk.image import PixelCoordinate, subimage_comparison_plot
 
 origin = PixelCoordinate(x=100, y=40)
@@ -238,7 +250,7 @@ subimage_comparison_plot(image=astronaut0, origin=origin, width=80, height=80, p
 </code></pre>
 <figure>
     <img src="subimage_comparison_80w_by_80h_at_100_40.png" alt="square subimage, fully inside, source and extraction side by side at matching scale" />
-    <figcaption>Left: square subimage (80x80) at origin (100, 40), lying entirely within the source image bounds. The blue 'o' is the origin of the source image (0, 0); the red 'o' is the origin of the subimage in the source image's reference frame (100, 40). Right: the same subimage extracted on its own, in its own local reference frame — the red 'o' here is (0, 0).</figcaption>
+    <figcaption>Left: image (reference frame <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathcal" style="margin-right:0.09931em;">F</span></span></span></span>, blue), showing square subimage (80x80), origin <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">Q</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">100</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">40</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathcal mtight" style="margin-right:0.09931em;">F</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, lying entirely within the source image bounds. The blue dot is the origin of the source image (0, 0); the red dot is the origin of the subimage in the source image's reference frame (100, 40). Right: subimage (reference frame <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7805em;vertical-align:-0.0972em;"></span><span class="mord mathcal" style="margin-right:0.0593em;">G</span></span></span></span>, red), origin <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">Q</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">0</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathcal mtight" style="margin-right:0.0593em;">G</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2181em;"><span></span></span></span></span></span></span></span></span></span>.</figcaption>
 </figure>
 <h3 id="rectangle-fully-inside"><a class="header" href="#rectangle-fully-inside">Rectangle, fully inside</a></h3>
 <p>A 180x70 region — wider than it is tall — also entirely within the
@@ -252,7 +264,7 @@ subimage_comparison_plot(image=astronaut0, origin=origin, width=180, height=70, 
 </code></pre>
 <figure>
     <img src="subimage_comparison_180w_by_70h_at_50_200.png" alt="rectangular subimage, fully inside, source and extraction side by side at matching scale" />
-    <figcaption>Left: rectangular subimage (180x70) at origin (50, 200), lying entirely within the source image bounds. The blue 'o' is the origin of the source image (0, 0); the red 'o' is the origin of the subimage in the source image's reference frame (50, 200). Right: the same subimage extracted on its own, in its own local reference frame — the red 'o' here is (0, 0).</figcaption>
+    <figcaption>Left: image (reference frame <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathcal" style="margin-right:0.09931em;">F</span></span></span></span>, blue), showing rectangular subimage (180x70), origin <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">Q</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">50</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">200</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathcal mtight" style="margin-right:0.09931em;">F</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, lying entirely within the source image bounds. The blue dot is the origin of the source image (0, 0); the red dot is the origin of the subimage in the source image's reference frame (50, 200). Right: subimage (reference frame <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7805em;vertical-align:-0.0972em;"></span><span class="mord mathcal" style="margin-right:0.0593em;">G</span></span></span></span>, red), origin <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">Q</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">0</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathcal mtight" style="margin-right:0.0593em;">G</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2181em;"><span></span></span></span></span></span></span></span></span></span>.</figcaption>
 </figure>
 <h3 id="partially-outside"><a class="header" href="#partially-outside">Partially outside</a></h3>
 <p>A 120x120 region with a negative origin, straddling the source image's
@@ -267,7 +279,7 @@ subimage_comparison_plot(image=astronaut0, origin=origin, width=120, height=120,
 </code></pre>
 <figure>
     <img src="subimage_comparison_120w_by_120h_at_-20_-40.png" alt="subimage partially outside bounds, source and extraction side by side at matching scale" />
-    <figcaption>Left: subimage (120x120) at origin (-20, -40), lying partially outside the source image bounds (straddling its top-left corner). The blue 'o' is the origin of the source image (0, 0); the red 'o' is the origin of the subimage in the source image's reference frame (-20, -40). Right: the same subimage extracted on its own, in its own local reference frame — the red 'o' here is (0, 0); the black band along the top and left is zero-padding, where the requested region fell outside <code>astronaut0</code>.</figcaption>
+    <figcaption>Left: image (reference frame <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathcal" style="margin-right:0.09931em;">F</span></span></span></span>, blue), showing subimage (120x120), origin <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">Q</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">−</span><span class="mord">20</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">−</span><span class="mord">40</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathcal mtight" style="margin-right:0.09931em;">F</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, lying partially outside the source image bounds (straddling its top-left corner). The blue dot is the origin of the source image (0, 0); the red dot is the origin of the subimage in the source image's reference frame (-20, -40). Right: subimage (reference frame <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7805em;vertical-align:-0.0972em;"></span><span class="mord mathcal" style="margin-right:0.0593em;">G</span></span></span></span>, red), origin <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">Q</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">0</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathcal mtight" style="margin-right:0.0593em;">G</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2181em;"><span></span></span></span></span></span></span></span></span></span>; the black band along the top and left is zero-padding, where the requested region fell outside <code>astronaut0</code>.</figcaption>
 </figure>
 <h3 id="completely-outside"><a class="header" href="#completely-outside">Completely outside</a></h3>
 <p>A 40x100 region entirely beyond the source image's bounds — its x-range
@@ -282,7 +294,7 @@ subimage_comparison_plot(image=astronaut0, origin=origin, width=40, height=100, 
 </code></pre>
 <figure>
     <img src="subimage_comparison_40w_by_100h_at_310_250.png" alt="subimage completely outside bounds, source and extraction side by side at matching scale" />
-    <figcaption>Left: subimage (40x100) at origin (310, 250), lying entirely outside the source image bounds. The blue 'o' is the origin of the source image (0, 0); the red 'o' is the origin of the subimage in the source image's reference frame (310, 250). Right: the same subimage extracted on its own, in its own local reference frame — the red 'o' here is (0, 0); entirely zero-padded black, since none of the requested region overlapped <code>astronaut0</code>.</figcaption>
+    <figcaption>Left: image (reference frame <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathcal" style="margin-right:0.09931em;">F</span></span></span></span>, blue), showing subimage (40x100), origin <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">Q</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">310</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">250</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathcal mtight" style="margin-right:0.09931em;">F</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, lying entirely outside the source image bounds. The blue dot is the origin of the source image (0, 0); the red dot is the origin of the subimage in the source image's reference frame (310, 250). Right: subimage (reference frame <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7805em;vertical-align:-0.0972em;"></span><span class="mord mathcal" style="margin-right:0.0593em;">G</span></span></span></span>, red), origin <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">Q</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">0</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathcal mtight" style="margin-right:0.0593em;">G</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2181em;"><span></span></span></span></span></span></span></span></span></span>; entirely zero-padded black, since none of the requested region overlapped <code>astronaut0</code>.</figcaption>
 </figure>
 
                     </main>
