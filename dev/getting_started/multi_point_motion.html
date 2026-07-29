@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Image Processing - dictk User Guide</title>
+        <title>Multi-Point Motion - dictk User Guide</title>
 
 
         <!-- Custom HTML head -->
@@ -179,18 +179,115 @@
                 <div id="content" class="content">
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="image-processing"><a class="header" href="#image-processing">Image Processing</a></h1>
-<p><em>(placeholder — coming soon)</em></p>
+<h1 id="multi-point-motion"><a class="header" href="#multi-point-motion">Multi-Point Motion</a></h1>
+<p><a href="./single_point_motion.html">Single Point Motion</a> tracked exactly one point,
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span>, between a reference and current image. Real digital image correlation
+work needs to track <em>many</em> points at once — a whole collection of tracked
+points is exactly what a <strong>finite element mesh</strong>'s nodes are built from.
+This page shows how to track many points simultaneously, and motivates the
+connection to the <strong>Finite Element Method (FEM)</strong>.</p>
+<h2 id="point-grid"><a class="header" href="#point-grid">Point Grid</a></h2>
+<p>A grid of points spans some number of points along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>,
+with some spacing between adjacent points along each axis.
+<a href="../api/dictk/grid.html#generate"><code>dictk.grid.generate</code></a> builds one: the
+count of points along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> need not be equal, and the
+spacing along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> need not be equal either — this is a
+general rectangular collection of points, not necessarily a square or
+uniformly-spaced one.</p>
+<p>This page reuses <code>astronaut0</code>, the speckle pattern combined with the
+astronaut photograph introduced in <a href="./image_generation.html#speckle--astronaut">Image
+Generation</a> — the same kind of
+reference image <a href="./single_point_motion.html">Single Point Motion</a> used
+<code>checkerboard0</code> for, just a different one, to keep some visual variety
+across this guide:</p>
+<pre><code class="language-python">from dictk.image import read, PixelCoordinate, point_grid_plot
+from dictk.grid import generate
+
+reference_image = read(path="astronaut0.png")
+
+points = generate(
+    origin=PixelCoordinate(x=50, y=50),
+    count_x=5,
+    count_y=4,
+    spacing_x=45,
+    spacing_y=55,
+)
+point_grid_plot(
+    image=reference_image,
+    points=points,
+    figsize=(6.4, 4.8),
+    path="multi_point_motion_grid.png",
+)
+</code></pre>
+<pre><code class="language-text">Saved: multi_point_motion_grid.png
+</code></pre>
+<figure>
+    <img src="multi_point_motion_grid.png" alt="reference image astronaut0 with a 5x4 grid of 20 numbered points overlaid, labeled 00 through 19 in row-major order" />
+    <figcaption>Reference image <code>astronaut0</code> with a 5x4 grid of 20 points (<code>count_x=5</code>, <code>count_y=4</code>), spaced 45 pixels apart along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and 55 pixels apart along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> (<code>spacing_x=45</code>, <code>spacing_y=55</code>), labeled 00-19 in row-major order (top-left to bottom-right).</figcaption>
+</figure>
+<h2 id="finite-element-method"><a class="header" href="#finite-element-method">Finite Element Method</a></h2>
+<p>A finite element mesh is a collection of <strong>nodes</strong> (points) connected into
+<strong>elements</strong> — small regions used to interpolate a quantity of interest
+(e.g. displacement) across the whole domain. The point grid above is
+exactly the kind of nodal point collection a mesh needs: to build a mesh
+that tracks how an object deforms, first find where every one of its
+nodes moved to.</p>
+<p><a href="../api/dictk/grid.html#locate"><code>dictk.grid.locate</code></a> does this: it calls
+<a href="../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> once
+per point, returning every found position in one batched call, in the
+same order as the points given to it. Reusing the same rigid-body
+translation <a href="./single_point_motion.html">Single Point Motion</a> introduced
+(<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03785em;">δ</span><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">−</span><span class="mord">6</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">8</span><span class="mclose">)</span></span></span></span> pixels), now applied to <code>astronaut0</code> and
+every point in the grid at once:</p>
+<pre><code class="language-python">from dictk.image import translate
+from dictk.grid import locate
+
+dx, dy = -6, 8
+current_image = translate(arr=reference_image, dx=dx, dy=dy)
+
+found = locate(
+    reference_image=reference_image,
+    current_image=current_image,
+    reference_points=points,
+    kernel_margin_width=15,
+    kernel_margin_height=15,
+    search_margin_width=30,
+    search_margin_height=30,
+)
+point_grid_plot(
+    image=current_image,
+    points=found,
+    figsize=(6.4, 4.8),
+    path="multi_point_motion_found.png",
+)
+</code></pre>
+<pre><code class="language-text">Saved: multi_point_motion_found.png
+</code></pre>
+<figure>
+    <img src="multi_point_motion_found.png" alt="current image astronaut0 shifted by (-6, 8) pixels, with the 20 found points overlaid at their new positions, still labeled 00 through 19" />
+    <figcaption>Current image, translated by <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03785em;">δ</span><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">−</span><span class="mord">6</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">8</span><span class="mclose">)</span></span></span></span> pixels, with all 20 points' found positions -- every one recovers the same known displacement, confirming rigid-body motion across the whole grid at once, not just at a single point.</figcaption>
+</figure>
+<p>Choosing a kernel size relative to point spacing is a tradeoff: a kernel
+needs to be large enough to contain enough distinctive texture to locate
+reliably, but small enough that neighboring kernels don't just duplicate
+each other's content. A common rule of thumb (with no hard requirement
+behind it) is to space points roughly half a kernel's side length apart,
+close to the <code>kernel_margin_width=15</code>/<code>spacing_x=45</code> ratio used above.</p>
+<p>Once every node's current position is known, an actual finite element
+mesh still needs one more thing this page doesn't provide: <strong>element
+connectivity</strong> — which nodes join together into which elements. Building
+that connectivity, and the element formulation it enables (shape
+functions, strain, stress), is future work, not implemented here.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../getting_started/multi_point_motion.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../getting_started/cc_fft.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../contributing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../getting_started/processing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -200,11 +297,11 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../getting_started/multi_point_motion.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../getting_started/cc_fft.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../contributing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../getting_started/processing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
