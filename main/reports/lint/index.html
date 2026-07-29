@@ -13,16 +13,34 @@
 <p>Informational only: pylint runs alongside ruff (which gates CI) purely to
 produce this report and the README's pylint score badge. See
 <a href="https://github.com/hovey/dictk/blob/main/CONTRIBUTING.md#running-pylint-informational">CONTRIBUTING.md</a>.</p>
-<pre>************* Module dictk.rosta
+<pre>************* Module dictk.translation
+src/dictk/translation.py:4:0: E0611: No name &#x27;phase_cross_correlation&#x27; in module &#x27;skimage.registration&#x27; (no-name-in-module)
+src/dictk/translation.py:9:0: R0913: Too many arguments (8/5) (too-many-arguments)
+src/dictk/translation.py:9:0: R0914: Too many local variables (22/15) (too-many-locals)
+************* Module dictk.rosta
 src/dictk/rosta.py:99:0: R0913: Too many arguments (6/5) (too-many-arguments)
 ************* Module dictk.cli
 src/dictk/cli.py:20:0: R0913: Too many arguments (6/5) (too-many-arguments)
 src/dictk/cli.py:20:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
+************* Module dictk.image
+src/dictk/image.py:1:0: C0302: Too many lines in module (1468/1000) (too-many-lines)
+src/dictk/image.py:93:0: R0913: Too many arguments (6/5) (too-many-arguments)
+src/dictk/image.py:93:0: R0914: Too many local variables (16/15) (too-many-locals)
+src/dictk/image.py:189:0: R0913: Too many arguments (6/5) (too-many-arguments)
+src/dictk/image.py:262:0: R0913: Too many arguments (14/5) (too-many-arguments)
+src/dictk/image.py:262:0: R0914: Too many local variables (32/15) (too-many-locals)
+src/dictk/image.py:262:0: R0915: Too many statements (58/50) (too-many-statements)
+src/dictk/image.py:551:0: R0913: Too many arguments (8/5) (too-many-arguments)
+src/dictk/image.py:551:0: R0914: Too many local variables (28/15) (too-many-locals)
+src/dictk/image.py:710:0: R0914: Too many local variables (28/15) (too-many-locals)
+src/dictk/image.py:1410:0: R0913: Too many arguments (7/5) (too-many-arguments)
+src/dictk/image.py:1410:0: R0914: Too many local variables (19/15) (too-many-locals)
+src/dictk/image.py:1460:8: W0632: Possible unbalanced tuple unpacking with sequence defined at line 2 of : left side has 2 labels, right side has 1 value (unbalanced-tuple-unpacking)
 
 
 Report
 ======
-293 statements analysed.
+585 statements analysed.
 
 Statistics by type
 ------------------
@@ -30,13 +48,13 @@ Statistics by type
 +---------+-------+-----------+-----------+------------+---------+
 |type     |number |old number |difference |%documented |%badname |
 +=========+=======+===========+===========+============+=========+
-|module   |5      |NC         |NC         |100.00      |0.00     |
+|module   |6      |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
-|class    |2      |NC         |NC         |100.00      |0.00     |
+|class    |6      |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
 |method   |1      |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
-|function |31     |NC         |NC         |100.00      |0.00     |
+|function |45     |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
 
 
@@ -46,17 +64,21 @@ External dependencies
 ::
 
     imageio 
-      \-v3 (dictk.imaging)
+      \-v3 (dictk.image)
     matplotlib 
-      \-pyplot (dictk.imaging)
-    numpy (dictk.cli,dictk.core,dictk.imaging,dictk.rosta)
+      \-patches (dictk.image)
+      \-patheffects (dictk.image)
+      \-pyplot (dictk.image)
+    numpy (dictk.cli,dictk.correlation,dictk.image,dictk.rosta,dictk.translation)
     scipy 
-      \-interpolate (dictk.imaging)
-      \-ndimage (dictk.imaging,dictk.rosta)
+      \-interpolate (dictk.image)
+      \-ndimage (dictk.image,dictk.rosta)
+    skimage 
+      \-registration (dictk.translation)
 
 
 
-1064 lines have been analyzed
+2290 lines have been analyzed
 
 Raw metrics
 -----------
@@ -64,13 +86,13 @@ Raw metrics
 +----------+-------+------+---------+-----------+
 |type      |number |%     |previous |difference |
 +==========+=======+======+=========+===========+
-|code      |459    |43.14 |NC       |NC         |
+|code      |1036   |45.24 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|docstring |457    |42.95 |NC       |NC         |
+|docstring |920    |40.17 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|comment   |14     |1.32  |NC       |NC         |
+|comment   |106    |4.63  |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|empty     |134    |12.59 |NC       |NC         |
+|empty     |228    |9.96  |NC       |NC         |
 +----------+-------+------+---------+-----------+
 
 
@@ -94,13 +116,13 @@ Messages by category
 +-----------+-------+---------+-----------+
 |type       |number |previous |difference |
 +===========+=======+=========+===========+
-|convention |0      |NC       |NC         |
+|convention |1      |NC       |NC         |
 +-----------+-------+---------+-----------+
-|refactor   |3      |NC       |NC         |
+|refactor   |16     |NC       |NC         |
 +-----------+-------+---------+-----------+
-|warning    |0      |NC       |NC         |
+|warning    |1      |NC       |NC         |
 +-----------+-------+---------+-----------+
-|error      |0      |NC       |NC         |
+|error      |1      |NC       |NC         |
 +-----------+-------+---------+-----------+
 
 
@@ -108,13 +130,17 @@ Messages by category
 % errors / warnings by module
 -----------------------------
 
-+------------+------+--------+---------+-----------+
-|module      |error |warning |refactor |convention |
-+============+======+========+=========+===========+
-|dictk.cli   |0.00  |0.00    |66.67    |0.00       |
-+------------+------+--------+---------+-----------+
-|dictk.rosta |0.00  |0.00    |33.33    |0.00       |
-+------------+------+--------+---------+-----------+
++------------------+-------+--------+---------+-----------+
+|module            |error  |warning |refactor |convention |
++==================+=======+========+=========+===========+
+|dictk.translation |100.00 |0.00    |12.50    |0.00       |
++------------------+-------+--------+---------+-----------+
+|dictk.image       |0.00   |100.00  |68.75    |100.00     |
++------------------+-------+--------+---------+-----------+
+|dictk.cli         |0.00   |0.00    |12.50    |0.00       |
++------------------+-------+--------+---------+-----------+
+|dictk.rosta       |0.00   |0.00    |6.25     |0.00       |
++------------------+-------+--------+---------+-----------+
 
 
 
@@ -124,16 +150,26 @@ Messages
 +------------------------------+------------+
 |message id                    |occurrences |
 +==============================+============+
-|too-many-arguments            |2           |
+|too-many-arguments            |8           |
++------------------------------+------------+
+|too-many-locals               |6           |
++------------------------------+------------+
+|unbalanced-tuple-unpacking    |1           |
++------------------------------+------------+
+|too-many-statements           |1           |
 +------------------------------+------------+
 |too-many-positional-arguments |1           |
++------------------------------+------------+
+|too-many-lines                |1           |
++------------------------------+------------+
+|no-name-in-module             |1           |
 +------------------------------+------------+
 
 
 
 
 -----------------------------------
-Your code has been rated at 9.90/10
+Your code has been rated at 9.61/10
 </pre>
 </body>
 </html>
