@@ -622,7 +622,9 @@ def test_subimage_comparison_plot_with_point_color_writes_file(tmp_path: Path):
     assert path.stat().st_size > 0
 
 
-def test_subimage_comparison_plot_with_point_and_origin_labels_writes_file(tmp_path: Path):
+def test_subimage_comparison_plot_with_point_and_origin_labels_writes_file(
+    tmp_path: Path,
+):
     arr = checkerboard(width=200, height=200)
     path = tmp_path / "comparison_with_labels.png"
     subimage_comparison_plot(
@@ -664,6 +666,21 @@ def test_subimage_comparison_plot_with_color_writes_file(tmp_path: Path):
         width=80,
         height=60,
         color="orange",
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_subimage_comparison_plot_with_figsize_writes_file(tmp_path: Path):
+    arr = checkerboard(width=200, height=200)
+    path = tmp_path / "comparison_with_figsize.png"
+    subimage_comparison_plot(
+        image=arr,
+        origin=PixelCoordinate(x=20, y=40),
+        width=80,
+        height=60,
+        figsize=(6.4, 4.8),
         path=path,
     )
     assert path.exists()
@@ -775,7 +792,9 @@ def test_point_plot_with_points_writes_file(tmp_path: Path):
             )
         ],
         points=[
-            PointAnnotation(position=PixelCoordinate(x=0, y=0), label="$O$", color="blue"),
+            PointAnnotation(
+                position=PixelCoordinate(x=0, y=0), label="$O$", color="blue"
+            ),
             PointAnnotation(
                 position=PixelCoordinate(x=100, y=75), label="$P$", color="black"
             ),
@@ -800,6 +819,27 @@ def test_point_plot_without_legend_writes_file(tmp_path: Path):
             )
         ],
         legend=False,
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_plot_with_figsize_writes_file(tmp_path: Path):
+    arr = checkerboard(width=40, height=40)
+    path = tmp_path / "points_figsize.png"
+    point_plot(
+        image=arr,
+        arrows=[
+            ArrowAnnotation(
+                tail=PixelCoordinate(x=0, y=0),
+                head=PixelCoordinate(x=20, y=20),
+                color="blue",
+                label="arrow",
+            )
+        ],
+        legend=False,
+        figsize=(6.4, 4.8),
         path=path,
     )
     assert path.exists()

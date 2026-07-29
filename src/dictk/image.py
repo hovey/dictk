@@ -273,6 +273,7 @@ def subimage_comparison_plot(
     color: str = "red",
     origin_label: str | None = None,
     source_origin_label: str | None = None,
+    figsize: tuple[float, float] | None = None,
     dpi: int = 300,
 ) -> None:
     """Save a side-by-side comparison of a subimage's placement and its extraction.
@@ -321,6 +322,12 @@ def subimage_comparison_plot(
             drawn next to `image`'s own origin marker (the blue dot),
             on the left panel only -- the right panel has no equivalent
             marker for it.
+        figsize: Optional (width, height) in inches for the saved figure
+            (both panels combined). By default the canvas is sized from
+            `image`/the subimage's own data extent (so a small subimage
+            yields a small figure); pass this to override with a fixed
+            size instead -- e.g. matplotlib's own default, `(6.4, 4.8)`,
+            where its default font sizes and line widths look as intended.
         dpi: Resolution of the saved figure.
 
     Raises:
@@ -335,30 +342,40 @@ def subimage_comparison_plot(
     image_height, image_width = image.shape
 
     margin = max(width, height, image_width, image_height) * 0.05
-    if source_origin_label is not None or origin_label is not None:
-        # source_origin_label/origin_label sit just up-right of a marker at
-        # (0, 0) -- the top-left corner of the panel's own content -- so
-        # "up" lands in this margin, above the panel title. The default
-        # margin (5% of the content) can be too thin to fit a 12pt label
-        # there without touching the title, regardless of image size, so
-        # widen it enough to fit one when either label is in use.
-        margin = max(margin, (12 * 2.2) / 72 * _FIGURE_PIXELS_PER_INCH)
-    x_min = min(0, origin.x) - margin
-    x_max = max(image_width, origin.x + width) + margin
-    y_min = min(0, origin.y) - margin
-    y_max = max(image_height, origin.y + height) + margin
-
     # Small up-right offset for marker labels, so label text doesn't sit
     # directly on top of its own marker.
     label_offset = max(image_width, image_height) * 0.03
+    label_font_size = 12
+    # source_origin_label/origin_label sit just up-right of a marker at
+    # (0, 0) -- the top-left corner of the panel's own content -- so only
+    # the top margin (where a label there would land, above the panel
+    # title) needs widening to fit one; left/right/bottom stay at the
+    # default margin instead of also carrying that extra, unused space.
+    # Anchored so the label's own bottom edge sits `label_offset` above
+    # the marker (matching the gap already below the marker, down to the
+    # box edge at y=0) and its top edge sits that same `label_offset`
+    # below the panel's own top border -- the same gap on both sides of
+    # the label, rather than a fixed multiple of the font size that
+    # doesn't relate to the marker's own gap below.
+    top_margin = margin
+    if source_origin_label is not None or origin_label is not None:
+        label_text_height = label_font_size / 72 * _FIGURE_PIXELS_PER_INCH
+        top_margin = max(margin, 2 * label_offset + label_text_height)
+    x_min = min(0, origin.x) - margin
+    x_max = max(image_width, origin.x + width) + margin
+    y_min = min(0, origin.y) - top_margin
+    y_max = max(image_height, origin.y + height) + margin
+
     # A thin white outline keeps every marker label legible against
     # whatever's directly behind it in the image content.
     label_outline = [patheffects.withStroke(linewidth=1, foreground="white")]
 
-    panel_width = (x_max - x_min) / _FIGURE_PIXELS_PER_INCH
-    panel_height = (y_max - y_min) / _FIGURE_PIXELS_PER_INCH
+    if figsize is None:
+        panel_width = (x_max - x_min) / _FIGURE_PIXELS_PER_INCH
+        panel_height = (y_max - y_min) / _FIGURE_PIXELS_PER_INCH
+        figsize = (panel_width * 2, panel_height)
     fig, (ax_left, ax_right) = plt.subplots(
-        1, 2, figsize=(panel_width * 2, panel_height), constrained_layout=True
+        1, 2, figsize=figsize, constrained_layout=True
     )
 
     ax_left.imshow(
@@ -394,7 +411,8 @@ def subimage_comparison_plot(
             -label_offset,
             source_origin_label,
             color="blue",
-            fontsize=12,
+            fontsize=label_font_size,
+            va="bottom",
             path_effects=label_outline,
         )
     if origin_label is not None:
@@ -403,7 +421,8 @@ def subimage_comparison_plot(
             origin.y - label_offset,
             origin_label,
             color=color,
-            fontsize=12,
+            fontsize=label_font_size,
+            va="bottom",
             path_effects=label_outline,
         )
     if point is not None and point_label is not None:
@@ -435,11 +454,21 @@ def subimage_comparison_plot(
     ax_right.plot(0, 0, marker="o", color=color, markersize=6)
     if point is not None:
         ax_right.plot(
-            point.x - origin.x, point.y - origin.y, marker="o", color=point_color, markersize=6
+            point.x - origin.x,
+            point.y - origin.y,
+            marker="o",
+            color=point_color,
+            markersize=6,
         )
     if origin_label is not None:
         ax_right.text(
-            label_offset, -label_offset, origin_label, color=color, fontsize=12, path_effects=label_outline
+            label_offset,
+            -label_offset,
+            origin_label,
+            color=color,
+            fontsize=label_font_size,
+            va="bottom",
+            path_effects=label_outline,
         )
     if point is not None and point_label is not None:
         ax_right.text(
@@ -526,6 +555,7 @@ def point_plot(
     boxes: Sequence[BoxAnnotation] = (),
     points: Sequence[PointAnnotation] = (),
     legend: bool = True,
+    figsize: tuple[float, float] | None = None,
     path: Path,
     dpi: int = 300,
 ) -> None:
@@ -553,6 +583,12 @@ def point_plot(
         legend: Whether to draw the arrow/box legend. Set to False when
             the arrow/box labels are already explained elsewhere (e.g. a
             figure caption) and would just clutter the figure.
+        figsize: Optional (width, height) in inches for the saved figure.
+            By default the canvas is sized from the annotations' own
+            data extent (so a small image yields a small figure); pass
+            this to override with a fixed size instead -- e.g.
+            matplotlib's own default, `(6.4, 4.8)`, where its default
+            font sizes and line widths look as intended.
         path: Output file path for the figure; format is inferred from the
             extension by matplotlib's savefig (e.g. .png), not dictk's own
             write/write_svg.
@@ -574,27 +610,35 @@ def point_plot(
     endpoints_x += [point.position.x for point in points]
     endpoints_y += [point.position.y for point in points]
     margin = max(image_width, image_height) * 0.05
-    if points:
-        # Point labels sit just up-right of their marker, so a point at
-        # (0, 0) -- the image's own top-left corner -- would have its
-        # label land in this margin, above the title. The default margin
-        # (5% of the image) can be too thin to fit a 12pt label there
-        # regardless of image size, so widen it enough to fit one.
-        margin = max(margin, (12 * 2.2) / 72 * _FIGURE_PIXELS_PER_INCH)
-    x_min = min(0, *endpoints_x) - margin
-    x_max = max(image_width, *endpoints_x) + margin
-    y_min = min(0, *endpoints_y) - margin
-    y_max = max(image_height, *endpoints_y) + margin
-
     # Small up-right offset for point labels, so label text doesn't sit
     # directly on top of its own marker.
     label_offset = max(image_width, image_height) * 0.03
+    label_font_size = 12
+    # Point labels sit just up-right of their marker, so only the top
+    # margin (where a label on a point near y=0 would land, above the
+    # title) needs widening to fit one; left/right/bottom stay at the
+    # default margin instead of also carrying that extra, unused space.
+    # Anchored so the label's own bottom edge sits `label_offset` above
+    # its marker (matching the gap already below the marker, e.g. down
+    # to a box edge at y=0) and its top edge sits that same
+    # `label_offset` below the figure's own top border -- the same gap
+    # on both sides of the label, rather than a fixed multiple of the
+    # font size that doesn't relate to the marker's own gap below.
+    top_margin = margin
+    if points:
+        label_text_height = label_font_size / 72 * _FIGURE_PIXELS_PER_INCH
+        top_margin = max(margin, 2 * label_offset + label_text_height)
+    x_min = min(0, *endpoints_x) - margin
+    x_max = max(image_width, *endpoints_x) + margin
+    y_min = min(0, *endpoints_y) - top_margin
+    y_max = max(image_height, *endpoints_y) + margin
     label_outline = [patheffects.withStroke(linewidth=1, foreground="white")]
 
-    figsize = (
-        (x_max - x_min) / _FIGURE_PIXELS_PER_INCH,
-        (y_max - y_min) / _FIGURE_PIXELS_PER_INCH,
-    )
+    if figsize is None:
+        figsize = (
+            (x_max - x_min) / _FIGURE_PIXELS_PER_INCH,
+            (y_max - y_min) / _FIGURE_PIXELS_PER_INCH,
+        )
     fig, ax = plt.subplots(figsize=figsize)
     ax.imshow(
         image, cmap="gray", origin="upper", extent=(0, image_width, image_height, 0)
@@ -634,7 +678,8 @@ def point_plot(
             point.position.y - label_offset,
             point.label,
             color=point.color,
-            fontsize=12,
+            fontsize=label_font_size,
+            va="bottom",
             path_effects=label_outline,
         )
     # ax.annotate's arrows don't register with the legend on their own, so
@@ -758,8 +803,22 @@ def reference_frame_plot(*, image: np.ndarray, path: Path, dpi: int = 300) -> No
     # frame's border).
     label_offset = margin / 2
     for axis_head, label_pos, color, label, ha, va in (
-        ((axis_length, 0), (axis_length, -label_offset), "red", "x", "center", "bottom"),
-        ((0, axis_length), (-label_offset, axis_length), "green", "y", "right", "center"),
+        (
+            (axis_length, 0),
+            (axis_length, -label_offset),
+            "red",
+            "x",
+            "center",
+            "bottom",
+        ),
+        (
+            (0, axis_length),
+            (-label_offset, axis_length),
+            "green",
+            "y",
+            "right",
+            "center",
+        ),
     ):
         ax_right.annotate(
             "",
@@ -767,7 +826,9 @@ def reference_frame_plot(*, image: np.ndarray, path: Path, dpi: int = 300) -> No
             xytext=(0, 0),
             arrowprops={"color": color, "width": 1.5, "headwidth": 8, "shrink": 0},
         )
-        ax_right.text(*label_pos, label, color=color, fontsize=label_font_size, ha=ha, va=va)
+        ax_right.text(
+            *label_pos, label, color=color, fontsize=label_font_size, ha=ha, va=va
+        )
 
     ax_right.set_title("reference frame")
 
