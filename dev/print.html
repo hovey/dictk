@@ -1676,13 +1676,11 @@ cargo install mdbook-katex --version 0.9.4
 <p>If you already have a newer <code>mdbook</code> from Homebrew or elsewhere on your
 <code>PATH</code>, make sure <code>~/.cargo/bin</code> comes first (or check <code>mdbook --version</code>
 reports <code>0.4.52</code> before building).</p>
-<pre><code class="language-bash"># mdbook-cmdrun resolves each cmdrun command's working directory relative
-# to the process's cwd, so you must `cd` into docs/userguide first — running
-# `mdbook build docs/userguide` from the repo root will fail with
-# "Fail to run shell".
-cd docs/userguide
-uv run mdbook build           # build once, output in docs/userguide/book/
-uv run mdbook serve           # live preview at http://localhost:3000
+<p><code>book.toml</code> lives at the repo root (not inside <code>docs/userguide/</code>), with
+<code>src = "docs/userguide/src"</code> and <code>build-dir = "docs/userguide/book"</code>, so
+both commands below run from the repo root:</p>
+<pre><code class="language-bash">uv run mdbook build           # build once, output in docs/userguide/book/
+uv run mdbook serve --open    # live preview at http://localhost:3000
 </code></pre>
 <p><code>uv run</code> puts dictk's own CLI on <code>PATH</code> for the build, since some
 <code>cmdrun</code> directives invoke <code>dictk</code> directly.</p>
@@ -1790,7 +1788,7 @@ the checks manually:</p>
 <pre><code class="language-bash">uv run ruff format --check
 uv run ruff check
 uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html
-(cd docs/userguide &amp;&amp; uv run mdbook build)
+uv run mdbook build
 uv run pdoc dictk dictk.image dictk.translation dictk.cli -o docs/api
 uv run genbadge coverage -i coverage.xml -o coverage-badge.svg
 uv run pylint src/dictk --output-format=text --reports=yes
