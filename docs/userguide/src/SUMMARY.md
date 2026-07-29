@@ -9,5 +9,6 @@
   - [Cross Correlation (CC)](./getting_started/cross_correlation.md)
   - [CC Visualization](./getting_started/cc_visualization.md)
   - [CC via FFT](./getting_started/cc_fft.md)
+- [Multi-Point Motion](./getting_started/multi_point_motion.md)
 - [Image Processing](./getting_started/processing.md)
 - [Contributing](./contributing.md)

@@ -1466,3 +1466,84 @@ def correlation_surfaces_plot(
 
     plt.savefig(path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
+
+
+def point_grid_plot(
+    *,
+    image: np.ndarray,
+    points: Sequence[PixelCoordinate],
+    color: str = "red",
+    figsize: tuple[float, float] | None = None,
+    path: Path,
+    dpi: int = 300,
+) -> None:
+    """Save a figure marking each of `points` on `image`, labeled by its own index.
+
+    Each point is drawn as a small marker, with its position in `points`
+    (its row-major index, e.g. from
+    [`dictk.grid.generate`](../grid.html#generate)) as a short zero-padded
+    label just up-right of the marker -- e.g. `points[0]` is labeled `"00"`,
+    `points[19]` is labeled `"19"`, for a 20-point collection.
+
+    Args:
+        image: Source 2D grayscale image array.
+        points: The points to mark, in the image's own pixel reference
+            frame. May be empty (an unmarked copy of `image` is saved).
+        color: Matplotlib color name for every marker and label.
+        figsize: Optional (width, height) in inches for the saved figure.
+            By default the canvas is sized from `image`/`points`' own data
+            extent; pass this to override with a fixed size instead.
+        path: Output file path for the figure; format is inferred from the
+            extension by matplotlib's savefig (e.g. .png), not dictk's own
+            write/write_svg.
+        dpi: Resolution of the saved figure.
+    """
+    image_height, image_width = image.shape
+
+    endpoints_x = [point.x for point in points]
+    endpoints_y = [point.y for point in points]
+    margin = max(image_width, image_height) * 0.05
+    # Small up-right offset for point labels, so label text doesn't sit
+    # directly on top of its own marker -- same convention as point_plot().
+    label_offset = max(image_width, image_height) * 0.03
+    label_font_size = 12
+    top_margin = margin
+    if points:
+        label_text_height = label_font_size / 72 * _FIGURE_PIXELS_PER_INCH
+        top_margin = max(margin, 2 * label_offset + label_text_height)
+    x_min = min(0, *endpoints_x, 0) - margin
+    x_max = max(image_width, *endpoints_x, image_width) + margin
+    y_min = min(0, *endpoints_y, 0) - top_margin
+    y_max = max(image_height, *endpoints_y, image_height) + margin
+    label_outline = [patheffects.withStroke(linewidth=1, foreground="white")]
+
+    if figsize is None:
+        figsize = (
+            (x_max - x_min) / _FIGURE_PIXELS_PER_INCH,
+            (y_max - y_min) / _FIGURE_PIXELS_PER_INCH,
+        )
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.imshow(
+        image, cmap="gray", origin="upper", extent=(0, image_width, image_height, 0)
+    )
+
+    index_width = len(str(len(points) - 1)) if len(points) > 1 else 2
+    for i, point in enumerate(points):
+        ax.plot(point.x, point.y, marker="o", color=color, markersize=6)
+        ax.text(
+            point.x + label_offset,
+            point.y - label_offset,
+            f"{i:0{index_width}d}",
+            color=color,
+            fontsize=label_font_size,
+            va="bottom",
+            path_effects=label_outline,
+        )
+
+    ax.set_xlim(x_min, x_max)
+    ax.set_ylim(y_max, y_min)  # inverted: image y increases downward
+    ax.set_xlabel("x (pixels)")
+    ax.set_ylabel("y (pixels)")
+
+    plt.savefig(path, dpi=dpi, bbox_inches="tight")
+    plt.close(fig)

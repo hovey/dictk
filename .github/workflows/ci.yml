@@ -163,7 +163,7 @@ jobs:
         # published docs (as dictk.image and dictk.translation were until
         # this comment), so double-check this list against src/dictk/*.py
         # when adding a new top-level module.
-        run: uv run pdoc dictk dictk.image dictk.translation dictk.correlation dictk.cli -o docs/api
+        run: uv run pdoc dictk dictk.image dictk.translation dictk.correlation dictk.grid dictk.cli -o docs/api
 
       - name: Generate status dashboard
         run: |

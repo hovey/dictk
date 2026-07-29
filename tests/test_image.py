@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from dictk.correlation import cc, ncc, zcc, zncc
+from dictk.grid import generate as grid_generate
 from dictk.image import (
     ArrowAnnotation,
     BoxAnnotation,
@@ -18,6 +19,7 @@ from dictk.image import (
     correlation_surfaces_plot,
     crack_dislocation,
     describe,
+    point_grid_plot,
     point_plot,
     reference_frame_plot,
     subimage_plot,
@@ -896,3 +898,26 @@ def test_correlation_surfaces_plot_mismatched_shapes_raises(tmp_path: Path):
             zncc=surface_large,
             path=path,
         )
+
+
+def test_point_grid_plot_writes_file(tmp_path: Path):
+    photo = astronaut(width=300, height=300)
+    points = grid_generate(
+        origin=PixelCoordinate(x=50, y=50),
+        count_x=5,
+        count_y=4,
+        spacing_x=45,
+        spacing_y=55,
+    )
+    path = tmp_path / "point_grid.png"
+    point_grid_plot(image=photo, points=points, path=path)
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_grid_plot_empty_points_writes_file(tmp_path: Path):
+    arr = checkerboard(width=100, height=100)
+    path = tmp_path / "point_grid_empty.png"
+    point_grid_plot(image=arr, points=[], path=path)
+    assert path.exists()
+    assert path.stat().st_size > 0
