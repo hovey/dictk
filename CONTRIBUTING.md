@@ -190,21 +190,25 @@ uv run ruff check           # lint
 ### Building the docs
 
 Documentation is an [mdBook](https://rust-lang.github.io/mdBook/) under
-`docs/userguide/`, with the
-[mdbook-cmdrun](https://github.com/FauconFan/mdbook-cmdrun) preprocessor
-enabled so pages can embed live, always-accurate command output (see the
-"Image Generation" page for an example) instead of pasted-by-hand output.
+`docs/userguide/`, with two preprocessors enabled:
+[mdbook-cmdrun](https://github.com/FauconFan/mdbook-cmdrun), so pages can
+embed live, always-accurate command output (see the "Image Generation"
+page for an example) instead of pasted-by-hand output, and
+[mdbook-katex](https://github.com/lzanini/mdbook-katex), so pages can
+include `$$...$$` LaTeX math blocks (see the "Single Point Motion" page).
 Neither is a Python dependency:
 
 ```bash
-# mdbook must be pinned to 0.4.52: mdbook-cmdrun depends on the mdbook
-# crate's 0.4.x preprocessor JSON schema, which changed in mdbook 0.5 and
-# broke compatibility (https://github.com/FauconFan/mdbook-cmdrun/issues/22,
-# open as of this writing). Do not `brew install mdbook` or
-# `cargo install mdbook` without a --version pin, or cmdrun pages will fail
-# to build with "Unable to parse the input".
+# mdbook must be pinned to 0.4.52: mdbook-cmdrun and mdbook-katex's 0.9.x
+# line both depend on the mdbook crate's 0.4.x preprocessor JSON schema,
+# which changed in mdbook 0.5 and broke compatibility
+# (https://github.com/FauconFan/mdbook-cmdrun/issues/22, open as of this
+# writing; mdbook-katex made the same jump at its own 0.10.0). Do not
+# `brew install mdbook` or `cargo install mdbook`/`mdbook-katex` without a
+# --version pin, or the build will fail with "Unable to parse the input".
 cargo install mdbook --version 0.4.52
 cargo install mdbook-cmdrun
+cargo install mdbook-katex --version 0.9.4
 ```
 
 If you already have a newer `mdbook` from Homebrew or elsewhere on your
@@ -230,20 +234,21 @@ Python API reference docs (function signatures, docstrings) are generated
 from source with [pdoc](https://pdoc.dev/), a dev dependency:
 
 ```bash
-uv run pdoc dictk dictk.core dictk.imaging dictk.cli -o docs/api
+uv run pdoc dictk dictk.image dictk.translation dictk.cli -o docs/api
 ```
 
 `dictk.rosta` doesn't need to be listed explicitly — pdoc's submodule
 discovery respects a package's `__all__`, and `rosta` is exported there (see
-below), so it's picked up automatically. The other submodules (`core`,
-`imaging`, `cli`) aren't in `__all__` — `dictk/__init__.py` only lists the
-individual functions it re-exports, not module names — so pdoc's automatic
-package walk skips them unless named explicitly on the command line, per
+below), so it's picked up automatically. The other submodules (`image`,
+`translation`, `cli`) aren't in `__all__` — `dictk/__init__.py` only lists
+the individual functions it re-exports, not module names — so pdoc's
+automatic package walk skips them unless named explicitly on the command
+line, per
 [pdoc's `__all__` handling](https://pdoc.dev/docs/pdoc.html#what-objects-are-documented). If you add a new top-level submodule, add it to this
 command too, or it will silently go undocumented.
 
 ```bash
-uv run pdoc dictk dictk.core dictk.imaging dictk.cli   # live preview, serves on localhost
+uv run pdoc dictk dictk.image dictk.translation dictk.cli   # live preview, serves on localhost
 ```
 
 Output goes to `docs/api/` (gitignored, regenerated on demand). CI builds
@@ -359,7 +364,7 @@ uv run ruff format --check
 uv run ruff check
 uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html
 (cd docs/userguide && uv run mdbook build)
-uv run pdoc dictk dictk.core dictk.imaging dictk.cli -o docs/api
+uv run pdoc dictk dictk.image dictk.translation dictk.cli -o docs/api
 uv run genbadge coverage -i coverage.xml -o coverage-badge.svg
 uv run pylint src/dictk --output-format=text --reports=yes
 ```
@@ -382,10 +387,10 @@ invoke it as a reusable workflow:
 - **`docs`** — runs only on pushes to `main` or `dev`, after `test` passes
   (this `if` condition also means it's skipped when `release.yml` calls
   `ci.yml` from a tag push, since the ref won't be `refs/heads/main` or
-  `refs/heads/dev`). Installs the pinned `mdbook` 0.4.52 and `mdbook-cmdrun`
-  (cached via `actions/cache`), downloads the `test` job's coverage
-  artifact, builds the mdBook user guide with dictk's own CLI on `PATH`,
-  builds the pdoc API reference, generates a coverage badge from
+  `refs/heads/dev`). Installs the pinned `mdbook` 0.4.52, `mdbook-cmdrun`,
+  and `mdbook-katex` (cached via `actions/cache`), downloads the `test`
+  job's coverage artifact, builds the mdBook user guide with dictk's own
+  CLI on `PATH`, builds the pdoc API reference, generates a coverage badge from
   `coverage.xml` with [genbadge](https://smarie.github.io/python-genbadge/),
   runs pylint informationally to get a 0-10 score (fetched as a shields.io
   badge) and a full findings report, renders a status dashboard linking all
@@ -482,7 +487,7 @@ Development and post-release tags:
 | tag | description |
 | --- | --- |
 | `v1.1.0.dev1` | A version currently under development |
-| `v1.0.0.post1` | Fix a minor error in the release process, such as a typo in the documentation, without changing the code |
+| `v1.0.0.post1` | A fix for a minor error in the release process, such as a typo in the documentation, without changing the code |
 
 ### Release on tag
 

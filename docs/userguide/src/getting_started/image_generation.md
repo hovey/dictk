@@ -31,9 +31,9 @@
 > parameters but perform no file I/O: they return a NumPy array only. That
 > keeps the Python API composable in a functional style — arrays can be
 > piped through further functions (e.g.
-> [`combine_images`](../api/dictk/imaging.html#combine_images) below)
+> [`combine`](../api/dictk/image.html#combine) below)
 > before anything touches disk — and callers who do want a file call
-> [`dictk.imaging.write_image`](../api/dictk/imaging.html#write_image)
+> [`dictk.image.write`](../api/dictk/image.html#write)
 > explicitly, as a separate step. See each function's docstring (rendered
 > in the API reference) for details.
 
@@ -84,11 +84,11 @@ file written:
 ```python
 import dictk
 
-pattern = dictk.rosta(200, 200, density=0.5)
+pattern = dictk.rosta(width=200, height=200, density=0.5)
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; pattern = dictk.rosta(200, 200, density=0.5); print(f'shape={pattern.shape}, dtype={pattern.dtype}')" -->
+<!-- cmdrun python3 -c "import dictk; pattern = dictk.rosta(width=200, height=200, density=0.5); print(f'shape={pattern.shape}, dtype={pattern.dtype}')" -->
 ```
 
 ## Checkerboard
@@ -128,11 +128,11 @@ The Python equivalent, again returning an array with no file written:
 ```python
 import dictk
 
-board = dictk.checkerboard(200, 200)
+board = dictk.checkerboard(width=200, height=200)
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; board = dictk.checkerboard(200, 200); print(f'shape={board.shape}, dtype={board.dtype}')" -->
+<!-- cmdrun python3 -c "import dictk; board = dictk.checkerboard(width=200, height=200); print(f'shape={board.shape}, dtype={board.dtype}')" -->
 ```
 
 ## Astronaut
@@ -180,16 +180,16 @@ The Python equivalent, again returning an array with no file written:
 ```python
 import dictk
 
-photo = dictk.astronaut(300, 300)
+photo = dictk.astronaut(width=300, height=300)
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; photo = dictk.astronaut(300, 300); print(f'shape={photo.shape}, dtype={photo.dtype}')" -->
+<!-- cmdrun python3 -c "import dictk; photo = dictk.astronaut(width=300, height=300); print(f'shape={photo.shape}, dtype={photo.dtype}')" -->
 ```
 
 ## Combining into a reference image
 
-[`combine_images`](../api/dictk/imaging.html#combine_images) works on any
+[`combine`](../api/dictk/image.html#combine) works on any
 two grayscale images of the same shape, so it isn't limited to combining
 the two synthetic images below —
 [Speckle + Astronaut](#speckle--astronaut) further down combines `rosta`
@@ -202,16 +202,16 @@ We combine the `rosta` speckle pattern with the checkerboard into a
 normalizing back to `uint8`:
 
 ```python
-from dictk.imaging import combine_images, read_image, write_image
+from dictk.image import combine, read, write
 
-speckle = read_image("rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
-checker = read_image("checkerboard_200w_by_200h_8x8.png")
-checkerboard0 = combine_images(speckle, checker)
-write_image(checkerboard0, "checkerboard0.png")
+speckle = read(path="rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
+checker = read(path="checkerboard_200w_by_200h_8x8.png")
+checkerboard0 = combine(a=speckle, b=checker)
+write(arr=checkerboard0, path="checkerboard0.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.imaging import combine_images, read_image, write_image; speckle = read_image('rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png'); checker = read_image('checkerboard_200w_by_200h_8x8.png'); write_image(combine_images(speckle, checker), 'checkerboard0.png'); print('Saved image: checkerboard0.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import combine, read, write; speckle = read(path='rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png'); checker = read(path='checkerboard_200w_by_200h_8x8.png'); write(arr=combine(a=speckle, b=checker), path='checkerboard0.png'); print('Saved image: checkerboard0.png')" -->
 ```
 
 <figure>
@@ -234,19 +234,19 @@ speckle and checkerboard are both roughly bimodal (dark/light), while
 black/white-speckle-on-opposite checkerboard combinations.
 
 ```python
-from dictk.imaging import read_image, save_histogram
+from dictk.image import read, histogram_save
 
-speckle = read_image("rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
-checker = read_image("checkerboard_200w_by_200h_8x8.png")
-checkerboard0 = read_image("checkerboard0.png")
+speckle = read(path="rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
+checker = read(path="checkerboard_200w_by_200h_8x8.png")
+checkerboard0 = read(path="checkerboard0.png")
 
-save_histogram(speckle, "rosta_histogram.png")
-save_histogram(checker, "checkerboard_histogram.png")
-save_histogram(checkerboard0, "checkerboard0_histogram.png")
+histogram_save(arr=speckle, path="rosta_histogram.png")
+histogram_save(arr=checker, path="checkerboard_histogram.png")
+histogram_save(arr=checkerboard0, path="checkerboard0_histogram.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.imaging import read_image, save_histogram; save_histogram(read_image('rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png'), 'rosta_histogram.png'); save_histogram(read_image('checkerboard_200w_by_200h_8x8.png'), 'checkerboard_histogram.png'); save_histogram(read_image('checkerboard0.png'), 'checkerboard0_histogram.png'); print('Saved histograms: rosta_histogram.png, checkerboard_histogram.png, checkerboard0_histogram.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, histogram_save; histogram_save(arr=read(path='rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png'), path='rosta_histogram.png'); histogram_save(arr=read(path='checkerboard_200w_by_200h_8x8.png'), path='checkerboard_histogram.png'); histogram_save(arr=read(path='checkerboard0.png'), path='checkerboard0_histogram.png'); print('Saved histograms: rosta_histogram.png, checkerboard_histogram.png, checkerboard0_histogram.png')" -->
 ```
 
 rosta | checkerboard | checkerboard0
@@ -264,21 +264,21 @@ speckle pattern overlaid on a realistic, non-uniform grayscale image.
 This time the two source images are never written to disk at all — both
 [`dictk.rosta`](../api/dictk.html#rosta) and
 [`dictk.astronaut`](../api/dictk.html#astronaut) return arrays directly,
-which [`combine_images`](../api/dictk/imaging.html#combine_images) accepts
+which [`combine`](../api/dictk/image.html#combine) accepts
 as-is, so only the combined result `astronaut0` is saved:
 
 ```python
 import dictk
-from dictk.imaging import combine_images, write_image
+from dictk.image import combine, write
 
-speckle = dictk.rosta(300, 300, density=0.5)
-photo = dictk.astronaut(300, 300)
-astronaut0 = combine_images(speckle, photo)
-write_image(astronaut0, "astronaut0.png")
+speckle = dictk.rosta(width=300, height=300, density=0.5)
+photo = dictk.astronaut(width=300, height=300)
+astronaut0 = combine(a=speckle, b=photo)
+write(arr=astronaut0, path="astronaut0.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.imaging import combine_images, write_image; speckle = dictk.rosta(300, 300, density=0.5); photo = dictk.astronaut(300, 300); astronaut0 = combine_images(speckle, photo); write_image(astronaut0, 'astronaut0.png'); print('Saved image: astronaut0.png')" -->
+<!-- cmdrun python3 -c "import dictk; from dictk.image import combine, write; speckle = dictk.rosta(width=300, height=300, density=0.5); photo = dictk.astronaut(width=300, height=300); astronaut0 = combine(a=speckle, b=photo); write(arr=astronaut0, path='astronaut0.png'); print('Saved image: astronaut0.png')" -->
 ```
 
 <figure>

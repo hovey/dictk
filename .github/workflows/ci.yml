@@ -120,6 +120,9 @@ jobs:
           # Pinned to 0.4.52: mdbook-cmdrun (below) depends on the mdbook
           # crate's 0.4.x preprocessor JSON schema, which changed in mdbook
           # 0.5. See https://github.com/FauconFan/mdbook-cmdrun/issues/22.
+          # mdbook-katex (below) has the same constraint -- its own 0.10.x
+          # line moved to the newer mdbook-preprocessor 0.5.x schema, so
+          # it's pinned to 0.9.4 (mdbook ^0.4.48) to match.
           mdbook-version: "0.4.52"
 
       - name: Cache cargo registry
@@ -128,7 +131,7 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/bin
-          key: cargo-mdbook-cmdrun-${{ runner.os }}
+          key: cargo-mdbook-preprocessors-${{ runner.os }}
 
       - name: Install mdbook-cmdrun
         # cargo install always recompiles from source, even when the exact
@@ -139,6 +142,11 @@ jobs:
         # restored a working binary to ~/.cargo/bin.
         run: command -v mdbook-cmdrun || cargo install mdbook-cmdrun --locked
 
+      - name: Install mdbook-katex
+        # Pinned to 0.9.4, not latest -- see the mdBook install step above
+        # for why. Same skip-if-cached approach as mdbook-cmdrun.
+        run: command -v mdbook-katex || cargo install mdbook-katex --version 0.9.4 --locked
+
       - name: Build user guide
         # mdbook-cmdrun resolves each cmdrun command's working directory
         # relative to the process cwd, so this must run from inside
@@ -147,10 +155,15 @@ jobs:
         run: cd docs/userguide && uv run --project ../.. mdbook build
 
       - name: Build API docs
-        # dictk.core/imaging/cli must be listed explicitly: pdoc's automatic
-        # submodule discovery respects a package's __all__, and only rosta
-        # is exported there — see CONTRIBUTING.md#building-the-api-docs.
-        run: uv run pdoc dictk dictk.core dictk.imaging dictk.cli -o docs/api
+        # dictk.image/translation/cli must be listed explicitly: pdoc's
+        # automatic submodule discovery respects a package's __all__, and
+        # only rosta is exported there — see
+        # CONTRIBUTING.md#building-the-api-docs. Forgetting a new submodule
+        # here doesn't fail the build, it just silently omits it from the
+        # published docs (as dictk.image and dictk.translation were until
+        # this comment), so double-check this list against src/dictk/*.py
+        # when adding a new top-level module.
+        run: uv run pdoc dictk dictk.image dictk.translation dictk.correlation dictk.cli -o docs/api
 
       - name: Generate status dashboard
         run: |

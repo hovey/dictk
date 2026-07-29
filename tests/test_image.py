@@ -1,0 +1,898 @@
+from pathlib import Path
+
+import numpy as np
+import pytest
+
+from dictk.correlation import cc, ncc, zcc, zncc
+from dictk.image import (
+    ArrowAnnotation,
+    BoxAnnotation,
+    PixelCoordinate,
+    PointAnnotation,
+    astronaut,
+    brightness,
+    checkerboard,
+    combine,
+    complex_deform,
+    contrast,
+    correlation_surfaces_plot,
+    crack_dislocation,
+    describe,
+    point_plot,
+    reference_frame_plot,
+    subimage_plot,
+    subimage_bounds_plot,
+    subimage_comparison_plot,
+    read,
+    rgba_to_gray,
+    rotate,
+    shear,
+    stretch,
+    subimage,
+    translate,
+    write,
+)
+
+
+def test_checkerboard_shape_and_dtype():
+    arr = checkerboard(width=40, height=20)
+    assert arr.shape == (20, 40)
+    assert arr.dtype == np.uint8
+
+
+def test_checkerboard_only_black_or_white():
+    arr = checkerboard(width=40, height=20)
+    assert set(np.unique(arr)).issubset({0, 255})
+
+
+def test_checkerboard_alternates():
+    arr = checkerboard(width=40, height=40, count_x=4, count_y=4)
+    # Adjacent rectangles along a row must differ.
+    rect_width = 40 // 4
+    first_rect = arr[0, 0]
+    second_rect = arr[0, rect_width]
+    assert first_rect != second_rect
+
+
+@pytest.mark.parametrize("count_x", [0, -1])
+def test_checkerboard_invalid_count_x_raises(count_x):
+    with pytest.raises(ValueError):
+        checkerboard(width=40, height=40, count_x=count_x)
+
+
+@pytest.mark.parametrize("count_y", [0, -1])
+def test_checkerboard_invalid_count_y_raises(count_y):
+    with pytest.raises(ValueError):
+        checkerboard(width=40, height=40, count_y=count_y)
+
+
+def test_astronaut_default_shape_and_dtype():
+    arr = astronaut()
+    assert arr.shape == (512, 512)
+    assert arr.dtype == np.uint8
+
+
+def test_astronaut_is_grayscale():
+    arr = astronaut()
+    assert arr.ndim == 2
+
+
+def test_astronaut_resizes():
+    arr = astronaut(width=40, height=20)
+    assert arr.shape == (20, 40)
+    assert arr.dtype == np.uint8
+
+
+@pytest.mark.parametrize("width", [0, -1])
+def test_astronaut_invalid_width_raises(width):
+    with pytest.raises(ValueError):
+        astronaut(width=width, height=40)
+
+
+@pytest.mark.parametrize("height", [0, -1])
+def test_astronaut_invalid_height_raises(height):
+    with pytest.raises(ValueError):
+        astronaut(width=40, height=height)
+
+
+def test_brightness_identity_at_factor_1():
+    arr = np.array([[0, 60, 128, 200, 255]], dtype=np.uint8)
+    assert np.array_equal(brightness(arr=arr, factor=1.0), arr)
+
+
+def test_brightness_shifts_mean_up():
+    arr = np.full((10, 10), 100, dtype=np.uint8)
+    result = brightness(arr=arr, factor=1.5)
+    assert result.mean() > arr.mean()
+
+
+def test_brightness_shifts_mean_down():
+    arr = np.full((10, 10), 100, dtype=np.uint8)
+    result = brightness(arr=arr, factor=0.5)
+    assert result.mean() < arr.mean()
+
+
+def test_brightness_lightens_black_pixels():
+    # An additive shift must lighten even a pure-black pixel; a
+    # multiplicative scale (0 * anything) could not.
+    arr = np.zeros((4, 4), dtype=np.uint8)
+    result = brightness(arr=arr, factor=2.0)
+    assert np.all(result > 0)
+
+
+def test_brightness_clips_to_valid_range():
+    arr = np.array([[0, 255]], dtype=np.uint8)
+    result = brightness(arr=arr, factor=5.0)
+    assert result.min() >= 0
+    assert result.max() <= 255
+    assert result.dtype == np.uint8
+
+
+def test_brightness_preserves_shape_and_dtype():
+    arr = np.full((10, 20), 100, dtype=np.uint8)
+    result = brightness(arr=arr, factor=1.2)
+    assert result.shape == arr.shape
+    assert result.dtype == np.uint8
+
+
+def test_contrast_identity_at_factor_1():
+    arr = np.array([[0, 60, 128, 200, 255]], dtype=np.uint8)
+    assert np.array_equal(contrast(arr=arr, factor=1.0), arr)
+
+
+def test_contrast_zero_factor_collapses_to_mean():
+    arr = np.array([[0, 50, 100, 150, 200, 255]], dtype=np.uint8)
+    result = contrast(arr=arr, factor=0.0)
+    assert len(np.unique(result)) == 1
+
+
+def test_contrast_increases_spread():
+    arr = np.array([[50, 100, 150, 200]], dtype=np.uint8)
+    result = contrast(arr=arr, factor=1.5)
+    assert result.astype(np.float64).std() > arr.astype(np.float64).std()
+
+
+def test_contrast_decreases_spread():
+    arr = np.array([[50, 100, 150, 200]], dtype=np.uint8)
+    result = contrast(arr=arr, factor=0.5)
+    assert result.astype(np.float64).std() < arr.astype(np.float64).std()
+
+
+def test_contrast_preserves_mean_approximately():
+    arr = np.array([[50, 100, 150, 200]], dtype=np.uint8)
+    result = contrast(arr=arr, factor=1.5)
+    assert abs(float(result.mean()) - float(arr.mean())) < 5.0
+
+
+def test_contrast_clips_to_valid_range():
+    arr = np.array([[0, 255]], dtype=np.uint8)
+    result = contrast(arr=arr, factor=5.0)
+    assert result.min() >= 0
+    assert result.max() <= 255
+    assert result.dtype == np.uint8
+
+
+def test_contrast_preserves_shape_and_dtype():
+    arr = np.full((10, 20), 100, dtype=np.uint8)
+    result = contrast(arr=arr, factor=1.2)
+    assert result.shape == arr.shape
+    assert result.dtype == np.uint8
+
+
+def test_stretch_identity_at_factor_1():
+    arr = np.arange(400, dtype=np.uint8).reshape(20, 20)
+    assert np.array_equal(stretch(arr=arr), arr)
+
+
+def test_stretch_preserves_shape_and_dtype():
+    arr = np.full((20, 30), 100, dtype=np.uint8)
+    result = stretch(arr=arr, factor_x=1.05)
+    assert result.shape == arr.shape
+    assert result.dtype == np.uint8
+
+
+def test_stretch_expansion_has_no_black_margin():
+    # A factor > 1.0 samples only from within [0, (width-1)/factor_x], a
+    # subset of the original bounds, so every output pixel is valid.
+    arr = np.full((20, 20), 200, dtype=np.uint8)
+    result = stretch(arr=arr, factor_x=1.05)
+    assert result.min() > 0
+
+
+def test_stretch_compression_anchors_origin_and_blackens_far_edge():
+    # Pivoting on the origin: x=0 stays fixed (still valid content), while
+    # the far (right) edge samples outside the original bounds and is
+    # filled with black.
+    arr = np.full((20, 20), 200, dtype=np.uint8)
+    result = stretch(arr=arr, factor_x=0.5)
+    assert result[10, 0] > 0
+    assert result[10, -1] == 0
+
+
+@pytest.mark.parametrize("factor_x", [0, -1])
+def test_stretch_invalid_factor_x_raises(factor_x):
+    arr = np.full((10, 10), 100, dtype=np.uint8)
+    with pytest.raises(ValueError):
+        stretch(arr=arr, factor_x=factor_x)
+
+
+@pytest.mark.parametrize("factor_y", [0, -1])
+def test_stretch_invalid_factor_y_raises(factor_y):
+    arr = np.full((10, 10), 100, dtype=np.uint8)
+    with pytest.raises(ValueError):
+        stretch(arr=arr, factor_y=factor_y)
+
+
+def test_translate_identity_at_zero_displacement():
+    arr = np.arange(400, dtype=np.uint8).reshape(20, 20)
+    assert np.array_equal(translate(arr=arr), arr)
+
+
+def test_translate_preserves_shape_and_dtype():
+    arr = np.full((20, 30), 100, dtype=np.uint8)
+    result = translate(arr=arr, dx=5, dy=-3)
+    assert result.shape == arr.shape
+    assert result.dtype == np.uint8
+
+
+def test_translate_shifts_content_right():
+    arr = np.zeros((20, 20), dtype=np.uint8)
+    arr[10, 5] = 255
+    result = translate(arr=arr, dx=4, dy=0)
+    assert result[10, 9] == 255
+
+
+def test_translate_shifts_content_down():
+    arr = np.zeros((20, 20), dtype=np.uint8)
+    arr[5, 10] = 255
+    result = translate(arr=arr, dx=0, dy=4)
+    assert result[9, 10] == 255
+
+
+def test_translate_introduces_black_margin():
+    arr = np.full((20, 20), 200, dtype=np.uint8)
+    result = translate(arr=arr, dx=5, dy=0)
+    assert result[10, 0] == 0
+    assert result[10, 19] > 0
+
+
+def test_rotate_identity_at_zero_angle():
+    arr = np.arange(900, dtype=np.uint8).reshape(30, 30)
+    assert np.array_equal(rotate(arr=arr, angle=0.0), arr)
+
+
+def test_rotate_preserves_shape_and_dtype():
+    arr = np.full((20, 30), 100, dtype=np.uint8)
+    result = rotate(arr=arr, angle=15.0)
+    assert result.shape == arr.shape
+    assert result.dtype == np.uint8
+
+
+def test_rotate_90_degrees_moves_marker_to_expected_pixel():
+    arr = np.zeros((30, 30), dtype=np.uint8)
+    arr[0, 10] = 255  # row=0 (y=0), col=10 (x=10)
+    result = rotate(arr=arr, angle=90.0)
+    row, col = np.unravel_index(np.argmax(result), result.shape)
+    assert (row, col) == (10, 0)
+    assert result[10, 0] > 250
+
+
+def test_rotate_introduces_black_fill():
+    # Pivoting on the origin means a nonzero rotation swings most content
+    # away from the fixed corner, leaving pixels with no source in bounds.
+    arr = np.full((30, 30), 200, dtype=np.uint8)
+    result = rotate(arr=arr, angle=30.0)
+    assert result.min() == 0
+
+
+def test_shear_identity_at_zero_factors():
+    arr = np.arange(1600, dtype=np.uint8).reshape(40, 40)
+    assert np.array_equal(shear(arr=arr), arr)
+
+
+def test_shear_preserves_shape_and_dtype():
+    arr = np.full((30, 40), 100, dtype=np.uint8)
+    result = shear(arr=arr, shear_x=0.5)
+    assert result.shape == arr.shape
+    assert result.dtype == np.uint8
+
+
+def test_shear_x_moves_marker_proportional_to_y():
+    # Forward shear: x_dest = x_source + shear_x * y_source. A marker at
+    # (x=10, y=20) under shear_x=0.5 should land at x=10+0.5*20=20, y=20.
+    arr = np.zeros((40, 40), dtype=np.uint8)
+    arr[20, 10] = 255
+    result = shear(arr=arr, shear_x=0.5)
+    row, col = np.unravel_index(np.argmax(result), result.shape)
+    assert (row, col) == (20, 20)
+
+
+def test_shear_singular_gradient_raises():
+    arr = np.full((10, 10), 100, dtype=np.uint8)
+    with pytest.raises(ValueError):
+        shear(arr=arr, shear_x=2.0, shear_y=0.5)
+
+
+def test_complex_deform_identity_at_defaults():
+    arr = np.arange(900, dtype=np.uint8).reshape(30, 30)
+    assert np.array_equal(complex_deform(arr=arr), arr)
+
+
+def test_complex_deform_preserves_shape_and_dtype():
+    arr = np.full((30, 40), 100, dtype=np.uint8)
+    result = complex_deform(arr=arr, factor_x=1.3, factor_y=0.8, angle=15.0)
+    assert result.shape == arr.shape
+    assert result.dtype == np.uint8
+
+
+def test_complex_deform_matches_stretch_when_angle_zero():
+    arr = np.arange(900, dtype=np.uint8).reshape(30, 30)
+    assert np.array_equal(
+        complex_deform(arr=arr, factor_x=1.3, factor_y=0.8, angle=0.0),
+        stretch(arr=arr, factor_x=1.3, factor_y=0.8),
+    )
+
+
+def test_complex_deform_single_pass_differs_from_sequential_calls():
+    # complex_deform composes the matrices algebraically and interpolates
+    # once; calling rotate(stretch(...)) interpolates twice, compounding
+    # blur. The two should differ measurably, not just at rounding noise.
+    arr = np.arange(900, dtype=np.uint8).reshape(30, 30)
+    combined = complex_deform(arr=arr, factor_x=1.3, factor_y=0.8, angle=15.0)
+    sequential = rotate(arr=stretch(arr=arr, factor_x=1.3, factor_y=0.8), angle=15.0)
+    diff = np.abs(combined.astype(np.float64) - sequential.astype(np.float64))
+    assert diff.mean() > 1.0
+
+
+@pytest.mark.parametrize("factor_x", [0, -1])
+def test_complex_deform_invalid_factor_x_raises(factor_x):
+    arr = np.full((10, 10), 100, dtype=np.uint8)
+    with pytest.raises(ValueError):
+        complex_deform(arr=arr, factor_x=factor_x)
+
+
+@pytest.mark.parametrize("factor_y", [0, -1])
+def test_complex_deform_invalid_factor_y_raises(factor_y):
+    arr = np.full((10, 10), 100, dtype=np.uint8)
+    with pytest.raises(ValueError):
+        complex_deform(arr=arr, factor_y=factor_y)
+
+
+def test_crack_dislocation_identity_at_zero_offset():
+    arr = np.arange(1600, dtype=np.uint8).reshape(40, 40)
+    assert np.array_equal(crack_dislocation(arr=arr, offset=0.0), arr)
+
+
+def test_crack_dislocation_preserves_shape_and_dtype():
+    arr = np.full((40, 40), 100, dtype=np.uint8)
+    result = crack_dislocation(arr=arr, offset=8.0)
+    assert result.shape == arr.shape
+    assert result.dtype == np.uint8
+
+
+def test_crack_dislocation_left_half_shifts_down():
+    arr = np.zeros((40, 40), dtype=np.uint8)
+    arr[10, 5] = 255  # left half: x=5 < width/2=20
+    result = crack_dislocation(arr=arr, offset=8.0)
+    row, col = np.unravel_index(np.argmax(result), result.shape)
+    assert (row, col) == (18, 5)
+
+
+def test_crack_dislocation_right_half_shifts_up():
+    arr = np.zeros((40, 40), dtype=np.uint8)
+    arr[10, 30] = 255  # right half: x=30 >= width/2=20
+    result = crack_dislocation(arr=arr, offset=8.0)
+    row, col = np.unravel_index(np.argmax(result), result.shape)
+    assert (row, col) == (2, 30)
+
+
+def test_rgba_to_gray_passthrough_for_2d():
+    arr = np.arange(9).reshape(3, 3)
+    result = rgba_to_gray(arr)
+    assert np.array_equal(result, arr)
+
+
+def test_rgba_to_gray_averages_rgb():
+    arr = np.zeros((2, 2, 3), dtype=np.uint8)
+    arr[..., 0] = 30
+    arr[..., 1] = 60
+    arr[..., 2] = 90
+    result = rgba_to_gray(arr)
+    assert result.shape == (2, 2)
+    assert np.all(result == 60)
+
+
+def test_rgba_to_gray_invalid_shape_raises():
+    with pytest.raises(ValueError):
+        rgba_to_gray(np.zeros((2, 2, 5)))
+
+
+def test_combine_shape_and_dtype():
+    a = np.full((10, 10), 100, dtype=np.uint8)
+    b = np.full((10, 10), 200, dtype=np.uint8)
+    combined = combine(a=a, b=b)
+    assert combined.shape == (10, 10)
+    assert combined.dtype == np.uint8
+    assert combined.max() <= 255
+
+
+def test_combine_normalizes_to_max_255():
+    a = np.full((4, 4), 10, dtype=np.uint8)
+    b = np.full((4, 4), 10, dtype=np.uint8)
+    combined = combine(a=a, b=b)
+    # Uniform input -> uniform output, scaled to the max value of 255.
+    assert np.all(combined == 255)
+
+
+def test_combine_shape_mismatch_raises():
+    a = np.zeros((10, 10), dtype=np.uint8)
+    b = np.zeros((5, 5), dtype=np.uint8)
+    with pytest.raises(ValueError):
+        combine(a=a, b=b)
+
+
+def test_describe_grayscale():
+    arr = np.zeros((10, 20), dtype=np.uint8)
+    description = describe(arr)
+    assert "Shape: (10, 20)" in description
+    assert "grayscale" in description
+
+
+def test_describe_rgb():
+    arr = np.zeros((10, 20, 3), dtype=np.uint8)
+    description = describe(arr)
+    assert "RGB" in description
+
+
+def test_describe_rgba():
+    arr = np.zeros((10, 20, 4), dtype=np.uint8)
+    description = describe(arr)
+    assert "RGBA" in description
+
+
+@pytest.mark.parametrize("suffix", ["tiff", "png", "jpg"])
+def test_write_raster_formats_round_trip(tmp_path: Path, suffix: str):
+    arr = checkerboard(width=16, height=8)
+    path = tmp_path / f"out.{suffix}"
+    write(arr=arr, path=path)
+
+    assert path.exists()
+    round_tripped = read(path=path)
+    assert round_tripped.shape == arr.shape
+
+
+def test_write_svg_produces_embedded_png(tmp_path: Path):
+    arr = checkerboard(width=16, height=8)
+    path = tmp_path / "out.svg"
+    write(arr=arr, path=path)
+
+    content = path.read_text()
+    assert content.startswith("<?xml")
+    assert "<svg" in content
+    assert 'width="16" height="8"' in content
+    assert "data:image/png;base64," in content
+    assert content.rstrip().endswith("</svg>")
+
+
+def test_subimage_fully_inside():
+    arr = np.arange(100).reshape(10, 10).astype(np.uint8)
+    result = subimage(image=arr, origin=PixelCoordinate(x=2, y=3), width=4, height=2)
+    assert result.shape == (2, 4)
+    assert np.array_equal(result, arr[3:5, 2:6])
+
+
+def test_subimage_square_vs_rectangle_shape():
+    arr = np.ones((20, 20), dtype=np.uint8)
+    square = subimage(image=arr, origin=PixelCoordinate(x=0, y=0), width=5, height=5)
+    rectangle = subimage(image=arr, origin=PixelCoordinate(x=0, y=0), width=8, height=3)
+    assert square.shape == (5, 5)
+    assert rectangle.shape == (3, 8)
+
+
+def test_subimage_partially_outside_top_left_is_zero_padded():
+    arr = np.full((10, 10), 7, dtype=np.uint8)
+    result = subimage(image=arr, origin=PixelCoordinate(x=-2, y=-3), width=5, height=5)
+    assert result.shape == (5, 5)
+    # Top-left corner (padding) is zero; bottom-right overlap keeps source values.
+    assert result[0, 0] == 0
+    assert np.array_equal(result[3:, 2:], arr[0:2, 0:3])
+
+
+def test_subimage_partially_outside_bottom_right_is_zero_padded():
+    arr = np.full((10, 10), 7, dtype=np.uint8)
+    result = subimage(image=arr, origin=PixelCoordinate(x=8, y=8), width=4, height=4)
+    assert result.shape == (4, 4)
+    assert np.array_equal(result[:2, :2], arr[8:10, 8:10])
+    assert result[3, 3] == 0
+
+
+def test_subimage_completely_outside_is_all_zero():
+    arr = np.full((10, 10), 7, dtype=np.uint8)
+    result = subimage(image=arr, origin=PixelCoordinate(x=50, y=50), width=4, height=4)
+    assert result.shape == (4, 4)
+    assert np.all(result == 0)
+
+
+def test_subimage_preserves_dtype():
+    arr = np.zeros((10, 10), dtype=np.float64)
+    result = subimage(image=arr, origin=PixelCoordinate(x=0, y=0), width=3, height=3)
+    assert result.dtype == np.float64
+
+
+@pytest.mark.parametrize("width,height", [(0, 5), (5, 0), (-1, 5)])
+def test_subimage_invalid_size_raises(width, height):
+    arr = np.zeros((10, 10), dtype=np.uint8)
+    with pytest.raises(ValueError):
+        subimage(
+            image=arr, origin=PixelCoordinate(x=0, y=0), width=width, height=height
+        )
+
+
+def test_subimage_non_2d_image_raises():
+    arr = np.zeros((10, 10, 3), dtype=np.uint8)
+    with pytest.raises(ValueError):
+        subimage(image=arr, origin=PixelCoordinate(x=0, y=0), width=3, height=3)
+
+
+def test_subimage_bounds_plot_writes_file(tmp_path: Path):
+    arr = checkerboard(width=40, height=40)
+    path = tmp_path / "bounds.png"
+    subimage_bounds_plot(
+        image=arr, origin=PixelCoordinate(x=-5, y=10), width=20, height=15, path=path
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+@pytest.mark.parametrize("width,height", [(0, 5), (5, 0)])
+def test_subimage_bounds_plot_invalid_size_raises(tmp_path: Path, width, height):
+    arr = checkerboard(width=40, height=40)
+    with pytest.raises(ValueError):
+        subimage_bounds_plot(
+            image=arr,
+            origin=PixelCoordinate(x=0, y=0),
+            width=width,
+            height=height,
+            path=tmp_path / "out.png",
+        )
+
+
+def test_subimage_plot_writes_file(tmp_path: Path):
+    arr = checkerboard(width=40, height=40)
+    path = tmp_path / "region.png"
+    subimage_plot(
+        image=arr, origin=PixelCoordinate(x=-5, y=10), width=20, height=15, path=path
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+@pytest.mark.parametrize("width,height", [(0, 5), (5, 0)])
+def test_subimage_plot_invalid_size_raises(tmp_path: Path, width, height):
+    arr = checkerboard(width=40, height=40)
+    with pytest.raises(ValueError):
+        subimage_plot(
+            image=arr,
+            origin=PixelCoordinate(x=0, y=0),
+            width=width,
+            height=height,
+            path=tmp_path / "out.png",
+        )
+
+
+def test_subimage_comparison_plot_writes_file(tmp_path: Path):
+    # Larger than the 40x40 used elsewhere in this file: subimage_comparison_plot
+    # renders two side-by-side panels with constrained_layout, which warns
+    # ("axes sizes collapsed to zero") on very small figures.
+    arr = checkerboard(width=200, height=200)
+    path = tmp_path / "comparison.png"
+    subimage_comparison_plot(
+        image=arr, origin=PixelCoordinate(x=-20, y=40), width=80, height=60, path=path
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_subimage_comparison_plot_with_point_writes_file(tmp_path: Path):
+    arr = checkerboard(width=200, height=200)
+    path = tmp_path / "comparison_with_point.png"
+    subimage_comparison_plot(
+        image=arr,
+        origin=PixelCoordinate(x=20, y=40),
+        width=80,
+        height=60,
+        point=PixelCoordinate(x=50, y=60),
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_subimage_comparison_plot_with_point_color_writes_file(tmp_path: Path):
+    arr = checkerboard(width=200, height=200)
+    path = tmp_path / "comparison_with_point_color.png"
+    subimage_comparison_plot(
+        image=arr,
+        origin=PixelCoordinate(x=20, y=40),
+        width=80,
+        height=60,
+        point=PixelCoordinate(x=50, y=60),
+        point_color="orange",
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_subimage_comparison_plot_with_point_and_origin_labels_writes_file(
+    tmp_path: Path,
+):
+    arr = checkerboard(width=200, height=200)
+    path = tmp_path / "comparison_with_labels.png"
+    subimage_comparison_plot(
+        image=arr,
+        origin=PixelCoordinate(x=20, y=40),
+        width=80,
+        height=60,
+        point=PixelCoordinate(x=50, y=60),
+        point_label="P",
+        origin_label="K",
+        source_origin_label="O",
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_subimage_comparison_plot_with_subimage_label_writes_file(tmp_path: Path):
+    arr = checkerboard(width=200, height=200)
+    path = tmp_path / "comparison_with_label.png"
+    subimage_comparison_plot(
+        image=arr,
+        origin=PixelCoordinate(x=20, y=40),
+        width=80,
+        height=60,
+        subimage_label="kernel",
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_subimage_comparison_plot_with_color_writes_file(tmp_path: Path):
+    arr = checkerboard(width=200, height=200)
+    path = tmp_path / "comparison_with_color.png"
+    subimage_comparison_plot(
+        image=arr,
+        origin=PixelCoordinate(x=20, y=40),
+        width=80,
+        height=60,
+        color="orange",
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_subimage_comparison_plot_with_figsize_writes_file(tmp_path: Path):
+    arr = checkerboard(width=200, height=200)
+    path = tmp_path / "comparison_with_figsize.png"
+    subimage_comparison_plot(
+        image=arr,
+        origin=PixelCoordinate(x=20, y=40),
+        width=80,
+        height=60,
+        figsize=(6.4, 4.8),
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+@pytest.mark.parametrize("width,height", [(0, 5), (5, 0)])
+def test_subimage_comparison_plot_invalid_size_raises(tmp_path: Path, width, height):
+    arr = checkerboard(width=40, height=40)
+    with pytest.raises(ValueError):
+        subimage_comparison_plot(
+            image=arr,
+            origin=PixelCoordinate(x=0, y=0),
+            width=width,
+            height=height,
+            path=tmp_path / "out.png",
+        )
+
+
+def test_point_plot_writes_file(tmp_path: Path):
+    arr = checkerboard(width=200, height=200)
+    path = tmp_path / "points.png"
+    point_plot(
+        image=arr,
+        arrows=[
+            ArrowAnnotation(
+                tail=PixelCoordinate(x=0, y=0),
+                head=PixelCoordinate(x=100, y=75),
+                color="gold",
+                label="p0",
+            ),
+            ArrowAnnotation(
+                tail=PixelCoordinate(x=100, y=75),
+                head=PixelCoordinate(x=94, y=83),
+                color="magenta",
+                label="displacement",
+            ),
+        ],
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_plot_arrow_outside_image_bounds(tmp_path: Path):
+    arr = checkerboard(width=40, height=40)
+    path = tmp_path / "points.png"
+    point_plot(
+        image=arr,
+        arrows=[
+            ArrowAnnotation(
+                tail=PixelCoordinate(x=0, y=0),
+                head=PixelCoordinate(x=-10, y=60),
+                color="cyan",
+                label="p1",
+            )
+        ],
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_plot_empty_arrows_raises(tmp_path: Path):
+    arr = checkerboard(width=40, height=40)
+    with pytest.raises(ValueError):
+        point_plot(image=arr, arrows=[], path=tmp_path / "out.png")
+
+
+def test_point_plot_with_boxes_writes_file(tmp_path: Path):
+    arr = checkerboard(width=200, height=200)
+    path = tmp_path / "points_with_boxes.png"
+    point_plot(
+        image=arr,
+        arrows=[
+            ArrowAnnotation(
+                tail=PixelCoordinate(x=0, y=0),
+                head=PixelCoordinate(x=100, y=75),
+                color="blue",
+                label="arrow",
+            )
+        ],
+        boxes=[
+            BoxAnnotation(
+                origin=PixelCoordinate(x=20, y=30),
+                width=40,
+                height=50,
+                color="green",
+                label="box",
+            )
+        ],
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_plot_with_points_writes_file(tmp_path: Path):
+    arr = checkerboard(width=200, height=200)
+    path = tmp_path / "points_with_labels.png"
+    point_plot(
+        image=arr,
+        arrows=[
+            ArrowAnnotation(
+                tail=PixelCoordinate(x=0, y=0),
+                head=PixelCoordinate(x=100, y=75),
+                color="blue",
+                label="arrow",
+            )
+        ],
+        points=[
+            PointAnnotation(
+                position=PixelCoordinate(x=0, y=0), label="$O$", color="blue"
+            ),
+            PointAnnotation(
+                position=PixelCoordinate(x=100, y=75), label="$P$", color="black"
+            ),
+        ],
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_plot_without_legend_writes_file(tmp_path: Path):
+    arr = checkerboard(width=40, height=40)
+    path = tmp_path / "points_no_legend.png"
+    point_plot(
+        image=arr,
+        arrows=[
+            ArrowAnnotation(
+                tail=PixelCoordinate(x=0, y=0),
+                head=PixelCoordinate(x=20, y=20),
+                color="blue",
+                label="arrow",
+            )
+        ],
+        legend=False,
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_plot_with_figsize_writes_file(tmp_path: Path):
+    arr = checkerboard(width=40, height=40)
+    path = tmp_path / "points_figsize.png"
+    point_plot(
+        image=arr,
+        arrows=[
+            ArrowAnnotation(
+                tail=PixelCoordinate(x=0, y=0),
+                head=PixelCoordinate(x=20, y=20),
+                color="blue",
+                label="arrow",
+            )
+        ],
+        legend=False,
+        figsize=(6.4, 4.8),
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_reference_frame_plot_writes_file(tmp_path: Path):
+    arr = checkerboard(width=300, height=300)
+    path = tmp_path / "reference_frame.png"
+    reference_frame_plot(image=arr, path=path)
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_reference_frame_plot_non_square_image(tmp_path: Path):
+    arr = checkerboard(width=200, height=100)
+    path = tmp_path / "reference_frame.png"
+    reference_frame_plot(image=arr, path=path)
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_correlation_surfaces_plot_writes_file(tmp_path: Path):
+    reference_image = checkerboard(width=200, height=200)
+    current_image = translate(arr=reference_image, dx=-6, dy=8)
+    kernel_origin = PixelCoordinate(x=75, y=50)
+    kernel = subimage(image=reference_image, origin=kernel_origin, width=50, height=50)
+    search_origin = PixelCoordinate(x=50, y=25)
+    search = subimage(image=current_image, origin=search_origin, width=100, height=100)
+
+    path = tmp_path / "correlation_surfaces.png"
+    correlation_surfaces_plot(
+        cc=cc(kernel=kernel, search=search),
+        ncc=ncc(kernel=kernel, search=search),
+        zcc=zcc(kernel=kernel, search=search),
+        zncc=zncc(kernel=kernel, search=search),
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_correlation_surfaces_plot_mismatched_shapes_raises(tmp_path: Path):
+    surface_small = np.zeros((10, 10))
+    surface_large = np.zeros((20, 20))
+    path = tmp_path / "correlation_surfaces.png"
+    with pytest.raises(ValueError):
+        correlation_surfaces_plot(
+            cc=surface_small,
+            ncc=surface_small,
+            zcc=surface_small,
+            zncc=surface_large,
+            path=path,
+        )

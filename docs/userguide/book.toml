@@ -8,4 +8,9 @@ language = "en"
 [output.html]
 git-repository-url = "https://github.com/hovey/dictk"
 
+# KaTeX renders $$...$$ math blocks; faster than MathJax, no local LaTeX
+# install needed. Same [preprocessor.katex] config hdic's userguide uses.
+[preprocessor.katex]
+after = ["links"]
+
 [preprocessor.cmdrun]

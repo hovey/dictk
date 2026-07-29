@@ -97,9 +97,9 @@ def rosta_pattern(rp: RostaParameters) -> np.ndarray:
 
 
 def rosta(
+    *,
     width: int = 200,
     height: int = 200,
-    *,
     dot_size: float = 4.0,
     density: float = 0.32,
     smoothness: float = 2.0,

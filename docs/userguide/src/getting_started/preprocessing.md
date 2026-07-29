@@ -1,4 +1,4 @@
-# Image Processing
+# Image Preprocessing
 
 Certain preprocessing steps can make digital image correlation more robust
 to differences in brightness and contrast between a reference and deformed
@@ -8,7 +8,7 @@ example.
 
 ## Brightness
 
-[**Brightness**](../api/dictk/imaging.html#brightness) shifts the entire
+[**Brightness**](../api/dictk/image.html#brightness) shifts the entire
 pixel-intensity histogram up or down by a constant amount — the whole
 image gets lighter or darker together, dark areas included. Pushed too
 far, dark regions wash out to a flat gray and highlights clip at pure
@@ -16,23 +16,23 @@ white (255), permanently losing detail.
 
 ```python
 import dictk
-from dictk.imaging import brightness, save_histogram, write_image
+from dictk.image import brightness, histogram_save, write
 
-photo = dictk.astronaut(300, 300)
-write_image(photo, "astronaut_original.png")
-save_histogram(photo, "astronaut_original_histogram.png")
+photo = dictk.astronaut(width=300, height=300)
+write(arr=photo, path="astronaut_original.png")
+histogram_save(arr=photo, path="astronaut_original_histogram.png")
 
-bright_1_5 = brightness(photo, 1.5)
-write_image(bright_1_5, "astronaut_brightness_1.5.png")
-save_histogram(bright_1_5, "astronaut_brightness_1.5_histogram.png")
+bright_1_5 = brightness(arr=photo, factor=1.5)
+write(arr=bright_1_5, path="astronaut_brightness_1.5.png")
+histogram_save(arr=bright_1_5, path="astronaut_brightness_1.5_histogram.png")
 
-bright_2_0 = brightness(photo, 2.0)
-write_image(bright_2_0, "astronaut_brightness_2.0.png")
-save_histogram(bright_2_0, "astronaut_brightness_2.0_histogram.png")
+bright_2_0 = brightness(arr=photo, factor=2.0)
+write(arr=bright_2_0, path="astronaut_brightness_2.0.png")
+histogram_save(arr=bright_2_0, path="astronaut_brightness_2.0_histogram.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.imaging import brightness, save_histogram, write_image; photo = dictk.astronaut(300, 300); write_image(photo, 'astronaut_original.png'); save_histogram(photo, 'astronaut_original_histogram.png'); bright_1_5 = brightness(photo, 1.5); write_image(bright_1_5, 'astronaut_brightness_1.5.png'); save_histogram(bright_1_5, 'astronaut_brightness_1.5_histogram.png'); bright_2_0 = brightness(photo, 2.0); write_image(bright_2_0, 'astronaut_brightness_2.0.png'); save_histogram(bright_2_0, 'astronaut_brightness_2.0_histogram.png'); print('Saved: astronaut_original.png, astronaut_brightness_1.5.png, astronaut_brightness_2.0.png')" -->
+<!-- cmdrun python3 -c "import dictk; from dictk.image import brightness, histogram_save, write; photo = dictk.astronaut(width=300, height=300); write(arr=photo, path='astronaut_original.png'); histogram_save(arr=photo, path='astronaut_original_histogram.png'); bright_1_5 = brightness(arr=photo, factor=1.5); write(arr=bright_1_5, path='astronaut_brightness_1.5.png'); histogram_save(arr=bright_1_5, path='astronaut_brightness_1.5_histogram.png'); bright_2_0 = brightness(arr=photo, factor=2.0); write(arr=bright_2_0, path='astronaut_brightness_2.0.png'); histogram_save(arr=bright_2_0, path='astronaut_brightness_2.0_histogram.png'); print('Saved: astronaut_original.png, astronaut_brightness_1.5.png, astronaut_brightness_2.0.png')" -->
 ```
 
 factor=1.0 (original) | factor=1.5 | factor=2.0
@@ -52,7 +52,7 @@ recovered.
 
 ## Contrast
 
-[**Contrast**](../api/dictk/imaging.html#contrast) is the spread between
+[**Contrast**](../api/dictk/image.html#contrast) is the spread between
 an image's darkest and lightest pixels. Increasing contrast stretches the
 histogram outward from its own mean — darks get darker, lights get
 lighter — while the mean itself stays roughly
@@ -60,21 +60,21 @@ where it was.
 
 ```python
 import dictk
-from dictk.imaging import contrast, save_histogram, write_image
+from dictk.image import contrast, histogram_save, write
 
-photo = dictk.astronaut(300, 300)
+photo = dictk.astronaut(width=300, height=300)
 
-contrast_1_5 = contrast(photo, 1.5)
-write_image(contrast_1_5, "astronaut_contrast_1.5.png")
-save_histogram(contrast_1_5, "astronaut_contrast_1.5_histogram.png")
+contrast_1_5 = contrast(arr=photo, factor=1.5)
+write(arr=contrast_1_5, path="astronaut_contrast_1.5.png")
+histogram_save(arr=contrast_1_5, path="astronaut_contrast_1.5_histogram.png")
 
-contrast_2_0 = contrast(photo, 2.0)
-write_image(contrast_2_0, "astronaut_contrast_2.0.png")
-save_histogram(contrast_2_0, "astronaut_contrast_2.0_histogram.png")
+contrast_2_0 = contrast(arr=photo, factor=2.0)
+write(arr=contrast_2_0, path="astronaut_contrast_2.0.png")
+histogram_save(arr=contrast_2_0, path="astronaut_contrast_2.0_histogram.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "import dictk; from dictk.imaging import contrast, save_histogram, write_image; photo = dictk.astronaut(300, 300); contrast_1_5 = contrast(photo, 1.5); write_image(contrast_1_5, 'astronaut_contrast_1.5.png'); save_histogram(contrast_1_5, 'astronaut_contrast_1.5_histogram.png'); contrast_2_0 = contrast(photo, 2.0); write_image(contrast_2_0, 'astronaut_contrast_2.0.png'); save_histogram(contrast_2_0, 'astronaut_contrast_2.0_histogram.png'); print('Saved: astronaut_contrast_1.5.png, astronaut_contrast_2.0.png')" -->
+<!-- cmdrun python3 -c "import dictk; from dictk.image import contrast, histogram_save, write; photo = dictk.astronaut(width=300, height=300); contrast_1_5 = contrast(arr=photo, factor=1.5); write(arr=contrast_1_5, path='astronaut_contrast_1.5.png'); histogram_save(arr=contrast_1_5, path='astronaut_contrast_1.5_histogram.png'); contrast_2_0 = contrast(arr=photo, factor=2.0); write(arr=contrast_2_0, path='astronaut_contrast_2.0.png'); histogram_save(arr=contrast_2_0, path='astronaut_contrast_2.0_histogram.png'); print('Saved: astronaut_contrast_1.5.png, astronaut_contrast_2.0.png')" -->
 ```
 
 factor=1.0 (original) | factor=1.5 | factor=2.0
