@@ -206,8 +206,10 @@ one particular offset — summed pixelwise over index $i$:
   where $\bar{f}_i = f_i - \bar{f}$ and $\bar{g}_i = g_i - \bar{g}$. Robust
   to both brightness and contrast differences.
 
-See Pan B, Xie H, Wang Z. "Equivalence of digital image correlation
-criteria for pattern matching." *Applied Optics* 2010;49(28):5501-9.
+See Pan B, Xie H, Wang Z. "[Equivalence of digital image correlation
+criteria for pattern
+matching](https://opg.optica.org/ao/viewmedia.cfm?uri=ao-49-28-5501)."
+*Applied Optics* 2010;49(28):5501-9.
 [`dictk.correlation`](../api/dictk/correlation.html) implements all four as
 standalone functions (`cc`, `ncc`, `zcc`, `zncc`), each returning the full
 correlation surface rather than just its peak — see [CC
