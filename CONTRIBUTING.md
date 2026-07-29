@@ -215,14 +215,13 @@ If you already have a newer `mdbook` from Homebrew or elsewhere on your
 `PATH`, make sure `~/.cargo/bin` comes first (or check `mdbook --version`
 reports `0.4.52` before building).
 
+`book.toml` lives at the repo root (not inside `docs/userguide/`), with
+`src = "docs/userguide/src"` and `build-dir = "docs/userguide/book"`, so
+both commands below run from the repo root:
+
 ```bash
-# mdbook-cmdrun resolves each cmdrun command's working directory relative
-# to the process's cwd, so you must `cd` into docs/userguide first — running
-# `mdbook build docs/userguide` from the repo root will fail with
-# "Fail to run shell".
-cd docs/userguide
 uv run mdbook build           # build once, output in docs/userguide/book/
-uv run mdbook serve           # live preview at http://localhost:3000
+uv run mdbook serve --open    # live preview at http://localhost:3000
 ```
 
 `uv run` puts dictk's own CLI on `PATH` for the build, since some
@@ -363,7 +362,7 @@ the checks manually:
 uv run ruff format --check
 uv run ruff check
 uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html
-(cd docs/userguide && uv run mdbook build)
+uv run mdbook build
 uv run pdoc dictk dictk.image dictk.translation dictk.cli -o docs/api
 uv run genbadge coverage -i coverage.xml -o coverage-badge.svg
 uv run pylint src/dictk --output-format=text --reports=yes
