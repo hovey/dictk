@@ -3,6 +3,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from dictk.correlation import cc, ncc, zcc, zncc
 from dictk.image import (
     ArrowAnnotation,
     BoxAnnotation,
@@ -14,6 +15,7 @@ from dictk.image import (
     combine,
     complex_deform,
     contrast,
+    correlation_surfaces_plot,
     crack_dislocation,
     describe,
     point_plot,
@@ -860,3 +862,37 @@ def test_reference_frame_plot_non_square_image(tmp_path: Path):
     reference_frame_plot(image=arr, path=path)
     assert path.exists()
     assert path.stat().st_size > 0
+
+
+def test_correlation_surfaces_plot_writes_file(tmp_path: Path):
+    reference_image = checkerboard(width=200, height=200)
+    current_image = translate(arr=reference_image, dx=-6, dy=8)
+    kernel_origin = PixelCoordinate(x=75, y=50)
+    kernel = subimage(image=reference_image, origin=kernel_origin, width=50, height=50)
+    search_origin = PixelCoordinate(x=50, y=25)
+    search = subimage(image=current_image, origin=search_origin, width=100, height=100)
+
+    path = tmp_path / "correlation_surfaces.png"
+    correlation_surfaces_plot(
+        cc=cc(kernel=kernel, search=search),
+        ncc=ncc(kernel=kernel, search=search),
+        zcc=zcc(kernel=kernel, search=search),
+        zncc=zncc(kernel=kernel, search=search),
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_correlation_surfaces_plot_mismatched_shapes_raises(tmp_path: Path):
+    surface_small = np.zeros((10, 10))
+    surface_large = np.zeros((20, 20))
+    path = tmp_path / "correlation_surfaces.png"
+    with pytest.raises(ValueError):
+        correlation_surfaces_plot(
+            cc=surface_small,
+            ncc=surface_small,
+            zcc=surface_small,
+            zncc=surface_large,
+            path=path,
+        )

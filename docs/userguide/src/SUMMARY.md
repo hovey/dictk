@@ -6,5 +6,8 @@
 - [Image Preprocessing](./getting_started/preprocessing.md)
 - [Image Transformation](./getting_started/transformation.md)
 - [Single Point Motion](./getting_started/single_point_motion.md)
+  - [Cross Correlation (CC)](./getting_started/cross_correlation.md)
+  - [CC Visualization](./getting_started/cc_visualization.md)
+  - [CC via FFT](./getting_started/cc_fft.md)
 - [Image Processing](./getting_started/processing.md)
 - [Contributing](./contributing.md)

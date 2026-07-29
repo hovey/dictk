@@ -1405,3 +1405,64 @@ def histogram_save(*, arr: np.ndarray, path: Path, dpi: int = 300) -> None:
     plt.ylabel("frequency")
     plt.savefig(path, dpi=dpi)
     plt.close()
+
+
+def correlation_surfaces_plot(
+    *,
+    cc: np.ndarray,
+    ncc: np.ndarray,
+    zcc: np.ndarray,
+    zncc: np.ndarray,
+    path: Path,
+    figsize: tuple[float, float] | None = None,
+    dpi: int = 300,
+) -> None:
+    r"""Save a 2x2 grid comparing four correlation-criterion surfaces side by side.
+
+    Each of `cc`/`ncc`/`zcc`/`zncc` (see
+    [`dictk.correlation`](../correlation.html)) is drawn as its own heatmap
+    panel (`viridis` colormap, its own colorbar), with a marker at that
+    panel's own peak -- the position `dictk.correlation`'s own docstrings
+    describe as the answer a correlation criterion is searching for. All
+    four arrays must share one shape, so the panels are directly comparable
+    position-for-position.
+
+    Args:
+        cc: The CC surface (`dictk.correlation.cc`'s return value).
+        ncc: The NCC surface (`dictk.correlation.ncc`'s return value).
+        zcc: The ZCC surface (`dictk.correlation.zcc`'s return value).
+        zncc: The ZNCC surface (`dictk.correlation.zncc`'s return value).
+        path: Output file path for the figure; format is inferred from the
+            extension by matplotlib's savefig (e.g. .png), not dictk's own
+            write/write_svg.
+        figsize: Optional (width, height) in inches for the saved figure.
+            By default matplotlib's own default, `(6.4, 4.8)`, doubled to
+            fit four panels; pass this to override.
+        dpi: Resolution of the saved figure.
+
+    Raises:
+        ValueError: If `cc`/`ncc`/`zcc`/`zncc` don't all share one shape.
+    """
+    surfaces = {"CC": cc, "NCC": ncc, "ZCC": zcc, "ZNCC": zncc}
+    shapes = {name: surface.shape for name, surface in surfaces.items()}
+    if len(set(shapes.values())) != 1:
+        raise ValueError(f"cc/ncc/zcc/zncc must all share one shape, got {shapes}")
+
+    if figsize is None:
+        default_width, default_height = 6.4, 4.8
+        figsize = (default_width * 2, default_height * 2)
+    fig, axes = plt.subplots(2, 2, figsize=figsize, constrained_layout=True)
+
+    for ax, (name, surface) in zip(axes.flat, surfaces.items()):
+        im = ax.imshow(surface, cmap="viridis", origin="upper")
+        plt.colorbar(im, ax=ax, shrink=0.8)
+
+        peak_y, peak_x = np.unravel_index(np.argmax(surface), surface.shape)
+        ax.plot(peak_x, peak_y, marker="x", color="red", markersize=8)
+
+        ax.set_title(rf"$C_{{\mathrm{{{name}}}}}$")
+        ax.set_xlabel(r"$\Delta x$ offset (pixels)")
+        ax.set_ylabel(r"$\Delta y$ offset (pixels)")
+
+    plt.savefig(path, dpi=dpi, bbox_inches="tight")
+    plt.close(fig)
