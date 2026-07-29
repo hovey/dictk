@@ -335,6 +335,14 @@ def subimage_comparison_plot(
     image_height, image_width = image.shape
 
     margin = max(width, height, image_width, image_height) * 0.05
+    if source_origin_label is not None or origin_label is not None:
+        # source_origin_label/origin_label sit just up-right of a marker at
+        # (0, 0) -- the top-left corner of the panel's own content -- so
+        # "up" lands in this margin, above the panel title. The default
+        # margin (5% of the content) can be too thin to fit a 12pt label
+        # there without touching the title, regardless of image size, so
+        # widen it enough to fit one when either label is in use.
+        margin = max(margin, (12 * 2.2) / 72 * _FIGURE_PIXELS_PER_INCH)
     x_min = min(0, origin.x) - margin
     x_max = max(image_width, origin.x + width) + margin
     y_min = min(0, origin.y) - margin
@@ -381,17 +389,12 @@ def subimage_comparison_plot(
     if point is not None:
         ax_left.plot(point.x, point.y, marker="o", color=point_color, markersize=6)
     if source_origin_label is not None:
-        # (0, 0) is always the top-left corner of the full image, where
-        # "up" leads into the thin outer margin -- placed down-right,
-        # into the image interior, instead.
         ax_left.text(
             label_offset,
-            label_offset,
+            -label_offset,
             source_origin_label,
             color="blue",
             fontsize=12,
-            ha="left",
-            va="top",
             path_effects=label_outline,
         )
     if origin_label is not None:
@@ -435,17 +438,8 @@ def subimage_comparison_plot(
             point.x - origin.x, point.y - origin.y, marker="o", color=point_color, markersize=6
         )
     if origin_label is not None:
-        # (0, 0) here is always the subimage's own top-left corner, same
-        # margin concern as source_origin_label above -- down-right too.
         ax_right.text(
-            label_offset,
-            label_offset,
-            origin_label,
-            color=color,
-            fontsize=12,
-            ha="left",
-            va="top",
-            path_effects=label_outline,
+            label_offset, -label_offset, origin_label, color=color, fontsize=12, path_effects=label_outline
         )
     if point is not None and point_label is not None:
         ax_right.text(
@@ -580,15 +574,20 @@ def point_plot(
     endpoints_x += [point.position.x for point in points]
     endpoints_y += [point.position.y for point in points]
     margin = max(image_width, image_height) * 0.05
+    if points:
+        # Point labels sit just up-right of their marker, so a point at
+        # (0, 0) -- the image's own top-left corner -- would have its
+        # label land in this margin, above the title. The default margin
+        # (5% of the image) can be too thin to fit a 12pt label there
+        # regardless of image size, so widen it enough to fit one.
+        margin = max(margin, (12 * 2.2) / 72 * _FIGURE_PIXELS_PER_INCH)
     x_min = min(0, *endpoints_x) - margin
     x_max = max(image_width, *endpoints_x) + margin
     y_min = min(0, *endpoints_y) - margin
     y_max = max(image_height, *endpoints_y) + margin
 
-    # Small down-right offset for point labels, so label text doesn't sit
-    # directly on top of its own marker (and doesn't overflow into the
-    # thin outer margin the way an up-left/up-right offset could for a
-    # point sitting at a box's own top-left corner).
+    # Small up-right offset for point labels, so label text doesn't sit
+    # directly on top of its own marker.
     label_offset = max(image_width, image_height) * 0.03
     label_outline = [patheffects.withStroke(linewidth=1, foreground="white")]
 
@@ -632,12 +631,10 @@ def point_plot(
     for point in points:
         ax.text(
             point.position.x + label_offset,
-            point.position.y + label_offset,
+            point.position.y - label_offset,
             point.label,
             color=point.color,
             fontsize=12,
-            ha="left",
-            va="top",
             path_effects=label_outline,
         )
     # ax.annotate's arrows don't register with the legend on their own, so
