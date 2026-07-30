@@ -308,8 +308,8 @@ represents the local volume ratio and must be positive for physically admissible
 
 ### Gauss Points
 
-To evaluate strain, we use **Gaussian Quadrature**.  We don't typically calculate strain
-at the nodes.  Rather, we evaluate strain at specific *integration points* (also known as **Gauss points**) where mathematical precision is the highest.
+To evaluate quantities that depend on the displacement field and its gradient, such as strain, we use **Gaussian Quadrature**.  We don't typically calculate quantities 
+at the nodes.  Rather, we quantities strain at specific *integration points* (also known as **Gauss points**) where mathematical precision is the highest.
 
 For a 2D quadrilateral element, we typically use a $2 \times 2$ Gauss rule.  The integration points are located in the local coordinate system $(\xi, \eta)$ at
 

@@ -199,7 +199,7 @@ seen as follows:
 $$
 \begin{aligned}
 2\boldsymbol{E} &= \boldsymbol{I} + \mathrm{Grad}\,\boldsymbol{u} + (\mathrm{Grad}\,\boldsymbol{u})^{\top} + (\mathrm{Grad}\,\boldsymbol{u})^{\top} \mathrm{Grad}\,\boldsymbol{u} - \boldsymbol{I}, \\
-2\boldsymbol{E}_{\text{LIN}} &= \mathrm{Grad}\,\boldsymbol{u} + (\mathrm{Grad}\,\boldsymbol{u})^{\top},
+2\boldsymbol{E}_{\text{\tiny LIN}} &= \mathrm{Grad}\,\boldsymbol{u} + (\mathrm{Grad}\,\boldsymbol{u})^{\top},
 \end{aligned}
 $$
 
@@ -226,7 +226,7 @@ $$
     &= \delta_{ij} - \left[ \frac{\partial \varphi_i}{\partial X_J} \frac{\partial \varphi_j}{\partial X_J} \right]^{-1} = \delta_{ij} - \left[ \frac{\partial X_J}{\partial \varphi_i} \frac{\partial X_J}{\partial \varphi_j} \right] \\
     &= \boldsymbol{I} - \left[ (\boldsymbol{I} - \mathrm{grad}\,\boldsymbol{u})(\boldsymbol{I} - \mathrm{grad}\,\boldsymbol{u})^{\top} \right] \\
     &= \mathrm{grad}\,\boldsymbol{u} + \mathrm{grad}\,\boldsymbol{u}^{\top} - \mathrm{grad}\,\boldsymbol{u}\, \mathrm{grad}\,\boldsymbol{u}^{\top}, \\
-2\boldsymbol{e}_{\text{LIN}} &= \mathrm{grad}\,\boldsymbol{u} + (\mathrm{grad}\,\boldsymbol{u})^{\top},
+2\boldsymbol{e}_{\text{\tiny LIN}} &= \mathrm{grad}\,\boldsymbol{u} + (\mathrm{grad}\,\boldsymbol{u})^{\top},
 \end{aligned}
 $$
 
@@ -249,8 +249,8 @@ $$
 
 respectively, the nonlinear gradient terms are negligible and the finite strain
 theory simplifies to small strain theory, which occurs when finite strain
-measures are linearized to obtain $\boldsymbol{E}_{\text{LIN}}$ and
-$\boldsymbol{e}_{\text{LIN}}$ in the previous sections.
+measures are linearized to obtain $\boldsymbol{E}_{\text{\tiny LIN}}$ and
+$\boldsymbol{e}_{\text{\tiny LIN}}$ in the previous sections.
 
 Note that we have restricted the *gradients* of displacement, and not the
 displacement $\boldsymbol{u}$ itself. Thus, displacements between the reference and
@@ -276,8 +276,8 @@ $$
 the infinitesimal strain theory is obtained, which has no distinction between
 Lagrangian and Eulerian strain tensors.
 
-In this case, the two small strain tensors, $\boldsymbol{E}_{\text{LIN}}$ and
-$\boldsymbol{e}_{\text{LIN}}$, converge to a single definition of strain, called the
+In this case, the two small strain tensors, $\boldsymbol{E}_{\text{\tiny LIN}}$ and
+$\boldsymbol{e}_{\text{\tiny LIN}}$, converge to a single definition of strain, called the
 infinitesimal strain tensor $\boldsymbol{\epsilon}$, defined as
 
 $$
@@ -348,10 +348,10 @@ $$
 | $m$ | Name | 3D | 1D |
 |:---:|:---|:---|:---|
 | $2$ | Green-Lagrange | $\boldsymbol{E}^{(2)} = \tfrac{1}{2}\left(\boldsymbol{U}^2 - \boldsymbol{I}\right)$ | $E_{\text{\tiny LAG}} = \tfrac{1}{2}\left[\left(\tfrac{\ell}{L}\right)^2 - 1\right]$ |
-| $1$ | engineering (Biot, nominal) | $\boldsymbol{E}^{(1)} = \boldsymbol{U} - \boldsymbol{I}$ | $E_{\text{ENG}} = \dfrac{\ell - L}{L}$ |
-| $0$ | log (Hencky, natural) | $\boldsymbol{E}^{(0)} = \ln\boldsymbol{U}$ | $E_{\text{LOG}} = \ln\left(\dfrac{\ell}{L}\right)$ |
-| $-1$ | true | $\boldsymbol{E}^{(-1)} = \boldsymbol{I} - \boldsymbol{U}^{-1}$ | $E_{\text{TRUE}} = \dfrac{\ell - L}{\ell}$ |
-| $-2$ | Euler-Almansi | $\boldsymbol{E}^{(-2)} = \tfrac{1}{2}\left(\boldsymbol{I} - \boldsymbol{U}^{-2}\right)$ | $E_{\text{EUL}} = \tfrac{1}{2}\left[1 - \left(\dfrac{L}{\ell}\right)^2\right]$ |
+| $1$ | engineering (Biot, nominal) | $\boldsymbol{E}^{(1)} = \boldsymbol{U} - \boldsymbol{I}$ | $E_{\text{\tiny ENG}} = \dfrac{\ell - L}{L}$ |
+| $0$ | log (Hencky, natural) | $\boldsymbol{E}^{(0)} = \ln\boldsymbol{U}$ | $E_{\text{\tiny LOG}} = \ln\left(\dfrac{\ell}{L}\right)$ |
+| $-1$ | true | $\boldsymbol{E}^{(-1)} = \boldsymbol{I} - \boldsymbol{U}^{-1}$ | $E_{\text{\tiny TRUE}} = \dfrac{\ell - L}{\ell}$ |
+| $-2$ | Euler-Almansi | $\boldsymbol{E}^{(-2)} = \tfrac{1}{2}\left(\boldsymbol{I} - \boldsymbol{U}^{-2}\right)$ | $E_{\text{\tiny EUL}} = \tfrac{1}{2}\left[1 - \left(\dfrac{L}{\ell}\right)^2\right]$ |
 
 <figcaption>Table: Strains obtained from the Seth-Hill family.</figcaption>
 
@@ -359,11 +359,14 @@ The one-dimensional strains are illustrated as a function of stretch ratio
 $\lambda = \ell/L$ in the figure below.
 
 <figure class="figure-box">
-    <img src="stretch_strain.png" alt="stretch_strain" width=58% />
+    <img src="Terpsma_Figure_E-9.jpg" alt="stretch_strain" width=100% />
     <figcaption>
-        Figure: One-dimensional strain as a function of stretch ratio. Source: <code>stretch_strain.py</code>.
+        Figure: One-dimensional strain as a function of stretch ratio. Reproduction of
+        Figure E-9 of Terpsma.
     </figcaption>
 </figure>
+
+Source: Terpsma *et al.*[^Terpsma_2020]
 
 The figure illustrates several results:
 
@@ -416,11 +419,15 @@ interchangeable, and (2) it is incomplete to simply say "strain." Rather, both
 the strain value *and* strain tensor must be specified.
 
 <figure class="figure-box">
-    <img src="stretch_strain_rel.png" alt="stretch_strain_rel" width=50% />
+    <img src="Terpsma_Figure_E-10.jpg" alt="stretch_strain_rel" width=100% />
     <figcaption>
-        Figure: One-dimensional strain difference of the strain function minus the natural logarithmic strain as a function of stretch ratio. Source: <code>stretch_strain.py</code>.
+        Figure: One-dimensional strain difference of the strain function minus the natural
+        logarithmic strain as a function of stretch ratio. Reproduction of Figure E-10 of
+        Terpsma.
     </figcaption>
 </figure>
+
+Source: Terpsma *et al.*[^Terpsma_2020]
 
 ## Strain Tensors and Finite Rotations
 
@@ -451,7 +458,7 @@ The linearized strain tensor is found to be
 
 $$
 \begin{aligned}
-2\boldsymbol{E}_{\text{LIN}} &= \mathrm{Grad}\,\boldsymbol{u} + (\mathrm{Grad}\,\boldsymbol{u})^{\top}, \\
+2\boldsymbol{E}_{\text{\tiny LIN}} &= \mathrm{Grad}\,\boldsymbol{u} + (\mathrm{Grad}\,\boldsymbol{u})^{\top}, \\
 &= \boldsymbol{F} - \boldsymbol{I} + \left(\boldsymbol{F} - \boldsymbol{I}\right)^{\top}, \\
 &= F_{iJ} - \delta_{iJ} + F_{Ji} - \delta_{Ji}, \\
 &= \begin{bmatrix} \cos\omega t & \sin\omega t \\ -\sin\omega t & \cos\omega t \end{bmatrix} + \begin{bmatrix} \cos\omega t & -\sin\omega t \\ \sin\omega t & \cos\omega t \end{bmatrix} - \begin{bmatrix} 2 & 0 \\ 0 & 2 \end{bmatrix}, \\
@@ -460,9 +467,9 @@ $$
 $$
 
 Now, for small angles, $\omega t \approx 0$, which is for small deviations
-$x_1 \approx X_1$, $x_2 \approx X_2$, then $\boldsymbol{E}_{\text{LIN}} = \boldsymbol{0}$
+$x_1 \approx X_1$, $x_2 \approx X_2$, then $\boldsymbol{E}_{\text{\tiny LIN}} = \boldsymbol{0}$
 for rigid body rotations. However, for arbitrary finite angles, $\omega t \neq
-0$, and the linearized strain tensor $\boldsymbol{E}_{\text{LIN}}$ reports nonzero
+0$, and the linearized strain tensor $\boldsymbol{E}_{\text{\tiny LIN}}$ reports nonzero
 strain for rigid body rotations, which is nonsensical.
 
 A correct strain tensor will report zero strain for rigid body rotations. One
@@ -500,7 +507,7 @@ and fibers $d\boldsymbol{X}$ in its vicinity mapped to the spatial point $\bolds
 with the same fibers mapped to $d\boldsymbol{x}$.
 
 <figure class="figure-box">
-    <img src="polar_decomposition.png" alt="polar_decomposition" width=75% />
+    <img src="polar_decomposition.png" alt="polar_decomposition" width=100% />
     <figcaption>
         Figure: In the vicinity of $\boldsymbol{X}$, mapped to $\boldsymbol{x} = \boldsymbol{\varphi}(\boldsymbol{X})$, the polar decomposition of deformation gradient $\boldsymbol{F}$ into stretch $\boldsymbol{U}$ then rotation $\boldsymbol{R}$; or, into rotation $\boldsymbol{R}$ then stretch $\boldsymbol{v}$: (a) reference configuration, (b) stretched configuration, (c) rotated configuration, (d) current configuration. As shown, the eigenvalues of $\boldsymbol{U}$ (and $\boldsymbol{v}$) are $\lambda_1 = 1.5$, $\lambda_2 = 0.5$, $\lambda_3 = 1$ and the rotation $\boldsymbol{R}$ has a magnitude of $30^\circ$ about the $\boldsymbol{e}_3$ axis. Source: <code>polar_decomposition.py</code>.
     </figcaption>
@@ -587,6 +594,8 @@ $\boldsymbol{e}$ explicitly.
 [^t0]: Note that $t_0$, while typically zero, may be any real number less than $t_f$.
 
 [^integer_m]: Technically, $m$ can be any real number, not just an integer.
+
+[^Terpsma_2020]: Terpsma RJ, Hovey CB. Blunt impact brain injury using cellular injury criterion. Sandia National Lab. (SNL-NM), Albuquerque, NM (United States); 2020 Oct 1. [link](https://www.osti.gov/servlets/purl/1716577)
 
 [^neff]: Neff, P. (2013). *The Hencky strain measure is the geodesic distance to SO($n$)*, at 6.
 
