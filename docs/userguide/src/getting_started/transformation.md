@@ -12,8 +12,8 @@ below:
 </figure>
 
 Each category preserves a different, nested set of geometric properties
-— every property a more restrictive category preserves is also
-preserved by every category to its left:
+— every property a category preserves is also preserved by every more
+restrictive category to its left:
 
 Property | Translation | Euclidean | Similarity | Affine | Projective
 --- | --- | --- | --- | --- | ---
@@ -28,7 +28,7 @@ Absolute orientation preserved (no rotation) | Yes | No | No | No | No
 As the simplest of the categories above — no change in shape or size —
 [`dictk.image.translate`](../api/dictk/image.html#translate) shifts
 every pixel by a fixed displacement. This example shifts the image by
-dx=-60 pixels in x and dy=+80 pixels in y, representing rigid body
+dx=-60 pixels in x and dy=+80 pixels in y, representing rigid-body
 motion where the material moves without deforming.
 
 ```python
@@ -49,11 +49,11 @@ write(arr=translated, path="astronaut_translate_rigid_body.png")
 Translation | Image
 --- | ---
 Original | ![original](astronaut_translate_original.png)
-dx=-60, dy=+80 | ![rigid body translation](astronaut_translate_rigid_body.png)
+dx=-60, dy=+80 | ![rigid-body translation](astronaut_translate_rigid_body.png)
 
 ## Pure Rotation
 
-A 30° counterclockwise rotation, another rigid body motion that preserves
+A 30° counterclockwise rotation, another rigid-body motion that preserves
 distances and angles.
 [`dictk.image.rotate`](../api/dictk/image.html#rotate) pivots on the
 image's top-left corner (0, 0), consistent with `stretch` and

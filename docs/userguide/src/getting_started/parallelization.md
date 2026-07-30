@@ -2,11 +2,11 @@
 
 [Multi-Point Motion](./multi_point_motion.md#tracking-the-grid) just ran 12
 independent calls to
-[`dictk.translation.locate`](../api/dictk/translation.html#locate) -- one
-per point, each doing its own FFT-based phase correlation -- to verify
+[`dictk.translation.locate`](../api/dictk/translation.html#locate) — one
+per point, each doing its own FFT-based phase correlation — to verify
 every point's displacement. We anticipate the need to process a very
 large number of point-to-point correspondences to support large-scale
-DIC work -- a real finite element mesh (see [Finite Element
+DIC work — a real finite element mesh (see [Finite Element
 Method](./finite_element_method.md)) can easily have thousands-to-millions
 of nodes, not the 12 points in the simple grid above. Each point
 correspondence is independent of every other: locating point $i$ never
@@ -35,7 +35,7 @@ return [
 
 Because every iteration is already independent, parallelizing it is a
 matter of swapping this list comprehension for a parallel map over the same
-per-point calls -- not a redesign. The standard library's
+per-point calls — not a redesign. The standard library's
 `concurrent.futures.ProcessPoolExecutor` can drive that map today, calling
 only dictk's existing public API:
 
@@ -90,7 +90,7 @@ built-in `map`) always calls its target positionally, one item per
 iterable, so a keyword-only signature isn't an option for the function
 being mapped over. This actual snippet runs correctly against `astronaut0`
 and recovers the same displacements as the sequential version [Multi-Point
-Motion](./multi_point_motion.md#tracking-the-grid) already ran -- it just
+Motion](./multi_point_motion.md#tracking-the-grid) already ran — it just
 isn't wired up as a real `dictk.grid` function, and can't be run live on
 this page as a `cmdrun` figure the way the others are: `ProcessPoolExecutor`
 spawns worker processes that each re-import the target callable by module
@@ -101,7 +101,7 @@ Two practical caveats before reaching for this:
 
 - **Threads won't help.** The obvious first instinct is a
   `ThreadPoolExecutor` instead, since it avoids process-spawn and
-  pickling overhead entirely -- but `translation.locate`'s search-area
+  pickling overhead entirely — but `translation.locate`'s search-area
   correlation is dominated by NumPy/SciPy array operations that mostly
   hold the GIL for the small kernel and search-area sizes this guide uses,
   so threads mostly just add scheduling overhead without real concurrency.
@@ -111,5 +111,5 @@ Two practical caveats before reaching for this:
   image arrays across process boundaries isn't free, and for a handful of
   points (like the 12-point grid above), that overhead can easily exceed
   the time saved. It starts paying off once the point count is large
-  enough. But, what is *large enough*?  That question will be answered in turn
+  enough. But what is *large enough*?  That question will be answered in turn
   in the analysis that follows.

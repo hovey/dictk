@@ -9,7 +9,7 @@ without ever explicitly sliding a window. This is exactly what
 [`dictk.translation.locate`](../api/dictk/translation.html#locate) does
 internally, via
 [`skimage.registration.phase_cross_correlation`](https://scikit-image.org/docs/stable/api/skimage.registration.html#skimage.registration.phase_cross_correlation).
-The appeal isn't a different answer, it's speed: a fast Fourier transform
+The appeal isn't a different answer — it's speed: a fast Fourier transform
 (FFT) costs $O(n \log n)$ per image, against the sliding sum's $O(n^2)$
 per candidate offset — decisive once images grow beyond this page's small
 teaching example.
@@ -79,7 +79,7 @@ spectrum — it passes `normalization="phase"` to
 every frequency before inverting it (see the extensive comment in
 [`locate`'s source](../api/dictk/translation.html#locate) for why). Both
 differences change the surface's numeric character; neither changes where
-its peak lands, here.
+its peak lands here.
 
 ## Windowing
 

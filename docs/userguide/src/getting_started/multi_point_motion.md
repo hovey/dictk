@@ -62,7 +62,7 @@ for a match). Before tracking the grid, it helps to see both relative to
 the point spacing.
 [`dictk.image.point_grid_boxes_plot`](../api/dictk/image.html#point_grid_boxes_plot)
 draws one box type per call, so kernel and search area each get their own
-figure -- each point's own box gets its own color and its own legend
+figure — each point's own box gets its own color and its own legend
 entry (`kernel 00`, `kernel 01`, ..., `kernel 11`), cycling through a
 12-color palette drawn from matplotlib's Tableau colormap:
 
@@ -127,7 +127,7 @@ each other's content. A common rule of thumb (with no hard requirement
 behind it) is to space points roughly half a kernel's side length apart.
 A kernel's full side length is twice its margin, so `kernel_margin_width`
 and `kernel_margin_height` are themselves already exactly half that side
-length -- meaning the rule of thumb reduces to a simple comparison: each
+length — meaning the rule of thumb reduces to a simple comparison: each
 margin should be close to the spacing itself, without exceeding it (past
 that point, neighboring kernels start overlapping).
 
@@ -137,7 +137,7 @@ margin for both axes, `kernel_margin_width=kernel_margin_height`) means
 the *smaller* of the two spacings is the binding constraint: a margin
 above 25 would overlap its $x$-neighbor, since $2 \times 25 = 50$ is
 already the full spacing in $x$. 25 is therefore the largest isotropic
-margin with zero overlap -- but right at that ceiling, adjacent kernels
+margin with zero overlap — but right at that ceiling, adjacent kernels
 touch exactly, sharing a boundary with no gap at all. The kernel figure
 above backs off from that ceiling on purpose: `kernel_margin_width=20`,
 `kernel_margin_height=20`, leaving a clear 10-pixel gap in $x$ and a
@@ -145,7 +145,7 @@ above backs off from that ceiling on purpose: `kernel_margin_width=20`,
 directions, so every kernel's own boundary reads as visibly separate from
 its neighbors', not merely non-overlapping.
 
-Nothing requires the kernel to be isotropic -- dictk supports an
+Nothing requires the kernel to be isotropic — dictk supports an
 independent margin per axis just as easily. The equal `20`/`20` above is
 a deliberate choice to illustrate that dictk supports both isotropic and
 non-isotropic margins, not a consequence of `spacing_x` and `spacing_y`
@@ -160,13 +160,13 @@ That much slack still means search areas overlap their neighbors heavily
 and run off the image at the edges, which is harmless:
 [`subimage`](../api/dictk/image.html#subimage) zero-pads whatever falls
 outside `current_image`. Unlike kernels, overlapping search areas cost
-nothing but some redundant computation -- there's no accuracy downside to
+nothing but some redundant computation — there's no accuracy downside to
 searching the same region from two different points.
 
 One more practical detail worth knowing: `phase_cross_correlation`
 requires the kernel and search area to be exactly the same shape, so
 [`dictk.translation.locate`](../api/dictk/translation.html#locate) doesn't
-crop the search area down -- it pads the kernel up to match it, here a
+crop the search area down — it pads the kernel up to match it, here a
 40x40 kernel zero-padded up to the search area's 96x104. In practice,
 that means kernel size has little effect on FFT runtime once a search
 area is chosen: the transform itself is sized by the larger of the two,
@@ -189,12 +189,12 @@ current_image = translate(arr=reference_image, dx=dx, dy=dy)
 ```
 
 [`dictk.grid.locate`](../api/dictk/grid.html#locate) tracks all 12 points
-in one call. It doesn't do the correlation itself -- it calls
+in one call. It doesn't do the correlation itself — it calls
 [`dictk.translation.locate`](../api/dictk/translation.html#locate) once
 per point, and *that* function is dictk's actual FFT-based DIC engine: for
 each point it extracts a kernel from `reference_image` and a search area
 from `current_image`, then locates the kernel within the search area via
-`skimage.registration.phase_cross_correlation` -- FFT-based phase
+`skimage.registration.phase_cross_correlation` — FFT-based phase
 cross-correlation, not a spatial-domain sliding-window search (see [CC via
 FFT](./cc_fft.md) for the single-point version of this same technique).
 Twelve points means twelve independent calls into that engine, using the
@@ -219,7 +219,7 @@ found = locate(
 ```
 
 Every one of the 12 found positions matches `reference_points[i] + (dx,
-dy)` exactly -- not approximately, the same exact-integer-pixel guarantee
+dy)` exactly — not approximately, the same exact-integer-pixel guarantee
 [Single Point Motion](./single_point_motion.md) established for one point,
 now confirmed across the whole grid at once:
 
@@ -241,13 +241,13 @@ point_grid_plot(
 
 <figure>
     <img src="multi_point_motion_found.png" alt="current image astronaut0 shifted by (-6, 8) pixels, with the 12 found points overlaid in orange at their new positions, still labeled 00 through 11" />
-    <figcaption>Current image, translated by $\delta \boldsymbol{p} = (-6, 8)$ pixels, with all 12 points' found positions -- every one recovers the same known displacement, confirming rigid-body motion across the whole grid at once, not just at a single point.</figcaption>
+    <figcaption>Current image, translated by $\delta \boldsymbol{p} = (-6, 8)$ pixels, with all 12 points' found positions — every one recovers the same known displacement, confirming rigid-body motion across the whole grid at once, not just at a single point.</figcaption>
 </figure>
 
 That every point was found exactly is expected, not a coincidence: the
 kernel margins above were chosen to roughly follow the rule of thumb, not
 to violate it. What the rule of thumb actually buys is robustness, not
-correctness on an easy case like this one -- a kernel needs enough
+correctness on an easy case like this one — a kernel needs enough
 distinctive texture to locate reliably, and `astronaut0` is a clean,
 synthetic image with strong texture everywhere and no noise. A smaller,
 more aggressively undersized kernel would likely still have worked here
@@ -256,5 +256,5 @@ that a larger kernel's extra context resolves an ambiguity a smaller one
 can't.
 
 Twelve calls into an FFT-based correlation engine, each entirely
-independent of the other eleven, is a small example of a much bigger
+independent of the other eleven, are a small example of a much bigger
 pattern: [Parallelization](./parallelization.md) picks up from here.

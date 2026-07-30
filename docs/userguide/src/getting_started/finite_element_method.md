@@ -6,12 +6,12 @@ A finite element mesh is a collection of **nodes** (points) connected into
 [Multi-Point Motion](./multi_point_motion.md#point-grid) is exactly the
 kind of nodal point collection a mesh needs, and [Tracking the
 Grid](./multi_point_motion.md#tracking-the-grid) already found every one
-of its 12 points' current positions -- exactly the per-node displacement
+of its 12 points' current positions — exactly the per-node displacement
 data a mesh needs to represent how an object deformed.
 
 [Tracking the Grid](./multi_point_motion.md#tracking-the-grid) already
 covers the kernel-size-versus-point-spacing tradeoff involved in getting
-that per-node data reliably -- the same considerations apply whether the
+that per-node data reliably — the same considerations apply whether the
 points come from a toy grid or a real mesh.
 
 Once every node's current position is known, an actual finite element

@@ -167,11 +167,11 @@ vector chain manually).
 
 Cross-correlation itself can be computed two ways: directly in the
 **spatial domain** — literally sliding the kernel over the search area and
-summing a per-position criterion, as shown below — or in the **Fourier
+summing a per-position inner product, as shown below — or in the **Fourier
 domain** via the fast Fourier transform (FFT), which is what `locate`
 actually does (see [CC via FFT](./cc_fft.md)). Both compute the same
-underlying quantity; the FFT route is simply a much faster way to get
-there.
+underlying quantity; the FFT method is simply a much faster way than the
+sliding dot product approach.
 
 ## Correlation Criteria
 
@@ -343,6 +343,16 @@ $\boldsymbol{r}_{OS/\mathcal{F}} = (50, 25)$ + | origin of the search area (blue
 $\boldsymbol{r}_{SK/\mathcal{S}} = (19, 33)$ + | kernel located within the search area, from cross-correlation (red arrow)
 $\boldsymbol{r}_{KP/\mathcal{K}} = (25, 25)$ = | point's fixed position within the kernel (green arrow)
 $\boldsymbol{r}_{OP'/\mathcal{F}} = (94, 83)$ | current position $\boldsymbol{p}_1$, matching `found` above (cyan arrow)
+
+> [!NOTE]
+> Cross-correlation may be conceptualized as the sliding dot product of pixel
+> values from the kernel with pixel values from the search area.  In this discussion
+> we have described keeping the search area stationary while sliding the kernel
+> across it.  The reverse, keeping the kernel stationary while sliding the search
+> area across it, is conceptually different but mathematically identical.  Both
+> approaches provide the same result:  Finding the unknown vector 
+> $\boldsymbol{r}_{SK/\mathcal{S}}$, which locates the kernel frame in the
+> search area frame.
 
 Next: [CC Visualization](./cc_visualization.md) computes and plots the four
 correlation criteria above as heatmaps on this same kernel and search area,
