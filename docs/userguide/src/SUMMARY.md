@@ -13,6 +13,8 @@
   - [Parallelization](./getting_started/parallelization.md)
   - [Simple Stretch](./getting_started/simple_stretch.md)
   - [Continuum Mechanics](./getting_started/continuum_mechanics.md)
+    - [Rigid Body Motion](./getting_started/rigid_body_motion.md)
+    - [Simple Shear](./getting_started/simple_shear.md)
   - [Finite Element Method](./getting_started/finite_element_method.md)
 - [Image Processing](./getting_started/processing.md)
 - [Contributing](./contributing.md)
