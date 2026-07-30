@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Image Processing - dictk User Guide</title>
+        <title>Finite Element Method - dictk User Guide</title>
 
 
         <!-- Custom HTML head -->
@@ -179,18 +179,34 @@
                 <div id="content" class="content">
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="image-processing"><a class="header" href="#image-processing">Image Processing</a></h1>
-<p><em>(placeholder — coming soon)</em></p>
+<h1 id="finite-element-method"><a class="header" href="#finite-element-method">Finite Element Method</a></h1>
+<p>A finite element mesh is a collection of <strong>nodes</strong> (points) connected into
+<strong>elements</strong> — small regions used to interpolate a quantity of interest
+(e.g. displacement) across the whole domain. The point grid built in
+<a href="./multi_point_motion.html#point-grid">Multi-Point Motion</a> is exactly the
+kind of nodal point collection a mesh needs, and <a href="./multi_point_motion.html#tracking-the-grid">Tracking the
+Grid</a> already found every one
+of its 12 points' current positions -- exactly the per-node displacement
+data a mesh needs to represent how an object deformed.</p>
+<p><a href="./multi_point_motion.html#tracking-the-grid">Tracking the Grid</a> already
+covers the kernel-size-versus-point-spacing tradeoff involved in getting
+that per-node data reliably -- the same considerations apply whether the
+points come from a toy grid or a real mesh.</p>
+<p>Once every node's current position is known, an actual finite element
+mesh still needs one more thing this page doesn't provide: <strong>element
+connectivity</strong> — which nodes join together into which elements. Building
+that connectivity, and the element formulation it enables (shape
+functions, strain, stress), is future work, not implemented here.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../getting_started/finite_element_method.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../getting_started/continuum_mechanics.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../contributing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../getting_started/processing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -200,11 +216,11 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../getting_started/finite_element_method.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../getting_started/continuum_mechanics.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../contributing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../getting_started/processing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

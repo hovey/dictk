@@ -1433,7 +1433,8 @@ with some spacing between adjacent points along each axis.
 count of points along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> need not be equal, and the
 spacing along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> need not be equal either — this is a
 general rectangular collection of points, not necessarily a square or
-uniformly-spaced one.</p>
+uniformly-spaced one. <code>spacing_x</code> and <code>spacing_y</code> are in pixels, the same
+units as every other coordinate in this guide.</p>
 <p>This page reuses <code>astronaut0</code>, the speckle pattern combined with the
 astronaut photograph introduced in <a href="getting_started/./image_generation.html#speckle--astronaut">Image
 Generation</a> — the same kind of
@@ -1447,14 +1448,15 @@ reference_image = read(path="astronaut0.png")
 
 points = generate(
     origin=PixelCoordinate(x=50, y=50),
-    count_x=5,
+    count_x=3,
     count_y=4,
-    spacing_x=45,
+    spacing_x=50,
     spacing_y=55,
 )
 point_grid_plot(
     image=reference_image,
     points=points,
+    color="orange",
     figsize=(6.4, 4.8),
     path="multi_point_motion_grid.png",
 )
@@ -1462,41 +1464,177 @@ point_grid_plot(
 <pre><code class="language-text">Saved: multi_point_motion_grid.png
 </code></pre>
 <figure>
-    <img src="getting_started/multi_point_motion_grid.png" alt="reference image astronaut0 with a 5x4 grid of 20 numbered points overlaid, labeled 00 through 19 in row-major order" />
-    <figcaption>Reference image <code>astronaut0</code> with a 5x4 grid of 20 points (<code>count_x=5</code>, <code>count_y=4</code>), spaced 45 pixels apart along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and 55 pixels apart along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> (<code>spacing_x=45</code>, <code>spacing_y=55</code>), labeled 00-19 in row-major order (top-left to bottom-right).</figcaption>
+    <img src="getting_started/multi_point_motion_grid.png" alt="reference image astronaut0 with a 3x4 grid of 12 numbered points overlaid in orange, labeled 00 through 11 in row-major order" />
+    <figcaption>Reference image <code>astronaut0</code> with a 3x4 grid of 12 points (<code>count_x=3</code>, <code>count_y=4</code>), spaced 50 pixels apart along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and 55 pixels apart along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> (<code>spacing_x=50</code>, <code>spacing_y=55</code>), labeled 00-11 in row-major order (top-left to bottom-right).</figcaption>
 </figure>
-<h2 id="finite-element-method"><a class="header" href="#finite-element-method">Finite Element Method</a></h2>
-<p>A finite element mesh is a collection of <strong>nodes</strong> (points) connected into
-<strong>elements</strong> — small regions used to interpolate a quantity of interest
-(e.g. displacement) across the whole domain. The point grid above is
-exactly the kind of nodal point collection a mesh needs: to build a mesh
-that tracks how an object deforms, first find where every one of its
-nodes moved to.</p>
-<p><a href="getting_started/../api/dictk/grid.html#locate"><code>dictk.grid.locate</code></a> does this: it calls
-<a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> once
-per point, returning every found position in one batched call, in the
-same order as the points given to it. Reusing the same rigid-body
-translation <a href="getting_started/./single_point_motion.html">Single Point Motion</a> introduced
-(<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03785em;">δ</span><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">−</span><span class="mord">6</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">8</span><span class="mclose">)</span></span></span></span> pixels), now applied to <code>astronaut0</code> and
-every point in the grid at once:</p>
+<p>Every point will need a <strong>kernel</strong> (the patch of <code>reference_image</code> used to
+identify it) and a <strong>search area</strong> (the region of <code>current_image</code> searched
+for a match). Before tracking the grid, it helps to see both relative to
+the point spacing.
+<a href="getting_started/../api/dictk/image.html#point_grid_boxes_plot"><code>dictk.image.point_grid_boxes_plot</code></a>
+draws one box type per call, so kernel and search area each get their own
+figure -- each point's own box gets its own color and its own legend
+entry (<code>kernel 00</code>, <code>kernel 01</code>, ..., <code>kernel 11</code>), cycling through a
+12-color palette drawn from matplotlib's Tableau colormap:</p>
+<pre><code class="language-python">from dictk.image import point_grid_boxes_plot
+
+point_grid_boxes_plot(
+    image=reference_image,
+    points=points,
+    margin_width=20,
+    margin_height=20,
+    label_prefix="kernel",
+    figsize=(6.4, 4.8),
+    path="multi_point_motion_kernels.png",
+)
+</code></pre>
+<pre><code class="language-text">Saved: multi_point_motion_kernels.png
+</code></pre>
+<figure>
+    <img src="getting_started/multi_point_motion_kernels.png" alt="reference image astronaut0 with each of the 12 points' kernel boxes overlaid, each in its own color, labeled kernel 00 through kernel 11" />
+    <figcaption>Every point's kernel, each in its own color (<code>margin_width=20</code>, <code>margin_height=20</code>).</figcaption>
+</figure>
+<pre><code class="language-python">point_grid_boxes_plot(
+    image=reference_image,
+    points=points,
+    margin_width=48,
+    margin_height=52,
+    label_prefix="search area",
+    figsize=(6.4, 4.8),
+    path="multi_point_motion_search.png",
+)
+</code></pre>
+<pre><code class="language-text">Saved: multi_point_motion_search.png
+</code></pre>
+<figure>
+    <img src="getting_started/multi_point_motion_search.png" alt="reference image astronaut0 with each of the 12 points' search-area boxes overlaid, each in its own color, labeled search area 00 through search area 11" />
+    <figcaption>Every point's search area, each in its own color (<code>margin_width=48</code>, <code>margin_height=52</code>).</figcaption>
+</figure>
+<p><a href="getting_started/multi_point_motion.html#tracking-the-grid">Tracking the Grid</a> explains what these are actually
+used for, and why these particular sizes were chosen.</p>
+<p>Each point's pixel coordinates, in the same row-major order as its label
+above:</p>
+<div class="table-wrapper"><table><thead><tr><th>Point</th><th>x (pixels)</th><th>y (pixels)</th></tr></thead><tbody>
+<tr><td>00</td><td>50</td><td>50</td></tr>
+<tr><td>01</td><td>100</td><td>50</td></tr>
+<tr><td>02</td><td>150</td><td>50</td></tr>
+<tr><td>03</td><td>50</td><td>105</td></tr>
+<tr><td>04</td><td>100</td><td>105</td></tr>
+<tr><td>05</td><td>150</td><td>105</td></tr>
+<tr><td>06</td><td>50</td><td>160</td></tr>
+<tr><td>07</td><td>100</td><td>160</td></tr>
+<tr><td>08</td><td>150</td><td>160</td></tr>
+<tr><td>09</td><td>50</td><td>215</td></tr>
+<tr><td>10</td><td>100</td><td>215</td></tr>
+<tr><td>11</td><td>150</td><td>215</td></tr>
+</tbody></table>
+</div>
+<h2 id="tracking-the-grid"><a class="header" href="#tracking-the-grid">Tracking the Grid</a></h2>
+<p>Choosing a kernel size relative to point spacing is a tradeoff: a kernel
+needs to be large enough to contain enough distinctive texture to locate
+reliably, but small enough that neighboring kernels don't just duplicate
+each other's content. A common rule of thumb (with no hard requirement
+behind it) is to space points roughly half a kernel's side length apart.
+A kernel's full side length is twice its margin, so <code>kernel_margin_width</code>
+and <code>kernel_margin_height</code> are themselves already exactly half that side
+length -- meaning the rule of thumb reduces to a simple comparison: each
+margin should be close to the spacing itself, without exceeding it (past
+that point, neighboring kernels start overlapping).</p>
+<p>The point spacing above is 50 pixels in <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and 55 pixels in <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>
+(<code>spacing_x=50</code>, <code>spacing_y=55</code>). Keeping the kernel isotropic (a single
+margin for both axes, <code>kernel_margin_width=kernel_margin_height</code>) means
+the <em>smaller</em> of the two spacings is the binding constraint: a margin
+above 25 would overlap its <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span>-neighbor, since <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">25</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">50</span></span></span></span> is
+already the full spacing in <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span>. 25 is therefore the largest isotropic
+margin with zero overlap -- but right at that ceiling, adjacent kernels
+touch exactly, sharing a boundary with no gap at all. The kernel figure
+above backs off from that ceiling on purpose: <code>kernel_margin_width=20</code>,
+<code>kernel_margin_height=20</code>, leaving a clear 10-pixel gap in <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and a
+15-pixel gap in <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>, comfortably inside the no-overlap ceiling in both
+directions, so every kernel's own boundary reads as visibly separate from
+its neighbors', not merely non-overlapping.</p>
+<p>Nothing requires the kernel to be isotropic -- dictk supports an
+independent margin per axis just as easily. The equal <code>20</code>/<code>20</code> above is
+a deliberate choice to illustrate that dictk supports both isotropic and
+non-isotropic margins, not a consequence of <code>spacing_x</code> and <code>spacing_y</code>
+being unequal forcing one shape or the other.</p>
+<p>The search area, by contrast, keeps a clearly
+non-isotropic shape: <code>search_margin_width=48</code>, <code>search_margin_height=52</code>
+-- just under the point spacing itself, comfortably containing the known
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">−</span><span class="mord">6</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">8</span><span class="mclose">)</span></span></span></span>-pixel displacement with plenty of room to spare, while staying
+just shy of <code>spacing_x</code>/<code>spacing_y</code> rather than matching them outright.
+That much slack still means search areas overlap their neighbors heavily
+and run off the image at the edges, which is harmless:
+<a href="getting_started/../api/dictk/image.html#subimage"><code>subimage</code></a> zero-pads whatever falls
+outside <code>current_image</code>. Unlike kernels, overlapping search areas cost
+nothing but some redundant computation -- there's no accuracy downside to
+searching the same region from two different points.</p>
+<p>One more practical detail worth knowing: <code>phase_cross_correlation</code>
+requires the kernel and search area to be exactly the same shape, so
+<a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> doesn't
+crop the search area down -- it pads the kernel up to match it, here a
+40x40 kernel zero-padded up to the search area's 96x104. In practice,
+that means kernel size has little effect on FFT runtime once a search
+area is chosen: the transform itself is sized by the larger of the two,
+so shrinking an already-small kernel further doesn't make the correlation
+any faster.</p>
+<p><a href="getting_started/./single_point_motion.html#current-configuration-and-displacement">Single Point Motion</a>
+gave <code>checkerboard0</code> a known rigid-body displacement of <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03785em;">δ</span><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">−</span><span class="mord">6</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">8</span><span class="mclose">)</span></span></span></span> pixels via
+<a href="getting_started/../api/dictk/image.html#translate"><code>dictk.image.translate</code></a>, and confirmed
+that a single point's found position matched that displacement exactly.
+The same idea, applied to all 12 points in the grid at once, is exactly
+what a real DIC workflow looks like:</p>
 <pre><code class="language-python">from dictk.image import translate
-from dictk.grid import locate
 
 dx, dy = -6, 8
 current_image = translate(arr=reference_image, dx=dx, dy=dy)
+</code></pre>
+<p><a href="getting_started/../api/dictk/grid.html#locate"><code>dictk.grid.locate</code></a> tracks all 12 points
+in one call. It doesn't do the correlation itself -- it calls
+<a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> once
+per point, and <em>that</em> function is dictk's actual FFT-based DIC engine: for
+each point it extracts a kernel from <code>reference_image</code> and a search area
+from <code>current_image</code>, then locates the kernel within the search area via
+<code>skimage.registration.phase_cross_correlation</code> -- FFT-based phase
+cross-correlation, not a spatial-domain sliding-window search (see <a href="getting_started/./cc_fft.html">CC via
+FFT</a> for the single-point version of this same technique).
+Twelve points means twelve independent calls into that engine, using the
+same kernel and search-area sizes visualized above:</p>
+<pre><code class="language-python">from dictk.grid import locate
 
 found = locate(
     reference_image=reference_image,
     current_image=current_image,
     reference_points=points,
-    kernel_margin_width=15,
-    kernel_margin_height=15,
-    search_margin_width=30,
-    search_margin_height=30,
+    kernel_margin_width=20,
+    kernel_margin_height=20,
+    search_margin_width=48,
+    search_margin_height=52,
 )
+</code></pre>
+<pre><code class="language-text">Point  found        expected     match
+00       44,58       44,58     True
+01       94,58       94,58     True
+02      144,58      144,58     True
+03       44,113      44,113    True
+04       94,113      94,113    True
+05      144,113     144,113    True
+06       44,168      44,168    True
+07       94,168      94,168    True
+08      144,168     144,168    True
+09       44,223      44,223    True
+10       94,223      94,223    True
+11      144,223     144,223    True
+</code></pre>
+<p>Every one of the 12 found positions matches <code>reference_points[i] + (dx, dy)</code> exactly -- not approximately, the same exact-integer-pixel guarantee
+<a href="getting_started/./single_point_motion.html">Single Point Motion</a> established for one point,
+now confirmed across the whole grid at once:</p>
+<pre><code class="language-python">from dictk.image import point_grid_plot
+
 point_grid_plot(
     image=current_image,
     points=found,
+    color="orange",
     figsize=(6.4, 4.8),
     path="multi_point_motion_found.png",
 )
@@ -1504,15 +1642,227 @@ point_grid_plot(
 <pre><code class="language-text">Saved: multi_point_motion_found.png
 </code></pre>
 <figure>
-    <img src="getting_started/multi_point_motion_found.png" alt="current image astronaut0 shifted by (-6, 8) pixels, with the 20 found points overlaid at their new positions, still labeled 00 through 19" />
-    <figcaption>Current image, translated by <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03785em;">δ</span><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">−</span><span class="mord">6</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">8</span><span class="mclose">)</span></span></span></span> pixels, with all 20 points' found positions -- every one recovers the same known displacement, confirming rigid-body motion across the whole grid at once, not just at a single point.</figcaption>
+    <img src="getting_started/multi_point_motion_found.png" alt="current image astronaut0 shifted by (-6, 8) pixels, with the 12 found points overlaid in orange at their new positions, still labeled 00 through 11" />
+    <figcaption>Current image, translated by <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03785em;">δ</span><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">−</span><span class="mord">6</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">8</span><span class="mclose">)</span></span></span></span> pixels, with all 12 points' found positions -- every one recovers the same known displacement, confirming rigid-body motion across the whole grid at once, not just at a single point.</figcaption>
 </figure>
-<p>Choosing a kernel size relative to point spacing is a tradeoff: a kernel
-needs to be large enough to contain enough distinctive texture to locate
-reliably, but small enough that neighboring kernels don't just duplicate
-each other's content. A common rule of thumb (with no hard requirement
-behind it) is to space points roughly half a kernel's side length apart,
-close to the <code>kernel_margin_width=15</code>/<code>spacing_x=45</code> ratio used above.</p>
+<p>That every point was found exactly is expected, not a coincidence: the
+kernel margins above were chosen to roughly follow the rule of thumb, not
+to violate it. What the rule of thumb actually buys is robustness, not
+correctness on an easy case like this one -- a kernel needs enough
+distinctive texture to locate reliably, and <code>astronaut0</code> is a clean,
+synthetic image with strong texture everywhere and no noise. A smaller,
+more aggressively undersized kernel would likely still have worked here
+too; it's on real, noisier imagery, or content with repetitive texture,
+that a larger kernel's extra context resolves an ambiguity a smaller one
+can't.</p>
+<p>Twelve calls into an FFT-based correlation engine, each entirely
+independent of the other eleven, is a small example of a much bigger
+pattern: <a href="getting_started/./parallelization.html">Parallelization</a> picks up from here.</p>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="parallelization"><a class="header" href="#parallelization">Parallelization</a></h1>
+<p><a href="getting_started/./multi_point_motion.html#tracking-the-grid">Multi-Point Motion</a> just ran 12
+independent calls to
+<a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> -- one
+per point, each doing its own FFT-based phase correlation -- to verify
+every point's displacement. We anticipate the need to process a very
+large number of point-to-point correspondences to support large-scale
+DIC work -- a real finite element mesh (see <a href="getting_started/./finite_element_method.html">Finite Element
+Method</a>) can easily have thousands-to-millions
+of nodes, not the 12 points in the simple grid above. Each point
+correspondence is independent of every other: locating point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> never
+reads or writes anything locating point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.854em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span></span></span></span> touches. That independence
+isn't just a convenient property to point out --
+<a href="getting_started/../api/dictk/grid.html#locate"><code>dictk.grid.locate</code></a> is already written to
+exploit it. Its entire body is a single map over <code>reference_points</code>, one
+call to <a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a>
+per point, accumulating no shared state between iterations:</p>
+<pre><code class="language-python">return [
+    translation.locate(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_point=reference_point,
+        search_center=search_center,
+        kernel_margin_width=kernel_margin_width,
+        kernel_margin_height=kernel_margin_height,
+        search_margin_width=search_margin_width,
+        search_margin_height=search_margin_height,
+    )
+    for reference_point, search_center in zip(reference_points, search_centers)
+]
+</code></pre>
+<p>Because every iteration is already independent, parallelizing it is a
+matter of swapping this list comprehension for a parallel map over the same
+per-point calls -- not a redesign. The standard library's
+<code>concurrent.futures.ProcessPoolExecutor</code> can drive that map today, calling
+only dictk's existing public API:</p>
+<pre><code class="language-python">from concurrent.futures import ProcessPoolExecutor
+from functools import partial
+
+def _locate_one(
+    args, *, reference_image, current_image,
+    kernel_margin_width, kernel_margin_height,
+    search_margin_width, search_margin_height,
+):
+    reference_point, search_center = args
+    return translation.locate(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_point=reference_point,
+        search_center=search_center,
+        kernel_margin_width=kernel_margin_width,
+        kernel_margin_height=kernel_margin_height,
+        search_margin_width=search_margin_width,
+        search_margin_height=search_margin_height,
+    )
+
+def locate_grid_parallel(
+    *,
+    reference_image,
+    current_image,
+    reference_points,
+    search_centers,
+    kernel_margin_width,
+    kernel_margin_height,
+    search_margin_width,
+    search_margin_height,
+):
+    worker = partial(
+        _locate_one,
+        reference_image=reference_image,
+        current_image=current_image,
+        kernel_margin_width=kernel_margin_width,
+        kernel_margin_height=kernel_margin_height,
+        search_margin_width=search_margin_width,
+        search_margin_height=search_margin_height,
+    )
+    with ProcessPoolExecutor() as executor:
+        return list(executor.map(worker, zip(reference_points, search_centers)))
+</code></pre>
+<p><code>_locate_one</code> takes its point pair as a single positional argument, not
+dictk's usual keyword-only style: <code>ProcessPoolExecutor.map</code> (like the
+built-in <code>map</code>) always calls its target positionally, one item per
+iterable, so a keyword-only signature isn't an option for the function
+being mapped over. This actual snippet runs correctly against <code>astronaut0</code>
+and recovers the same displacements as the sequential version <a href="getting_started/./multi_point_motion.html#tracking-the-grid">Multi-Point
+Motion</a> already ran -- it just
+isn't wired up as a real <code>dictk.grid</code> function, and can't be run live on
+this page as a <code>cmdrun</code> figure the way the others are: <code>ProcessPoolExecutor</code>
+spawns worker processes that each re-import the target callable by module
+path, which rules out a worker function defined inline in a one-off
+script.</p>
+<p>Two practical caveats before reaching for this:</p>
+<ul>
+<li><strong>Threads won't help.</strong> The obvious first instinct is a
+<code>ThreadPoolExecutor</code> instead, since it avoids process-spawn and
+pickling overhead entirely -- but <code>translation.locate</code>'s search-area
+correlation is dominated by NumPy/SciPy array operations that mostly
+hold the GIL for the small kernel and search-area sizes this guide uses,
+so threads mostly just add scheduling overhead without real concurrency.
+A process pool sidesteps the GIL entirely, at the cost of that
+spawn/pickling overhead per task.</li>
+<li><strong>Overhead has to be worth it.</strong> Spawning a worker pool and pickling
+image arrays across process boundaries isn't free, and for a handful of
+points (like the 12-point grid above), that overhead can easily exceed
+the time saved. It starts paying off once the point count is large
+enough. But, what is <em>large enough</em>?  That question will be answered in turn
+in the analysis that follows.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="simple-stretch"><a class="header" href="#simple-stretch">Simple Stretch</a></h1>
+<p><a href="getting_started/./multi_point_motion.html">Multi-Point Motion</a> tracked a grid of points under
+<strong>rigid-body translation</strong> — every point moves by the same <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03785em;">δ</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">δy</span><span class="mclose">)</span></span></span></span>, so <a href="getting_started/./single_point_motion.html">Single Point Motion</a>'s known-integer-pixel
+trick (choosing <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03785em;">δ</span><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">−</span><span class="mord">6</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">8</span><span class="mclose">)</span></span></span></span> so the ground truth is exact,
+not a sub-pixel estimate) carried over for free. A <strong>stretch</strong> is the next
+step up in complexity: a genuine deformation, not just a rigid shift, where
+different points move by different amounts. Getting the same exact-integer
+ground truth here takes more care.</p>
+<p><a href="getting_started/../api/dictk/image.html#stretch"><code>dictk.image.stretch</code></a> applies a uniaxial
+or biaxial stretch pivoting at the image's origin <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">0</span><span class="mclose">)</span></span></span></span>: a point at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span> moves to <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord text"><span class="mord">factor</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace"> </span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord text"><span class="mord">factor</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>. Fixing
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9805em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord text"><span class="mord">factor</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1.0</span></span></span></span> isolates the stretch to <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> alone, so every point's
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> stays exactly as-is — the only question is which <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord text"><span class="mord">factor</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>
+values keep every point's <em>new</em> <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> an integer too, rather than landing
+between pixels.</p>
+<h2 id="choosing-an-integer-safe-stretch-factor"><a class="header" href="#choosing-an-integer-safe-stretch-factor">Choosing an Integer-Safe Stretch Factor</a></h2>
+<p><a href="getting_started/./multi_point_motion.html#point-grid">Point Grid</a>'s 12 points span only three
+distinct <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> values: 50, 100, and 150. Writing the stretch as a percentage
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span></span></span></span>, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord text"><span class="mord">factor</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">100</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mclose">)</span><span class="mord">/100</span></span></span></span>, and the new <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> is:</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4445em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:2.0074em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">100</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">100</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal">p</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<p>For <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">100</span></span></span></span>, this is just <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">100</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span></span></span></span> — always an integer, for any integer
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span></span></span></span>. But <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">50</span></span></span></span> and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">150</span></span></span></span> both carry a factor of <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.1901em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8451em;"><span style="top:-2.655em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">2</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span> once
+divided by 100, so <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">100</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">p</span><span class="mclose">)</span></span></span></span> itself must be even for <em>those</em> points to
+land on an integer — which means <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span></span></span></span> must be even. Odd percentages (1%, 3%,
+5%, ...) always leave <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">50</span></span></span></span> and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">150</span></span></span></span> on a half-pixel.</p>
+<p>That parity argument is exact in real-number math, but <code>factor_x</code> is a
+64-bit float at runtime, and not every value that's mathematically an
+integer survives that arithmetic unscathed — 1.1, for example, has no exact
+binary floating-point representation, so <code>50 * 1.1</code> doesn't land on exactly
+<code>55.0</code> even though the true product is. Checking every even percentage
+directly against dictk's actual points, rather than trusting the parity
+argument alone:</p>
+<pre><code class="language-python">from dictk.image import PixelCoordinate
+from dictk.grid import generate
+
+points = generate(
+    origin=PixelCoordinate(x=50, y=50),
+    count_x=3,
+    count_y=4,
+    spacing_x=50,
+    spacing_y=55,
+)
+xs = sorted({point.x for point in points})
+
+for p in range(1, 21):
+    factor = (100 + p) / 100
+    exact = all((x * factor).is_integer() for x in xs)
+    print(f"{p:2d}%  factor={factor!r}  all-integer={exact}")
+</code></pre>
+<pre><code class="language-text"> 1%  factor=1.01  all-integer=False
+ 2%  factor=1.02  all-integer=True
+ 3%  factor=1.03  all-integer=False
+ 4%  factor=1.04  all-integer=True
+ 5%  factor=1.05  all-integer=False
+ 6%  factor=1.06  all-integer=True
+ 7%  factor=1.07  all-integer=False
+ 8%  factor=1.08  all-integer=True
+ 9%  factor=1.09  all-integer=False
+10%  factor=1.1  all-integer=False
+11%  factor=1.11  all-integer=False
+12%  factor=1.12  all-integer=False
+13%  factor=1.13  all-integer=False
+14%  factor=1.14  all-integer=False
+15%  factor=1.15  all-integer=False
+16%  factor=1.16  all-integer=False
+17%  factor=1.17  all-integer=False
+18%  factor=1.18  all-integer=True
+19%  factor=1.19  all-integer=False
+20%  factor=1.2  all-integer=True
+</code></pre>
+<p>The parity argument is necessary but not sufficient: every odd percentage
+fails as predicted, but so do several even ones (10%, 12%, 14%, 16%) purely
+from floating-point representation error, not the underlying math. Of the
+percentages that survive both checks, <strong>2% is the smallest</strong> — the least
+aggressive stretch that still keeps every point's ground-truth position an
+exact pixel, with <code>factor_x = 1.02</code> giving new <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> values of 51, 102, and
+153.</p>
+<p><em>(remaining sections — applying the stretch to <code>astronaut0</code>, and verifying
+<code>dictk.grid.locate</code> recovers these exact positions — coming soon)</em></p>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="continuum-mechanics"><a class="header" href="#continuum-mechanics">Continuum Mechanics</a></h1>
+<p><em>(placeholder — coming soon)</em></p>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="finite-element-method"><a class="header" href="#finite-element-method">Finite Element Method</a></h1>
+<p>A finite element mesh is a collection of <strong>nodes</strong> (points) connected into
+<strong>elements</strong> — small regions used to interpolate a quantity of interest
+(e.g. displacement) across the whole domain. The point grid built in
+<a href="getting_started/./multi_point_motion.html#point-grid">Multi-Point Motion</a> is exactly the
+kind of nodal point collection a mesh needs, and <a href="getting_started/./multi_point_motion.html#tracking-the-grid">Tracking the
+Grid</a> already found every one
+of its 12 points' current positions -- exactly the per-node displacement
+data a mesh needs to represent how an object deformed.</p>
+<p><a href="getting_started/./multi_point_motion.html#tracking-the-grid">Tracking the Grid</a> already
+covers the kernel-size-versus-point-spacing tradeoff involved in getting
+that per-node data reliably -- the same considerations apply whether the
+points come from a toy grid or a real mesh.</p>
 <p>Once every node's current position is known, an actual finite element
 mesh still needs one more thing this page doesn't provide: <strong>element
 connectivity</strong> — which nodes join together into which elements. Building

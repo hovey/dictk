@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Image Processing - dictk User Guide</title>
+        <title>Parallelization - dictk User Guide</title>
 
 
         <!-- Custom HTML head -->
@@ -179,18 +179,124 @@
                 <div id="content" class="content">
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="image-processing"><a class="header" href="#image-processing">Image Processing</a></h1>
-<p><em>(placeholder — coming soon)</em></p>
+<h1 id="parallelization"><a class="header" href="#parallelization">Parallelization</a></h1>
+<p><a href="./multi_point_motion.html#tracking-the-grid">Multi-Point Motion</a> just ran 12
+independent calls to
+<a href="../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> -- one
+per point, each doing its own FFT-based phase correlation -- to verify
+every point's displacement. We anticipate the need to process a very
+large number of point-to-point correspondences to support large-scale
+DIC work -- a real finite element mesh (see <a href="./finite_element_method.html">Finite Element
+Method</a>) can easily have thousands-to-millions
+of nodes, not the 12 points in the simple grid above. Each point
+correspondence is independent of every other: locating point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> never
+reads or writes anything locating point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.854em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span></span></span></span> touches. That independence
+isn't just a convenient property to point out --
+<a href="../api/dictk/grid.html#locate"><code>dictk.grid.locate</code></a> is already written to
+exploit it. Its entire body is a single map over <code>reference_points</code>, one
+call to <a href="../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a>
+per point, accumulating no shared state between iterations:</p>
+<pre><code class="language-python">return [
+    translation.locate(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_point=reference_point,
+        search_center=search_center,
+        kernel_margin_width=kernel_margin_width,
+        kernel_margin_height=kernel_margin_height,
+        search_margin_width=search_margin_width,
+        search_margin_height=search_margin_height,
+    )
+    for reference_point, search_center in zip(reference_points, search_centers)
+]
+</code></pre>
+<p>Because every iteration is already independent, parallelizing it is a
+matter of swapping this list comprehension for a parallel map over the same
+per-point calls -- not a redesign. The standard library's
+<code>concurrent.futures.ProcessPoolExecutor</code> can drive that map today, calling
+only dictk's existing public API:</p>
+<pre><code class="language-python">from concurrent.futures import ProcessPoolExecutor
+from functools import partial
+
+def _locate_one(
+    args, *, reference_image, current_image,
+    kernel_margin_width, kernel_margin_height,
+    search_margin_width, search_margin_height,
+):
+    reference_point, search_center = args
+    return translation.locate(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_point=reference_point,
+        search_center=search_center,
+        kernel_margin_width=kernel_margin_width,
+        kernel_margin_height=kernel_margin_height,
+        search_margin_width=search_margin_width,
+        search_margin_height=search_margin_height,
+    )
+
+def locate_grid_parallel(
+    *,
+    reference_image,
+    current_image,
+    reference_points,
+    search_centers,
+    kernel_margin_width,
+    kernel_margin_height,
+    search_margin_width,
+    search_margin_height,
+):
+    worker = partial(
+        _locate_one,
+        reference_image=reference_image,
+        current_image=current_image,
+        kernel_margin_width=kernel_margin_width,
+        kernel_margin_height=kernel_margin_height,
+        search_margin_width=search_margin_width,
+        search_margin_height=search_margin_height,
+    )
+    with ProcessPoolExecutor() as executor:
+        return list(executor.map(worker, zip(reference_points, search_centers)))
+</code></pre>
+<p><code>_locate_one</code> takes its point pair as a single positional argument, not
+dictk's usual keyword-only style: <code>ProcessPoolExecutor.map</code> (like the
+built-in <code>map</code>) always calls its target positionally, one item per
+iterable, so a keyword-only signature isn't an option for the function
+being mapped over. This actual snippet runs correctly against <code>astronaut0</code>
+and recovers the same displacements as the sequential version <a href="./multi_point_motion.html#tracking-the-grid">Multi-Point
+Motion</a> already ran -- it just
+isn't wired up as a real <code>dictk.grid</code> function, and can't be run live on
+this page as a <code>cmdrun</code> figure the way the others are: <code>ProcessPoolExecutor</code>
+spawns worker processes that each re-import the target callable by module
+path, which rules out a worker function defined inline in a one-off
+script.</p>
+<p>Two practical caveats before reaching for this:</p>
+<ul>
+<li><strong>Threads won't help.</strong> The obvious first instinct is a
+<code>ThreadPoolExecutor</code> instead, since it avoids process-spawn and
+pickling overhead entirely -- but <code>translation.locate</code>'s search-area
+correlation is dominated by NumPy/SciPy array operations that mostly
+hold the GIL for the small kernel and search-area sizes this guide uses,
+so threads mostly just add scheduling overhead without real concurrency.
+A process pool sidesteps the GIL entirely, at the cost of that
+spawn/pickling overhead per task.</li>
+<li><strong>Overhead has to be worth it.</strong> Spawning a worker pool and pickling
+image arrays across process boundaries isn't free, and for a handful of
+points (like the 12-point grid above), that overhead can easily exceed
+the time saved. It starts paying off once the point count is large
+enough. But, what is <em>large enough</em>?  That question will be answered in turn
+in the analysis that follows.</li>
+</ul>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../getting_started/finite_element_method.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../getting_started/multi_point_motion.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../contributing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../getting_started/simple_stretch.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -200,11 +306,11 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../getting_started/finite_element_method.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../getting_started/multi_point_motion.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../contributing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../getting_started/simple_stretch.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
