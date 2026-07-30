@@ -466,12 +466,11 @@ point_plot(
 <p><strong>NOTE:</strong>
 Cross-correlation may be conceptualized as the sliding dot product of pixel
 values from the kernel with pixel values from the search area.  In this discussion
-we have described keeping the search area stationary while sliding the kernel
-across it.  The reverse, keeping the kernel stationary while sliding the search
-area across it, is conceptually different but mathematically identical.  Both
-approaches provide the same result:  Finding the unknown vector
-<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span></span></span></span>, which locates the kernel frame in the
-search area frame.</p>
+we have described sliding the kernel across a stationary search area.
+The reverse, sliding the search area across a stationary kernel,
+is conceptually different but mathematically identical.  Both
+approaches yield the same result: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span></span></span></span>, which
+locates the kernel frame in the search area frame.</p>
 </blockquote>
 <p>Next: <a href="./cc_visualization.html">CC Visualization</a> computes and plots the four
 correlation criteria above as heatmaps on this same kernel and search area,
