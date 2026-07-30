@@ -19,6 +19,7 @@ from dictk.image import (
     correlation_surfaces_plot,
     crack_dislocation,
     describe,
+    point_grid_boxes_plot,
     point_grid_plot,
     point_plot,
     reference_frame_plot,
@@ -919,5 +920,42 @@ def test_point_grid_plot_empty_points_writes_file(tmp_path: Path):
     arr = checkerboard(width=100, height=100)
     path = tmp_path / "point_grid_empty.png"
     point_grid_plot(image=arr, points=[], path=path)
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_grid_boxes_plot_writes_file(tmp_path: Path):
+    photo = astronaut(width=300, height=300)
+    points = grid_generate(
+        origin=PixelCoordinate(x=50, y=50),
+        count_x=3,
+        count_y=4,
+        spacing_x=50,
+        spacing_y=55,
+    )
+    path = tmp_path / "point_grid_boxes.png"
+    point_grid_boxes_plot(
+        image=photo,
+        points=points,
+        margin_width=25,
+        margin_height=25,
+        label_prefix="kernel",
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_grid_boxes_plot_empty_points_writes_file(tmp_path: Path):
+    arr = checkerboard(width=100, height=100)
+    path = tmp_path / "point_grid_boxes_empty.png"
+    point_grid_boxes_plot(
+        image=arr,
+        points=[],
+        margin_width=10,
+        margin_height=10,
+        label_prefix="kernel",
+        path=path,
+    )
     assert path.exists()
     assert path.stat().st_size > 0

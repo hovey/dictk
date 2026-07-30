@@ -11,6 +11,7 @@ import numpy as np
 from matplotlib import patches
 from matplotlib import patheffects
 from matplotlib import pyplot as plt
+from matplotlib.path import Path as MarkerPath
 from scipy.interpolate import RegularGridInterpolator
 from scipy.ndimage import zoom
 
@@ -34,6 +35,26 @@ class PixelCoordinate(NamedTuple):
 # instead of both rendering at roughly the same size regardless of how
 # many pixels each actually covers.
 _FIGURE_PIXELS_PER_INCH = 100
+
+# The first 12 colors of matplotlib's "tab20" (Tableau 20) colormap: 6 hues
+# (blue, orange, green, red, purple, brown), each as a dark/light pair.
+# Deliberately stops short of tab20's gray pair (its indices 14-15) --
+# gray has no hue to contrast against a grayscale image with, so it all
+# but disappears drawn on top of one.
+_TABLEAU_PALETTE = (
+    "#1f77b4",
+    "#aec7e8",  # blue
+    "#ff7f0e",
+    "#ffbb78",  # orange
+    "#2ca02c",
+    "#98df8a",  # green
+    "#d62728",
+    "#ff9896",  # red
+    "#9467bd",
+    "#c5b0d5",  # purple
+    "#8c564b",
+    "#c49c94",  # brown
+)
 
 
 def subimage(
@@ -1468,6 +1489,153 @@ def correlation_surfaces_plot(
     plt.close(fig)
 
 
+def point_grid_boxes_plot(
+    *,
+    image: np.ndarray,
+    points: Sequence[PixelCoordinate],
+    margin_width: int,
+    margin_height: int,
+    label_prefix: str,
+    figsize: tuple[float, float] | None = None,
+    path: Path,
+    dpi: int = 300,
+) -> None:
+    """Save a figure overlaying one uniquely colored, labeled box per point on `image`.
+
+    For each of `points`, draws an unfilled rectangle centered on it, sized
+    `2 * margin_width` by `2 * margin_height` -- e.g. a kernel (the patch
+    [`dictk.translation.locate`](../translation.html#locate) would extract
+    from the reference image) or a search area (its default search
+    region), one call per box type. Agnostic to which: call it once with a
+    kernel's margins and once with a search area's margins (on separate
+    figures, or via multiple calls onto the same `ax` for a combined one)
+    to compare either against point spacing at a glance -- e.g. whether
+    neighboring kernels overlap, or whether search areas run off the image
+    -- across the whole grid at once, not just one point.
+
+    Each point's box gets its own color, cycling through a 12-color
+    Tableau palette (`dictk.image._TABLEAU_PALETTE`; if there are more
+    than 12 points, colors repeat), and its own legend entry -- `points[0]`
+    labeled `"{label_prefix} 00"`, `points[19]` labeled `"{label_prefix}
+    19"`, for a 20-point collection -- so overlapping boxes stay visually
+    distinguishable and individually identifiable, not just grouped by box
+    type.
+
+    Args:
+        image: Source 2D grayscale image array.
+        points: The points to draw boxes around, in the image's own pixel
+            reference frame. May be empty (an unmarked copy of `image` is
+            saved).
+        margin_width: Half each box's width, in pixels.
+        margin_height: Half each box's height, in pixels.
+        label_prefix: Legend label prefix for the boxes, e.g. `"kernel"`
+            or `"search area"` -- each point's own zero-padded index is
+            appended to it.
+        figsize: Optional (width, height) in inches for the saved figure.
+            By default the canvas is sized from `image`/the boxes' own
+            data extent; pass this to override with a fixed size instead.
+        path: Output file path for the figure; format is inferred from the
+            extension by matplotlib's savefig (e.g. .png), not dictk's own
+            write/write_svg.
+        dpi: Resolution of the saved figure.
+    """
+    image_height, image_width = image.shape
+
+    endpoints_x = [
+        point.x + sign * margin_width for point in points for sign in (-1, 1)
+    ]
+    endpoints_y = [
+        point.y + sign * margin_height for point in points for sign in (-1, 1)
+    ]
+    margin = max(image_width, image_height) * 0.05
+    x_min = min(0, *endpoints_x, 0) - margin
+    x_max = max(image_width, *endpoints_x, image_width) + margin
+    y_min = min(0, *endpoints_y, 0) - margin
+    y_max = max(image_height, *endpoints_y, image_height) + margin
+
+    if figsize is None:
+        figsize = (
+            (x_max - x_min) / _FIGURE_PIXELS_PER_INCH,
+            (y_max - y_min) / _FIGURE_PIXELS_PER_INCH,
+        )
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.imshow(
+        image, cmap="gray", origin="upper", extent=(0, image_width, image_height, 0)
+    )
+
+    index_width = len(str(len(points) - 1)) if len(points) > 1 else 2
+    for i, point in enumerate(points):
+        ax.add_patch(
+            patches.Rectangle(
+                (point.x - margin_width, point.y - margin_height),
+                2 * margin_width,
+                2 * margin_height,
+                edgecolor=_TABLEAU_PALETTE[i % len(_TABLEAU_PALETTE)],
+                facecolor="none",
+                linewidth=1.0,
+                label=f"{label_prefix} {i:0{index_width}d}",
+            )
+        )
+
+    ax.set_xlim(x_min, x_max)
+    ax.set_ylim(y_max, y_min)  # inverted: image y increases downward
+    ax.set_xlabel("x (pixels)")
+    ax.set_ylabel("y (pixels)")
+    if points:
+        ax.legend(loc="center left", bbox_to_anchor=(1.02, 0.5), fontsize=7)
+
+    plt.savefig(path, dpi=dpi, bbox_inches="tight")
+    plt.close(fig)
+
+
+def _reticle_marker_path(
+    *,
+    ring_radius: float = 0.85,
+    tick_outer: float = 1.20,
+    num_circle_points: int = 64,
+) -> MarkerPath:
+    """A target-reticle glyph: a ring with four tick marks poking through it.
+
+    Built as a matplotlib marker path (unit-scaled to roughly [-1, 1]) meant
+    to be *stroked*, not filled -- a circle outline, plus four short line
+    segments along +/-x and +/-y running from the circle's own radius out
+    past it, so the center stays fully open. Unlike a filled ring (an
+    annulus), a stroked outline's thickness is set directly via
+    `markeredgewidth` (in points), independent of this path's own geometry
+    -- letting the line be pushed far thinner than a filled band can go
+    before anti-aliasing makes it look patchy.
+
+    Args:
+        ring_radius: The circle's radius; also each tick's start radius.
+        tick_outer: Each tick's end radius (past `ring_radius`).
+        num_circle_points: Number of vertices approximating the circle.
+
+    Returns:
+        A compound `matplotlib.path.Path` usable as a `marker=` argument,
+        with `markerfacecolor="none"` so only its stroke renders.
+    """
+    theta = np.linspace(0, 2 * np.pi, num_circle_points, endpoint=False)
+    circle = np.column_stack((ring_radius * np.cos(theta), ring_radius * np.sin(theta)))
+    # Path(..., closed=True) treats the *last* vertex as the ignored
+    # CLOSEPOLY placeholder rather than drawing through it, so it must be a
+    # repeat of the first vertex -- otherwise the final edge is dropped.
+    circle_path = MarkerPath(np.vstack([circle, circle[:1]]), closed=True)
+
+    tick_codes = [MarkerPath.MOVETO, MarkerPath.LINETO]
+    tick_paths = [
+        MarkerPath(
+            [
+                (direction_x * ring_radius, direction_y * ring_radius),
+                (direction_x * tick_outer, direction_y * tick_outer),
+            ],
+            codes=tick_codes,
+        )
+        for direction_x, direction_y in [(1, 0), (-1, 0), (0, 1), (0, -1)]
+    ]
+
+    return MarkerPath.make_compound_path(circle_path, *tick_paths)
+
+
 def point_grid_plot(
     *,
     image: np.ndarray,
@@ -1479,8 +1647,12 @@ def point_grid_plot(
 ) -> None:
     """Save a figure marking each of `points` on `image`, labeled by its own index.
 
-    Each point is drawn as a small marker, with its position in `points`
-    (its row-major index, e.g. from
+    Each point is drawn as a target-reticle glyph in `color` -- a ring with
+    four tick marks poking through it, open at the center so the
+    underlying image stays visible, plus a single-pixel dot at the point's
+    exact location (where the N/S or E/W ticks would cross, if extended
+    across the open center) -- with its position in `points` (its
+    row-major index, e.g. from
     [`dictk.grid.generate`](../grid.html#generate)) as a short zero-padded
     label just up-right of the marker -- e.g. `points[0]` is labeled `"00"`,
     `points[19]` is labeled `"19"`, for a 20-point collection.
@@ -1507,13 +1679,14 @@ def point_grid_plot(
     # directly on top of its own marker -- same convention as point_plot().
     label_offset = max(image_width, image_height) * 0.03
     label_font_size = 12
-    top_margin = margin
     if points:
         label_text_height = label_font_size / 72 * _FIGURE_PIXELS_PER_INCH
-        top_margin = max(margin, 2 * label_offset + label_text_height)
+        # Grow the margin uniformly (not just at the top) so a label above
+        # the topmost point still has room, while all four margins match.
+        margin = max(margin, 2 * label_offset + label_text_height)
     x_min = min(0, *endpoints_x, 0) - margin
     x_max = max(image_width, *endpoints_x, image_width) + margin
-    y_min = min(0, *endpoints_y, 0) - top_margin
+    y_min = min(0, *endpoints_y, 0) - margin
     y_max = max(image_height, *endpoints_y, image_height) + margin
     label_outline = [patheffects.withStroke(linewidth=1, foreground="white")]
 
@@ -1527,9 +1700,32 @@ def point_grid_plot(
         image, cmap="gray", origin="upper", extent=(0, image_width, image_height, 0)
     )
 
+    reticle = _reticle_marker_path()
+    # A single-raster-pixel dot at each point's exact location: where the
+    # reticle's N/S ticks (or E/W ticks), if extended across the open
+    # center, would cross. markeredgewidth=0 is required -- otherwise the
+    # default 1pt stroke dominates a marker this small and floors its
+    # rendered size at several pixels regardless of markersize.
+    center_dot_size = 72 / dpi
     index_width = len(str(len(points) - 1)) if len(points) > 1 else 2
     for i, point in enumerate(points):
-        ax.plot(point.x, point.y, marker="o", color=color, markersize=6)
+        ax.plot(
+            point.x,
+            point.y,
+            marker=reticle,
+            markerfacecolor="none",
+            markeredgecolor=color,
+            markeredgewidth=0.5,
+            markersize=20,
+        )
+        ax.plot(
+            point.x,
+            point.y,
+            marker="s",
+            color=color,
+            markersize=center_dot_size,
+            markeredgewidth=0,
+        )
         ax.text(
             point.x + label_offset,
             point.y - label_offset,
