@@ -304,11 +304,11 @@ vector chain manually).</p>
 <h2 id="spatial-domain-or-fourier-domain"><a class="header" href="#spatial-domain-or-fourier-domain">Spatial Domain or Fourier Domain</a></h2>
 <p>Cross-correlation itself can be computed two ways: directly in the
 <strong>spatial domain</strong> — literally sliding the kernel over the search area and
-summing a per-position criterion, as shown below — or in the <strong>Fourier
+summing a per-position inner product, as shown below — or in the <strong>Fourier
 domain</strong> via the fast Fourier transform (FFT), which is what <code>locate</code>
 actually does (see <a href="./cc_fft.html">CC via FFT</a>). Both compute the same
-underlying quantity; the FFT route is simply a much faster way to get
-there.</p>
+underlying quantity; the FFT method is simply a much faster way than the
+sliding dot product approach.</p>
 <h2 id="correlation-criteria"><a class="header" href="#correlation-criteria">Correlation Criteria</a></h2>
 <p>Several related criteria are used in the spatial domain, differing in how
 robust each is to brightness and contrast differences between the kernel
@@ -462,6 +462,17 @@ point_plot(
 <tr><td style="text-align: left"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">O</span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6828em;"><span style="top:-2.786em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.09931em;">F</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">94</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">83</span><span class="mclose">)</span></span></span></span></td><td>current position <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6886em;vertical-align:-0.2441em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span></span></span></span>, matching <code>found</code> above (cyan arrow)</td></tr>
 </tbody></table>
 </div>
+<blockquote>
+<p>[!NOTE]
+Cross-correlation may be conceptualized as the sliding dot product of pixel
+values from the kernel with pixel values from the search area.  In this discussion
+we have described keeping the search area stationary while sliding the kernel
+across it.  The reverse, keeping the kernel stationary while sliding the search
+area across it, is conceptually different but mathematically identical.  Both
+approaches provide the same result:  Finding the unknown vector
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span></span></span></span>, which locates the kernel frame in the
+search area frame.</p>
+</blockquote>
 <p>Next: <a href="./cc_visualization.html">CC Visualization</a> computes and plots the four
 correlation criteria above as heatmaps on this same kernel and search area,
 and <a href="./cc_fft.html">CC via FFT</a> explains the Fourier-domain route <code>locate</code>

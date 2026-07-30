@@ -190,8 +190,8 @@ below:</p>
     </figcaption>
 </figure>
 <p>Each category preserves a different, nested set of geometric properties
-— every property a more restrictive category preserves is also
-preserved by every category to its left:</p>
+— every property a category preserves is also preserved by every more
+restrictive category to its left:</p>
 <div class="table-wrapper"><table><thead><tr><th>Property</th><th>Translation</th><th>Euclidean</th><th>Similarity</th><th>Affine</th><th>Projective</th></tr></thead><tbody>
 <tr><td>Straight lines stay straight</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
 <tr><td>Parallel lines stay parallel</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td><td>No</td></tr>
@@ -204,7 +204,7 @@ preserved by every category to its left:</p>
 <p>As the simplest of the categories above — no change in shape or size —
 <a href="../api/dictk/image.html#translate"><code>dictk.image.translate</code></a> shifts
 every pixel by a fixed displacement. This example shifts the image by
-dx=-60 pixels in x and dy=+80 pixels in y, representing rigid body
+dx=-60 pixels in x and dy=+80 pixels in y, representing rigid-body
 motion where the material moves without deforming.</p>
 <pre><code class="language-python">import dictk
 from dictk.image import translate, write
@@ -219,11 +219,11 @@ write(arr=translated, path="astronaut_translate_rigid_body.png")
 </code></pre>
 <div class="table-wrapper"><table><thead><tr><th>Translation</th><th>Image</th></tr></thead><tbody>
 <tr><td>Original</td><td><img src="astronaut_translate_original.png" alt="original" /></td></tr>
-<tr><td>dx=-60, dy=+80</td><td><img src="astronaut_translate_rigid_body.png" alt="rigid body translation" /></td></tr>
+<tr><td>dx=-60, dy=+80</td><td><img src="astronaut_translate_rigid_body.png" alt="rigid-body translation" /></td></tr>
 </tbody></table>
 </div>
 <h2 id="pure-rotation"><a class="header" href="#pure-rotation">Pure Rotation</a></h2>
-<p>A 30° counterclockwise rotation, another rigid body motion that preserves
+<p>A 30° counterclockwise rotation, another rigid-body motion that preserves
 distances and angles.
 <a href="../api/dictk/image.html#rotate"><code>dictk.image.rotate</code></a> pivots on the
 image's top-left corner (0, 0), consistent with <code>stretch</code> and

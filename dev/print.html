@@ -666,8 +666,8 @@ below:</p>
     </figcaption>
 </figure>
 <p>Each category preserves a different, nested set of geometric properties
-— every property a more restrictive category preserves is also
-preserved by every category to its left:</p>
+— every property a category preserves is also preserved by every more
+restrictive category to its left:</p>
 <div class="table-wrapper"><table><thead><tr><th>Property</th><th>Translation</th><th>Euclidean</th><th>Similarity</th><th>Affine</th><th>Projective</th></tr></thead><tbody>
 <tr><td>Straight lines stay straight</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
 <tr><td>Parallel lines stay parallel</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td><td>No</td></tr>
@@ -680,7 +680,7 @@ preserved by every category to its left:</p>
 <p>As the simplest of the categories above — no change in shape or size —
 <a href="getting_started/../api/dictk/image.html#translate"><code>dictk.image.translate</code></a> shifts
 every pixel by a fixed displacement. This example shifts the image by
-dx=-60 pixels in x and dy=+80 pixels in y, representing rigid body
+dx=-60 pixels in x and dy=+80 pixels in y, representing rigid-body
 motion where the material moves without deforming.</p>
 <pre><code class="language-python">import dictk
 from dictk.image import translate, write
@@ -695,11 +695,11 @@ write(arr=translated, path="astronaut_translate_rigid_body.png")
 </code></pre>
 <div class="table-wrapper"><table><thead><tr><th>Translation</th><th>Image</th></tr></thead><tbody>
 <tr><td>Original</td><td><img src="getting_started/astronaut_translate_original.png" alt="original" /></td></tr>
-<tr><td>dx=-60, dy=+80</td><td><img src="getting_started/astronaut_translate_rigid_body.png" alt="rigid body translation" /></td></tr>
+<tr><td>dx=-60, dy=+80</td><td><img src="getting_started/astronaut_translate_rigid_body.png" alt="rigid-body translation" /></td></tr>
 </tbody></table>
 </div>
 <h2 id="pure-rotation"><a class="header" href="#pure-rotation">Pure Rotation</a></h2>
-<p>A 30° counterclockwise rotation, another rigid body motion that preserves
+<p>A 30° counterclockwise rotation, another rigid-body motion that preserves
 distances and angles.
 <a href="getting_started/../api/dictk/image.html#rotate"><code>dictk.image.rotate</code></a> pivots on the
 image's top-left corner (0, 0), consistent with <code>stretch</code> and
@@ -914,7 +914,7 @@ point_plot(
 <p>For this page, the current image <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8095em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">i</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is generated with
 <a href="getting_started/../api/dictk/image.html#translate"><code>dictk.image.translate</code></a> (see <a href="getting_started/./transformation.html#pure-translation-rigid-body-motion">Image
 Transformation</a>): every pixel of
-<code>reference_image</code> shifts by the same <code>(dx, dy)</code>, a <strong>rigid body
+<code>reference_image</code> shifts by the same <code>(dx, dy)</code>, a <strong>rigid-body
 translation</strong>.  Because the whole
 image moves together, point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span>'s new location follows directly:</p>
 <pre><code class="language-python">from dictk.image import translate
@@ -1089,11 +1089,11 @@ vector chain manually).</p>
 <h2 id="spatial-domain-or-fourier-domain"><a class="header" href="#spatial-domain-or-fourier-domain">Spatial Domain or Fourier Domain</a></h2>
 <p>Cross-correlation itself can be computed two ways: directly in the
 <strong>spatial domain</strong> — literally sliding the kernel over the search area and
-summing a per-position criterion, as shown below — or in the <strong>Fourier
+summing a per-position inner product, as shown below — or in the <strong>Fourier
 domain</strong> via the fast Fourier transform (FFT), which is what <code>locate</code>
 actually does (see <a href="getting_started/./cc_fft.html">CC via FFT</a>). Both compute the same
-underlying quantity; the FFT route is simply a much faster way to get
-there.</p>
+underlying quantity; the FFT method is simply a much faster way than the
+sliding dot product approach.</p>
 <h2 id="correlation-criteria"><a class="header" href="#correlation-criteria">Correlation Criteria</a></h2>
 <p>Several related criteria are used in the spatial domain, differing in how
 robust each is to brightness and contrast differences between the kernel
@@ -1247,6 +1247,17 @@ point_plot(
 <tr><td style="text-align: left"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">O</span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.13889em;">P</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6828em;"><span style="top:-2.786em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.09931em;">F</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">94</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">83</span><span class="mclose">)</span></span></span></span></td><td>current position <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6886em;vertical-align:-0.2441em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span></span></span></span>, matching <code>found</code> above (cyan arrow)</td></tr>
 </tbody></table>
 </div>
+<blockquote>
+<p>[!NOTE]
+Cross-correlation may be conceptualized as the sliding dot product of pixel
+values from the kernel with pixel values from the search area.  In this discussion
+we have described keeping the search area stationary while sliding the kernel
+across it.  The reverse, keeping the kernel stationary while sliding the search
+area across it, is conceptually different but mathematically identical.  Both
+approaches provide the same result:  Finding the unknown vector
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span></span></span></span>, which locates the kernel frame in the
+search area frame.</p>
+</blockquote>
 <p>Next: <a href="getting_started/./cc_visualization.html">CC Visualization</a> computes and plots the four
 correlation criteria above as heatmaps on this same kernel and search area,
 and <a href="getting_started/./cc_fft.html">CC via FFT</a> explains the Fourier-domain route <code>locate</code>
@@ -1334,7 +1345,7 @@ without ever explicitly sliding a window. This is exactly what
 <a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> does
 internally, via
 <a href="https://scikit-image.org/docs/stable/api/skimage.registration.html#skimage.registration.phase_cross_correlation"><code>skimage.registration.phase_cross_correlation</code></a>.
-The appeal isn't a different answer, it's speed: a fast Fourier transform
+The appeal isn't a different answer — it's speed: a fast Fourier transform
 (FFT) costs <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span> per image, against the sliding sum's <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>
 per candidate offset — decisive once images grow beyond this page's small
 teaching example.</p>
@@ -1395,7 +1406,7 @@ spectrum — it passes <code>normalization="phase"</code> to
 every frequency before inverting it (see the extensive comment in
 <a href="getting_started/../api/dictk/translation.html#locate"><code>locate</code>'s source</a> for why). Both
 differences change the surface's numeric character; neither changes where
-its peak lands, here.</p>
+its peak lands here.</p>
 <h2 id="windowing"><a class="header" href="#windowing">Windowing</a></h2>
 <p>The FFT implicitly treats an image as one period of an infinitely-repeating
 signal. If the content doesn't tile seamlessly — the general case, since
@@ -1473,7 +1484,7 @@ for a match). Before tracking the grid, it helps to see both relative to
 the point spacing.
 <a href="getting_started/../api/dictk/image.html#point_grid_boxes_plot"><code>dictk.image.point_grid_boxes_plot</code></a>
 draws one box type per call, so kernel and search area each get their own
-figure -- each point's own box gets its own color and its own legend
+figure — each point's own box gets its own color and its own legend
 entry (<code>kernel 00</code>, <code>kernel 01</code>, ..., <code>kernel 11</code>), cycling through a
 12-color palette drawn from matplotlib's Tableau colormap:</p>
 <pre><code class="language-python">from dictk.image import point_grid_boxes_plot
@@ -1537,7 +1548,7 @@ each other's content. A common rule of thumb (with no hard requirement
 behind it) is to space points roughly half a kernel's side length apart.
 A kernel's full side length is twice its margin, so <code>kernel_margin_width</code>
 and <code>kernel_margin_height</code> are themselves already exactly half that side
-length -- meaning the rule of thumb reduces to a simple comparison: each
+length — meaning the rule of thumb reduces to a simple comparison: each
 margin should be close to the spacing itself, without exceeding it (past
 that point, neighboring kernels start overlapping).</p>
 <p>The point spacing above is 50 pixels in <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and 55 pixels in <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>
@@ -1546,14 +1557,14 @@ margin for both axes, <code>kernel_margin_width=kernel_margin_height</code>) mea
 the <em>smaller</em> of the two spacings is the binding constraint: a margin
 above 25 would overlap its <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span>-neighbor, since <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">25</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">50</span></span></span></span> is
 already the full spacing in <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span>. 25 is therefore the largest isotropic
-margin with zero overlap -- but right at that ceiling, adjacent kernels
+margin with zero overlap — but right at that ceiling, adjacent kernels
 touch exactly, sharing a boundary with no gap at all. The kernel figure
 above backs off from that ceiling on purpose: <code>kernel_margin_width=20</code>,
 <code>kernel_margin_height=20</code>, leaving a clear 10-pixel gap in <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and a
 15-pixel gap in <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>, comfortably inside the no-overlap ceiling in both
 directions, so every kernel's own boundary reads as visibly separate from
 its neighbors', not merely non-overlapping.</p>
-<p>Nothing requires the kernel to be isotropic -- dictk supports an
+<p>Nothing requires the kernel to be isotropic — dictk supports an
 independent margin per axis just as easily. The equal <code>20</code>/<code>20</code> above is
 a deliberate choice to illustrate that dictk supports both isotropic and
 non-isotropic margins, not a consequence of <code>spacing_x</code> and <code>spacing_y</code>
@@ -1567,12 +1578,12 @@ That much slack still means search areas overlap their neighbors heavily
 and run off the image at the edges, which is harmless:
 <a href="getting_started/../api/dictk/image.html#subimage"><code>subimage</code></a> zero-pads whatever falls
 outside <code>current_image</code>. Unlike kernels, overlapping search areas cost
-nothing but some redundant computation -- there's no accuracy downside to
+nothing but some redundant computation — there's no accuracy downside to
 searching the same region from two different points.</p>
 <p>One more practical detail worth knowing: <code>phase_cross_correlation</code>
 requires the kernel and search area to be exactly the same shape, so
 <a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> doesn't
-crop the search area down -- it pads the kernel up to match it, here a
+crop the search area down — it pads the kernel up to match it, here a
 40x40 kernel zero-padded up to the search area's 96x104. In practice,
 that means kernel size has little effect on FFT runtime once a search
 area is chosen: the transform itself is sized by the larger of the two,
@@ -1590,12 +1601,12 @@ dx, dy = -6, 8
 current_image = translate(arr=reference_image, dx=dx, dy=dy)
 </code></pre>
 <p><a href="getting_started/../api/dictk/grid.html#locate"><code>dictk.grid.locate</code></a> tracks all 12 points
-in one call. It doesn't do the correlation itself -- it calls
+in one call. It doesn't do the correlation itself — it calls
 <a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> once
 per point, and <em>that</em> function is dictk's actual FFT-based DIC engine: for
 each point it extracts a kernel from <code>reference_image</code> and a search area
 from <code>current_image</code>, then locates the kernel within the search area via
-<code>skimage.registration.phase_cross_correlation</code> -- FFT-based phase
+<code>skimage.registration.phase_cross_correlation</code> — FFT-based phase
 cross-correlation, not a spatial-domain sliding-window search (see <a href="getting_started/./cc_fft.html">CC via
 FFT</a> for the single-point version of this same technique).
 Twelve points means twelve independent calls into that engine, using the
@@ -1626,7 +1637,7 @@ found = locate(
 10       94,223      94,223    True
 11      144,223     144,223    True
 </code></pre>
-<p>Every one of the 12 found positions matches <code>reference_points[i] + (dx, dy)</code> exactly -- not approximately, the same exact-integer-pixel guarantee
+<p>Every one of the 12 found positions matches <code>reference_points[i] + (dx, dy)</code> exactly — not approximately, the same exact-integer-pixel guarantee
 <a href="getting_started/./single_point_motion.html">Single Point Motion</a> established for one point,
 now confirmed across the whole grid at once:</p>
 <pre><code class="language-python">from dictk.image import point_grid_plot
@@ -1643,12 +1654,12 @@ point_grid_plot(
 </code></pre>
 <figure>
     <img src="getting_started/multi_point_motion_found.png" alt="current image astronaut0 shifted by (-6, 8) pixels, with the 12 found points overlaid in orange at their new positions, still labeled 00 through 11" />
-    <figcaption>Current image, translated by <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03785em;">δ</span><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">−</span><span class="mord">6</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">8</span><span class="mclose">)</span></span></span></span> pixels, with all 12 points' found positions -- every one recovers the same known displacement, confirming rigid-body motion across the whole grid at once, not just at a single point.</figcaption>
+    <figcaption>Current image, translated by <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03785em;">δ</span><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">−</span><span class="mord">6</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">8</span><span class="mclose">)</span></span></span></span> pixels, with all 12 points' found positions — every one recovers the same known displacement, confirming rigid-body motion across the whole grid at once, not just at a single point.</figcaption>
 </figure>
 <p>That every point was found exactly is expected, not a coincidence: the
 kernel margins above were chosen to roughly follow the rule of thumb, not
 to violate it. What the rule of thumb actually buys is robustness, not
-correctness on an easy case like this one -- a kernel needs enough
+correctness on an easy case like this one — a kernel needs enough
 distinctive texture to locate reliably, and <code>astronaut0</code> is a clean,
 synthetic image with strong texture everywhere and no noise. A smaller,
 more aggressively undersized kernel would likely still have worked here
@@ -1656,17 +1667,17 @@ too; it's on real, noisier imagery, or content with repetitive texture,
 that a larger kernel's extra context resolves an ambiguity a smaller one
 can't.</p>
 <p>Twelve calls into an FFT-based correlation engine, each entirely
-independent of the other eleven, is a small example of a much bigger
+independent of the other eleven, are a small example of a much bigger
 pattern: <a href="getting_started/./parallelization.html">Parallelization</a> picks up from here.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="parallelization"><a class="header" href="#parallelization">Parallelization</a></h1>
 <p><a href="getting_started/./multi_point_motion.html#tracking-the-grid">Multi-Point Motion</a> just ran 12
 independent calls to
-<a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> -- one
-per point, each doing its own FFT-based phase correlation -- to verify
+<a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> — one
+per point, each doing its own FFT-based phase correlation — to verify
 every point's displacement. We anticipate the need to process a very
 large number of point-to-point correspondences to support large-scale
-DIC work -- a real finite element mesh (see <a href="getting_started/./finite_element_method.html">Finite Element
+DIC work — a real finite element mesh (see <a href="getting_started/./finite_element_method.html">Finite Element
 Method</a>) can easily have thousands-to-millions
 of nodes, not the 12 points in the simple grid above. Each point
 correspondence is independent of every other: locating point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> never
@@ -1692,7 +1703,7 @@ per point, accumulating no shared state between iterations:</p>
 </code></pre>
 <p>Because every iteration is already independent, parallelizing it is a
 matter of swapping this list comprehension for a parallel map over the same
-per-point calls -- not a redesign. The standard library's
+per-point calls — not a redesign. The standard library's
 <code>concurrent.futures.ProcessPoolExecutor</code> can drive that map today, calling
 only dictk's existing public API:</p>
 <pre><code class="language-python">from concurrent.futures import ProcessPoolExecutor
@@ -1744,7 +1755,7 @@ built-in <code>map</code>) always calls its target positionally, one item per
 iterable, so a keyword-only signature isn't an option for the function
 being mapped over. This actual snippet runs correctly against <code>astronaut0</code>
 and recovers the same displacements as the sequential version <a href="getting_started/./multi_point_motion.html#tracking-the-grid">Multi-Point
-Motion</a> already ran -- it just
+Motion</a> already ran — it just
 isn't wired up as a real <code>dictk.grid</code> function, and can't be run live on
 this page as a <code>cmdrun</code> figure the way the others are: <code>ProcessPoolExecutor</code>
 spawns worker processes that each re-import the target callable by module
@@ -1754,7 +1765,7 @@ script.</p>
 <ul>
 <li><strong>Threads won't help.</strong> The obvious first instinct is a
 <code>ThreadPoolExecutor</code> instead, since it avoids process-spawn and
-pickling overhead entirely -- but <code>translation.locate</code>'s search-area
+pickling overhead entirely — but <code>translation.locate</code>'s search-area
 correlation is dominated by NumPy/SciPy array operations that mostly
 hold the GIL for the small kernel and search-area sizes this guide uses,
 so threads mostly just add scheduling overhead without real concurrency.
@@ -1764,7 +1775,7 @@ spawn/pickling overhead per task.</li>
 image arrays across process boundaries isn't free, and for a handful of
 points (like the 12-point grid above), that overhead can easily exceed
 the time saved. It starts paying off once the point count is large
-enough. But, what is <em>large enough</em>?  That question will be answered in turn
+enough. But what is <em>large enough</em>?  That question will be answered in turn
 in the analysis that follows.</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
@@ -1857,11 +1868,11 @@ exact pixel, with <code>factor_x = 1.02</code> giving new <span class="katex"><s
 <a href="getting_started/./multi_point_motion.html#point-grid">Multi-Point Motion</a> is exactly the
 kind of nodal point collection a mesh needs, and <a href="getting_started/./multi_point_motion.html#tracking-the-grid">Tracking the
 Grid</a> already found every one
-of its 12 points' current positions -- exactly the per-node displacement
+of its 12 points' current positions — exactly the per-node displacement
 data a mesh needs to represent how an object deformed.</p>
 <p><a href="getting_started/./multi_point_motion.html#tracking-the-grid">Tracking the Grid</a> already
 covers the kernel-size-versus-point-spacing tradeoff involved in getting
-that per-node data reliably -- the same considerations apply whether the
+that per-node data reliably — the same considerations apply whether the
 points come from a toy grid or a real mesh.</p>
 <p>Once every node's current position is known, an actual finite element
 mesh still needs one more thing this page doesn't provide: <strong>element

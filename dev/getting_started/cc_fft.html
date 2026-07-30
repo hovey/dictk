@@ -189,7 +189,7 @@ without ever explicitly sliding a window. This is exactly what
 <a href="../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> does
 internally, via
 <a href="https://scikit-image.org/docs/stable/api/skimage.registration.html#skimage.registration.phase_cross_correlation"><code>skimage.registration.phase_cross_correlation</code></a>.
-The appeal isn't a different answer, it's speed: a fast Fourier transform
+The appeal isn't a different answer — it's speed: a fast Fourier transform
 (FFT) costs <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span> per image, against the sliding sum's <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>
 per candidate offset — decisive once images grow beyond this page's small
 teaching example.</p>
@@ -250,7 +250,7 @@ spectrum — it passes <code>normalization="phase"</code> to
 every frequency before inverting it (see the extensive comment in
 <a href="../api/dictk/translation.html#locate"><code>locate</code>'s source</a> for why). Both
 differences change the surface's numeric character; neither changes where
-its peak lands, here.</p>
+its peak lands here.</p>
 <h2 id="windowing"><a class="header" href="#windowing">Windowing</a></h2>
 <p>The FFT implicitly treats an image as one period of an infinitely-repeating
 signal. If the content doesn't tile seamlessly — the general case, since
