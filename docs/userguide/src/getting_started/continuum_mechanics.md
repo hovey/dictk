@@ -347,7 +347,7 @@ $$
 
 | $m$ | Name | 3D | 1D |
 |:---:|:---|:---|:---|
-| $2$ | Green-Lagrange | $\boldsymbol{E}^{(2)} = \tfrac{1}{2}\left(\boldsymbol{U}^2 - \boldsymbol{I}\right)$ | $E_{\text{LAG}} = \tfrac{1}{2}\left[\left(\tfrac{\ell}{L}\right)^2 - 1\right]$ |
+| $2$ | Green-Lagrange | $\boldsymbol{E}^{(2)} = \tfrac{1}{2}\left(\boldsymbol{U}^2 - \boldsymbol{I}\right)$ | $E_{\text{\tiny LAG}} = \tfrac{1}{2}\left[\left(\tfrac{\ell}{L}\right)^2 - 1\right]$ |
 | $1$ | engineering (Biot, nominal) | $\boldsymbol{E}^{(1)} = \boldsymbol{U} - \boldsymbol{I}$ | $E_{\text{ENG}} = \dfrac{\ell - L}{L}$ |
 | $0$ | log (Hencky, natural) | $\boldsymbol{E}^{(0)} = \ln\boldsymbol{U}$ | $E_{\text{LOG}} = \ln\left(\dfrac{\ell}{L}\right)$ |
 | $-1$ | true | $\boldsymbol{E}^{(-1)} = \boldsymbol{I} - \boldsymbol{U}^{-1}$ | $E_{\text{TRUE}} = \dfrac{\ell - L}{\ell}$ |
