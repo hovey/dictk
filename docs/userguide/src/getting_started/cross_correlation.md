@@ -344,7 +344,7 @@ $\boldsymbol{r}_{SK/\mathcal{S}} = (19, 33)$ + | kernel located within the searc
 $\boldsymbol{r}_{KP/\mathcal{K}} = (25, 25)$ = | point's fixed position within the kernel (green arrow)
 $\boldsymbol{r}_{OP'/\mathcal{F}} = (94, 83)$ | current position $\boldsymbol{p}_1$, matching `found` above (cyan arrow)
 
-> [!NOTE]
+> **NOTE:**
 > Cross-correlation may be conceptualized as the sliding dot product of pixel
 > values from the kernel with pixel values from the search area.  In this discussion
 > we have described keeping the search area stationary while sliding the kernel
