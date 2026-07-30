@@ -347,12 +347,11 @@ $\boldsymbol{r}_{OP'/\mathcal{F}} = (94, 83)$ | current position $\boldsymbol{p}
 > **NOTE:**
 > Cross-correlation may be conceptualized as the sliding dot product of pixel
 > values from the kernel with pixel values from the search area.  In this discussion
-> we have described keeping the search area stationary while sliding the kernel
-> across it.  The reverse, keeping the kernel stationary while sliding the search
-> area across it, is conceptually different but mathematically identical.  Both
-> approaches provide the same result:  Finding the unknown vector 
-> $\boldsymbol{r}_{SK/\mathcal{S}}$, which locates the kernel frame in the
-> search area frame.
+> we have described sliding the kernel across a stationary search area.
+> The reverse, sliding the search area across a stationary kernel,
+> is conceptually different but mathematically identical.  Both
+> approaches yield the same result: $\boldsymbol{r}_{SK/\mathcal{S}}$, which
+> locates the kernel frame in the search area frame.
 
 Next: [CC Visualization](./cc_visualization.md) computes and plots the four
 correlation criteria above as heatmaps on this same kernel and search area,
