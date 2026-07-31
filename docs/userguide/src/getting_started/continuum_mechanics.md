@@ -4,9 +4,11 @@ This section summarizes the kinematics of general (finite) motion,
 the motion map, the deformation gradient and its
 Jacobian, the family of finite-strain measures and their linearizations, and the
 polar and spectral decompositions. **Lower
-case indices** ($i, j, k$) denote components in the *current* configuration and
-**upper case indices** ($I, J, K$) denote components in the *reference*
-configuration.
+case indices** $(i, j, k)$ denote vector components in the *current* configuration and
+**upper case indices** $(I, J, K)$ denote vector components in the *reference*
+configuration.   All vectors are referenced to origin $O$ and dextral, orthonomal
+basis vectors $\boldsymbol{E}_1$, $\boldsymbol{E}_2$, $\boldsymbol{E}_3$ (equivalently,
+$\boldsymbol{e}_1$, $\boldsymbol{e}_2$, $\boldsymbol{e}_3$).
 
 ## Motion
 
@@ -54,7 +56,7 @@ To each configuration $\boldsymbol{\varphi}$, we define a **deformation
 gradient** $\boldsymbol{F} : \mathbb{B} \times \mathbb{T} \mapsto \mathbb{M}^3_+$,
 
 $$
-\boldsymbol{F} := \mathrm{Grad}\,\boldsymbol{\varphi}(\boldsymbol{X}, t)
+\boldsymbol{F} := \boldsymbol{\nabla}_0\,\boldsymbol{\varphi}(\boldsymbol{X}, t)
 \quad\Longleftrightarrow\quad
 F_{iJ} := \frac{\partial \varphi_i}{\partial X_J}.
 $$
@@ -65,8 +67,8 @@ gradients taken in the reference and current configurations, respectively:
 
 $$
 \begin{aligned}
-\mathrm{Grad}(\bullet) &= \frac{\partial(\bullet)}{\partial X_J} \quad\text{(reference configuration gradient)}, \\
-\mathrm{grad}(\cdot) &= \frac{\partial(\cdot)}{\partial x_j} \quad\text{(current configuration gradient)}.
+\boldsymbol{\nabla}_0(\bullet) &= \frac{\partial(\bullet)}{\partial X_J} \quad\text{(reference configuration gradient)}, \\
+\boldsymbol{\nabla}(\cdot) &= \frac{\partial(\cdot)}{\partial x_j} \quad\text{(current configuration gradient)}.
 \end{aligned}
 $$
 
@@ -83,12 +85,12 @@ $$
 describes the (generally non-uniform) volumetric expansion or contraction of the
 motion from the reference configuration $\boldsymbol{X}$. All configurations must be
 admissible in the sense that the Jacobian of the deformation must be positive
-($J > 0$). This requirement keeps the deformations from mapping the body to a
-single, infinitesimally small point ($J = 0$) or turning the body inside-out
-($J < 0$).
+$(J > 0)$. This requirement keeps the deformations from mapping the body to a
+single, infinitesimally small point $(J = 0)$ or turning the body inside-out
+$(J < 0)$.
 
 Isochoric motions preserve the body's total volume. A Jacobian of unity
-($J = 1$) describes an isochoric motion. The table below describes the
+$(J = 1)$ describes an isochoric motion. The table below describes the
 categories of motions (expansion, volume-preserving, contraction, and
 inadmissible) by Jacobian measure.
 
@@ -108,7 +110,7 @@ From the displacement field defined above, the relationship between the
 **displacement gradient** and the deformation gradient is given by
 
 $$
-\mathrm{Grad}\,\boldsymbol{u} = \mathrm{Grad}\,\boldsymbol{\varphi} - \boldsymbol{I} = \boldsymbol{F} - \boldsymbol{I}
+\boldsymbol{\nabla}_0\,\boldsymbol{u} = \boldsymbol{\nabla}_0\,\boldsymbol{\varphi} - \boldsymbol{I} = \boldsymbol{F} - \boldsymbol{I}
 \quad\Longleftrightarrow\quad
 \frac{\partial u_i}{\partial X_J} = \frac{\partial \varphi_i}{\partial X_J} - \delta_{iJ}.
 $$
@@ -142,17 +144,17 @@ second-order in reference displacement gradients, as shown below:
 
 $$
 \begin{aligned}
-\boldsymbol{C} = (\mathrm{Grad}\,\boldsymbol{\varphi})^{\top} \mathrm{Grad}\,\boldsymbol{\varphi}
-    &= (\boldsymbol{I} + \mathrm{Grad}\,\boldsymbol{u})^{\top} (\boldsymbol{I} + \mathrm{Grad}\,\boldsymbol{u}), \\
-    &= \boldsymbol{I} + \underset{\text{1st order}}{\underbrace{\mathrm{Grad}\,\boldsymbol{u} + (\mathrm{Grad}\,\boldsymbol{u})^{\top}}} + \underset{\text{2nd order}}{\underbrace{(\mathrm{Grad}\,\boldsymbol{u})^{\top} \mathrm{Grad}\,\boldsymbol{u}}}.
+\boldsymbol{C} = (\boldsymbol{\nabla}_0\,\boldsymbol{\varphi})^{\top} \boldsymbol{\nabla}_0\,\boldsymbol{\varphi}
+    &= (\boldsymbol{I} + \boldsymbol{\nabla}_0\,\boldsymbol{u})^{\top} (\boldsymbol{I} + \boldsymbol{\nabla}_0\,\boldsymbol{u}), \\
+    &= \boldsymbol{I} + \underset{\text{1st order}}{\underbrace{\boldsymbol{\nabla}_0\,\boldsymbol{u} + (\boldsymbol{\nabla}_0\,\boldsymbol{u})^{\top}}} + \underset{\text{2nd order}}{\underbrace{(\boldsymbol{\nabla}_0\,\boldsymbol{u})^{\top} \boldsymbol{\nabla}_0\,\boldsymbol{u}}}.
 \end{aligned}
 $$
 
 This result can be expected since, by definition, $\boldsymbol{C}$ is second-order in
-the deformation gradient $\mathrm{Grad}\,\boldsymbol{\varphi}$, and the
+the deformation gradient $\boldsymbol{\nabla}_0\,\boldsymbol{\varphi}$, and the
 relationship between the deformation gradient
-$\mathrm{Grad}\,\boldsymbol{\varphi}$ and the displacement gradient
-$\mathrm{Grad}\,\boldsymbol{u}$ is linear.
+$\boldsymbol{\nabla}_0\,\boldsymbol{\varphi}$ and the displacement gradient
+$\boldsymbol{\nabla}_0\,\boldsymbol{u}$ is linear.
 
 ## Left Cauchy-Green Deformation
 
@@ -198,8 +200,8 @@ seen as follows:
 
 $$
 \begin{aligned}
-2\boldsymbol{E} &= \boldsymbol{I} + \mathrm{Grad}\,\boldsymbol{u} + (\mathrm{Grad}\,\boldsymbol{u})^{\top} + (\mathrm{Grad}\,\boldsymbol{u})^{\top} \mathrm{Grad}\,\boldsymbol{u} - \boldsymbol{I}, \\
-2\boldsymbol{E}_{\text{\tiny LIN}} &= \mathrm{Grad}\,\boldsymbol{u} + (\mathrm{Grad}\,\boldsymbol{u})^{\top},
+2\boldsymbol{E} &= \boldsymbol{I} + \boldsymbol{\nabla}_0\,\boldsymbol{u} + (\boldsymbol{\nabla}_0\,\boldsymbol{u})^{\top} + (\boldsymbol{\nabla}_0\,\boldsymbol{u})^{\top} \boldsymbol{\nabla}_0\,\boldsymbol{u} - \boldsymbol{I}, \\
+2\boldsymbol{E}_{\text{\tiny LIN}} &= \boldsymbol{\nabla}_0\,\boldsymbol{u} + (\boldsymbol{\nabla}_0\,\boldsymbol{u})^{\top},
 \end{aligned}
 $$
 
@@ -222,11 +224,11 @@ deformation and the deformation gradient as follows:
 
 $$
 \begin{aligned}
-2\boldsymbol{e} &= \boldsymbol{I} - \left[ \mathrm{Grad}\,\boldsymbol{\varphi} (\mathrm{Grad}\,\boldsymbol{\varphi})^{\top} \right]^{-1} \\
+2\boldsymbol{e} &= \boldsymbol{I} - \left[ \boldsymbol{\nabla}_0\,\boldsymbol{\varphi} (\boldsymbol{\nabla}_0\,\boldsymbol{\varphi})^{\top} \right]^{-1} \\
     &= \delta_{ij} - \left[ \frac{\partial \varphi_i}{\partial X_J} \frac{\partial \varphi_j}{\partial X_J} \right]^{-1} = \delta_{ij} - \left[ \frac{\partial X_J}{\partial \varphi_i} \frac{\partial X_J}{\partial \varphi_j} \right] \\
-    &= \boldsymbol{I} - \left[ (\boldsymbol{I} - \mathrm{grad}\,\boldsymbol{u})(\boldsymbol{I} - \mathrm{grad}\,\boldsymbol{u})^{\top} \right] \\
-    &= \mathrm{grad}\,\boldsymbol{u} + \mathrm{grad}\,\boldsymbol{u}^{\top} - \mathrm{grad}\,\boldsymbol{u}\, \mathrm{grad}\,\boldsymbol{u}^{\top}, \\
-2\boldsymbol{e}_{\text{\tiny LIN}} &= \mathrm{grad}\,\boldsymbol{u} + (\mathrm{grad}\,\boldsymbol{u})^{\top},
+    &= \boldsymbol{I} - \left[ (\boldsymbol{I} - \boldsymbol{\nabla}\,\boldsymbol{u})(\boldsymbol{I} - \boldsymbol{\nabla}\,\boldsymbol{u})^{\top} \right] \\
+    &= \boldsymbol{\nabla}\,\boldsymbol{u} + \boldsymbol{\nabla}\,\boldsymbol{u}^{\top} - \boldsymbol{\nabla}\,\boldsymbol{u}\, \boldsymbol{\nabla}\,\boldsymbol{u}^{\top}, \\
+2\boldsymbol{e}_{\text{\tiny LIN}} &= \boldsymbol{\nabla}\,\boldsymbol{u} + (\boldsymbol{\nabla}\,\boldsymbol{u})^{\top},
 \end{aligned}
 $$
 
@@ -238,13 +240,13 @@ final line.
 When displacement gradients are small in the reference configuration,
 
 $$
-\mathrm{Grad}\,\boldsymbol{u} \ll 1,
+\boldsymbol{\nabla}_0\,\boldsymbol{u} \ll 1,
 $$
 
 or in the current configuration,
 
 $$
-\mathrm{grad}\,\boldsymbol{u} \ll 1,
+\boldsymbol{\nabla}\,\boldsymbol{u} \ll 1,
 $$
 
 respectively, the nonlinear gradient terms are negligible and the finite strain
@@ -281,17 +283,17 @@ $\boldsymbol{e}_{\text{\tiny LIN}}$, converge to a single definition of strain, 
 infinitesimal strain tensor $\boldsymbol{\epsilon}$, defined as
 
 $$
-\boldsymbol{\epsilon} := \tfrac{1}{2}\left(\mathrm{grad}\,\boldsymbol{u} + (\mathrm{grad}\,\boldsymbol{u})^{\top}\right).
+\boldsymbol{\epsilon} := \tfrac{1}{2}\left(\boldsymbol{\nabla}\,\boldsymbol{u} + (\boldsymbol{\nabla}\,\boldsymbol{u})^{\top}\right).
 $$
 
-Note that the $\mathrm{Grad}(\bullet)$ notation has been dropped since the
+Note that the $\boldsymbol{\nabla}_0\,(\bullet)$ notation has been dropped since the
 distinction between the reference and current configurations is nonexistent.
 Also, note that the factor of $\tfrac{1}{2}$ appears because it then follows that
 the infinitesimal strain is simply the symmetric part of the displacement
 gradient,
 
 $$
-\boldsymbol{\epsilon} = \operatorname{sym}(\mathrm{grad}\,\boldsymbol{u}).
+\boldsymbol{\epsilon} = \operatorname{sym}(\boldsymbol{\nabla}\,\boldsymbol{u}).
 $$
 
 Finally, note that the finite Lagrangian and Eulerian strain tensors were defined
@@ -406,7 +408,7 @@ of the desired qualities than any other strain tensor, in the context of finite
 compression and extension.[^bazant]
 
 For infinitesimal deformation, all tensors converge to the infinitesimal strain
-tensor $\boldsymbol{\epsilon} = \operatorname{sym}(\mathrm{grad}\,\boldsymbol{u})$.
+tensor $\boldsymbol{\epsilon} = \operatorname{sym}(\boldsymbol{\nabla}\,\boldsymbol{u})$.
 For finite deformation, however, the Seth-Hill strain measures given by the
 $f(\lambda)$ function diverge quickly for both large compression and large
 tension. The figure below illustrates the one-dimensional strains subtracted from
@@ -458,7 +460,7 @@ The linearized strain tensor is found to be
 
 $$
 \begin{aligned}
-2\boldsymbol{E}_{\text{\tiny LIN}} &= \mathrm{Grad}\,\boldsymbol{u} + (\mathrm{Grad}\,\boldsymbol{u})^{\top}, \\
+2\boldsymbol{E}_{\text{\tiny LIN}} &= \boldsymbol{\nabla}_0\,\boldsymbol{u} + (\boldsymbol{\nabla}_0\,\boldsymbol{u})^{\top}, \\
 &= \boldsymbol{F} - \boldsymbol{I} + \left(\boldsymbol{F} - \boldsymbol{I}\right)^{\top}, \\
 &= F_{iJ} - \delta_{iJ} + F_{Ji} - \delta_{Ji}, \\
 &= \begin{bmatrix} \cos\omega t & \sin\omega t \\ -\sin\omega t & \cos\omega t \end{bmatrix} + \begin{bmatrix} \cos\omega t & -\sin\omega t \\ \sin\omega t & \cos\omega t \end{bmatrix} - \begin{bmatrix} 2 & 0 \\ 0 & 2 \end{bmatrix}, \\

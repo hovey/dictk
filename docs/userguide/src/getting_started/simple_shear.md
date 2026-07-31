@@ -33,10 +33,10 @@ Source: [`simple_shear.py`](#simple_shearpy)
 
 ## Rate-Independent Form
 
-The simple shear deformation $\varphi$ in rate-independent form is
+The simple shear deformation $\boldsymbol{\varphi}$ in rate-independent form is
 
 $$
-\varphi(\boldsymbol{X}) = (X_1 + a X_2) \, \boldsymbol{e}_1 + X_2 \, \boldsymbol{e}_2 + X_3 \, \boldsymbol{e}_3.
+\boldsymbol{\varphi}(\boldsymbol{X}) = (X_1 + a X_2) \, \boldsymbol{e}_1 + X_2 \, \boldsymbol{e}_2 + X_3 \, \boldsymbol{e}_3.
 $$
 
 The deformation gradient $\boldsymbol{F}$ is
