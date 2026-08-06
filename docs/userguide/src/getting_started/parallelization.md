@@ -11,7 +11,7 @@ Method](./finite_element_method.md)) can easily have thousands-to-millions
 of nodes, not the 12 points in the simple grid above. Each point
 correspondence is independent of every other: locating point $i$ never
 reads or writes anything locating point $j$ touches. That independence
-isn't just a convenient property to point out --
+isn't just a convenient property to point out —
 [`dictk.grid.locate`](../api/dictk/grid.html#locate) is already written to
 exploit it. Its entire body is a single map over `reference_points`, one
 call to [`dictk.translation.locate`](../api/dictk/translation.html#locate)

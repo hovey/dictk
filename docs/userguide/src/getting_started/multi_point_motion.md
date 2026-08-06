@@ -153,7 +153,7 @@ being unequal forcing one shape or the other.
 
 The search area, by contrast, keeps a clearly
 non-isotropic shape: `search_margin_width=48`, `search_margin_height=52`
--- just under the point spacing itself, comfortably containing the known
+— just under the point spacing itself, comfortably containing the known
 $(-6, 8)$-pixel displacement with plenty of room to spare, while staying
 just shy of `spacing_x`/`spacing_y` rather than matching them outright.
 That much slack still means search areas overlap their neighbors heavily

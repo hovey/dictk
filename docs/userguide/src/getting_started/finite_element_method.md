@@ -17,10 +17,10 @@ points come from a toy grid or a real mesh.
 Once every node's current position is known, an actual finite element
 mesh still needs one more thing this page doesn't provide: **element
 connectivity** — which nodes join together into which elements. Building
-that connectivity is future work, not implemented here; the element
-formulation connectivity would plug into — shape functions, strain, and
-deformation gradient, for the four-node quadrilateral element — is what
-this page covers below.
+that connectivity is future work, not implemented here; what this page
+covers below is the element formulation that connectivity would plug
+into — shape functions, strain, and deformation gradient, for the
+four-node quadrilateral element.
 
 ## Four-Noded Quadrilateral Finite Element (Q4)
 
@@ -29,7 +29,7 @@ The four-node quadrilateral element is one of the most commonly used elements in
 <figure class="figure-box">
     <img src="quad_isoparametric.png" alt="quad_isoparametric" width=100% />
     <figcaption>
-        Figure:  Illustration of isoparameteric mapping between (left) an arbitrary quadrilateral element in global (physical) coordinates to (right) the local (natural) coordinates.  The local domain is sometimes called the parent quadrilateral element.  
+        Figure:  Illustration of isoparametric mapping between (left) an arbitrary quadrilateral element in global (physical) coordinates to (right) the local (natural) coordinates.  The local domain is sometimes called the parent quadrilateral element.  
     </figcaption>
 </figure>
 
@@ -141,7 +141,7 @@ $$
 = \frac{\partial \boldsymbol{N}(\boldsymbol \xi)}{\partial \boldsymbol{\xi}} \cdot \boldsymbol{X} 
 $$ 
 
-The individual components (droping the $\bullet_0$ reference configuration notation to avoid subscript confusion) are:
+The individual components (dropping the $\bullet_0$ reference configuration notation to avoid subscript confusion) are:
 
 $$
 \begin{align}
@@ -315,7 +315,7 @@ See [Deformation Gradient](./continuum_mechanics.md#deformation-gradient) and [J
 ### Gauss Points
 
 To evaluate quantities that depend on the displacement field and its gradient, such as strain, we use **Gaussian Quadrature**.  We don't typically calculate quantities 
-at the nodes.  Rather, we quantities strain at specific *integration points* (also known as **Gauss points**) where mathematical precision is the highest.
+at the nodes.  Rather, we quantify strain at specific *integration points* (also known as **Gauss points**) where mathematical precision is the highest.
 
 For a 2D quadrilateral element, we typically use a $2 \times 2$ Gauss rule.  The integration points are located in the local coordinate system $(\xi, \eta)$ at
 

@@ -6,7 +6,7 @@ Jacobian, the family of finite-strain measures and their linearizations, and the
 polar and spectral decompositions. **Lower
 case indices** $(i, j, k)$ denote vector components in the *current* configuration and
 **upper case indices** $(I, J, K)$ denote vector components in the *reference*
-configuration.   All vectors are referenced to origin $O$ and dextral, orthonomal
+configuration.   All vectors are referenced to origin $O$ and dextral, orthonormal
 basis vectors $\boldsymbol{E}_1$, $\boldsymbol{E}_2$, $\boldsymbol{E}_3$ (equivalently,
 $\boldsymbol{e}_1$, $\boldsymbol{e}_2$, $\boldsymbol{e}_3$).
 
