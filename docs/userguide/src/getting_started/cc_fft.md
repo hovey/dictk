@@ -105,7 +105,7 @@ way to exactly zero at both ends; Hamming stops short (around $0.08$),
 trading a little residual discontinuity for a narrower main lobe in the
 transformed signal.
 
-Windowing is **not implemented in dictk** — this section is a description
+Windowing is **not implemented in `dictk`** — this section is a description
 of the technique for context, not a feature. `dictk.translation.locate`
 does not apply any windowing, and there is no `window()`-style function in
 this codebase yet.

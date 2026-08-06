@@ -36,7 +36,7 @@ That parity argument is exact in real-number math, but `factor_x` is a
 integer survives that arithmetic unscathed — 1.1, for example, has no exact
 binary floating-point representation, so `50 * 1.1` doesn't land on exactly
 `55.0` even though the true product is. Checking every even percentage
-directly against dictk's actual points, rather than trusting the parity
+directly against `dictk`'s actual points, rather than trusting the parity
 argument alone:
 
 ```python

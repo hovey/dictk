@@ -1,6 +1,6 @@
-# Contributing to dictk
+# Contributing to `dictk`
 
-dictk is developed on [GitHub](https://github.com/hovey/dictk) using
+`dictk` is developed on [GitHub](https://github.com/hovey/dictk) using
 [Git](https://git-scm.com/) for version control. Git is the tool that tracks
 changes to the source on your own computer; GitHub is the hosting service
 that holds the canonical copy of the repository, tracks issues and pull
@@ -8,7 +8,7 @@ requests, and runs the CI/CD pipeline described [below](#cicd-architecture).
 
 ## Cloning vs. forking
 
-Contributors can get a working copy of dictk by either cloning or forking
+Contributors can get a working copy of `dictk` by either cloning or forking
 the repository.
 
 | Cloning | Forking |
@@ -224,7 +224,7 @@ uv run mdbook build           # build once, output in docs/userguide/book/
 uv run mdbook serve --open    # live preview at http://localhost:3000
 ```
 
-`uv run` puts dictk's own CLI on `PATH` for the build, since some
+`uv run` puts `dictk`'s own CLI on `PATH` for the build, since some
 `cmdrun` directives invoke `dictk` directly.
 
 ### Building the API docs
@@ -388,7 +388,7 @@ invoke it as a reusable workflow:
   `ci.yml` from a tag push, since the ref won't be `refs/heads/main` or
   `refs/heads/dev`). Installs the pinned `mdbook` 0.4.52, `mdbook-cmdrun`,
   and `mdbook-katex` (cached via `actions/cache`), downloads the `test`
-  job's coverage artifact, builds the mdBook user guide with dictk's own
+  job's coverage artifact, builds the mdBook user guide with `dictk`'s own
   CLI on `PATH`, builds the pdoc API reference, generates a coverage badge from
   `coverage.xml` with [genbadge](https://smarie.github.io/python-genbadge/),
   runs pylint informationally to get a 0-10 score (fetched as a shields.io
@@ -435,7 +435,7 @@ invoke it as a reusable workflow:
 This is intentionally a minimal setup — no matrix OS/Python testing, no
 containerized builds. pytribeam's `ci.yml` and
 rattlesnake-vibration-controller's `ci.yml`/`release.yml` are useful
-references for growing any of this out later (dictk's `release.yml` is in
+references for growing any of this out later (`dictk`'s `release.yml` is in
 fact modeled on rattlesnake-vibration-controller's, with one addition: tying
 the branch check to prerelease status, described above).
 

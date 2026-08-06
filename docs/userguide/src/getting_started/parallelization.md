@@ -37,7 +37,7 @@ Because every iteration is already independent, parallelizing it is a
 matter of swapping this list comprehension for a parallel map over the same
 per-point calls — not a redesign. The standard library's
 `concurrent.futures.ProcessPoolExecutor` can drive that map today, calling
-only dictk's existing public API:
+only `dictk`'s existing public API:
 
 ```python
 from concurrent.futures import ProcessPoolExecutor
@@ -85,7 +85,7 @@ def locate_grid_parallel(
 ```
 
 `_locate_one` takes its point pair as a single positional argument, not
-dictk's usual keyword-only style: `ProcessPoolExecutor.map` (like the
+`dictk`'s usual keyword-only style: `ProcessPoolExecutor.map` (like the
 built-in `map`) always calls its target positionally, one item per
 iterable, so a keyword-only signature isn't an option for the function
 being mapped over. This actual snippet runs correctly against `astronaut0`

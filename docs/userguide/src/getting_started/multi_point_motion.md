@@ -145,9 +145,9 @@ above backs off from that ceiling on purpose: `kernel_margin_width=20`,
 directions, so every kernel's own boundary reads as visibly separate from
 its neighbors', not merely non-overlapping.
 
-Nothing requires the kernel to be isotropic — dictk supports an
+Nothing requires the kernel to be isotropic — `dictk` supports an
 independent margin per axis just as easily. The equal `20`/`20` above is
-a deliberate choice to illustrate that dictk supports both isotropic and
+a deliberate choice to illustrate that `dictk` supports both isotropic and
 non-isotropic margins, not a consequence of `spacing_x` and `spacing_y`
 being unequal forcing one shape or the other.
 
@@ -191,7 +191,7 @@ current_image = translate(arr=reference_image, dx=dx, dy=dy)
 [`dictk.grid.locate`](../api/dictk/grid.html#locate) tracks all 12 points
 in one call. It doesn't do the correlation itself — it calls
 [`dictk.translation.locate`](../api/dictk/translation.html#locate) once
-per point, and *that* function is dictk's actual FFT-based DIC engine: for
+per point, and *that* function is `dictk`'s actual FFT-based DIC engine: for
 each point it extracts a kernel from `reference_image` and a search area
 from `current_image`, then locates the kernel within the search area via
 `skimage.registration.phase_cross_correlation` — FFT-based phase
