@@ -184,18 +184,26 @@
 <p><code>dictk</code> (Digital Image Correlation Toolkit) is a Python library for digital
 image correlation (DIC) — comparing images of a specimen before and after
 deformation to measure displacement and strain fields.</p>
-<p>This guide is a work in progress. See the following pages for what dictk
-currently provides, starting with generating a synthetic reference image.</p>
 <h2 id="installation"><a class="header" href="#installation">Installation</a></h2>
 <pre><code class="language-bash">pip install dictk
 </code></pre>
+<h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
+<p>DIC compares a reference image (often of an undeformed specimen) to a subject image
+(often of a deformed specimen) as a means to optically quantify displacement and
+strain fields.</p>
+<p>Before we discuss the <em>image</em> portion of DIC, it is useful to introduce basic
+concepts of <a href="./getting_started/continuum_mechanics.html">Continuum Mechanics</a>
+and the <a href="./getting_started/finite_element_method.html">Finite Element Method</a>.
+This introduction will formalize definitions of displacement and strain and
+lay the groundwork for motion of discrete points locatable in reference/subject image
+pairs that are mapped to nodes of a finite element mesh (i.e., <em>nodes</em>).</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
 
-                            <a rel="next prefetch" href="getting_started/image_generation.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="getting_started/continuum_mechanics.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -206,7 +214,7 @@ currently provides, starting with generating a synthetic reference image.</p>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
 
-                    <a rel="next prefetch" href="getting_started/image_generation.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="getting_started/continuum_mechanics.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

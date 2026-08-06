@@ -314,14 +314,14 @@ above backs off from that ceiling on purpose: <code>kernel_margin_width=20</code
 15-pixel gap in <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>, comfortably inside the no-overlap ceiling in both
 directions, so every kernel's own boundary reads as visibly separate from
 its neighbors', not merely non-overlapping.</p>
-<p>Nothing requires the kernel to be isotropic — dictk supports an
+<p>Nothing requires the kernel to be isotropic — <code>dictk</code> supports an
 independent margin per axis just as easily. The equal <code>20</code>/<code>20</code> above is
-a deliberate choice to illustrate that dictk supports both isotropic and
+a deliberate choice to illustrate that <code>dictk</code> supports both isotropic and
 non-isotropic margins, not a consequence of <code>spacing_x</code> and <code>spacing_y</code>
 being unequal forcing one shape or the other.</p>
 <p>The search area, by contrast, keeps a clearly
 non-isotropic shape: <code>search_margin_width=48</code>, <code>search_margin_height=52</code>
--- just under the point spacing itself, comfortably containing the known
+— just under the point spacing itself, comfortably containing the known
 <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">−</span><span class="mord">6</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">8</span><span class="mclose">)</span></span></span></span>-pixel displacement with plenty of room to spare, while staying
 just shy of <code>spacing_x</code>/<code>spacing_y</code> rather than matching them outright.
 That much slack still means search areas overlap their neighbors heavily
@@ -353,7 +353,7 @@ current_image = translate(arr=reference_image, dx=dx, dy=dy)
 <p><a href="../api/dictk/grid.html#locate"><code>dictk.grid.locate</code></a> tracks all 12 points
 in one call. It doesn't do the correlation itself — it calls
 <a href="../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> once
-per point, and <em>that</em> function is dictk's actual FFT-based DIC engine: for
+per point, and <em>that</em> function is <code>dictk</code>'s actual FFT-based DIC engine: for
 each point it extracts a kernel from <code>reference_image</code> and a search area
 from <code>current_image</code>, then locates the kernel within the search area via
 <code>skimage.registration.phase_cross_correlation</code> — FFT-based phase

@@ -192,7 +192,7 @@ Method</a>) can easily have thousands-to-millions
 of nodes, not the 12 points in the simple grid above. Each point
 correspondence is independent of every other: locating point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> never
 reads or writes anything locating point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.854em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span></span></span></span> touches. That independence
-isn't just a convenient property to point out --
+isn't just a convenient property to point out —
 <a href="../api/dictk/grid.html#locate"><code>dictk.grid.locate</code></a> is already written to
 exploit it. Its entire body is a single map over <code>reference_points</code>, one
 call to <a href="../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a>
@@ -215,7 +215,7 @@ per point, accumulating no shared state between iterations:</p>
 matter of swapping this list comprehension for a parallel map over the same
 per-point calls — not a redesign. The standard library's
 <code>concurrent.futures.ProcessPoolExecutor</code> can drive that map today, calling
-only dictk's existing public API:</p>
+only <code>dictk</code>'s existing public API:</p>
 <pre><code class="language-python">from concurrent.futures import ProcessPoolExecutor
 from functools import partial
 
@@ -260,7 +260,7 @@ def locate_grid_parallel(
         return list(executor.map(worker, zip(reference_points, search_centers)))
 </code></pre>
 <p><code>_locate_one</code> takes its point pair as a single positional argument, not
-dictk's usual keyword-only style: <code>ProcessPoolExecutor.map</code> (like the
+<code>dictk</code>'s usual keyword-only style: <code>ProcessPoolExecutor.map</code> (like the
 built-in <code>map</code>) always calls its target positionally, one item per
 iterable, so a keyword-only signature isn't an option for the function
 being mapped over. This actual snippet runs correctly against <code>astronaut0</code>

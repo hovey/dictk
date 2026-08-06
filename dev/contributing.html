@@ -180,14 +180,14 @@
                 <div id="content" class="content">
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="contributing-to-dictk"><a class="header" href="#contributing-to-dictk">Contributing to dictk</a></h1>
-<p>dictk is developed on <a href="https://github.com/hovey/dictk">GitHub</a> using
+<h1 id="contributing-to-dictk"><a class="header" href="#contributing-to-dictk">Contributing to <code>dictk</code></a></h1>
+<p><code>dictk</code> is developed on <a href="https://github.com/hovey/dictk">GitHub</a> using
 <a href="https://git-scm.com/">Git</a> for version control. Git is the tool that tracks
 changes to the source on your own computer; GitHub is the hosting service
 that holds the canonical copy of the repository, tracks issues and pull
 requests, and runs the CI/CD pipeline described <a href="#cicd-architecture">below</a>.</p>
 <h2 id="cloning-vs-forking"><a class="header" href="#cloning-vs-forking">Cloning vs. forking</a></h2>
-<p>Contributors can get a working copy of dictk by either cloning or forking
+<p>Contributors can get a working copy of <code>dictk</code> by either cloning or forking
 the repository.</p>
 <div class="table-wrapper"><table><thead><tr><th>Cloning</th><th>Forking</th></tr></thead><tbody>
 <tr><td>A <strong>Git</strong> action: it creates a copy of the repository on your own computer.</td><td>A <strong>GitHub</strong> action: it creates a personal copy of the entire project under your own GitHub account.</td></tr>
@@ -340,7 +340,7 @@ both commands below run from the repo root:</p>
 <pre><code class="language-bash">uv run mdbook build           # build once, output in docs/userguide/book/
 uv run mdbook serve --open    # live preview at http://localhost:3000
 </code></pre>
-<p><code>uv run</code> puts dictk's own CLI on <code>PATH</code> for the build, since some
+<p><code>uv run</code> puts <code>dictk</code>'s own CLI on <code>PATH</code> for the build, since some
 <code>cmdrun</code> directives invoke <code>dictk</code> directly.</p>
 <h3 id="building-the-api-docs"><a class="header" href="#building-the-api-docs">Building the API docs</a></h3>
 <p>Python API reference docs (function signatures, docstrings) are generated
@@ -471,7 +471,7 @@ Uploads the coverage report as a build artifact.</p>
 <code>ci.yml</code> from a tag push, since the ref won't be <code>refs/heads/main</code> or
 <code>refs/heads/dev</code>). Installs the pinned <code>mdbook</code> 0.4.52, <code>mdbook-cmdrun</code>,
 and <code>mdbook-katex</code> (cached via <code>actions/cache</code>), downloads the <code>test</code>
-job's coverage artifact, builds the mdBook user guide with dictk's own
+job's coverage artifact, builds the mdBook user guide with <code>dictk</code>'s own
 CLI on <code>PATH</code>, builds the pdoc API reference, generates a coverage badge from
 <code>coverage.xml</code> with <a href="https://smarie.github.io/python-genbadge/">genbadge</a>,
 runs pylint informationally to get a 0-10 score (fetched as a shields.io
@@ -517,7 +517,7 @@ Publishes to TestPyPI or PyPI. See <a href="#releasing">"Releasing"</a> below.</
 <p>This is intentionally a minimal setup — no matrix OS/Python testing, no
 containerized builds. pytribeam's <code>ci.yml</code> and
 rattlesnake-vibration-controller's <code>ci.yml</code>/<code>release.yml</code> are useful
-references for growing any of this out later (dictk's <code>release.yml</code> is in
+references for growing any of this out later (<code>dictk</code>'s <code>release.yml</code> is in
 fact modeled on rattlesnake-vibration-controller's, with one addition: tying
 the branch check to prerelease status, described above).</p>
 <h2 id="versioning"><a class="header" href="#versioning">Versioning</a></h2>
