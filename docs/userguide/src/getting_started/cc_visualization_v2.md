@@ -4,7 +4,7 @@
 criteria side by side as heatmaps, sharing one figure. This page instead
 shows each criterion on its own, in a four-panel composite reproducing a
 reference composite-figure layout used in prior DIC tooling, via
-[`dictk.image.correlation_quadrant_plot`](../api/dictk/image.html#correlation_quadrant_plot):
+[`dictk.image.spatial_correlation_quadrant_plot`](../api/dictk/image.html#spatial_correlation_quadrant_plot):
 the search area with the found kernel marked (**Fixed Image**), the kernel
 itself zero-padded to the search area's shape (**Moving Image**), the full
 correlation surface, and a zoomed **Solution Vicinity** around its peak —
@@ -54,9 +54,9 @@ for by hand.
 
 ```python
 from dictk.correlation import cc
-from dictk.image import correlation_quadrant_plot
+from dictk.image import spatial_correlation_quadrant_plot
 
-correlation_quadrant_plot(
+spatial_correlation_quadrant_plot(
     kernel=kernel,
     search=search,
     correlation_surface=cc(kernel=kernel, search=search),
@@ -66,7 +66,7 @@ correlation_quadrant_plot(
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage, correlation_quadrant_plot; from dictk.correlation import cc; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; kernel = subimage(image=reference_image, origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin); search_margin = 50; search_center = p0; search = subimage(image=current_image, origin=PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin), width=2 * search_margin, height=2 * search_margin); correlation_quadrant_plot(kernel=kernel, search=search, correlation_surface=cc(kernel=kernel, search=search), title='Cross-Correlation (CC)', path='cc_visualization_v2_cc.png'); print('Saved: cc_visualization_v2_cc.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage, spatial_correlation_quadrant_plot; from dictk.correlation import cc; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; kernel = subimage(image=reference_image, origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin); search_margin = 50; search_center = p0; search = subimage(image=current_image, origin=PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin), width=2 * search_margin, height=2 * search_margin); spatial_correlation_quadrant_plot(kernel=kernel, search=search, correlation_surface=cc(kernel=kernel, search=search), title='Cross-Correlation (CC)', path='cc_visualization_v2_cc.png'); print('Saved: cc_visualization_v2_cc.png')" -->
 ```
 
 <figure>
@@ -79,7 +79,7 @@ correlation_quadrant_plot(
 ```python
 from dictk.correlation import ncc
 
-correlation_quadrant_plot(
+spatial_correlation_quadrant_plot(
     kernel=kernel,
     search=search,
     correlation_surface=ncc(kernel=kernel, search=search),
@@ -89,7 +89,7 @@ correlation_quadrant_plot(
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage, correlation_quadrant_plot; from dictk.correlation import ncc; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; kernel = subimage(image=reference_image, origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin); search_margin = 50; search_center = p0; search = subimage(image=current_image, origin=PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin), width=2 * search_margin, height=2 * search_margin); correlation_quadrant_plot(kernel=kernel, search=search, correlation_surface=ncc(kernel=kernel, search=search), title='Normalized Cross-Correlation (NCC)', path='cc_visualization_v2_ncc.png'); print('Saved: cc_visualization_v2_ncc.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage, spatial_correlation_quadrant_plot; from dictk.correlation import ncc; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; kernel = subimage(image=reference_image, origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin); search_margin = 50; search_center = p0; search = subimage(image=current_image, origin=PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin), width=2 * search_margin, height=2 * search_margin); spatial_correlation_quadrant_plot(kernel=kernel, search=search, correlation_surface=ncc(kernel=kernel, search=search), title='Normalized Cross-Correlation (NCC)', path='cc_visualization_v2_ncc.png'); print('Saved: cc_visualization_v2_ncc.png')" -->
 ```
 
 <figure>
@@ -102,7 +102,7 @@ correlation_quadrant_plot(
 ```python
 from dictk.correlation import zcc
 
-correlation_quadrant_plot(
+spatial_correlation_quadrant_plot(
     kernel=kernel,
     search=search,
     correlation_surface=zcc(kernel=kernel, search=search),
@@ -112,7 +112,7 @@ correlation_quadrant_plot(
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage, correlation_quadrant_plot; from dictk.correlation import zcc; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; kernel = subimage(image=reference_image, origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin); search_margin = 50; search_center = p0; search = subimage(image=current_image, origin=PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin), width=2 * search_margin, height=2 * search_margin); correlation_quadrant_plot(kernel=kernel, search=search, correlation_surface=zcc(kernel=kernel, search=search), title='Zero-mean Cross-Correlation (ZCC)', path='cc_visualization_v2_zcc.png'); print('Saved: cc_visualization_v2_zcc.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage, spatial_correlation_quadrant_plot; from dictk.correlation import zcc; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; kernel = subimage(image=reference_image, origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin); search_margin = 50; search_center = p0; search = subimage(image=current_image, origin=PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin), width=2 * search_margin, height=2 * search_margin); spatial_correlation_quadrant_plot(kernel=kernel, search=search, correlation_surface=zcc(kernel=kernel, search=search), title='Zero-mean Cross-Correlation (ZCC)', path='cc_visualization_v2_zcc.png'); print('Saved: cc_visualization_v2_zcc.png')" -->
 ```
 
 <figure>
@@ -125,7 +125,7 @@ correlation_quadrant_plot(
 ```python
 from dictk.correlation import zncc
 
-correlation_quadrant_plot(
+spatial_correlation_quadrant_plot(
     kernel=kernel,
     search=search,
     correlation_surface=zncc(kernel=kernel, search=search),
@@ -135,7 +135,7 @@ correlation_quadrant_plot(
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage, correlation_quadrant_plot; from dictk.correlation import zncc; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; kernel = subimage(image=reference_image, origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin); search_margin = 50; search_center = p0; search = subimage(image=current_image, origin=PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin), width=2 * search_margin, height=2 * search_margin); correlation_quadrant_plot(kernel=kernel, search=search, correlation_surface=zncc(kernel=kernel, search=search), title='Zero-mean Normalized Cross-Correlation (ZNCC)', path='cc_visualization_v2_zncc.png'); print('Saved: cc_visualization_v2_zncc.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage, spatial_correlation_quadrant_plot; from dictk.correlation import zncc; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; kernel = subimage(image=reference_image, origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin); search_margin = 50; search_center = p0; search = subimage(image=current_image, origin=PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin), width=2 * search_margin, height=2 * search_margin); spatial_correlation_quadrant_plot(kernel=kernel, search=search, correlation_surface=zncc(kernel=kernel, search=search), title='Zero-mean Normalized Cross-Correlation (ZNCC)', path='cc_visualization_v2_zncc.png'); print('Saved: cc_visualization_v2_zncc.png')" -->
 ```
 
 <figure>
