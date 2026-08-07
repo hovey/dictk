@@ -1862,25 +1862,25 @@ for <span class="katex"><span class="katex-html" aria-hidden="true"><span class=
 </li>
 </ul>
 <h3 id="invariance-and-robustness"><a class="header" href="#invariance-and-robustness">Invariance and Robustness</a></h3>
-<p><em>Invariant</em> is the more precise term here than <em>robust</em> or <em>insensitive</em>:
-subtracting each side's own mean cancels any constant <strong>added</strong> to that
-side — a brightness difference between <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span></span></span></span> and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span></span></span></span>, which is additive —
-and dividing by each side's own norm cancels any constant <strong>scaling</strong> of
-that side — a contrast difference, which is multiplicative. Whether a
-criterion performs each of those two cancellations determines its
-invariance:</p>
+<p><em>Invariance</em> describes whether or not a correlation is robust or insensitive to changes in brightness and/or contrast.</p>
+<ul>
+<li>For brightness, which is additive, subtracting each side's own mean cancels any constant <strong>added</strong> to that side, making "Zero-mean" approaches effective.</li>
+<li>For contrast, which is multiplicative, dividing by each side's own norm cancels any constant <strong>scaling</strong> of that side, making "Normalized" approaches effective.</li>
+</ul>
+<p>Whether a criterion performs each of those two cancellations determines its invariance:</p>
 <div class="table-wrapper"><table><thead><tr><th style="text-align: left">Method</th><th style="text-align: center">Invariant to brightness (additive)</th><th style="text-align: center">Invariant to contrast (multiplicative)</th><th style="text-align: left">Robustness</th></tr></thead><tbody>
-<tr><td style="text-align: left">CC</td><td style="text-align: center">−</td><td style="text-align: center">−</td><td style="text-align: left">Least robust — neither cancellation</td></tr>
-<tr><td style="text-align: left">NCC</td><td style="text-align: center">−</td><td style="text-align: center">+</td><td style="text-align: left">Partial — contrast only</td></tr>
-<tr><td style="text-align: left">ZCC</td><td style="text-align: center">+</td><td style="text-align: center">−</td><td style="text-align: left">Partial — brightness only</td></tr>
-<tr><td style="text-align: left">ZNCC</td><td style="text-align: center">+</td><td style="text-align: center">+</td><td style="text-align: left">Most robust — both</td></tr>
+<tr><td style="text-align: left">CC</td><td style="text-align: center">no</td><td style="text-align: center">no</td><td style="text-align: left">Least robust — neither cancellation</td></tr>
+<tr><td style="text-align: left">NCC</td><td style="text-align: center">no</td><td style="text-align: center">yes</td><td style="text-align: left">Only robust to contrast changes</td></tr>
+<tr><td style="text-align: left">ZCC</td><td style="text-align: center">yes</td><td style="text-align: center">no</td><td style="text-align: left">Only robust to brightness changes</td></tr>
+<tr><td style="text-align: left">ZNCC</td><td style="text-align: center">yes</td><td style="text-align: center">yes</td><td style="text-align: left">Most robust</td></tr>
 </tbody></table>
 </div>
 <p>ZNCC combines ZCC's mean-subtraction (brightness invariance) with NCC's
 norm-division (contrast invariance), which is why it's the standard choice
 in most DIC implementations — including <code>dictk.translation.locate</code>'s own
 underlying <code>skimage.registration.phase_cross_correlation</code> call (see <a href="getting_started/./cc_fft.html">CC via
-FFT</a>). Neither cancellation helps against <em>nonlinear</em> or
+FFT</a>).</p>
+<p>Neither cancellation helps against <em>nonlinear</em> or
 <em>spatially-varying</em> brightness/contrast (a shadow crossing part of the
 kernel, sensor saturation) — none of the four criteria above address that.</p>
 <h3 id="brightness-and-contrast-invariance-in-practice"><a class="header" href="#brightness-and-contrast-invariance-in-practice">Brightness and Contrast Invariance in Practice</a></h3>
