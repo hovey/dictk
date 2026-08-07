@@ -1719,17 +1719,17 @@
 </span><span id="L-1502"><a href="#L-1502"><span class="linenos">1502</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="L-1503"><a href="#L-1503"><span class="linenos">1503</span></a><span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Save a 2x2 composite figure illustrating one correlation criterion end to end.</span>
 </span><span id="L-1504"><a href="#L-1504"><span class="linenos">1504</span></a>
-</span><span id="L-1505"><a href="#L-1505"><span class="linenos">1505</span></a><span class="sd">    Reproduces hdic&#39;s reference-figure layout -- Fixed Image, Moving Image,</span>
-</span><span id="L-1506"><a href="#L-1506"><span class="linenos">1506</span></a><span class="sd">    the correlation surface, and a zoomed Solution Vicinity -- using</span>
-</span><span id="L-1507"><a href="#L-1507"><span class="linenos">1507</span></a><span class="sd">    dictk&#39;s own correlation surfaces</span>
+</span><span id="L-1505"><a href="#L-1505"><span class="linenos">1505</span></a><span class="sd">    Reproduces a reference composite-figure layout used in prior DIC</span>
+</span><span id="L-1506"><a href="#L-1506"><span class="linenos">1506</span></a><span class="sd">    tooling -- Fixed Image, Moving Image, the correlation surface, and a</span>
+</span><span id="L-1507"><a href="#L-1507"><span class="linenos">1507</span></a><span class="sd">    zoomed Solution Vicinity -- using dictk&#39;s own correlation surfaces</span>
 </span><span id="L-1508"><a href="#L-1508"><span class="linenos">1508</span></a><span class="sd">    ([`dictk.correlation`](../correlation.html)&#39;s `cc`/`ncc`/`zcc`/`zncc`)</span>
-</span><span id="L-1509"><a href="#L-1509"><span class="linenos">1509</span></a><span class="sd">    rather than hdic&#39;s zero-padded whole-image FFT approach.</span>
+</span><span id="L-1509"><a href="#L-1509"><span class="linenos">1509</span></a><span class="sd">    rather than a zero-padded whole-image FFT approach.</span>
 </span><span id="L-1510"><a href="#L-1510"><span class="linenos">1510</span></a><span class="sd">    `correlation_surface`&#39;s own argmax directly gives the kernel&#39;s found</span>
 </span><span id="L-1511"><a href="#L-1511"><span class="linenos">1511</span></a><span class="sd">    offset within `search`&#39;s own frame $\mathcal{S}$ -- the same</span>
 </span><span id="L-1512"><a href="#L-1512"><span class="linenos">1512</span></a><span class="sd">    $\boldsymbol{r}_{SK/\mathcal{S}}$ quantity [Cross Correlation</span>
 </span><span id="L-1513"><a href="#L-1513"><span class="linenos">1513</span></a><span class="sd">    (CC)](../../getting_started/cross_correlation.html) walks through by</span>
-</span><span id="L-1514"><a href="#L-1514"><span class="linenos">1514</span></a><span class="sd">    hand -- so no separate found-position argument is needed the way hdic&#39;s</span>
-</span><span id="L-1515"><a href="#L-1515"><span class="linenos">1515</span></a><span class="sd">    own composite-figure function takes one.</span>
+</span><span id="L-1514"><a href="#L-1514"><span class="linenos">1514</span></a><span class="sd">    hand -- so no separate found-position argument is needed the way that</span>
+</span><span id="L-1515"><a href="#L-1515"><span class="linenos">1515</span></a><span class="sd">    prior tooling&#39;s own composite-figure function takes one.</span>
 </span><span id="L-1516"><a href="#L-1516"><span class="linenos">1516</span></a>
 </span><span id="L-1517"><a href="#L-1517"><span class="linenos">1517</span></a><span class="sd">    Top-left panel: `search`, in its own local frame $\mathcal{S}$, with a</span>
 </span><span id="L-1518"><a href="#L-1518"><span class="linenos">1518</span></a><span class="sd">    yellow dashed box marking where `kernel` was found, plus red/green</span>
@@ -1745,7 +1745,7 @@
 </span><span id="L-1528"><a href="#L-1528"><span class="linenos">1528</span></a>
 </span><span id="L-1529"><a href="#L-1529"><span class="linenos">1529</span></a><span class="sd">    Text renders via matplotlib&#39;s built-in mathtext with a Computer-Modern</span>
 </span><span id="L-1530"><a href="#L-1530"><span class="linenos">1530</span></a><span class="sd">    -style serif font (`mathtext.fontset=&quot;cm&quot;`), not real LaTeX</span>
-</span><span id="L-1531"><a href="#L-1531"><span class="linenos">1531</span></a><span class="sd">    (`text.usetex`) -- visually close to hdic&#39;s own LaTeX-rendered figures</span>
+</span><span id="L-1531"><a href="#L-1531"><span class="linenos">1531</span></a><span class="sd">    (`text.usetex`) -- visually close to a real-LaTeX-rendered figure</span>
 </span><span id="L-1532"><a href="#L-1532"><span class="linenos">1532</span></a><span class="sd">    without a system TeX install, scoped to this function alone via</span>
 </span><span id="L-1533"><a href="#L-1533"><span class="linenos">1533</span></a><span class="sd">    `rc_context` so it can&#39;t leak into any other figure.</span>
 </span><span id="L-1534"><a href="#L-1534"><span class="linenos">1534</span></a>
@@ -4784,17 +4784,17 @@ position-for-position.</p>
 </span><span id="correlation_quadrant_plot-1503"><a href="#correlation_quadrant_plot-1503"><span class="linenos">1503</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="correlation_quadrant_plot-1504"><a href="#correlation_quadrant_plot-1504"><span class="linenos">1504</span></a><span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Save a 2x2 composite figure illustrating one correlation criterion end to end.</span>
 </span><span id="correlation_quadrant_plot-1505"><a href="#correlation_quadrant_plot-1505"><span class="linenos">1505</span></a>
-</span><span id="correlation_quadrant_plot-1506"><a href="#correlation_quadrant_plot-1506"><span class="linenos">1506</span></a><span class="sd">    Reproduces hdic&#39;s reference-figure layout -- Fixed Image, Moving Image,</span>
-</span><span id="correlation_quadrant_plot-1507"><a href="#correlation_quadrant_plot-1507"><span class="linenos">1507</span></a><span class="sd">    the correlation surface, and a zoomed Solution Vicinity -- using</span>
-</span><span id="correlation_quadrant_plot-1508"><a href="#correlation_quadrant_plot-1508"><span class="linenos">1508</span></a><span class="sd">    dictk&#39;s own correlation surfaces</span>
+</span><span id="correlation_quadrant_plot-1506"><a href="#correlation_quadrant_plot-1506"><span class="linenos">1506</span></a><span class="sd">    Reproduces a reference composite-figure layout used in prior DIC</span>
+</span><span id="correlation_quadrant_plot-1507"><a href="#correlation_quadrant_plot-1507"><span class="linenos">1507</span></a><span class="sd">    tooling -- Fixed Image, Moving Image, the correlation surface, and a</span>
+</span><span id="correlation_quadrant_plot-1508"><a href="#correlation_quadrant_plot-1508"><span class="linenos">1508</span></a><span class="sd">    zoomed Solution Vicinity -- using dictk&#39;s own correlation surfaces</span>
 </span><span id="correlation_quadrant_plot-1509"><a href="#correlation_quadrant_plot-1509"><span class="linenos">1509</span></a><span class="sd">    ([`dictk.correlation`](../correlation.html)&#39;s `cc`/`ncc`/`zcc`/`zncc`)</span>
-</span><span id="correlation_quadrant_plot-1510"><a href="#correlation_quadrant_plot-1510"><span class="linenos">1510</span></a><span class="sd">    rather than hdic&#39;s zero-padded whole-image FFT approach.</span>
+</span><span id="correlation_quadrant_plot-1510"><a href="#correlation_quadrant_plot-1510"><span class="linenos">1510</span></a><span class="sd">    rather than a zero-padded whole-image FFT approach.</span>
 </span><span id="correlation_quadrant_plot-1511"><a href="#correlation_quadrant_plot-1511"><span class="linenos">1511</span></a><span class="sd">    `correlation_surface`&#39;s own argmax directly gives the kernel&#39;s found</span>
 </span><span id="correlation_quadrant_plot-1512"><a href="#correlation_quadrant_plot-1512"><span class="linenos">1512</span></a><span class="sd">    offset within `search`&#39;s own frame $\mathcal{S}$ -- the same</span>
 </span><span id="correlation_quadrant_plot-1513"><a href="#correlation_quadrant_plot-1513"><span class="linenos">1513</span></a><span class="sd">    $\boldsymbol{r}_{SK/\mathcal{S}}$ quantity [Cross Correlation</span>
 </span><span id="correlation_quadrant_plot-1514"><a href="#correlation_quadrant_plot-1514"><span class="linenos">1514</span></a><span class="sd">    (CC)](../../getting_started/cross_correlation.html) walks through by</span>
-</span><span id="correlation_quadrant_plot-1515"><a href="#correlation_quadrant_plot-1515"><span class="linenos">1515</span></a><span class="sd">    hand -- so no separate found-position argument is needed the way hdic&#39;s</span>
-</span><span id="correlation_quadrant_plot-1516"><a href="#correlation_quadrant_plot-1516"><span class="linenos">1516</span></a><span class="sd">    own composite-figure function takes one.</span>
+</span><span id="correlation_quadrant_plot-1515"><a href="#correlation_quadrant_plot-1515"><span class="linenos">1515</span></a><span class="sd">    hand -- so no separate found-position argument is needed the way that</span>
+</span><span id="correlation_quadrant_plot-1516"><a href="#correlation_quadrant_plot-1516"><span class="linenos">1516</span></a><span class="sd">    prior tooling&#39;s own composite-figure function takes one.</span>
 </span><span id="correlation_quadrant_plot-1517"><a href="#correlation_quadrant_plot-1517"><span class="linenos">1517</span></a>
 </span><span id="correlation_quadrant_plot-1518"><a href="#correlation_quadrant_plot-1518"><span class="linenos">1518</span></a><span class="sd">    Top-left panel: `search`, in its own local frame $\mathcal{S}$, with a</span>
 </span><span id="correlation_quadrant_plot-1519"><a href="#correlation_quadrant_plot-1519"><span class="linenos">1519</span></a><span class="sd">    yellow dashed box marking where `kernel` was found, plus red/green</span>
@@ -4810,7 +4810,7 @@ position-for-position.</p>
 </span><span id="correlation_quadrant_plot-1529"><a href="#correlation_quadrant_plot-1529"><span class="linenos">1529</span></a>
 </span><span id="correlation_quadrant_plot-1530"><a href="#correlation_quadrant_plot-1530"><span class="linenos">1530</span></a><span class="sd">    Text renders via matplotlib&#39;s built-in mathtext with a Computer-Modern</span>
 </span><span id="correlation_quadrant_plot-1531"><a href="#correlation_quadrant_plot-1531"><span class="linenos">1531</span></a><span class="sd">    -style serif font (`mathtext.fontset=&quot;cm&quot;`), not real LaTeX</span>
-</span><span id="correlation_quadrant_plot-1532"><a href="#correlation_quadrant_plot-1532"><span class="linenos">1532</span></a><span class="sd">    (`text.usetex`) -- visually close to hdic&#39;s own LaTeX-rendered figures</span>
+</span><span id="correlation_quadrant_plot-1532"><a href="#correlation_quadrant_plot-1532"><span class="linenos">1532</span></a><span class="sd">    (`text.usetex`) -- visually close to a real-LaTeX-rendered figure</span>
 </span><span id="correlation_quadrant_plot-1533"><a href="#correlation_quadrant_plot-1533"><span class="linenos">1533</span></a><span class="sd">    without a system TeX install, scoped to this function alone via</span>
 </span><span id="correlation_quadrant_plot-1534"><a href="#correlation_quadrant_plot-1534"><span class="linenos">1534</span></a><span class="sd">    `rc_context` so it can&#39;t leak into any other figure.</span>
 </span><span id="correlation_quadrant_plot-1535"><a href="#correlation_quadrant_plot-1535"><span class="linenos">1535</span></a>
@@ -4937,17 +4937,17 @@ position-for-position.</p>
 
             <div class="docstring"><p>Save a 2x2 composite figure illustrating one correlation criterion end to end.</p>
 
-<p>Reproduces hdic's reference-figure layout -- Fixed Image, Moving Image,
-the correlation surface, and a zoomed Solution Vicinity -- using
-dictk's own correlation surfaces
+<p>Reproduces a reference composite-figure layout used in prior DIC
+tooling -- Fixed Image, Moving Image, the correlation surface, and a
+zoomed Solution Vicinity -- using dictk's own correlation surfaces
 (<a href="../correlation.html"><code><a href="correlation.html">dictk.correlation</a></code></a>'s <code>cc</code>/<code>ncc</code>/<code>zcc</code>/<code>zncc</code>)
-rather than hdic's zero-padded whole-image FFT approach.
+rather than a zero-padded whole-image FFT approach.
 <code>correlation_surface</code>'s own argmax directly gives the kernel's found
 offset within <code>search</code>'s own frame $\mathcal{S}$ -- the same
 $\boldsymbol{r}_{SK/\mathcal{S}}$ quantity <a href="../../getting_started/cross_correlation.html">Cross Correlation
 (CC)</a> walks through by
-hand -- so no separate found-position argument is needed the way hdic's
-own composite-figure function takes one.</p>
+hand -- so no separate found-position argument is needed the way that
+prior tooling's own composite-figure function takes one.</p>
 
 <p>Top-left panel: <code>search</code>, in its own local frame $\mathcal{S}$, with a
 yellow dashed box marking where <code>kernel</code> was found, plus red/green
@@ -4963,7 +4963,7 @@ marked with a red x. Bottom-right: the same surface, zoomed to
 
 <p>Text renders via matplotlib's built-in mathtext with a Computer-Modern
 -style serif font (<code>mathtext.fontset="cm"</code>), not real LaTeX
-(<code>text.usetex</code>) -- visually close to hdic's own LaTeX-rendered figures
+(<code>text.usetex</code>) -- visually close to a real-LaTeX-rendered figure
 without a system TeX install, scoped to this function alone via
 <code>rc_context</code> so it can't leak into any other figure.</p>
 

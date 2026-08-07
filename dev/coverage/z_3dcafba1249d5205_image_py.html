@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_3dcafba1249d5205_rosta_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.15.2">coverage.py v7.15.2</a>,
-            created at 2026-08-07 01:27 +0000
+            created at 2026-08-07 01:35 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -1584,17 +1584,17 @@
     <p class="run run2"><span class="n"><a id="t1502" href="#t1502">1502</a></span><span class="t"><span class="op">)</span> <span class="op">-></span> <span class="key">None</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1503" href="#t1503">1503</a></span><span class="t">    <span class="str">r"""Save a 2x2 composite figure illustrating one correlation criterion end to end.</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1504" href="#t1504">1504</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t1505" href="#t1505">1505</a></span><span class="t"><span class="str">    Reproduces hdic's reference-figure layout -- Fixed Image, Moving Image,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t1506" href="#t1506">1506</a></span><span class="t"><span class="str">    the correlation surface, and a zoomed Solution Vicinity -- using</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t1507" href="#t1507">1507</a></span><span class="t"><span class="str">    dictk's own correlation surfaces</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t1505" href="#t1505">1505</a></span><span class="t"><span class="str">    Reproduces a reference composite-figure layout used in prior DIC</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t1506" href="#t1506">1506</a></span><span class="t"><span class="str">    tooling -- Fixed Image, Moving Image, the correlation surface, and a</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t1507" href="#t1507">1507</a></span><span class="t"><span class="str">    zoomed Solution Vicinity -- using dictk's own correlation surfaces</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1508" href="#t1508">1508</a></span><span class="t"><span class="str">    ([`dictk.correlation`](../correlation.html)'s `cc`/`ncc`/`zcc`/`zncc`)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t1509" href="#t1509">1509</a></span><span class="t"><span class="str">    rather than hdic's zero-padded whole-image FFT approach.</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t1509" href="#t1509">1509</a></span><span class="t"><span class="str">    rather than a zero-padded whole-image FFT approach.</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1510" href="#t1510">1510</a></span><span class="t"><span class="str">    `correlation_surface`'s own argmax directly gives the kernel's found</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1511" href="#t1511">1511</a></span><span class="t"><span class="str">    offset within `search`'s own frame $\mathcal{S}$ -- the same</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1512" href="#t1512">1512</a></span><span class="t"><span class="str">    $\boldsymbol{r}_{SK/\mathcal{S}}$ quantity [Cross Correlation</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1513" href="#t1513">1513</a></span><span class="t"><span class="str">    (CC)](../../getting_started/cross_correlation.html) walks through by</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t1514" href="#t1514">1514</a></span><span class="t"><span class="str">    hand -- so no separate found-position argument is needed the way hdic's</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t1515" href="#t1515">1515</a></span><span class="t"><span class="str">    own composite-figure function takes one.</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t1514" href="#t1514">1514</a></span><span class="t"><span class="str">    hand -- so no separate found-position argument is needed the way that</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t1515" href="#t1515">1515</a></span><span class="t"><span class="str">    prior tooling's own composite-figure function takes one.</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1516" href="#t1516">1516</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1517" href="#t1517">1517</a></span><span class="t"><span class="str">    Top-left panel: `search`, in its own local frame $\mathcal{S}$, with a</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1518" href="#t1518">1518</a></span><span class="t"><span class="str">    yellow dashed box marking where `kernel` was found, plus red/green</span>&nbsp;</span><span class="r"></span></p>
@@ -1610,7 +1610,7 @@
     <p class="pln"><span class="n"><a id="t1528" href="#t1528">1528</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1529" href="#t1529">1529</a></span><span class="t"><span class="str">    Text renders via matplotlib's built-in mathtext with a Computer-Modern</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1530" href="#t1530">1530</a></span><span class="t"><span class="str">    -style serif font (`mathtext.fontset="cm"`), not real LaTeX</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t1531" href="#t1531">1531</a></span><span class="t"><span class="str">    (`text.usetex`) -- visually close to hdic's own LaTeX-rendered figures</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t1531" href="#t1531">1531</a></span><span class="t"><span class="str">    (`text.usetex`) -- visually close to a real-LaTeX-rendered figure</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1532" href="#t1532">1532</a></span><span class="t"><span class="str">    without a system TeX install, scoped to this function alone via</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1533" href="#t1533">1533</a></span><span class="t"><span class="str">    `rc_context` so it can't leak into any other figure.</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1534" href="#t1534">1534</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
@@ -1997,7 +1997,7 @@
             <a class="nav" href="z_3dcafba1249d5205_rosta_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.15.2">coverage.py v7.15.2</a>,
-            created at 2026-08-07 01:27 +0000
+            created at 2026-08-07 01:35 +0000
         </p>
     </div>
 </footer>

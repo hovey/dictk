@@ -1,0 +1,357 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>CC Visualization (v2) - dictk User Guide</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Digital Image Correlation Toolkit">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../docs/userguide/theme/custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">dictk User Guide</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/hovey/dictk" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="cc-visualization-v2"><a class="header" href="#cc-visualization-v2">CC Visualization (v2)</a></h1>
+<p><a href="./cc_visualization.html">CC Visualization</a> compares all four correlation
+criteria side by side as heatmaps, sharing one figure. This page instead
+shows each criterion on its own, in a four-panel composite reproducing a
+reference composite-figure layout used in prior DIC tooling, via
+<a href="../api/dictk/image.html#correlation_quadrant_plot"><code>dictk.image.correlation_quadrant_plot</code></a>:
+the search area with the found kernel marked (<strong>Fixed Image</strong>), the kernel
+itself zero-padded to the search area's shape (<strong>Moving Image</strong>), the full
+correlation surface, and a zoomed <strong>Solution Vicinity</strong> around its peak —
+closer to how a single registration result is typically inspected in
+practice than a side-by-side comparison of criteria.</p>
+<p><code>reference_image</code>, <code>p0</code>, <code>current_image</code>, <code>kernel_margin</code>, <code>search_margin</code>,
+<code>kernel</code>, and <code>search</code> are the same as in <a href="./cross_correlation.html">Cross Correlation
+(CC)</a> and <a href="./cc_visualization.html">CC Visualization</a>:</p>
+<pre><code class="language-python">from dictk.image import read, translate, PixelCoordinate, subimage
+
+reference_image = read(path="checkerboard0.png")
+p0 = PixelCoordinate(x=100, y=75)
+current_image = translate(arr=reference_image, dx=-6, dy=8)
+
+kernel_margin = 25
+kernel = subimage(
+    image=reference_image,
+    origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin),
+    width=2 * kernel_margin,
+    height=2 * kernel_margin,
+)
+
+search_margin = 50
+search_center = p0
+search = subimage(
+    image=current_image,
+    origin=PixelCoordinate(
+        x=search_center.x - search_margin, y=search_center.y - search_margin
+    ),
+    width=2 * search_margin,
+    height=2 * search_margin,
+)
+</code></pre>
+<p>Unlike <a href="./cc_visualization.html">CC Visualization</a>'s panels, whose axes are
+the candidate offset <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">Δ</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">Δ</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span> alone, the Fixed Image panel
+below plots the search area in its own pixel frame <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathcal" style="margin-right:0.075em;">S</span></span></span></span>, with a
+yellow dashed box marking where the kernel was found and red/green dashed
+guide lines through that box's origin — the same <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span></span></span></span>
+quantity <a href="./cross_correlation.html#solution">Cross Correlation (CC)</a> solves
+for by hand.</p>
+<h2 id="cross-correlation-cc"><a class="header" href="#cross-correlation-cc">Cross-Correlation (CC)</a></h2>
+<pre><code class="language-python">from dictk.correlation import cc
+from dictk.image import correlation_quadrant_plot
+
+correlation_quadrant_plot(
+    kernel=kernel,
+    search=search,
+    correlation_surface=cc(kernel=kernel, search=search),
+    title="Cross-Correlation (CC)",
+    path="cc_visualization_v2_cc.png",
+)
+</code></pre>
+<pre><code class="language-text">Saved: cc_visualization_v2_cc.png
+</code></pre>
+<figure>
+    <img src="cc_visualization_v2_cc.png" alt="four-panel composite: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the CC correlation surface, and a zoomed solution vicinity around its peak" />
+    <figcaption>CC's quadrant composite. checkerboard0's tiled pattern repeats every ~25 pixels, so the correlation-surface panel shows more than one strong local peak within its own (smaller, "valid") range — CC has no way to prefer the true one over its look-alikes beyond raw magnitude, unlike the normalized criteria below.</figcaption>
+</figure>
+<h2 id="normalized-cross-correlation-ncc"><a class="header" href="#normalized-cross-correlation-ncc">Normalized Cross-Correlation (NCC)</a></h2>
+<pre><code class="language-python">from dictk.correlation import ncc
+
+correlation_quadrant_plot(
+    kernel=kernel,
+    search=search,
+    correlation_surface=ncc(kernel=kernel, search=search),
+    title="Normalized Cross-Correlation (NCC)",
+    path="cc_visualization_v2_ncc.png",
+)
+</code></pre>
+<pre><code class="language-text">Saved: cc_visualization_v2_ncc.png
+</code></pre>
+<figure>
+    <img src="cc_visualization_v2_ncc.png" alt="four-panel composite for NCC: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the NCC correlation surface, and a zoomed solution vicinity around its peak" />
+    <figcaption>NCC's quadrant composite, bounded to <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mord">−</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mclose">]</span></span></span></span> by construction — visible in the colorbar range compared to CC's arbitrary raw units above.</figcaption>
+</figure>
+<h2 id="zero-mean-cross-correlation-zcc"><a class="header" href="#zero-mean-cross-correlation-zcc">Zero-mean Cross-Correlation (ZCC)</a></h2>
+<pre><code class="language-python">from dictk.correlation import zcc
+
+correlation_quadrant_plot(
+    kernel=kernel,
+    search=search,
+    correlation_surface=zcc(kernel=kernel, search=search),
+    title="Zero-mean Cross-Correlation (ZCC)",
+    path="cc_visualization_v2_zcc.png",
+)
+</code></pre>
+<pre><code class="language-text">Saved: cc_visualization_v2_zcc.png
+</code></pre>
+<figure>
+    <img src="cc_visualization_v2_zcc.png" alt="four-panel composite for ZCC: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the ZCC correlation surface, and a zoomed solution vicinity around its peak" />
+    <figcaption>ZCC's quadrant composite — raw units like CC's (mean-subtraction alone doesn't bound the range), but brightness-invariant per <a href="./cross_correlation.html#invariance-and-robustness">Cross Correlation (CC)</a>'s table.</figcaption>
+</figure>
+<h2 id="zero-mean-normalized-cross-correlation-zncc"><a class="header" href="#zero-mean-normalized-cross-correlation-zncc">Zero-mean Normalized Cross-Correlation (ZNCC)</a></h2>
+<pre><code class="language-python">from dictk.correlation import zncc
+
+correlation_quadrant_plot(
+    kernel=kernel,
+    search=search,
+    correlation_surface=zncc(kernel=kernel, search=search),
+    title="Zero-mean Normalized Cross-Correlation (ZNCC)",
+    path="cc_visualization_v2_zncc.png",
+)
+</code></pre>
+<pre><code class="language-text">Saved: cc_visualization_v2_zncc.png
+</code></pre>
+<figure>
+    <img src="cc_visualization_v2_zncc.png" alt="four-panel composite for ZNCC: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the ZNCC correlation surface, and a zoomed solution vicinity around its peak" />
+    <figcaption>ZNCC's quadrant composite — both bounded to <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mord">−</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mclose">]</span></span></span></span> and invariant to brightness and contrast, which is why <code>dictk.translation.locate</code>'s own underlying <code>skimage.registration.phase_cross_correlation</code> call is built on the same combination (see <a href="./cc_fft.html">CC via FFT</a>).</figcaption>
+</figure>
+<p>All four land on the same peak, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">19</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">33</span><span class="mclose">)</span></span></span></span> pixels, since <code>kernel</code> and <code>search</code> here share identical brightness
+and contrast (both come from <code>checkerboard0.png</code>, only translated) — the
+same reason <a href="./cc_visualization.html">CC Visualization</a> gives for its own
+matching peaks. What differs between the four is what each panel's
+colorbar reveals about <em>how safely</em> that peak can be trusted once
+brightness or contrast do differ, as <a href="./cross_correlation.html#invariance-and-robustness">Cross Correlation
+(CC)</a> covers in detail.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../getting_started/cc_fft.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../getting_started/multi_point_motion.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../getting_started/cc_fft.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../getting_started/multi_point_motion.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>
