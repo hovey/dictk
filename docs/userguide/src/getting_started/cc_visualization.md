@@ -1,10 +1,12 @@
 # CC Visualization
 
-[Cross Correlation (CC)](./cross_correlation.md) introduced four spatial-domain
-correlation criteria — CC, NCC, ZCC, and ZNCC — as formulas. This page computes
-and visualizes all four as heatmaps, on the same kernel and search area
-established there, using [`dictk.correlation`](../api/dictk/correlation.html)'s
-`cc`, `ncc`, `zcc`, and `zncc` functions.
+[Correlation Criteria](./correlation_criteria.md) introduced four
+spatial-domain correlation criteria — CC, NCC, ZCC, and ZNCC — as formulas.
+This page computes and visualizes all four as heatmaps, on the kernel and
+search area established in [Cross Correlation
+(CC)](./cross_correlation.md), using
+[`dictk.correlation`](../api/dictk/correlation.html)'s `cc`, `ncc`, `zcc`,
+and `zncc` functions.
 
 `reference_image`, `p0`, `current_image`, `kernel_margin`, and
 `search_margin` are the same as in [Cross

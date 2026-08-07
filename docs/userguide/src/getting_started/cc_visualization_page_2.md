@@ -120,7 +120,7 @@ spatial_correlation_quadrant_plot(
 
 <figure>
     <img src="cc_visualization_page_2_zcc.png" alt="four-panel composite for ZCC: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the ZCC correlation surface, and a zoomed solution vicinity around its peak" />
-    <figcaption>ZCC's quadrant composite — raw units like CC's (mean-subtraction alone doesn't bound the range), but brightness-invariant per <a href="./cross_correlation.html#invariance-and-robustness">Cross Correlation (CC)</a>'s table.</figcaption>
+    <figcaption>ZCC's quadrant composite — raw units like CC's (mean-subtraction alone doesn't bound the range), but brightness-invariant per <a href="./correlation_criteria.html#invariance-and-robustness">Correlation Criteria</a>'s table.</figcaption>
 </figure>
 
 ## Zero-mean Normalized Cross-Correlation (ZNCC)
@@ -152,8 +152,8 @@ and contrast (both come from `checkerboard0.png`, only translated) — the
 same reason [CC Visualization](./cc_visualization.md) gives for its own
 matching peaks. What differs between the four is what each panel's
 colorbar reveals about *how safely* that peak can be trusted once
-brightness or contrast do differ, as [Cross Correlation
-(CC)](./cross_correlation.md#invariance-and-robustness) covers in detail.
+brightness or contrast do differ, as [Correlation
+Criteria](./correlation_criteria.md#invariance-and-robustness) covers in detail.
 
 ## Phase Correlation
 
@@ -274,8 +274,8 @@ sketched here, worth recording:
   `dictk.translation.locate()` already runs in production instead — a
   different (and better) technique than raw unnormalized CC-via-FFT,
   landing in the same "robust to both brightness and contrast" tier as
-  ZNCC (see [Cross Correlation
-  (CC)](./cross_correlation.md#invariance-and-robustness)) and, as shown
+  ZNCC (see [Correlation
+  Criteria](./correlation_criteria.md#invariance-and-robustness)) and, as shown
   above, with a dramatically sharper peak than any spatial-domain
   criterion, ZNCC included.
 - **"NCC/ZCC/ZNCC via Fourier domain," the genuinely hard piece, is now

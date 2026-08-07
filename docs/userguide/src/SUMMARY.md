@@ -11,6 +11,7 @@
 - [Image Transformation](./getting_started/transformation.md)
 - [Single Point Motion](./getting_started/single_point_motion.md)
   - [Cross Correlation (CC)](./getting_started/cross_correlation.md)
+  - [Correlation Criteria](./getting_started/correlation_criteria.md)
   - [CC Visualization](./getting_started/cc_visualization.md)
   - [CC via FFT](./getting_started/cc_fft.md)
   - [CC Visualization (page 2)](./getting_started/cc_visualization_page_2.md)
