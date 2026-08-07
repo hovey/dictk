@@ -203,26 +203,27 @@ one particular offset — summed pixelwise over index $i$:
 
 ### Invariance and Robustness
 
-*Invariant* is the more precise term here than *robust* or *insensitive*:
-subtracting each side's own mean cancels any constant **added** to that
-side — a brightness difference between $f$ and $g$, which is additive —
-and dividing by each side's own norm cancels any constant **scaling** of
-that side — a contrast difference, which is multiplicative. Whether a
-criterion performs each of those two cancellations determines its
-invariance:
+*Invariance* describes whether or not a correlation is robust or insensitive to changes in brightness and/or contrast.
+
+* For brightness, which is additive, subtracting each side's own mean cancels any constant **added** to that side, making "Zero-mean" approaches effective.
+* For contrast, which is multiplicative, dividing by each side's own norm cancels any constant **scaling** of that side, making "Normalized" approaches effective.
+
+Whether a criterion performs each of those two cancellations determines its invariance:
 
 | Method | Invariant to brightness (additive) | Invariant to contrast (multiplicative) | Robustness |
 |:---|:---:|:---:|:---|
-| CC | − | − | Least robust — neither cancellation |
-| NCC | − | + | Partial — contrast only |
-| ZCC | + | − | Partial — brightness only |
-| ZNCC | + | + | Most robust — both |
+| CC | no | no | Least robust — neither cancellation |
+| NCC | no | yes | Only robust to contrast changes |
+| ZCC | yes | no | Only robust to brightness changes |
+| ZNCC | yes | yes | Most robust |
 
 ZNCC combines ZCC's mean-subtraction (brightness invariance) with NCC's
 norm-division (contrast invariance), which is why it's the standard choice
 in most DIC implementations — including `dictk.translation.locate`'s own
 underlying `skimage.registration.phase_cross_correlation` call (see [CC via
-FFT](./cc_fft.md)). Neither cancellation helps against *nonlinear* or
+FFT](./cc_fft.md)).
+
+Neither cancellation helps against *nonlinear* or
 *spatially-varying* brightness/contrast (a shadow crossing part of the
 kernel, sensor saturation) — none of the four criteria above address that.
 

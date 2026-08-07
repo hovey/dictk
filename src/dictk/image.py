@@ -1489,6 +1489,169 @@ def correlation_surfaces_plot(
     plt.close(fig)
 
 
+def correlation_quadrant_plot(
+    *,
+    kernel: np.ndarray,
+    search: np.ndarray,
+    correlation_surface: np.ndarray,
+    title: str,
+    path: Path,
+    figsize: tuple[float, float] = (8.0, 8.0),
+    dpi: int = 300,
+    vicinity_margin: int = 4,
+) -> None:
+    r"""Save a 2x2 composite figure illustrating one correlation criterion end to end.
+
+    Reproduces hdic's reference-figure layout -- Fixed Image, Moving Image,
+    the correlation surface, and a zoomed Solution Vicinity -- using
+    dictk's own correlation surfaces
+    ([`dictk.correlation`](../correlation.html)'s `cc`/`ncc`/`zcc`/`zncc`)
+    rather than hdic's zero-padded whole-image FFT approach.
+    `correlation_surface`'s own argmax directly gives the kernel's found
+    offset within `search`'s own frame $\mathcal{S}$ -- the same
+    $\boldsymbol{r}_{SK/\mathcal{S}}$ quantity [Cross Correlation
+    (CC)](../../getting_started/cross_correlation.html) walks through by
+    hand -- so no separate found-position argument is needed the way hdic's
+    own composite-figure function takes one.
+
+    Top-left panel: `search`, in its own local frame $\mathcal{S}$, with a
+    yellow dashed box marking where `kernel` was found, plus red/green
+    dashed guide lines through that box's origin (and matching red/green
+    tick labels at that position). Top-right panel: `kernel` zero-padded
+    (bottom and right) up to `search`'s own shape -- the same padding
+    [`dictk.translation.locate`](../translation.html#locate) does
+    internally -- so its content occupies only the top-left corner of an
+    otherwise-black canvas the size of `search`, labeled frame
+    $\mathcal{K}$. Bottom-left: `correlation_surface` as a heatmap, peak
+    marked with a red x. Bottom-right: the same surface, zoomed to
+    `vicinity_margin` pixels around its own peak.
+
+    Text renders via matplotlib's built-in mathtext with a Computer-Modern
+    -style serif font (`mathtext.fontset="cm"`), not real LaTeX
+    (`text.usetex`) -- visually close to hdic's own LaTeX-rendered figures
+    without a system TeX install, scoped to this function alone via
+    `rc_context` so it can't leak into any other figure.
+
+    Args:
+        kernel: The extracted kernel subimage (2D grayscale array).
+        search: The extracted search-area subimage (2D grayscale array);
+            must be at least as large as `kernel` in both dimensions.
+        correlation_surface: One of `dictk.correlation`'s `cc`/`ncc`/`zcc`/
+            `zncc` surfaces, computed from this same `kernel`/`search`
+            pair. Its own argmax is taken as the found position.
+        title: Figure-level title naming the correlation criterion shown,
+            e.g. `"Zero-mean Normalized Cross-Correlation (ZNCC)"` --
+            rendered as a `suptitle` spanning the full figure width rather
+            than the correlation-surface panel's own title, since panel
+            titles are too narrow to reliably fit the longer criterion
+            names without truncating or overlapping their colorbar.
+        path: Output file path for the figure; format is inferred from the
+            extension by matplotlib's savefig (e.g. .png).
+        figsize: (width, height) in inches for the saved figure.
+        dpi: Resolution of the saved figure.
+        vicinity_margin: Half-width/height, in pixels, of the Solution
+            Vicinity zoom window around the correlation surface's peak.
+
+    Raises:
+        ValueError: If `search` is smaller than `kernel` in either
+            dimension.
+    """
+    if search.shape[0] < kernel.shape[0] or search.shape[1] < kernel.shape[1]:
+        raise ValueError(
+            f"search shape {search.shape} must be >= kernel shape {kernel.shape} "
+            "in both dimensions"
+        )
+
+    search_height, search_width = search.shape
+    kernel_height, kernel_width = kernel.shape
+
+    peak_y, peak_x = np.unravel_index(
+        np.argmax(correlation_surface), correlation_surface.shape
+    )
+    peak_y, peak_x = int(peak_y), int(peak_x)
+
+    # Same bottom/right zero-padding dictk.translation.locate() applies
+    # internally, here purely for display so the kernel's content sits at
+    # the correct corner of a search-shaped canvas.
+    kernel_padded = np.pad(
+        kernel,
+        ((0, search_height - kernel_height), (0, search_width - kernel_width)),
+    )
+
+    with plt.rc_context({"font.family": "serif", "mathtext.fontset": "cm"}):
+        fig, axes = plt.subplots(2, 2, figsize=figsize, constrained_layout=True)
+        fig.suptitle(title)
+        ax1, ax2, ax3, ax4 = axes.flat
+
+        im1 = ax1.imshow(
+            search,
+            cmap="gray",
+            vmin=0,
+            vmax=255,
+            origin="upper",
+            extent=(0, search_width, search_height, 0),
+        )
+        plt.colorbar(im1, ax=ax1, shrink=0.8)
+        ax1.add_patch(
+            patches.Rectangle(
+                (peak_x, peak_y),
+                kernel_width,
+                kernel_height,
+                edgecolor="yellow",
+                facecolor="none",
+                linestyle="--",
+                linewidth=1,
+                alpha=0.8,
+            )
+        )
+        ax1.axvline(x=peak_x, color="red", linestyle="--", linewidth=1, alpha=0.8)
+        ax1.axhline(y=peak_y, color="green", linestyle="--", linewidth=1, alpha=0.8)
+        ax1.set_xticks(sorted({0, search_width, peak_x}))
+        ax1.set_yticks(sorted({0, search_height, peak_y}))
+        for label in ax1.get_xticklabels():
+            if label.get_text() == str(peak_x):
+                label.set_color("red")
+        for label in ax1.get_yticklabels():
+            if label.get_text() == str(peak_y):
+                label.set_color("green")
+        ax1.set_title(r"Fixed Image with frame $\mathcal{S}$")
+        ax1.set_xlabel("x (pixels)")
+        ax1.set_ylabel("y (pixels)")
+
+        im2 = ax2.imshow(
+            kernel_padded,
+            cmap="gray",
+            vmin=0,
+            vmax=255,
+            origin="upper",
+            extent=(0, search_width, search_height, 0),
+        )
+        plt.colorbar(im2, ax=ax2, shrink=0.8)
+        ax2.set_xticks(sorted({0, search_width, kernel_width}))
+        ax2.set_yticks(sorted({0, search_height, kernel_height}))
+        ax2.set_title(r"Moving Image with frame $\mathcal{K}$")
+        ax2.set_xlabel("x (pixels)")
+        ax2.set_ylabel("y (pixels)")
+
+        im3 = ax3.imshow(correlation_surface, cmap="viridis", origin="upper")
+        plt.colorbar(im3, ax=ax3, shrink=0.8)
+        ax3.plot(peak_x, peak_y, marker="x", color="red", markersize=8)
+        ax3.set_title("Correlation Surface")
+        ax3.set_xlabel(r"$\Delta x$ offset (pixels)")
+        ax3.set_ylabel(r"$\Delta y$ offset (pixels)")
+
+        im4 = ax4.imshow(correlation_surface, cmap="viridis", origin="upper")
+        plt.colorbar(im4, ax=ax4, shrink=0.8)
+        ax4.set_xlim(peak_x - vicinity_margin, peak_x + vicinity_margin)
+        ax4.set_ylim(peak_y + vicinity_margin, peak_y - vicinity_margin)
+        ax4.set_title("Solution Vicinity")
+        ax4.set_xlabel(r"$\Delta x$ offset (pixels)")
+        ax4.set_ylabel(r"$\Delta y$ offset (pixels)")
+
+        fig.savefig(path, dpi=dpi)
+        plt.close(fig)
+
+
 def point_grid_boxes_plot(
     *,
     image: np.ndarray,
