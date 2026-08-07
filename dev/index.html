@@ -197,6 +197,15 @@ and the <a href="./getting_started/finite_element_method.html">Finite Element Me
 This introduction will formalize definitions of displacement and strain and
 lay the groundwork for motion of discrete points locatable in reference/subject image
 pairs that are mapped to nodes of a finite element mesh (i.e., <em>nodes</em>).</p>
+<p>The basic workflow is as follows:</p>
+<ul>
+<li>Collect a pair of before and after images that capture an area of interest.  The <em>before</em> image, often called the reference image, captures some (possibly undeformed or deformed) configuration of the specimen.  The <em>after</em> image captures the specimen in a newly deformed state, different from the <em>before</em> state.</li>
+<li>Within each pair of images, identify points of interest.</li>
+<li>Use the <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">Y</span><span class="mclose">)</span></span></span></span> coordinates of the image points as coordinates of nodes that compose a finite element mesh.</li>
+<li>Use DIC to quantify the displacement field of each (nodal) point.</li>
+<li>Use the mesh (nodal) deformation to calculate a discrete strain field at Gauss points.</li>
+</ul>
+<p>The following sections explicate this workflow in detail.</p>
 
                     </main>
 
