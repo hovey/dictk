@@ -219,8 +219,8 @@ import matplotlib.pyplot as plt
 surfaces = {"CC": cc, "NCC": ncc, "ZCC": zcc, "ZNCC": zncc, "Phase correlation": phase_correlation}
 
 plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
-fig, axes = plt.subplots(1, 5, figsize=(22, 4), constrained_layout=True)
-for ax, (name, fn) in zip(axes, surfaces.items()):
+fig, axes = plt.subplots(3, 2, figsize=(11, 12), constrained_layout=True)
+for ax, (name, fn) in zip(axes.flat, surfaces.items()):
     flat = fn(kernel=kernel, search=search).ravel()
     prominence = (flat.max() - flat.mean()) / flat.std()
     ax.hist(flat, bins=60, color="black", alpha=0.7)
@@ -229,11 +229,12 @@ for ax, (name, fn) in zip(axes, surfaces.items()):
     ax.set_title(f"{name}: $P = {prominence:.1f}$")
     ax.set_xlabel("surface value")
     ax.set_ylabel("frequency")
+axes.flat[-1].axis("off")  # 5 panels in a 3x2 grid -- last slot stays empty
 fig.savefig("cc_visualization_page_2_prominence.png", dpi=300)
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage; from dictk.correlation import cc, ncc, zcc, zncc, phase_correlation; import matplotlib.pyplot as plt; plt.rcParams.update({'font.family': 'serif', 'mathtext.fontset': 'cm'}); reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; kernel = subimage(image=reference_image, origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin); search_margin = 50; search_center = p0; search = subimage(image=current_image, origin=PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin), width=2 * search_margin, height=2 * search_margin); surfaces = {'CC': cc, 'NCC': ncc, 'ZCC': zcc, 'ZNCC': zncc, 'Phase correlation': phase_correlation}; fig, axes = plt.subplots(1, 5, figsize=(22, 4), constrained_layout=True); [(lambda flat: (ax.hist(flat, bins=60, color='black', alpha=0.7), ax.axvline(flat.max(), color='red', linestyle='--', linewidth=1.5), ax.set_yscale('log'), ax.set_title(f'{name}: \$P = {(flat.max() - flat.mean()) / flat.std():.1f}\$'), ax.set_xlabel('surface value'), ax.set_ylabel('frequency')))(fn(kernel=kernel, search=search).ravel()) for ax, (name, fn) in zip(axes, surfaces.items())]; fig.savefig('cc_visualization_page_2_prominence.png', dpi=300); print('Saved: cc_visualization_page_2_prominence.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage; from dictk.correlation import cc, ncc, zcc, zncc, phase_correlation; import matplotlib.pyplot as plt; plt.rcParams.update({'font.family': 'serif', 'mathtext.fontset': 'cm'}); reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; kernel = subimage(image=reference_image, origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin); search_margin = 50; search_center = p0; search = subimage(image=current_image, origin=PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin), width=2 * search_margin, height=2 * search_margin); surfaces = {'CC': cc, 'NCC': ncc, 'ZCC': zcc, 'ZNCC': zncc, 'Phase correlation': phase_correlation}; fig, axes = plt.subplots(3, 2, figsize=(11, 12), constrained_layout=True); [(lambda flat: (ax.hist(flat, bins=60, color='black', alpha=0.7), ax.axvline(flat.max(), color='red', linestyle='--', linewidth=1.5), ax.set_yscale('log'), ax.set_title(f'{name}: \$P = {(flat.max() - flat.mean()) / flat.std():.1f}\$'), ax.set_xlabel('surface value'), ax.set_ylabel('frequency')))(fn(kernel=kernel, search=search).ravel()) for ax, (name, fn) in zip(axes.flat, surfaces.items())]; axes.flat[-1].axis('off'); fig.savefig('cc_visualization_page_2_prominence.png', dpi=300); print('Saved: cc_visualization_page_2_prominence.png')" -->
 ```
 
 <figure>
