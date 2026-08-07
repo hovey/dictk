@@ -1502,17 +1502,17 @@ def correlation_quadrant_plot(
 ) -> None:
     r"""Save a 2x2 composite figure illustrating one correlation criterion end to end.
 
-    Reproduces hdic's reference-figure layout -- Fixed Image, Moving Image,
-    the correlation surface, and a zoomed Solution Vicinity -- using
-    dictk's own correlation surfaces
+    Reproduces a reference composite-figure layout used in prior DIC
+    tooling -- Fixed Image, Moving Image, the correlation surface, and a
+    zoomed Solution Vicinity -- using dictk's own correlation surfaces
     ([`dictk.correlation`](../correlation.html)'s `cc`/`ncc`/`zcc`/`zncc`)
-    rather than hdic's zero-padded whole-image FFT approach.
+    rather than a zero-padded whole-image FFT approach.
     `correlation_surface`'s own argmax directly gives the kernel's found
     offset within `search`'s own frame $\mathcal{S}$ -- the same
     $\boldsymbol{r}_{SK/\mathcal{S}}$ quantity [Cross Correlation
     (CC)](../../getting_started/cross_correlation.html) walks through by
-    hand -- so no separate found-position argument is needed the way hdic's
-    own composite-figure function takes one.
+    hand -- so no separate found-position argument is needed the way that
+    prior tooling's own composite-figure function takes one.
 
     Top-left panel: `search`, in its own local frame $\mathcal{S}$, with a
     yellow dashed box marking where `kernel` was found, plus red/green
@@ -1528,7 +1528,7 @@ def correlation_quadrant_plot(
 
     Text renders via matplotlib's built-in mathtext with a Computer-Modern
     -style serif font (`mathtext.fontset="cm"`), not real LaTeX
-    (`text.usetex`) -- visually close to hdic's own LaTeX-rendered figures
+    (`text.usetex`) -- visually close to a real-LaTeX-rendered figure
     without a system TeX install, scoped to this function alone via
     `rc_context` so it can't leak into any other figure.
 
