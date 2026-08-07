@@ -172,15 +172,12 @@ for $\boldsymbol{r}_{SK/\mathcal{S}}$.
 The `locate` function returns $\boldsymbol{p}_1$ directly (one does not assemble the
 vector chain manually).
 
-## Spatial Domain or Fourier Domain
-
-Cross-correlation itself can be computed two ways: directly in the
-**spatial domain** — literally sliding the kernel over the search area and
-summing a per-position inner product, as shown below — or in the **Fourier
-domain** via the fast Fourier transform (FFT), which is what `locate`
-actually does (see [CC via FFT](./cc_fft.md)). Both compute the same
-underlying quantity; the FFT method is simply a much faster way than the
-sliding dot product approach.
+`phase_cross_correlation` is a Fourier-domain computation — every `locate`
+call in this book takes that route under the hood, rather than sliding
+the kernel across the search area one position at a time. [Correlation
+Criteria](./correlation_criteria.md) examines that Fourier-domain
+implementation in greater depth, alongside the spatial-domain CC, NCC,
+ZCC, and ZNCC criteria it complements.
 
 ## Locating the Point
 

@@ -1,5 +1,15 @@
 # Correlation Criteria
 
+## Spatial Domain or Fourier Domain
+
+Cross-correlation itself can be computed two ways: directly in the
+**spatial domain** — literally sliding the kernel over the search area and
+summing a per-position inner product, as shown below — or in the **Fourier
+domain** via the fast Fourier transform (FFT), which is what `locate`
+actually does (see [CC via FFT](./cc_fft.md)). Both compute the same
+underlying quantity; the FFT method is simply a much faster way than the
+sliding dot product approach.
+
 [Cross Correlation (CC)](./cross_correlation.md) walks through the
 geometry of locating a point: the kernel/search-area vector chain, solved
 by finding where their cross-correlation is maximized. This page covers
