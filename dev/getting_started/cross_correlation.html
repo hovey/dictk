@@ -309,14 +309,12 @@ internally — via
 for <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span></span></span></span>.
 The <code>locate</code> function returns <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6886em;vertical-align:-0.2441em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span></span></span></span> directly (one does not assemble the
 vector chain manually).</p>
-<h2 id="spatial-domain-or-fourier-domain"><a class="header" href="#spatial-domain-or-fourier-domain">Spatial Domain or Fourier Domain</a></h2>
-<p>Cross-correlation itself can be computed two ways: directly in the
-<strong>spatial domain</strong> — literally sliding the kernel over the search area and
-summing a per-position inner product, as shown below — or in the <strong>Fourier
-domain</strong> via the fast Fourier transform (FFT), which is what <code>locate</code>
-actually does (see <a href="./cc_fft.html">CC via FFT</a>). Both compute the same
-underlying quantity; the FFT method is simply a much faster way than the
-sliding dot product approach.</p>
+<p><code>phase_cross_correlation</code> is a Fourier-domain computation — every <code>locate</code>
+call in this book takes that route under the hood, rather than sliding
+the kernel across the search area one position at a time. <a href="./correlation_criteria.html">Correlation
+Criteria</a> examines that Fourier-domain
+implementation in greater depth, alongside the spatial-domain CC, NCC,
+ZCC, and ZNCC criteria it complements.</p>
 <h2 id="locating-the-point"><a class="header" href="#locating-the-point">Locating the Point</a></h2>
 <pre><code class="language-python">from dictk.translation import locate
 

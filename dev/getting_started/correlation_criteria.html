@@ -181,6 +181,14 @@
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="correlation-criteria"><a class="header" href="#correlation-criteria">Correlation Criteria</a></h1>
+<h2 id="spatial-domain-or-fourier-domain"><a class="header" href="#spatial-domain-or-fourier-domain">Spatial Domain or Fourier Domain</a></h2>
+<p>Cross-correlation itself can be computed two ways: directly in the
+<strong>spatial domain</strong> — literally sliding the kernel over the search area and
+summing a per-position inner product, as shown below — or in the <strong>Fourier
+domain</strong> via the fast Fourier transform (FFT), which is what <code>locate</code>
+actually does (see <a href="./cc_fft.html">CC via FFT</a>). Both compute the same
+underlying quantity; the FFT method is simply a much faster way than the
+sliding dot product approach.</p>
 <p><a href="./cross_correlation.html">Cross Correlation (CC)</a> walks through the
 geometry of locating a point: the kernel/search-area vector chain, solved
 by finding where their cross-correlation is maximized. This page covers
