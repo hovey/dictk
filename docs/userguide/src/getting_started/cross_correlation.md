@@ -212,10 +212,10 @@ Whether a criterion performs each of those two cancellations determines its inva
 
 | Method | Invariant to brightness (additive) | Invariant to contrast (multiplicative) | Robustness |
 |:---|:---:|:---:|:---|
-| CC | no | no | Least robust — neither cancellation |
-| NCC | no | yes | Only robust to contrast changes |
-| ZCC | yes | no | Only robust to brightness changes |
-| ZNCC | yes | yes | Most robust |
+| CC | ❌ No | ❌ No | Least robust — neither cancellation |
+| NCC | ❌ No | ✅ Yes | Only robust to contrast changes |
+| ZCC | ✅ Yes | ❌ No | Only robust to brightness changes |
+| ZNCC | ✅ Yes | ✅ Yes | Most robust |
 
 ZNCC combines ZCC's mean-subtraction (brightness invariance) with NCC's
 norm-division (contrast invariance), which is why it's the standard choice
