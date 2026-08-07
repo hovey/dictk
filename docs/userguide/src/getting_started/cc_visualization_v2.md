@@ -151,3 +151,83 @@ matching peaks. What differs between the four is what each panel's
 colorbar reveals about *how safely* that peak can be trusted once
 brightness or contrast do differ, as [Cross Correlation
 (CC)](./cross_correlation.md#invariance-and-robustness) covers in detail.
+
+## TODO: spatial-domain vs. Fourier-domain surfaces
+
+The four correlation surfaces above all come from `dictk.correlation`'s
+spatial-domain (sliding-window, "valid") formulas — the same ones [Cross
+Correlation (CC)](./cross_correlation.md) defines. [CC via
+FFT](./cc_fft.md) computes an equivalent quantity a second way, in the
+Fourier domain via the convolution theorem, but that page's demo is a
+standalone script, not something this page's figures can select yet.
+
+**Design decision, already settled:** a domain selector does *not* belong
+inside `correlation_quadrant_plot()` itself. That function already treats
+`correlation_surface` as an opaque 2D array — it takes its `argmax` and
+plots whatever shape comes in, so it works identically regardless of which
+domain produced that array (spatial-domain surfaces are smaller, "valid"
+size; Fourier-domain surfaces are the same size as `search`, and can show
+periodic wraparound peaks — neither changes how the function itself
+behaves). A domain enum belongs in the **parameter list of the function
+that computes the surface**, decided by the caller before
+`correlation_quadrant_plot()` is ever called — mirroring how the reference
+tooling this figure layout is based on keeps its own FFT-based
+registration computation and its composite-figure plotting as two
+separate functions, not one.
+
+**Scope, once this gets picked back up** (see the sizing discussion two
+sections up, and the standing memory note to revisit once this page's
+Padding/Windowing content is fleshed out):
+
+1. **CC via Fourier domain — small.** Already effectively written: [CC via
+   FFT](./cc_fft.md)'s manual demo and `dictk.translation.locate`'s own
+   internal kernel-padding both already zero-pad the kernel up to
+   `search`'s shape and take the cross-power spectrum this needs. Mostly
+   lifting existing, working code into a proper `dictk.correlation`-style
+   function.
+2. **Optional windowing — small, isolated.** A Hann/Hamming 2D window
+   (outer product of a 1D window with itself), applied to `kernel` and
+   `search` before the FFT, exactly as [CC via FFT](./cc_fft.md#windowing)
+   already describes conceptually but doesn't implement
+   (`dictk` has no `window()`-style function yet). Self-contained —
+   doesn't touch anything else.
+3. **NCC/ZCC/ZNCC via Fourier domain — genuinely harder.** The convolution
+   theorem gives raw (CC-style) correlation almost for free via FFT, but
+   *normalized* correlation needs each candidate window's own local
+   sum-of-squares, which isn't a single FFT product — it needs a separate
+   running-sum/box-filter computation (the standard reference is Lewis,
+   "Fast Normalized Cross-Correlation," using cumulative sums or an
+   auxiliary convolution to get local sums efficiently). ZCC is a smaller
+   step up (mean-subtraction can ride along with the same FFT trick, since
+   it's still just an additive shift) but NCC/ZNCC are real algorithm
+   work, not refactoring.
+
+**Illustrative sketch only** (not implemented, not wired up — matches the
+same "sketch, don't build yet" pattern
+[Parallelization](./parallelization.md) uses for its own
+`ProcessPoolExecutor` example) of where the domain/windowing selection
+would actually live:
+
+```python
+from enum import Enum
+
+class CorrelationDomain(Enum):
+    SPATIAL = "spatial"    # dictk.correlation's existing sliding-window formulas
+    FOURIER = "fourier"    # convolution-theorem / FFT equivalent
+
+class WindowingMethod(Enum):
+    HANN = "hann"
+    HAMMING = "hamming"
+
+def correlation_surface(
+    *,
+    kernel: np.ndarray,
+    search: np.ndarray,
+    method: Literal["cc", "ncc", "zcc", "zncc"],
+    domain: CorrelationDomain = CorrelationDomain.SPATIAL,
+    windowing: WindowingMethod | None = None,  # Fourier domain only
+) -> np.ndarray:
+    ...  # returns the surface; correlation_quadrant_plot() itself never changes
+```
+
+Not scheduled work — don't start on this without Chad raising it again.
