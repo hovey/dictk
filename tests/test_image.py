@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from dictk.correlation import cc, ncc, zcc, zncc
+from dictk.correlation import cc, ncc, phase_correlation, zcc, zncc
 from dictk.grid import generate as grid_generate
 from dictk.rosta import rosta
 from dictk.image import (
@@ -17,10 +17,10 @@ from dictk.image import (
     combine,
     complex_deform,
     contrast,
-    correlation_quadrant_plot,
     correlation_surfaces_plot,
     crack_dislocation,
     describe,
+    phase_correlation_quadrant_plot,
     point_grid_boxes_plot,
     point_grid_plot,
     point_plot,
@@ -32,6 +32,7 @@ from dictk.image import (
     rgba_to_gray,
     rotate,
     shear,
+    spatial_correlation_quadrant_plot,
     stretch,
     subimage,
     translate,
@@ -936,13 +937,13 @@ def _astronaut0_kernel_and_search(
     return kernel, search
 
 
-def test_correlation_quadrant_plot_writes_file(tmp_path: Path):
+def test_spatial_correlation_quadrant_plot_writes_file(tmp_path: Path):
     kernel, search = _astronaut0_kernel_and_search(
         dx=-6, dy=8, kernel_margin=25, search_margin=50
     )
 
     path = tmp_path / "correlation_quadrant.png"
-    correlation_quadrant_plot(
+    spatial_correlation_quadrant_plot(
         kernel=kernel,
         search=search,
         correlation_surface=cc(kernel=kernel, search=search),
@@ -953,7 +954,7 @@ def test_correlation_quadrant_plot_writes_file(tmp_path: Path):
     assert path.stat().st_size > 0
 
 
-def test_correlation_quadrant_plot_long_title_writes_file(tmp_path: Path):
+def test_spatial_correlation_quadrant_plot_long_title_writes_file(tmp_path: Path):
     """Regression test: the full criterion name used to overflow the
     correlation-surface panel's own title and collide with its colorbar --
     now rendered as a figure-level suptitle instead, so it should never
@@ -963,7 +964,7 @@ def test_correlation_quadrant_plot_long_title_writes_file(tmp_path: Path):
     )
 
     path = tmp_path / "correlation_quadrant_zncc.png"
-    correlation_quadrant_plot(
+    spatial_correlation_quadrant_plot(
         kernel=kernel,
         search=search,
         correlation_surface=zncc(kernel=kernel, search=search),
@@ -974,12 +975,14 @@ def test_correlation_quadrant_plot_long_title_writes_file(tmp_path: Path):
     assert path.stat().st_size > 0
 
 
-def test_correlation_quadrant_plot_search_smaller_than_kernel_raises(tmp_path: Path):
+def test_spatial_correlation_quadrant_plot_search_smaller_than_kernel_raises(
+    tmp_path: Path,
+):
     kernel = np.zeros((20, 20), dtype=np.uint8)
     search = np.zeros((10, 10), dtype=np.uint8)
     path = tmp_path / "correlation_quadrant.png"
     with pytest.raises(ValueError):
-        correlation_quadrant_plot(
+        spatial_correlation_quadrant_plot(
             kernel=kernel,
             search=search,
             correlation_surface=np.zeros((1, 1)),
@@ -988,7 +991,9 @@ def test_correlation_quadrant_plot_search_smaller_than_kernel_raises(tmp_path: P
         )
 
 
-def test_correlation_quadrant_plot_peak_matches_known_displacement(tmp_path: Path):
+def test_spatial_correlation_quadrant_plot_peak_matches_known_displacement(
+    tmp_path: Path,
+):
     """The found position drawn on the Fixed Image panel (and used to
     center the Solution Vicinity zoom) must come from correlation_surface's
     own argmax -- verified here against a known ground-truth displacement,
@@ -1005,13 +1010,75 @@ def test_correlation_quadrant_plot_peak_matches_known_displacement(tmp_path: Pat
     assert (found_x, found_y) == (expected_x, expected_y)
 
     path = tmp_path / "correlation_quadrant.png"
-    correlation_quadrant_plot(
+    spatial_correlation_quadrant_plot(
         kernel=kernel,
         search=search,
         correlation_surface=surface,
         title="Cross-Correlation (CC)",
         path=path,
     )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_phase_correlation_quadrant_plot_writes_file(tmp_path: Path):
+    kernel, search = _astronaut0_kernel_and_search(
+        dx=-6, dy=8, kernel_margin=25, search_margin=50
+    )
+
+    path = tmp_path / "phase_correlation_quadrant.png"
+    phase_correlation_quadrant_plot(
+        kernel=kernel,
+        search=search,
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_phase_correlation_quadrant_plot_default_title(tmp_path: Path):
+    # No method choice to make for the Fourier domain (unlike spatial's
+    # cc/ncc/zcc/zncc), so title has a sensible default and is optional --
+    # verify that omitting it doesn't raise, matching the sibling function's
+    # required title.
+    kernel, search = _astronaut0_kernel_and_search(
+        dx=-6, dy=8, kernel_margin=25, search_margin=50
+    )
+    path = tmp_path / "phase_correlation_quadrant.png"
+    phase_correlation_quadrant_plot(kernel=kernel, search=search, path=path)
+    assert path.exists()
+
+
+def test_phase_correlation_quadrant_plot_search_smaller_than_kernel_raises(
+    tmp_path: Path,
+):
+    kernel = np.zeros((20, 20), dtype=np.uint8)
+    search = np.zeros((10, 10), dtype=np.uint8)
+    path = tmp_path / "phase_correlation_quadrant.png"
+    with pytest.raises(ValueError):
+        phase_correlation_quadrant_plot(kernel=kernel, search=search, path=path)
+
+
+def test_phase_correlation_quadrant_plot_peak_matches_known_displacement(
+    tmp_path: Path,
+):
+    """Same correctness bar as
+    test_spatial_correlation_quadrant_plot_peak_matches_known_displacement:
+    verify the found position against a known ground-truth displacement,
+    not just that a file got written."""
+    dx, dy = -6, 8
+    kernel_margin, search_margin = 25, 50
+    kernel, search = _astronaut0_kernel_and_search(
+        dx=dx, dy=dy, kernel_margin=kernel_margin, search_margin=search_margin
+    )
+    surface = phase_correlation(kernel=kernel, search=search)
+    expected_x = search_margin + dx - kernel_margin
+    expected_y = search_margin + dy - kernel_margin
+    found_y, found_x = np.unravel_index(np.argmax(surface), surface.shape)
+    assert (found_x, found_y) == (expected_x, expected_y)
+
+    path = tmp_path / "phase_correlation_quadrant.png"
+    phase_correlation_quadrant_plot(kernel=kernel, search=search, path=path)
     assert path.exists()
     assert path.stat().st_size > 0
 

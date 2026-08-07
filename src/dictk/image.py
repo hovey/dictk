@@ -15,6 +15,8 @@ from matplotlib.path import Path as MarkerPath
 from scipy.interpolate import RegularGridInterpolator
 from scipy.ndimage import zoom
 
+from dictk.correlation import phase_correlation
+
 
 class PixelCoordinate(NamedTuple):
     """A pixel location in an image's reference frame.
@@ -1489,7 +1491,7 @@ def correlation_surfaces_plot(
     plt.close(fig)
 
 
-def correlation_quadrant_plot(
+def _correlation_quadrant_plot(
     *,
     kernel: np.ndarray,
     search: np.ndarray,
@@ -1500,61 +1502,17 @@ def correlation_quadrant_plot(
     dpi: int = 300,
     vicinity_margin: int = 4,
 ) -> None:
-    r"""Save a 2x2 composite figure illustrating one correlation criterion end to end.
+    """Shared renderer behind spatial_correlation_quadrant_plot() and
+    phase_correlation_quadrant_plot() -- private (never published by
+    pdoc), so those two public functions each carry their own complete
+    docstring rather than pointing here.
 
-    Reproduces a reference composite-figure layout used in prior DIC
-    tooling -- Fixed Image, Moving Image, the correlation surface, and a
-    zoomed Solution Vicinity -- using dictk's own correlation surfaces
-    ([`dictk.correlation`](../correlation.html)'s `cc`/`ncc`/`zcc`/`zncc`)
-    rather than a zero-padded whole-image FFT approach.
-    `correlation_surface`'s own argmax directly gives the kernel's found
-    offset within `search`'s own frame $\mathcal{S}$ -- the same
-    $\boldsymbol{r}_{SK/\mathcal{S}}$ quantity [Cross Correlation
-    (CC)](../../getting_started/cross_correlation.html) walks through by
-    hand -- so no separate found-position argument is needed the way that
-    prior tooling's own composite-figure function takes one.
-
-    Top-left panel: `search`, in its own local frame $\mathcal{S}$, with a
-    yellow dashed box marking where `kernel` was found, plus red/green
-    dashed guide lines through that box's origin (and matching red/green
-    tick labels at that position). Top-right panel: `kernel` zero-padded
-    (bottom and right) up to `search`'s own shape -- the same padding
-    [`dictk.translation.locate`](../translation.html#locate) does
-    internally -- so its content occupies only the top-left corner of an
-    otherwise-black canvas the size of `search`, labeled frame
-    $\mathcal{K}$. Bottom-left: `correlation_surface` as a heatmap, peak
-    marked with a red x. Bottom-right: the same surface, zoomed to
-    `vicinity_margin` pixels around its own peak.
-
-    Text renders via matplotlib's built-in mathtext with a Computer-Modern
-    -style serif font (`mathtext.fontset="cm"`), not real LaTeX
-    (`text.usetex`) -- visually close to a real-LaTeX-rendered figure
-    without a system TeX install, scoped to this function alone via
-    `rc_context` so it can't leak into any other figure.
-
-    Args:
-        kernel: The extracted kernel subimage (2D grayscale array).
-        search: The extracted search-area subimage (2D grayscale array);
-            must be at least as large as `kernel` in both dimensions.
-        correlation_surface: One of `dictk.correlation`'s `cc`/`ncc`/`zcc`/
-            `zncc` surfaces, computed from this same `kernel`/`search`
-            pair. Its own argmax is taken as the found position.
-        title: Figure-level title naming the correlation criterion shown,
-            e.g. `"Zero-mean Normalized Cross-Correlation (ZNCC)"` --
-            rendered as a `suptitle` spanning the full figure width rather
-            than the correlation-surface panel's own title, since panel
-            titles are too narrow to reliably fit the longer criterion
-            names without truncating or overlapping their colorbar.
-        path: Output file path for the figure; format is inferred from the
-            extension by matplotlib's savefig (e.g. .png).
-        figsize: (width, height) in inches for the saved figure.
-        dpi: Resolution of the saved figure.
-        vicinity_margin: Half-width/height, in pixels, of the Solution
-            Vicinity zoom window around the correlation surface's peak.
-
-    Raises:
-        ValueError: If `search` is smaller than `kernel` in either
-            dimension.
+    Draws the Fixed Image / Moving Image / correlation surface / Solution
+    Vicinity 2x2 layout for whatever `correlation_surface` array it's
+    given. Shape-agnostic on purpose: works identically whether the
+    surface came from a spatial-domain "valid" computation (smaller than
+    `search`) or a same-shape-as-`search` Fourier-domain one -- it only
+    ever takes that array's own argmax and plots whatever shape comes in.
     """
     if search.shape[0] < kernel.shape[0] or search.shape[1] < kernel.shape[1]:
         raise ValueError(
@@ -1650,6 +1608,164 @@ def correlation_quadrant_plot(
 
         fig.savefig(path, dpi=dpi)
         plt.close(fig)
+
+
+def spatial_correlation_quadrant_plot(
+    *,
+    kernel: np.ndarray,
+    search: np.ndarray,
+    correlation_surface: np.ndarray,
+    title: str,
+    path: Path,
+    figsize: tuple[float, float] = (8.0, 8.0),
+    dpi: int = 300,
+    vicinity_margin: int = 4,
+) -> None:
+    r"""Save a 2x2 composite figure illustrating one spatial-domain correlation criterion end to end.
+
+    Reproduces a reference composite-figure layout used in prior DIC
+    tooling -- Fixed Image, Moving Image, the correlation surface, and a
+    zoomed Solution Vicinity -- using dictk's own spatial-domain
+    correlation surfaces ([`dictk.correlation`](../correlation.html)'s
+    `cc`/`ncc`/`zcc`/`zncc`) rather than a zero-padded whole-image FFT
+    approach. See
+    [`phase_correlation_quadrant_plot`](#phase_correlation_quadrant_plot)
+    for the Fourier-domain sibling of this function.
+    `correlation_surface`'s own argmax directly gives the kernel's found
+    offset within `search`'s own frame $\mathcal{S}$ -- the same
+    $\boldsymbol{r}_{SK/\mathcal{S}}$ quantity [Cross Correlation
+    (CC)](../../getting_started/cross_correlation.html) walks through by
+    hand -- so no separate found-position argument is needed the way that
+    prior tooling's own composite-figure function takes one.
+
+    Top-left panel: `search`, in its own local frame $\mathcal{S}$, with a
+    yellow dashed box marking where `kernel` was found, plus red/green
+    dashed guide lines through that box's origin (and matching red/green
+    tick labels at that position). Top-right panel: `kernel` zero-padded
+    (bottom and right) up to `search`'s own shape -- the same padding
+    [`dictk.translation.locate`](../translation.html#locate) does
+    internally -- so its content occupies only the top-left corner of an
+    otherwise-black canvas the size of `search`, labeled frame
+    $\mathcal{K}$. Bottom-left: `correlation_surface` as a heatmap, peak
+    marked with a red x. Bottom-right: the same surface, zoomed to
+    `vicinity_margin` pixels around its own peak.
+
+    Text renders via matplotlib's built-in mathtext with a Computer-Modern
+    -style serif font (`mathtext.fontset="cm"`), not real LaTeX
+    (`text.usetex`) -- visually close to a real-LaTeX-rendered figure
+    without a system TeX install, scoped to this function alone via
+    `rc_context` so it can't leak into any other figure.
+
+    Args:
+        kernel: The extracted kernel subimage (2D grayscale array).
+        search: The extracted search-area subimage (2D grayscale array);
+            must be at least as large as `kernel` in both dimensions.
+        correlation_surface: One of `dictk.correlation`'s `cc`/`ncc`/`zcc`/
+            `zncc` surfaces, computed from this same `kernel`/`search`
+            pair. Its own argmax is taken as the found position.
+        title: Figure-level title naming the correlation criterion shown,
+            e.g. `"Zero-mean Normalized Cross-Correlation (ZNCC)"` --
+            rendered as a `suptitle` spanning the full figure width rather
+            than the correlation-surface panel's own title, since panel
+            titles are too narrow to reliably fit the longer criterion
+            names without truncating or overlapping their colorbar.
+        path: Output file path for the figure; format is inferred from the
+            extension by matplotlib's savefig (e.g. .png).
+        figsize: (width, height) in inches for the saved figure.
+        dpi: Resolution of the saved figure.
+        vicinity_margin: Half-width/height, in pixels, of the Solution
+            Vicinity zoom window around the correlation surface's peak.
+
+    Raises:
+        ValueError: If `search` is smaller than `kernel` in either
+            dimension.
+    """
+    _correlation_quadrant_plot(
+        kernel=kernel,
+        search=search,
+        correlation_surface=correlation_surface,
+        title=title,
+        path=path,
+        figsize=figsize,
+        dpi=dpi,
+        vicinity_margin=vicinity_margin,
+    )
+
+
+def phase_correlation_quadrant_plot(
+    *,
+    kernel: np.ndarray,
+    search: np.ndarray,
+    title: str = "Phase Correlation",
+    path: Path,
+    figsize: tuple[float, float] = (8.0, 8.0),
+    dpi: int = 300,
+    vicinity_margin: int = 4,
+) -> None:
+    r"""Save a 2x2 composite figure illustrating Fourier-domain phase correlation end to end.
+
+    The Fourier-domain sibling of
+    [`spatial_correlation_quadrant_plot`](#spatial_correlation_quadrant_plot),
+    sharing that function's exact panel layout (Fixed Image, Moving Image,
+    correlation surface, zoomed Solution Vicinity). Unlike its sibling,
+    this function takes raw `kernel`/`search` rather than a pre-computed
+    surface: spatial-domain correlation has four interchangeable criteria
+    (`cc`/`ncc`/`zcc`/`zncc`) a caller must choose between and compute
+    themselves, but there is only one Fourier-domain flavor here, so this
+    computes it internally via
+    [`dictk.correlation.phase_correlation`](../correlation.html#phase_correlation)
+    -- see that function's own docstring for the algorithm itself and why
+    it lands in the same "robust to both brightness and contrast" tier as
+    `zncc`, by a completely different mechanism.
+
+    Top-left panel: `search`, in its own local frame $\mathcal{S}$, with a
+    yellow dashed box marking where `kernel` was found, plus red/green
+    dashed guide lines through that box's origin (and matching red/green
+    tick labels at that position). Top-right panel: `kernel` zero-padded
+    (bottom and right) up to `search`'s own shape -- the same padding
+    [`dictk.translation.locate`](../translation.html#locate) does
+    internally -- so its content occupies only the top-left corner of an
+    otherwise-black canvas the size of `search`, labeled frame
+    $\mathcal{K}$. Bottom-left: the phase correlation surface as a
+    heatmap, peak marked with a red x. Bottom-right: the same surface,
+    zoomed to `vicinity_margin` pixels around its own peak.
+
+    Text renders via matplotlib's built-in mathtext with a Computer-Modern
+    -style serif font (`mathtext.fontset="cm"`), not real LaTeX
+    (`text.usetex`) -- visually close to a real-LaTeX-rendered figure
+    without a system TeX install, scoped to this function alone via
+    `rc_context` so it can't leak into any other figure.
+
+    Args:
+        kernel: The extracted kernel subimage (2D grayscale array).
+        search: The extracted search-area subimage (2D grayscale array);
+            must be at least as large as `kernel` in both dimensions.
+        title: Figure-level title, rendered as a `suptitle` spanning the
+            full figure width. Defaults to `"Phase Correlation"` since
+            there's only one flavor here -- override if different phrasing
+            is wanted.
+        path: Output file path for the figure; format is inferred from the
+            extension by matplotlib's savefig (e.g. .png).
+        figsize: (width, height) in inches for the saved figure.
+        dpi: Resolution of the saved figure.
+        vicinity_margin: Half-width/height, in pixels, of the Solution
+            Vicinity zoom window around the correlation surface's peak.
+
+    Raises:
+        ValueError: If `search` is smaller than `kernel` in either
+            dimension.
+    """
+    correlation_surface = phase_correlation(kernel=kernel, search=search)
+    _correlation_quadrant_plot(
+        kernel=kernel,
+        search=search,
+        correlation_surface=correlation_surface,
+        title=title,
+        path=path,
+        figsize=figsize,
+        dpi=dpi,
+        vicinity_margin=vicinity_margin,
+    )
 
 
 def point_grid_boxes_plot(
