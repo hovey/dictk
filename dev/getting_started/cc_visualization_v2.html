@@ -185,7 +185,7 @@
 criteria side by side as heatmaps, sharing one figure. This page instead
 shows each criterion on its own, in a four-panel composite reproducing a
 reference composite-figure layout used in prior DIC tooling, via
-<a href="../api/dictk/image.html#correlation_quadrant_plot"><code>dictk.image.correlation_quadrant_plot</code></a>:
+<a href="../api/dictk/image.html#spatial_correlation_quadrant_plot"><code>dictk.image.spatial_correlation_quadrant_plot</code></a>:
 the search area with the found kernel marked (<strong>Fixed Image</strong>), the kernel
 itself zero-padded to the search area's shape (<strong>Moving Image</strong>), the full
 correlation surface, and a zoomed <strong>Solution Vicinity</strong> around its peak —
@@ -228,9 +228,9 @@ quantity <a href="./cross_correlation.html#solution">Cross Correlation (CC)</a> 
 for by hand.</p>
 <h2 id="cross-correlation-cc"><a class="header" href="#cross-correlation-cc">Cross-Correlation (CC)</a></h2>
 <pre><code class="language-python">from dictk.correlation import cc
-from dictk.image import correlation_quadrant_plot
+from dictk.image import spatial_correlation_quadrant_plot
 
-correlation_quadrant_plot(
+spatial_correlation_quadrant_plot(
     kernel=kernel,
     search=search,
     correlation_surface=cc(kernel=kernel, search=search),
@@ -238,7 +238,8 @@ correlation_quadrant_plot(
     path="cc_visualization_v2_cc.png",
 )
 </code></pre>
-<pre><code class="language-text"></code></pre>
+<pre><code class="language-text">Saved: cc_visualization_v2_cc.png
+</code></pre>
 <figure>
     <img src="cc_visualization_v2_cc.png" alt="four-panel composite: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the CC correlation surface, and a zoomed solution vicinity around its peak" />
     <figcaption>CC's quadrant composite. checkerboard0's tiled pattern repeats every ~25 pixels, so the correlation-surface panel shows more than one strong local peak within its own (smaller, "valid") range — CC has no way to prefer the true one over its look-alikes beyond raw magnitude, unlike the normalized criteria below.</figcaption>
@@ -246,7 +247,7 @@ correlation_quadrant_plot(
 <h2 id="normalized-cross-correlation-ncc"><a class="header" href="#normalized-cross-correlation-ncc">Normalized Cross-Correlation (NCC)</a></h2>
 <pre><code class="language-python">from dictk.correlation import ncc
 
-correlation_quadrant_plot(
+spatial_correlation_quadrant_plot(
     kernel=kernel,
     search=search,
     correlation_surface=ncc(kernel=kernel, search=search),
@@ -254,7 +255,8 @@ correlation_quadrant_plot(
     path="cc_visualization_v2_ncc.png",
 )
 </code></pre>
-<pre><code class="language-text"></code></pre>
+<pre><code class="language-text">Saved: cc_visualization_v2_ncc.png
+</code></pre>
 <figure>
     <img src="cc_visualization_v2_ncc.png" alt="four-panel composite for NCC: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the NCC correlation surface, and a zoomed solution vicinity around its peak" />
     <figcaption>NCC's quadrant composite, bounded to <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mord">−</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mclose">]</span></span></span></span> by construction — visible in the colorbar range compared to CC's arbitrary raw units above.</figcaption>
@@ -262,7 +264,7 @@ correlation_quadrant_plot(
 <h2 id="zero-mean-cross-correlation-zcc"><a class="header" href="#zero-mean-cross-correlation-zcc">Zero-mean Cross-Correlation (ZCC)</a></h2>
 <pre><code class="language-python">from dictk.correlation import zcc
 
-correlation_quadrant_plot(
+spatial_correlation_quadrant_plot(
     kernel=kernel,
     search=search,
     correlation_surface=zcc(kernel=kernel, search=search),
@@ -270,7 +272,8 @@ correlation_quadrant_plot(
     path="cc_visualization_v2_zcc.png",
 )
 </code></pre>
-<pre><code class="language-text"></code></pre>
+<pre><code class="language-text">Saved: cc_visualization_v2_zcc.png
+</code></pre>
 <figure>
     <img src="cc_visualization_v2_zcc.png" alt="four-panel composite for ZCC: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the ZCC correlation surface, and a zoomed solution vicinity around its peak" />
     <figcaption>ZCC's quadrant composite — raw units like CC's (mean-subtraction alone doesn't bound the range), but brightness-invariant per <a href="./cross_correlation.html#invariance-and-robustness">Cross Correlation (CC)</a>'s table.</figcaption>
@@ -278,7 +281,7 @@ correlation_quadrant_plot(
 <h2 id="zero-mean-normalized-cross-correlation-zncc"><a class="header" href="#zero-mean-normalized-cross-correlation-zncc">Zero-mean Normalized Cross-Correlation (ZNCC)</a></h2>
 <pre><code class="language-python">from dictk.correlation import zncc
 
-correlation_quadrant_plot(
+spatial_correlation_quadrant_plot(
     kernel=kernel,
     search=search,
     correlation_surface=zncc(kernel=kernel, search=search),
@@ -286,7 +289,8 @@ correlation_quadrant_plot(
     path="cc_visualization_v2_zncc.png",
 )
 </code></pre>
-<pre><code class="language-text"></code></pre>
+<pre><code class="language-text">Saved: cc_visualization_v2_zncc.png
+</code></pre>
 <figure>
     <img src="cc_visualization_v2_zncc.png" alt="four-panel composite for ZNCC: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the ZNCC correlation surface, and a zoomed solution vicinity around its peak" />
     <figcaption>ZNCC's quadrant composite — both bounded to <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mord">−</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mclose">]</span></span></span></span> and invariant to brightness and contrast, which is why <code>dictk.translation.locate</code>'s own underlying <code>skimage.registration.phase_cross_correlation</code> call is built on the same combination (see <a href="./cc_fft.html">CC via FFT</a>).</figcaption>
