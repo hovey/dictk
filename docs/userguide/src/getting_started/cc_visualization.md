@@ -64,8 +64,8 @@ correlation_surfaces_plot(
 ```
 
 <figure>
-    <img src="cc_visualization_surfaces.png" alt="four heatmap panels comparing the CC, NCC, ZCC, and ZNCC correlation surfaces for the same kernel and search area, each with a colorbar and a red X marking its own peak" />
-    <figcaption>The CC, NCC, ZCC, and ZNCC correlation surfaces for the kernel and search area established in <a href="./cross_correlation.html">Cross Correlation (CC)</a>. Each panel's horizontal/vertical axes are the candidate offset $(\Delta x, \Delta y)$ — not an absolute image position — and its own colorbar shows that criterion's own value range (CC's raw sum has arbitrary units and grows with image brightness; NCC/ZNCC are bounded to $[-1, 1]$ by construction). The red &times; in each panel marks that surface's own peak.</figcaption>
+    <img src="cc_visualization_surfaces.png" alt="four heatmap panels comparing the CC, NCC, ZCC, and ZNCC correlation surfaces for the same kernel and search area, each with a colorbar and a red circle marking its own peak" />
+    <figcaption>The CC, NCC, ZCC, and ZNCC correlation surfaces for the kernel and search area established in <a href="./cross_correlation.html">Cross Correlation (CC)</a>. Each panel's horizontal/vertical axes are the candidate offset $(\Delta x, \Delta y)$ — not an absolute image position — and its own colorbar shows that criterion's own value range (CC's raw sum has arbitrary units and grows with image brightness; NCC/ZNCC are bounded to $[-1, 1]$ by construction). The red circle in each panel — radius <code>vicinity_margin</code>, 4 pixels by default — marks that surface's own peak, the same radius <a href="./cc_visualization_v2.html">CC Visualization (v2)</a>'s Solution Vicinity panels zoom into.</figcaption>
 </figure>
 
 Despite the very different value ranges, all four panels peak at the same

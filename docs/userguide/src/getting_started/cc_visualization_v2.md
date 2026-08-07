@@ -48,7 +48,10 @@ below plots the search area in its own pixel frame $\mathcal{S}$, with a
 yellow dashed box marking where the kernel was found and red/green dashed
 guide lines through that box's origin — the same $\boldsymbol{r}_{SK/\mathcal{S}}$
 quantity [Cross Correlation (CC)](./cross_correlation.md#solution) solves
-for by hand.
+for by hand. The Correlation Surface panel marks that same peak with a red
+circle of radius `vicinity_margin` (4 pixels by default) — exactly the
+region the Solution Vicinity panel zooms into, so the same circle reappears
+there too, now clipped by that panel's own edges.
 
 ## Cross-Correlation (CC)
 

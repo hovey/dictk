@@ -1439,16 +1439,20 @@ def correlation_surfaces_plot(
     path: Path,
     figsize: tuple[float, float] | None = None,
     dpi: int = 300,
+    vicinity_margin: int = 4,
 ) -> None:
     r"""Save a 2x2 grid comparing four correlation-criterion surfaces side by side.
 
     Each of `cc`/`ncc`/`zcc`/`zncc` (see
     [`dictk.correlation`](../correlation.html)) is drawn as its own heatmap
-    panel (`viridis` colormap, its own colorbar), with a marker at that
-    panel's own peak -- the position `dictk.correlation`'s own docstrings
-    describe as the answer a correlation criterion is searching for. All
-    four arrays must share one shape, so the panels are directly comparable
-    position-for-position.
+    panel (`viridis` colormap, its own colorbar), with a red circle of
+    radius `vicinity_margin` at that panel's own peak -- the position
+    `dictk.correlation`'s own docstrings describe as the answer a
+    correlation criterion is searching for, and the same radius
+    [`spatial_correlation_quadrant_plot`](#spatial_correlation_quadrant_plot)/
+    [`phase_correlation_quadrant_plot`](#phase_correlation_quadrant_plot)
+    zoom their own Solution Vicinity panel to. All four arrays must share
+    one shape, so the panels are directly comparable position-for-position.
 
     Args:
         cc: The CC surface (`dictk.correlation.cc`'s return value).
@@ -1462,6 +1466,8 @@ def correlation_surfaces_plot(
             By default matplotlib's own default, `(6.4, 4.8)`, doubled to
             fit four panels; pass this to override.
         dpi: Resolution of the saved figure.
+        vicinity_margin: Radius, in pixels, of the circle marking each
+            panel's own peak.
 
     Raises:
         ValueError: If `cc`/`ncc`/`zcc`/`zncc` don't all share one shape.
@@ -1481,7 +1487,15 @@ def correlation_surfaces_plot(
         plt.colorbar(im, ax=ax, shrink=0.8)
 
         peak_y, peak_x = np.unravel_index(np.argmax(surface), surface.shape)
-        ax.plot(peak_x, peak_y, marker="x", color="red", markersize=8)
+        ax.add_patch(
+            patches.Circle(
+                (peak_x, peak_y),
+                radius=vicinity_margin,
+                edgecolor="red",
+                facecolor="none",
+                linewidth=1.5,
+            )
+        )
 
         ax.set_title(rf"$C_{{\mathrm{{{name}}}}}$")
         ax.set_xlabel(r"$\Delta x$ offset (pixels)")
@@ -1593,7 +1607,15 @@ def _correlation_quadrant_plot(
 
         im3 = ax3.imshow(correlation_surface, cmap="viridis", origin="upper")
         plt.colorbar(im3, ax=ax3, shrink=0.8)
-        ax3.plot(peak_x, peak_y, marker="x", color="red", markersize=8)
+        ax3.add_patch(
+            patches.Circle(
+                (peak_x, peak_y),
+                radius=vicinity_margin,
+                edgecolor="red",
+                facecolor="none",
+                linewidth=1.5,
+            )
+        )
         ax3.set_title("Correlation Surface")
         ax3.set_xlabel(r"$\Delta x$ offset (pixels)")
         ax3.set_ylabel(r"$\Delta y$ offset (pixels)")
@@ -1602,6 +1624,19 @@ def _correlation_quadrant_plot(
         plt.colorbar(im4, ax=ax4, shrink=0.8)
         ax4.set_xlim(peak_x - vicinity_margin, peak_x + vicinity_margin)
         ax4.set_ylim(peak_y + vicinity_margin, peak_y - vicinity_margin)
+        # Same circle as ax3, same radius, in the same data coordinates --
+        # since this panel is zoomed to exactly peak +/- vicinity_margin,
+        # the circle exactly reaches this panel's own edges, appearing
+        # clipped by them rather than fully visible as it was in ax3.
+        ax4.add_patch(
+            patches.Circle(
+                (peak_x, peak_y),
+                radius=vicinity_margin,
+                edgecolor="red",
+                facecolor="none",
+                linewidth=1.5,
+            )
+        )
         ax4.set_title("Solution Vicinity")
         ax4.set_xlabel(r"$\Delta x$ offset (pixels)")
         ax4.set_ylabel(r"$\Delta y$ offset (pixels)")
@@ -1647,8 +1682,11 @@ def spatial_correlation_quadrant_plot(
     internally -- so its content occupies only the top-left corner of an
     otherwise-black canvas the size of `search`, labeled frame
     $\mathcal{K}$. Bottom-left: `correlation_surface` as a heatmap, peak
-    marked with a red x. Bottom-right: the same surface, zoomed to
-    `vicinity_margin` pixels around its own peak.
+    marked with a red circle of radius `vicinity_margin`. Bottom-right:
+    the same surface, zoomed to exactly that same `vicinity_margin`
+    pixels around its own peak -- the same circle reappears there too,
+    now clipped by the panel's own edges, since the zoom window is
+    exactly the circle's own bounding box.
 
     Text renders via matplotlib's built-in mathtext with a Computer-Modern
     -style serif font (`mathtext.fontset="cm"`), not real LaTeX
@@ -1727,8 +1765,11 @@ def phase_correlation_quadrant_plot(
     internally -- so its content occupies only the top-left corner of an
     otherwise-black canvas the size of `search`, labeled frame
     $\mathcal{K}$. Bottom-left: the phase correlation surface as a
-    heatmap, peak marked with a red x. Bottom-right: the same surface,
-    zoomed to `vicinity_margin` pixels around its own peak.
+    heatmap, peak marked with a red circle of radius `vicinity_margin`.
+    Bottom-right: the same surface, zoomed to exactly that same
+    `vicinity_margin` pixels around its own peak -- the same circle
+    reappears there too, now clipped by the panel's own edges, since the
+    zoom window is exactly the circle's own bounding box.
 
     Text renders via matplotlib's built-in mathtext with a Computer-Modern
     -style serif font (`mathtext.fontset="cm"`), not real LaTeX
