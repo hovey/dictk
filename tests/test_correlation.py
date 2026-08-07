@@ -1,11 +1,18 @@
 import numpy as np
 import pytest
 
-from dictk.correlation import cc, ncc, zcc, zncc
+from dictk.correlation import cc, ncc, phase_correlation, zcc, zncc
 from dictk.image import PixelCoordinate, subimage, translate
 from dictk.rosta import rosta
+from dictk.translation import locate
 
 CORRELATION_FUNCTIONS = [cc, ncc, zcc, zncc]
+
+# phase_correlation shares cc/ncc/zcc/zncc's input validation (via the same
+# _prepare() helper) but not their "valid" output shape -- see below -- so
+# it's covered separately by validation-only tests, not the shape-asserting
+# or invariance-comparison ones above.
+VALIDATION_ONLY_FUNCTIONS = [*CORRELATION_FUNCTIONS, phase_correlation]
 
 
 def _kernel_and_search(dx: float, dy: float, kernel_margin: int, search_margin: int):
@@ -36,7 +43,7 @@ def test_surface_shape(correlation_function):
     assert surface.shape == (50 - 20 + 1, 70 - 30 + 1)
 
 
-@pytest.mark.parametrize("correlation_function", CORRELATION_FUNCTIONS)
+@pytest.mark.parametrize("correlation_function", VALIDATION_ONLY_FUNCTIONS)
 def test_requires_keyword_arguments(correlation_function):
     kernel = np.zeros((10, 10), dtype=np.uint8)
     search = np.zeros((20, 20), dtype=np.uint8)
@@ -44,7 +51,7 @@ def test_requires_keyword_arguments(correlation_function):
         correlation_function(kernel, search)
 
 
-@pytest.mark.parametrize("correlation_function", CORRELATION_FUNCTIONS)
+@pytest.mark.parametrize("correlation_function", VALIDATION_ONLY_FUNCTIONS)
 def test_search_smaller_than_kernel_raises(correlation_function):
     kernel = np.zeros((20, 20), dtype=np.uint8)
     search = np.zeros((10, 10), dtype=np.uint8)
@@ -52,7 +59,7 @@ def test_search_smaller_than_kernel_raises(correlation_function):
         correlation_function(kernel=kernel, search=search)
 
 
-@pytest.mark.parametrize("correlation_function", CORRELATION_FUNCTIONS)
+@pytest.mark.parametrize("correlation_function", VALIDATION_ONLY_FUNCTIONS)
 def test_non_2d_kernel_raises(correlation_function):
     kernel = np.zeros((10, 10, 3), dtype=np.uint8)
     search = np.zeros((20, 20), dtype=np.uint8)
@@ -60,7 +67,7 @@ def test_non_2d_kernel_raises(correlation_function):
         correlation_function(kernel=kernel, search=search)
 
 
-@pytest.mark.parametrize("correlation_function", CORRELATION_FUNCTIONS)
+@pytest.mark.parametrize("correlation_function", VALIDATION_ONLY_FUNCTIONS)
 def test_non_2d_search_raises(correlation_function):
     kernel = np.zeros((10, 10), dtype=np.uint8)
     search = np.zeros((20, 20, 3), dtype=np.uint8)
@@ -140,3 +147,67 @@ def test_cc_value_matches_hand_computed_sum():
     window = search[dy : dy + kernel.shape[0], dx : dx + kernel.shape[1]]
     expected = float(np.sum(window.astype(np.float64) * kernel.astype(np.float64)))
     assert surface[dy, dx] == pytest.approx(expected)
+
+
+def test_phase_correlation_surface_shape():
+    # Unlike cc/ncc/zcc/zncc's smaller "valid" shape, phase_correlation's
+    # surface is the same shape as search, since it's computed all at once
+    # via FFT rather than excluding any candidate offset.
+    kernel = np.zeros((20, 30), dtype=np.uint8)
+    search = np.zeros((50, 70), dtype=np.uint8)
+    surface = phase_correlation(kernel=kernel, search=search)
+    assert surface.shape == search.shape
+
+
+def test_phase_correlation_recovers_known_translation():
+    kernel, search, search_origin, kernel_margin = _kernel_and_search(
+        dx=-6, dy=8, kernel_margin=25, search_margin=50
+    )
+    surface = phase_correlation(kernel=kernel, search=search)
+    dy, dx = np.unravel_index(np.argmax(surface), surface.shape)
+    found = PixelCoordinate(
+        x=search_origin.x + dx + kernel_margin,
+        y=search_origin.y + dy + kernel_margin,
+    )
+    assert (found.x, found.y) == (94, 83)
+
+
+def test_phase_correlation_matches_locate():
+    """phase_correlation() exposes the same computation
+    dictk.translation.locate() already runs internally via
+    skimage.registration.phase_cross_correlation -- verify the two
+    actually agree, not just that each independently looks reasonable.
+
+    locate()'s returned point is r_OP'/F (the point's absolute position);
+    phase_correlation()'s argmax is r_SK/S (the kernel's found offset
+    within search's own frame). Converting between them means subtracting
+    both search's origin *and* kernel_margin (the point's fixed offset
+    from the kernel's own top-left corner) -- not just search's origin.
+    """
+    reference_image = rosta(width=200, height=200, density=0.5)
+    p0 = PixelCoordinate(x=100, y=75)
+    dx, dy = -6, 8
+    current_image = translate(arr=reference_image, dx=dx, dy=dy)
+    kernel_margin, search_margin = 25, 50
+
+    kernel, search, search_origin, _ = _kernel_and_search(
+        dx=dx, dy=dy, kernel_margin=kernel_margin, search_margin=search_margin
+    )
+
+    surface = phase_correlation(kernel=kernel, search=search)
+    surface_dy, surface_dx = np.unravel_index(np.argmax(surface), surface.shape)
+
+    found_point = locate(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_point=p0,
+        search_center=p0,
+        kernel_margin_width=kernel_margin,
+        kernel_margin_height=kernel_margin,
+        search_margin_width=search_margin,
+        search_margin_height=search_margin,
+    )
+    locate_offset_x = found_point.x - search_origin.x - kernel_margin
+    locate_offset_y = found_point.y - search_origin.y - kernel_margin
+
+    assert (surface_dx, surface_dy) == (locate_offset_x, locate_offset_y)

@@ -1,4 +1,4 @@
-"""Spatial-domain cross-correlation criteria between a kernel and a search area."""
+"""Spatial- and Fourier-domain cross-correlation criteria between a kernel and a search area."""
 
 import numpy as np
 
@@ -213,3 +213,77 @@ def zncc(*, kernel: np.ndarray, search: np.ndarray) -> np.ndarray:
     window_energy = (windows_centered**2).sum(axis=(-2, -1))
     denominator = np.sqrt(kernel_energy * window_energy)
     return _safe_divide(numerator=numerator, denominator=denominator)
+
+
+def phase_correlation(*, kernel: np.ndarray, search: np.ndarray) -> np.ndarray:
+    r"""Phase correlation surface of `kernel` against `search`, via FFT.
+
+    Unlike `cc`/`ncc`/`zcc`/`zncc`, which slide `kernel` over `search` one
+    valid window at a time, this computes the same kind of answer all at
+    once in the Fourier domain: `kernel` is zero-padded (bottom and right)
+    up to `search`'s own shape, then
+
+    $$
+    C_{\rm phase} = \mathcal{F}^{-1}\!\left(\frac{\mathcal{F}(g)\,
+    \overline{\mathcal{F}(f)}}{\left|\mathcal{F}(g)\,\overline{\mathcal{F}(f)}\right|}\right)
+    $$
+
+    where $f$ is the zero-padded `kernel`, $g$ is `search`, and
+    $\mathcal{F}$ is the 2D discrete Fourier transform. Dividing by the
+    cross-power spectrum's own magnitude at every frequency -- rather than
+    summing raw products like `cc` does -- is the classic Kuglin-Hines
+    *phase correlation* technique, and is robust to both brightness
+    (additive) and contrast (multiplicative) differences between `kernel`
+    and `search`, the same pair of invariances `zncc` has, though by a
+    completely different mechanism: a brightness shift only touches the
+    zero-frequency (DC) term, leaving every other frequency -- and thus the
+    peak's position -- untouched, while dividing by magnitude at every
+    frequency cancels any overall contrast scaling directly. This is *not*
+    a Fourier-domain equivalent of `zncc`'s formula -- `zncc` recomputes a
+    local mean/variance at every candidate window as it slides; this
+    normalizes once, globally, per frequency, over the whole padded
+    extent -- it just lands in the same "robust to both" category.
+
+    This is exactly what [`dictk.translation.locate`](../translation.html#locate)
+    computes internally via `skimage.registration.phase_cross_correlation`
+    (`normalization="phase"`), reproduced here to expose the full surface
+    for visualization -- `phase_cross_correlation` itself only returns the
+    final shift, not the array it was computed from. The two aren't
+    directly comparable value-for-value, though: `locate` additionally
+    unwraps indices past the array's midpoint into negative shifts (since
+    this surface is circular/periodic), which this function does not --
+    its raw `argmax` is always in `[0, search.shape)`, matching the same
+    offset-within-`search` convention `cc`/`ncc`/`zcc`/`zncc` use. For the
+    small, comfortably-within-bounds displacements this book's examples
+    use, the two agree without any unwrapping needed.
+
+    See Kuglin CD, Hines DC. "The phase correlation image alignment
+    method." Proceedings of IEEE International Conference on Cybernetics
+    and Society, 1975:163-165.
+
+    Args:
+        kernel: The fixed template subimage (`f`, before padding).
+        search: The larger subimage `kernel` is compared against (`g`).
+
+    Returns:
+        A 2D float64 array the same shape as `search` (unlike
+        `cc`/`ncc`/`zcc`/`zncc`'s smaller "valid" shape, since nothing
+        here excludes any candidate offset). Entry `[dy, dx]` is
+        $C_{\rm phase}$ with `kernel`'s top-left corner at offset
+        `(dx, dy)` in `search`'s local frame.
+
+    Raises:
+        ValueError: If either array is not 2D, or `search` is smaller than
+            `kernel` in either dimension.
+    """
+    kernel, search = _prepare(kernel=kernel, search=search)
+    pad_height = search.shape[0] - kernel.shape[0]
+    pad_width = search.shape[1] - kernel.shape[1]
+    kernel_padded = np.pad(kernel, ((0, pad_height), (0, pad_width)))
+
+    search_freq = np.fft.fft2(search)
+    kernel_freq = np.fft.fft2(kernel_padded)
+    image_product = search_freq * kernel_freq.conj()
+    eps = np.finfo(image_product.real.dtype).eps
+    image_product /= np.maximum(np.abs(image_product), 100 * eps)
+    return np.fft.ifft2(image_product).real
