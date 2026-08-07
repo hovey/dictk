@@ -3,10 +3,12 @@
 This section summarizes the kinematics of general (finite) motion,
 the motion map, the deformation gradient and its
 Jacobian, the family of finite-strain measures and their linearizations, and the
-polar and spectral decompositions. **Lower
-case indices** $(i, j, k)$ denote vector components in the *current* configuration and
-**upper case indices** $(I, J, K)$ denote vector components in the *reference*
-configuration.   All vectors are referenced to origin $O$ and dextral, orthonormal
+polar and spectral decompositions. 
+
+* **Upper case indices** $(I, J, K)$ denote vector components in the *reference* configuration and
+* **Lower case indices** $(i, j, k)$ denote vector components in the *current* configuration.
+
+All vectors are referenced to origin $O$ and dextral, orthonormal
 basis vectors $\boldsymbol{E}_1$, $\boldsymbol{E}_2$, $\boldsymbol{E}_3$ (equivalently,
 $\boldsymbol{e}_1$, $\boldsymbol{e}_2$, $\boldsymbol{e}_3$).
 
@@ -35,7 +37,7 @@ $$
 
 Thus, the current configuration $\boldsymbol{\varphi}$ is simply a function of
 the original placement $\boldsymbol{X}$, plus a displacement $\boldsymbol{u}$, which is a
-function of placement $\boldsymbol{X}$ and time $t$,
+function of reference configuration $\boldsymbol{X}$ and time $t$,
 
 $$
 \boldsymbol{\varphi}(\boldsymbol{X}, t) = \boldsymbol{X} + \boldsymbol{u}(\boldsymbol{X}, t)
@@ -135,12 +137,13 @@ $$
 C_{IJ} := F_{Ii}\, F_{iJ}.
 $$
 
-The right Cauchy-Green deformation tensor $\boldsymbol{C}$: (1) is defined in the
-reference configuration, (2) is symmetric and positive-definite, (3) gets its
-name from the location of the deformation gradient $\boldsymbol{F}$ in the
-definition, which is to the right, (4) is a metric that maps fiber lengths from
-the reference configuration to the current configuration, and (5) is
-second-order in reference displacement gradients, as shown below:
+The right Cauchy-Green deformation tensor $\boldsymbol{C}$: 
+
+1. is defined in the reference configuration,
+2. is symmetric and positive-definite,
+3. gets its name from the location of the deformation gradient $\boldsymbol{F}$ in the definition, which is to the right,
+4. is a metric that maps fiber lengths from the reference configuration to the current configuration, and
+5. is second-order in reference displacement gradients, as shown below:
 
 $$
 \begin{aligned}
@@ -174,12 +177,13 @@ $$
 b_{ij} := F_{iJ}\, F_{Jj}.
 $$
 
-The left Cauchy-Green deformation tensor $\boldsymbol{b}$: (1) is defined in the
-current configuration, (2) is symmetric and positive-definite, (3) gets its name
-from the location of the deformation gradient $\boldsymbol{F}$ in the definition,
-which is to the left, (4) is a metric whose inverse maps fiber lengths from the
-current configuration to the reference configuration, and (5) is second-order in
-current displacement gradients.
+The left Cauchy-Green deformation tensor $\boldsymbol{b}$:
+
+1. is defined in the current configuration,
+2. is symmetric and positive-definite,
+3. gets its name from the location of the deformation gradient $\boldsymbol{F}$ in the definition, which is to the left,
+4. is a metric whose inverse maps fiber lengths from the current configuration to the reference configuration, and
+5. is second-order in current displacement gradients.
 
 ## Green-Lagrange Strain
 
@@ -208,9 +212,9 @@ $$
 where the higher-order (quadratic) term in the first line is set to zero to
 achieve the linearized second line.
 
-## Euler-Almansi Strain
+## Almansi-Euler Strain
 
-The Euler-Almansi strain tensor,
+The Almansi-Euler strain tensor,
 
 $$
 \boldsymbol{e} := \tfrac{1}{2}(\boldsymbol{I} - \boldsymbol{b}^{-1})
@@ -304,7 +308,7 @@ infinitesimal strain tensor $\boldsymbol{\epsilon}$.
 ## Seth-Hill Strain Family
 
 We now return to finite strain definitions. Seth and Hill showed that the
-Green-Lagrange strain tensor $\boldsymbol{E}$ and the Euler-Almansi strain tensor
+Green-Lagrange strain tensor $\boldsymbol{E}$ and the Almansi-Euler strain tensor
 $\boldsymbol{e}$ are special cases of the so-called Seth-Hill family of strain
 measures, defined as
 
@@ -353,7 +357,7 @@ $$
 | $1$ | engineering (Biot, nominal) | $\boldsymbol{E}^{(1)} = \boldsymbol{U} - \boldsymbol{I}$ | $E_{\text{\tiny ENG}} = \dfrac{\ell - L}{L}$ |
 | $0$ | log (Hencky, natural) | $\boldsymbol{E}^{(0)} = \ln\boldsymbol{U}$ | $E_{\text{\tiny LOG}} = \ln\left(\dfrac{\ell}{L}\right)$ |
 | $-1$ | true | $\boldsymbol{E}^{(-1)} = \boldsymbol{I} - \boldsymbol{U}^{-1}$ | $E_{\text{\tiny TRUE}} = \dfrac{\ell - L}{\ell}$ |
-| $-2$ | Euler-Almansi | $\boldsymbol{E}^{(-2)} = \tfrac{1}{2}\left(\boldsymbol{I} - \boldsymbol{U}^{-2}\right)$ | $E_{\text{\tiny EUL}} = \tfrac{1}{2}\left[1 - \left(\dfrac{L}{\ell}\right)^2\right]$ |
+| $-2$ | Almansi-Euler | $\boldsymbol{E}^{(-2)} = \tfrac{1}{2}\left(\boldsymbol{I} - \boldsymbol{U}^{-2}\right)$ | $E_{\text{\tiny EUL}} = \tfrac{1}{2}\left[1 - \left(\dfrac{L}{\ell}\right)^2\right]$ |
 
 <figcaption>Table: Strains obtained from the Seth-Hill family.</figcaption>
 
@@ -407,18 +411,22 @@ The results above illustrate that the log strain $\boldsymbol{E}^{(0)}$ retains 
 of the desired qualities than any other strain tensor, in the context of finite
 compression and extension.[^bazant]
 
-For infinitesimal deformation, all tensors converge to the infinitesimal strain
-tensor $\boldsymbol{\epsilon} = \operatorname{sym}(\boldsymbol{\nabla}\,\boldsymbol{u})$.
-For finite deformation, however, the Seth-Hill strain measures given by the
-$f(\lambda)$ function diverge quickly for both large compression and large
-tension. The figure below illustrates the one-dimensional strains subtracted from
+* For infinitesimal deformation, all tensors converge to the infinitesimal strain tensor $\boldsymbol{\epsilon} = \operatorname{sym}(\boldsymbol{\nabla}\,\boldsymbol{u})$.
+* For finite deformation, the Seth-Hill strain measures given by the $f(\lambda)$ function diverge quickly for both large compression and large tension.
+
+The figure below illustrates the one-dimensional strains subtracted from
 the natural logarithmic strain, $\ln \lambda$, as a function of stretch ratio
 $\lambda = \ell/L$. The log strain is considered as the finite deformation
-baseline. The results show, for example, that in compression at $\lambda = 0.8$,
+baseline.
+
+The results show, for example, that in compression at $\lambda = 0.8$,
 the Green-Lagrange strain tensor underreports the log strain by nearly 5%. Such a
-result illustrates that for finite deformation, (1) strain measures are **not**
-interchangeable, and (2) it is incomplete to simply say "strain." Rather, both
-the strain value *and* strain tensor must be specified.
+result illustrates that for finite deformation:
+
+1. Strain measures are **not** interchangeable, and
+2. It is ambiguous and incomplete to simply refer to "strain" as a deformation measure.
+
+For finite deformation, both the strain value *and* the strain tensor must be specified.
 
 <figure class="figure-box">
     <img src="Terpsma_Figure_E-10.jpg" alt="stretch_strain_rel" width=100% />
@@ -435,7 +443,7 @@ Source: Terpsma *et al.*[^Terpsma_2020]
 
 Because it takes on nonzero values under finite rotation, the linearized strain
 tensor should not be used for geometrically nonlinear analysis. These nonzero
-values are completely artificial and strictly an artifact of using a linear
+values are completely artificial and strictly a result of using a linear
 strain definition with geometrically nonlinear motions. This result is shown as
 follows.
 
@@ -552,7 +560,7 @@ $$
 \end{aligned}
 $$
 
-The Green-Lagrange strain tensor $\boldsymbol{E}$ and the Euler-Almansi strain tensor
+The Green-Lagrange strain tensor $\boldsymbol{E}$ and the Almansi-Euler strain tensor
 $\boldsymbol{e}$, in principal stretches and stretch directions, are
 
 $$

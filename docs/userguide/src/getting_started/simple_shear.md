@@ -144,7 +144,7 @@ $$
 \end{bmatrix}.
 $$
 
-The Euler-Almansi strain, $\boldsymbol{e} := \frac{1}{2}(\boldsymbol{I} - \boldsymbol{b}^{-1})$, for simple shear is
+The Almansi-Euler strain, $\boldsymbol{e} := \frac{1}{2}(\boldsymbol{I} - \boldsymbol{b}^{-1})$, for simple shear is
 
 $$
 \boldsymbol{e}_{ij} = 
