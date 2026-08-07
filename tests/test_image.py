@@ -5,6 +5,7 @@ import pytest
 
 from dictk.correlation import cc, ncc, zcc, zncc
 from dictk.grid import generate as grid_generate
+from dictk.rosta import rosta
 from dictk.image import (
     ArrowAnnotation,
     BoxAnnotation,
@@ -16,6 +17,7 @@ from dictk.image import (
     combine,
     complex_deform,
     contrast,
+    correlation_quadrant_plot,
     correlation_surfaces_plot,
     crack_dislocation,
     describe,
@@ -899,6 +901,113 @@ def test_correlation_surfaces_plot_mismatched_shapes_raises(tmp_path: Path):
             zncc=surface_large,
             path=path,
         )
+
+
+def test_correlation_quadrant_plot_writes_file(tmp_path: Path):
+    reference_image = checkerboard(width=200, height=200)
+    current_image = translate(arr=reference_image, dx=-6, dy=8)
+    kernel_origin = PixelCoordinate(x=75, y=50)
+    kernel = subimage(image=reference_image, origin=kernel_origin, width=50, height=50)
+    search_origin = PixelCoordinate(x=50, y=25)
+    search = subimage(image=current_image, origin=search_origin, width=100, height=100)
+
+    path = tmp_path / "correlation_quadrant.png"
+    correlation_quadrant_plot(
+        kernel=kernel,
+        search=search,
+        correlation_surface=cc(kernel=kernel, search=search),
+        title="Cross-Correlation (CC)",
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_correlation_quadrant_plot_long_title_writes_file(tmp_path: Path):
+    """Regression test: the full criterion name used to overflow the
+    correlation-surface panel's own title and collide with its colorbar --
+    now rendered as a figure-level suptitle instead, so it should never
+    raise regardless of length."""
+    reference_image = checkerboard(width=200, height=200)
+    current_image = translate(arr=reference_image, dx=-6, dy=8)
+    kernel_origin = PixelCoordinate(x=75, y=50)
+    kernel = subimage(image=reference_image, origin=kernel_origin, width=50, height=50)
+    search_origin = PixelCoordinate(x=50, y=25)
+    search = subimage(image=current_image, origin=search_origin, width=100, height=100)
+
+    path = tmp_path / "correlation_quadrant_zncc.png"
+    correlation_quadrant_plot(
+        kernel=kernel,
+        search=search,
+        correlation_surface=zncc(kernel=kernel, search=search),
+        title="Zero-mean Normalized Cross-Correlation (ZNCC)",
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_correlation_quadrant_plot_search_smaller_than_kernel_raises(tmp_path: Path):
+    kernel = np.zeros((20, 20), dtype=np.uint8)
+    search = np.zeros((10, 10), dtype=np.uint8)
+    path = tmp_path / "correlation_quadrant.png"
+    with pytest.raises(ValueError):
+        correlation_quadrant_plot(
+            kernel=kernel,
+            search=search,
+            correlation_surface=np.zeros((1, 1)),
+            title="Cross-Correlation (CC)",
+            path=path,
+        )
+
+
+def test_correlation_quadrant_plot_peak_matches_known_displacement(tmp_path: Path):
+    """The found position drawn on the Fixed Image panel (and used to
+    center the Solution Vicinity zoom) must come from correlation_surface's
+    own argmax. Uses rosta() speckle, not checkerboard() -- a perfectly
+    periodic pattern has no single unambiguous peak, so plain CC (raw,
+    unnormalized) can't be trusted to land on the true displacement there
+    -- matching test_correlation.py's own precedent for verifying CC's
+    peak against a known ground truth."""
+    reference_image = rosta(width=200, height=200, density=0.5)
+    dx, dy = -6, 8
+    current_image = translate(arr=reference_image, dx=dx, dy=dy)
+    kernel_margin, search_margin = 25, 50
+    point = PixelCoordinate(x=100, y=75)
+    kernel_origin = PixelCoordinate(
+        x=point.x - kernel_margin, y=point.y - kernel_margin
+    )
+    kernel = subimage(
+        image=reference_image,
+        origin=kernel_origin,
+        width=2 * kernel_margin,
+        height=2 * kernel_margin,
+    )
+    search_origin = PixelCoordinate(
+        x=point.x - search_margin, y=point.y - search_margin
+    )
+    search = subimage(
+        image=current_image,
+        origin=search_origin,
+        width=2 * search_margin,
+        height=2 * search_margin,
+    )
+    surface = cc(kernel=kernel, search=search)
+    expected_x = search_margin + dx - kernel_margin
+    expected_y = search_margin + dy - kernel_margin
+    found_y, found_x = np.unravel_index(np.argmax(surface), surface.shape)
+    assert (found_x, found_y) == (expected_x, expected_y)
+
+    path = tmp_path / "correlation_quadrant.png"
+    correlation_quadrant_plot(
+        kernel=kernel,
+        search=search,
+        correlation_surface=surface,
+        title="Cross-Correlation (CC)",
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
 
 
 def test_point_grid_plot_writes_file(tmp_path: Path):
