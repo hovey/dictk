@@ -152,82 +152,121 @@ colorbar reveals about *how safely* that peak can be trusted once
 brightness or contrast do differ, as [Cross Correlation
 (CC)](./cross_correlation.md#invariance-and-robustness) covers in detail.
 
-## TODO: spatial-domain vs. Fourier-domain surfaces
+## Phase Correlation
 
-The four correlation surfaces above all come from `dictk.correlation`'s
-spatial-domain (sliding-window, "valid") formulas — the same ones [Cross
-Correlation (CC)](./cross_correlation.md) defines. [CC via
-FFT](./cc_fft.md) computes an equivalent quantity a second way, in the
-Fourier domain via the convolution theorem, but that page's demo is a
-standalone script, not something this page's figures can select yet.
+Every panel above comes from a spatial-domain criterion —
+[`dictk.correlation`](../api/dictk/correlation.html)'s `cc`/`ncc`/`zcc`/
+`zncc`, sliding `kernel` over `search` one window at a time. There's a
+second way to get an equivalent answer: all at once, in the Fourier
+domain, via
+[`dictk.correlation.phase_correlation`](../api/dictk/correlation.html#phase_correlation)
+— the same computation
+[`dictk.translation.locate`](../api/dictk/translation.html#locate) already
+runs internally via `skimage.registration.phase_cross_correlation`. Unlike
+its spatial-domain siblings, there's only one Fourier-domain flavor here,
+so [`phase_correlation_quadrant_plot`](../api/dictk/image.html#phase_correlation_quadrant_plot)
+takes `kernel`/`search` directly rather than a pre-computed surface — no
+method to choose, nothing to compute beforehand:
 
-**Design decision, already settled:** a domain selector does *not* belong
-inside `correlation_quadrant_plot()` itself. That function already treats
-`correlation_surface` as an opaque 2D array — it takes its `argmax` and
-plots whatever shape comes in, so it works identically regardless of which
-domain produced that array (spatial-domain surfaces are smaller, "valid"
-size; Fourier-domain surfaces are the same size as `search`, and can show
-periodic wraparound peaks — neither changes how the function itself
-behaves). A domain enum belongs in the **parameter list of the function
-that computes the surface**, decided by the caller before
-`correlation_quadrant_plot()` is ever called — mirroring how the reference
-tooling this figure layout is based on keeps its own FFT-based
-registration computation and its composite-figure plotting as two
-separate functions, not one.
+```python
+from dictk.image import phase_correlation_quadrant_plot
 
-**Scope, once this gets picked back up** (see the sizing discussion two
-sections up, and the standing memory note to revisit once this page's
-Padding/Windowing content is fleshed out):
+phase_correlation_quadrant_plot(
+    kernel=kernel,
+    search=search,
+    path="cc_visualization_v2_phase.png",
+)
+```
 
-1. **CC via Fourier domain — small.** Already effectively written: [CC via
-   FFT](./cc_fft.md)'s manual demo and `dictk.translation.locate`'s own
-   internal kernel-padding both already zero-pad the kernel up to
-   `search`'s shape and take the cross-power spectrum this needs. Mostly
-   lifting existing, working code into a proper `dictk.correlation`-style
-   function.
-2. **Optional windowing — small, isolated.** A Hann/Hamming 2D window
-   (outer product of a 1D window with itself), applied to `kernel` and
-   `search` before the FFT, exactly as [CC via FFT](./cc_fft.md#windowing)
-   already describes conceptually but doesn't implement
-   (`dictk` has no `window()`-style function yet). Self-contained —
-   doesn't touch anything else.
-3. **NCC/ZCC/ZNCC via Fourier domain — genuinely harder.** The convolution
-   theorem gives raw (CC-style) correlation almost for free via FFT, but
-   *normalized* correlation needs each candidate window's own local
-   sum-of-squares, which isn't a single FFT product — it needs a separate
-   running-sum/box-filter computation (the standard reference is Lewis,
-   "Fast Normalized Cross-Correlation," using cumulative sums or an
-   auxiliary convolution to get local sums efficiently). ZCC is a smaller
-   step up (mean-subtraction can ride along with the same FFT trick, since
-   it's still just an additive shift) but NCC/ZNCC are real algorithm
-   work, not refactoring.
+```text
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage, phase_correlation_quadrant_plot; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; kernel = subimage(image=reference_image, origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin); search_margin = 50; search_center = p0; search = subimage(image=current_image, origin=PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin), width=2 * search_margin, height=2 * search_margin); phase_correlation_quadrant_plot(kernel=kernel, search=search, path='cc_visualization_v2_phase.png'); print('Saved: cc_visualization_v2_phase.png')" -->
+```
+
+<figure>
+    <img src="cc_visualization_v2_phase.png" alt="four-panel composite for phase correlation: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, a correlation surface that is essentially flat except for one sharp isolated peak, and a zoomed solution vicinity around that peak" />
+    <figcaption>Phase correlation's quadrant composite. Same peak, $(19, 33)$, as every criterion above — but the correlation-surface panel looks nothing like them: essentially flat/uniform everywhere except one crisp, isolated cell, rather than the broader, multi-peaked terrain CC/NCC/ZCC/ZNCC show on this same tiled <code>checkerboard0.png</code>.</figcaption>
+</figure>
+
+That sharpness isn't just a visual impression — the peak's *prominence*
+(how many standard deviations above the surface's own mean the peak sits,
+a scale-independent way to compare surfaces with very different raw
+units) is dramatically higher:
+
+```text
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage; from dictk.correlation import cc, ncc, zcc, zncc, phase_correlation; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; kernel = subimage(image=reference_image, origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin); search_margin = 50; search_center = p0; search = subimage(image=current_image, origin=PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin), width=2 * search_margin, height=2 * search_margin); [print(f'{name}: prominence (peak z-score) = {(fn(kernel=kernel, search=search).max() - fn(kernel=kernel, search=search).mean()) / fn(kernel=kernel, search=search).std():.2f}') for name, fn in [('CC', cc), ('NCC', ncc), ('ZCC', zcc), ('ZNCC', zncc), ('Phase correlation', phase_correlation)]]" -->
+```
+
+Phase correlation's peak stands roughly seven times taller above its own
+background, relative to the surface's own spread, than even ZNCC — the
+most robust of the four spatial criteria. That sharpness, not just
+brightness/contrast invariance, is a second, independent reason
+`dictk.translation.locate` is built on phase correlation rather than a
+spatial-domain criterion: a sharper peak is easier to locate with
+confidence and precision, and harder to confuse with a nearby runner-up.
+
+## TODO: windowing for phase correlation
+
+The "spatial vs. Fourier domain" question this section used to scope is
+resolved and shipped: `dictk.correlation.phase_correlation()` and
+[`phase_correlation_quadrant_plot`](#phase-correlation) above are both
+implemented. That resolution took a different shape than originally
+sketched here, worth recording:
+
+- **The domain-selector design decision** (an enum belongs in the
+  parameter list of the function that *computes* the surface, decided by
+  the caller, never inside the plotting function itself) held up exactly
+  as reasoned — but rather than one generic `correlation_surface(method,
+  domain, ...)` dispatcher, it became two separate, plainly-named public
+  functions,
+  [`spatial_correlation_quadrant_plot`](../api/dictk/image.html#spatial_correlation_quadrant_plot)
+  and
+  [`phase_correlation_quadrant_plot`](../api/dictk/image.html#phase_correlation_quadrant_plot),
+  each with their own complete docstring rather than one shared,
+  parameterized entry point.
+- **"CC via Fourier domain," as originally scoped, was never built.**
+  `phase_correlation()` reproduces the exact computation
+  `dictk.translation.locate()` already runs in production instead — a
+  different (and better) technique than raw unnormalized CC-via-FFT,
+  landing in the same "robust to both brightness and contrast" tier as
+  ZNCC (see [Cross Correlation
+  (CC)](./cross_correlation.md#invariance-and-robustness)) and, as shown
+  above, with a dramatically sharper peak than any spatial-domain
+  criterion, ZNCC included.
+- **"NCC/ZCC/ZNCC via Fourier domain," the genuinely hard piece, is now
+  moot.** That work only existed to give the Fourier domain the same
+  four-way choice the spatial domain has. Adopting phase correlation as
+  the *one* Fourier-domain flavor sidesteps it entirely — no per-method
+  local-sum-of-squares algorithm (Lewis's Fast Normalized
+  Cross-Correlation) is needed, since there's no per-method choice to
+  support.
+
+**What's still open:** windowing. [CC via FFT](./cc_fft.md#windowing)
+describes Hann/Hamming windowing conceptually — tapering `kernel`/
+`search`'s edges toward zero before the FFT, to reduce spectral leakage
+from content that doesn't tile seamlessly — but doesn't implement it.
+`dictk` has no `window()`-style function yet, and `phase_correlation()`
+applies none today.
 
 **Illustrative sketch only** (not implemented, not wired up — matches the
 same "sketch, don't build yet" pattern
 [Parallelization](./parallelization.md) uses for its own
-`ProcessPoolExecutor` example) of where the domain/windowing selection
-would actually live:
+`ProcessPoolExecutor` example) of where a future `windowing` parameter
+would land:
 
 ```python
 from enum import Enum
-
-class CorrelationDomain(Enum):
-    SPATIAL = "spatial"    # dictk.correlation's existing sliding-window formulas
-    FOURIER = "fourier"    # convolution-theorem / FFT equivalent
 
 class WindowingMethod(Enum):
     HANN = "hann"
     HAMMING = "hamming"
 
-def correlation_surface(
+def phase_correlation(
     *,
     kernel: np.ndarray,
     search: np.ndarray,
-    method: Literal["cc", "ncc", "zcc", "zncc"],
-    domain: CorrelationDomain = CorrelationDomain.SPATIAL,
-    windowing: WindowingMethod | None = None,  # Fourier domain only
+    windowing: WindowingMethod | None = None,
 ) -> np.ndarray:
-    ...  # returns the surface; correlation_quadrant_plot() itself never changes
+    ...  # unchanged behavior when windowing=None; new when set
 ```
 
 Not scheduled work — don't start on this without Chad raising it again.
