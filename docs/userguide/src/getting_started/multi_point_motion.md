@@ -195,8 +195,9 @@ per point, and *that* function is `dictk`'s actual FFT-based DIC engine: for
 each point it extracts a kernel from `reference_image` and a search area
 from `current_image`, then locates the kernel within the search area via
 `skimage.registration.phase_cross_correlation` — FFT-based phase
-cross-correlation, not a spatial-domain sliding-window search (see [CC via
-FFT](./cc_fft.md) for the single-point version of this same technique).
+cross-correlation, not a spatial-domain sliding-window search (see
+[Correlation Criteria](./correlation_criteria.md#fourier-domain) for the
+single-point version of this same technique).
 Twelve points means twelve independent calls into that engine, using the
 same kernel and search-area sizes visualized above:
 

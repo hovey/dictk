@@ -78,7 +78,8 @@ value already found by
 coincidence: `kernel` and `search` here have identical brightness and
 contrast (both come from the same `checkerboard0.png`, only translated),
 so nothing distinguishes CC from the criteria built to tolerate brightness
-or contrast differences it can't. The next page, [CC via
-FFT](./cc_fft.md), explains why `locate` computes this same underlying
-quantity in the Fourier domain rather than by sliding a kernel across
-every position directly, as done here.
+or contrast differences it can't. [Correlation
+Criteria](./correlation_criteria.md#fourier-domain)'s Fourier Domain
+section explains why `locate` computes this same underlying quantity in
+the Fourier domain rather than by sliding a kernel across every position
+directly, as done here.

@@ -175,9 +175,9 @@ vector chain manually).
 `phase_cross_correlation` is a Fourier-domain computation — every `locate`
 call in this book takes that route under the hood, rather than sliding
 the kernel across the search area one position at a time. [Correlation
-Criteria](./correlation_criteria.md) examines that Fourier-domain
-implementation in greater depth, alongside the spatial-domain CC, NCC,
-ZCC, and ZNCC criteria it complements.
+Criteria](./correlation_criteria.md#fourier-domain) examines that
+Fourier-domain implementation in greater depth, alongside the
+spatial-domain CC, NCC, ZCC, and ZNCC criteria it complements.
 
 ## Locating the Point
 
@@ -316,7 +316,6 @@ $\boldsymbol{r}_{OP'/\mathcal{F}} = (94, 83)$ | current position $\boldsymbol{p}
 > locates the kernel frame in the search area frame.
 
 Next: [Correlation Criteria](./correlation_criteria.md) defines the four
-cross-correlation formulas, [CC Visualization](./cc_visualization.md)
-computes and plots them as heatmaps on this same kernel and search area,
-and [CC via FFT](./cc_fft.md) explains the Fourier-domain route `locate`
-actually takes.
+cross-correlation formulas and explains the Fourier-domain route `locate`
+actually takes, and [CC Visualization](./cc_visualization.md) computes
+and plots them as heatmaps on this same kernel and search area.

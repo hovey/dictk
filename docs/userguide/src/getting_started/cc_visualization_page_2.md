@@ -143,7 +143,7 @@ spatial_correlation_quadrant_plot(
 
 <figure>
     <img src="cc_visualization_page_2_zncc.png" alt="four-panel composite for ZNCC: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the ZNCC correlation surface, and a zoomed solution vicinity around its peak" />
-    <figcaption>ZNCC's quadrant composite — both bounded to $[-1, 1]$ and invariant to brightness and contrast, which is why <code>dictk.translation.locate</code>'s own underlying <code>skimage.registration.phase_cross_correlation</code> call is built on the same combination (see <a href="./cc_fft.html">CC via FFT</a>).</figcaption>
+    <figcaption>ZNCC's quadrant composite — both bounded to $[-1, 1]$ and invariant to brightness and contrast, which is why <code>dictk.translation.locate</code>'s own underlying <code>skimage.registration.phase_cross_correlation</code> call is built on the same combination (see <a href="./correlation_criteria.html#fourier-domain">Correlation Criteria</a>).</figcaption>
 </figure>
 
 All four land on the same peak, $\boldsymbol{r}_{SK/\mathcal{S}} = (19,
@@ -286,8 +286,9 @@ sketched here, worth recording:
   Cross-Correlation) is needed, since there's no per-method choice to
   support.
 
-**What's still open:** windowing. [CC via FFT](./cc_fft.md#windowing)
-describes Hann/Hamming windowing conceptually — tapering `kernel`/
+**What's still open:** windowing. [Correlation
+Criteria](./correlation_criteria.md#windowing) describes Hann/Hamming
+windowing conceptually — tapering `kernel`/
 `search`'s edges toward zero before the FFT, to reduce spectral leakage
 from content that doesn't tile seamlessly — but doesn't implement it.
 `dictk` has no `window()`-style function yet, and `phase_correlation()`
