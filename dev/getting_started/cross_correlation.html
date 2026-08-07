@@ -344,10 +344,10 @@ for <span class="katex"><span class="katex-html" aria-hidden="true"><span class=
 </ul>
 <p>Whether a criterion performs each of those two cancellations determines its invariance:</p>
 <div class="table-wrapper"><table><thead><tr><th style="text-align: left">Method</th><th style="text-align: center">Invariant to brightness (additive)</th><th style="text-align: center">Invariant to contrast (multiplicative)</th><th style="text-align: left">Robustness</th></tr></thead><tbody>
-<tr><td style="text-align: left">CC</td><td style="text-align: center">no</td><td style="text-align: center">no</td><td style="text-align: left">Least robust — neither cancellation</td></tr>
-<tr><td style="text-align: left">NCC</td><td style="text-align: center">no</td><td style="text-align: center">yes</td><td style="text-align: left">Only robust to contrast changes</td></tr>
-<tr><td style="text-align: left">ZCC</td><td style="text-align: center">yes</td><td style="text-align: center">no</td><td style="text-align: left">Only robust to brightness changes</td></tr>
-<tr><td style="text-align: left">ZNCC</td><td style="text-align: center">yes</td><td style="text-align: center">yes</td><td style="text-align: left">Most robust</td></tr>
+<tr><td style="text-align: left">CC</td><td style="text-align: center">❌ No</td><td style="text-align: center">❌ No</td><td style="text-align: left">Least robust — neither cancellation</td></tr>
+<tr><td style="text-align: left">NCC</td><td style="text-align: center">❌ No</td><td style="text-align: center">✅ Yes</td><td style="text-align: left">Only robust to contrast changes</td></tr>
+<tr><td style="text-align: left">ZCC</td><td style="text-align: center">✅ Yes</td><td style="text-align: center">❌ No</td><td style="text-align: left">Only robust to brightness changes</td></tr>
+<tr><td style="text-align: left">ZNCC</td><td style="text-align: center">✅ Yes</td><td style="text-align: center">✅ Yes</td><td style="text-align: left">Most robust</td></tr>
 </tbody></table>
 </div>
 <p>ZNCC combines ZCC's mean-subtraction (brightness invariance) with NCC's

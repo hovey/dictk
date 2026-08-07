@@ -13,16 +13,7 @@
 <p>Informational only: pylint runs alongside ruff (which gates CI) purely to
 produce this report and the README's pylint score badge. See
 <a href="https://github.com/hovey/dictk/blob/main/CONTRIBUTING.md#running-pylint-informational">CONTRIBUTING.md</a>.</p>
-<pre>************* Module dictk.translation
-src/dictk/translation.py:4:0: E0611: No name &#x27;phase_cross_correlation&#x27; in module &#x27;skimage.registration&#x27; (no-name-in-module)
-src/dictk/translation.py:9:0: R0913: Too many arguments (8/5) (too-many-arguments)
-src/dictk/translation.py:9:0: R0914: Too many local variables (22/15) (too-many-locals)
-************* Module dictk.rosta
-src/dictk/rosta.py:99:0: R0913: Too many arguments (6/5) (too-many-arguments)
-************* Module dictk.cli
-src/dictk/cli.py:20:0: R0913: Too many arguments (6/5) (too-many-arguments)
-src/dictk/cli.py:20:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
-************* Module dictk.grid
+<pre>************* Module dictk.grid
 src/dictk/grid.py:57:0: R0913: Too many arguments (8/5) (too-many-arguments)
 ************* Module dictk.image
 src/dictk/image.py:1:0: C0302: Too many lines in module (1908/1000) (too-many-lines)
@@ -45,6 +36,15 @@ src/dictk/image.py:1655:0: R0913: Too many arguments (8/5) (too-many-arguments)
 src/dictk/image.py:1655:0: R0914: Too many local variables (22/15) (too-many-locals)
 src/dictk/image.py:1802:0: R0913: Too many arguments (6/5) (too-many-arguments)
 src/dictk/image.py:1802:0: R0914: Too many local variables (26/15) (too-many-locals)
+************* Module dictk.translation
+src/dictk/translation.py:4:0: E0611: No name &#x27;phase_cross_correlation&#x27; in module &#x27;skimage.registration&#x27; (no-name-in-module)
+src/dictk/translation.py:9:0: R0913: Too many arguments (8/5) (too-many-arguments)
+src/dictk/translation.py:9:0: R0914: Too many local variables (22/15) (too-many-locals)
+************* Module dictk.rosta
+src/dictk/rosta.py:99:0: R0913: Too many arguments (6/5) (too-many-arguments)
+************* Module dictk.cli
+src/dictk/cli.py:20:0: R0913: Too many arguments (6/5) (too-many-arguments)
+src/dictk/cli.py:20:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
 
 
 Report
