@@ -1836,10 +1836,10 @@ The <code>locate</code> function returns <span class="katex"><span class="katex-
 vector chain manually).</p>
 <p><code>phase_cross_correlation</code> is a Fourier-domain computation — every <code>locate</code>
 call in this book takes that route under the hood, rather than sliding
-the kernel across the search area one position at a time. <a href="getting_started/./correlation_criteria.html">Correlation
-Criteria</a> examines that Fourier-domain
-implementation in greater depth, alongside the spatial-domain CC, NCC,
-ZCC, and ZNCC criteria it complements.</p>
+the kernel across the search area one position at a time. <a href="getting_started/./correlation_criteria.html#fourier-domain">Correlation
+Criteria</a> examines that
+Fourier-domain implementation in greater depth, alongside the
+spatial-domain CC, NCC, ZCC, and ZNCC criteria it complements.</p>
 <h2 id="locating-the-point"><a class="header" href="#locating-the-point">Locating the Point</a></h2>
 <pre><code class="language-python">from dictk.translation import locate
 
@@ -1965,20 +1965,19 @@ approaches yield the same result: <span class="katex"><span class="katex-html" a
 locates the kernel frame in the search area frame.</p>
 </blockquote>
 <p>Next: <a href="getting_started/./correlation_criteria.html">Correlation Criteria</a> defines the four
-cross-correlation formulas, <a href="getting_started/./cc_visualization.html">CC Visualization</a>
-computes and plots them as heatmaps on this same kernel and search area,
-and <a href="getting_started/./cc_fft.html">CC via FFT</a> explains the Fourier-domain route <code>locate</code>
-actually takes.</p>
+cross-correlation formulas and explains the Fourier-domain route <code>locate</code>
+actually takes, and <a href="getting_started/./cc_visualization.html">CC Visualization</a> computes
+and plots them as heatmaps on this same kernel and search area.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="correlation-criteria"><a class="header" href="#correlation-criteria">Correlation Criteria</a></h1>
-<h2 id="spatial-domain-or-fourier-domain"><a class="header" href="#spatial-domain-or-fourier-domain">Spatial Domain or Fourier Domain</a></h2>
 <p>Cross-correlation itself can be computed two ways: directly in the
 <strong>spatial domain</strong> — literally sliding the kernel over the search area and
 summing a per-position inner product, as shown below — or in the <strong>Fourier
 domain</strong> via the fast Fourier transform (FFT), which is what <code>locate</code>
-actually does (see <a href="getting_started/./cc_fft.html">CC via FFT</a>). Both compute the same
-underlying quantity; the FFT method is simply a much faster way than the
-sliding dot product approach.</p>
+actually does (see <a href="getting_started/correlation_criteria.html#fourier-domain">Fourier Domain</a>, below). Both compute
+the same underlying quantity; the FFT method is simply a much faster way
+than the sliding dot product approach.</p>
+<h2 id="spatial-domain"><a class="header" href="#spatial-domain">Spatial Domain</a></h2>
 <p><a href="getting_started/./cross_correlation.html">Cross Correlation (CC)</a> walks through the
 geometry of locating a point: the kernel/search-area vector chain, solved
 by finding where their cross-correlation is maximized. This page covers
@@ -2008,7 +2007,7 @@ for <span class="katex"><span class="katex-html" aria-hidden="true"><span class=
 <p>where <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0257em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8312em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span></span><span style="top:-3.2634em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.0833em;"><span class="mord">ˉ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0257em;vertical-align:-0.1944em;"></span><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8312em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span></span><span style="top:-3.2634em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.0833em;"><span class="mord">ˉ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span></span></span></span> and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7622em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.5678em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.2222em;"><span class="mord">ˉ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7622em;vertical-align:-0.1944em;"></span><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.5678em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.2222em;"><span class="mord">ˉ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span></span></span></span>.</p>
 </li>
 </ul>
-<h2 id="invariance-and-robustness"><a class="header" href="#invariance-and-robustness">Invariance and Robustness</a></h2>
+<h3 id="invariance-and-robustness"><a class="header" href="#invariance-and-robustness">Invariance and Robustness</a></h3>
 <p><em>Invariance</em> describes whether or not a correlation is robust or insensitive to changes in brightness and/or contrast.</p>
 <ul>
 <li>For brightness, which is additive, subtracting each side's own mean cancels any constant <strong>added</strong> to that side, making "Zero-mean" approaches effective.</li>
@@ -2025,12 +2024,12 @@ for <span class="katex"><span class="katex-html" aria-hidden="true"><span class=
 <p>ZNCC combines ZCC's mean-subtraction (brightness invariance) with NCC's
 norm-division (contrast invariance), which is why it's the standard choice
 in most DIC implementations — including <code>dictk.translation.locate</code>'s own
-underlying <code>skimage.registration.phase_cross_correlation</code> call (see <a href="getting_started/./cc_fft.html">CC via
-FFT</a>).</p>
+underlying <code>skimage.registration.phase_cross_correlation</code> call (see
+<a href="getting_started/correlation_criteria.html#fourier-domain">Fourier Domain</a>, below).</p>
 <p>Neither cancellation helps against <em>nonlinear</em> or
 <em>spatially-varying</em> brightness/contrast (a shadow crossing part of the
 kernel, sensor saturation) — none of the four criteria above address that.</p>
-<h2 id="brightness-and-contrast-invariance-in-practice"><a class="header" href="#brightness-and-contrast-invariance-in-practice">Brightness and Contrast Invariance in Practice</a></h2>
+<h3 id="brightness-and-contrast-invariance-in-practice"><a class="header" href="#brightness-and-contrast-invariance-in-practice">Brightness and Contrast Invariance in Practice</a></h3>
 <p>The table above is a formula-level guarantee, verified here on
 <a href="getting_started/./image_generation.html#speckle--astronaut"><code>astronaut0</code></a> — the
 speckle-over-photograph image used from <a href="getting_started/./multi_point_motion.html">Multi-Point
@@ -2105,85 +2104,9 @@ Visualization</a> for what those surfaces look like on
 the kernel and search area established in <a href="getting_started/./cross_correlation.html">Cross Correlation
 (CC)</a>.</p>
 <p>Next: <a href="getting_started/./cc_visualization.html">CC Visualization</a> computes and plots these
-four correlation criteria as heatmaps, and <a href="getting_started/./cc_fft.html">CC via
-FFT</a> explains the Fourier-domain route <code>locate</code> actually
-takes.</p>
-<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="cc-visualization"><a class="header" href="#cc-visualization">CC Visualization</a></h1>
-<p><a href="getting_started/./correlation_criteria.html">Correlation Criteria</a> introduced four
-spatial-domain correlation criteria — CC, NCC, ZCC, and ZNCC — as formulas.
-This page computes and visualizes all four as heatmaps, on the kernel and
-search area established in <a href="getting_started/./cross_correlation.html">Cross Correlation
-(CC)</a>, using
-<a href="getting_started/../api/dictk/correlation.html"><code>dictk.correlation</code></a>'s <code>cc</code>, <code>ncc</code>, <code>zcc</code>,
-and <code>zncc</code> functions.</p>
-<p><code>reference_image</code>, <code>p0</code>, <code>current_image</code>, <code>kernel_margin</code>, and
-<code>search_margin</code> are the same as in <a href="getting_started/./cross_correlation.html">Cross
-Correlation (CC)</a>; <code>kernel</code> and <code>search</code> are the raw
-subimage arrays those margins describe:</p>
-<pre><code class="language-python">from dictk.image import read, translate, PixelCoordinate, subimage
-
-reference_image = read(path="checkerboard0.png")
-p0 = PixelCoordinate(x=100, y=75)
-current_image = translate(arr=reference_image, dx=-6, dy=8)
-
-kernel_margin = 25
-kernel = subimage(
-    image=reference_image,
-    origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin),
-    width=2 * kernel_margin,
-    height=2 * kernel_margin,
-)
-
-search_margin = 50
-search_center = p0
-search = subimage(
-    image=current_image,
-    origin=PixelCoordinate(
-        x=search_center.x - search_margin, y=search_center.y - search_margin
-    ),
-    width=2 * search_margin,
-    height=2 * search_margin,
-)
-</code></pre>
-<p>Each function returns the full correlation surface — one value per
-candidate offset, not just its peak:</p>
-<pre><code class="language-python">from dictk.correlation import cc, ncc, zcc, zncc
-from dictk.image import correlation_surfaces_plot
-
-cc_surface = cc(kernel=kernel, search=search)
-ncc_surface = ncc(kernel=kernel, search=search)
-zcc_surface = zcc(kernel=kernel, search=search)
-zncc_surface = zncc(kernel=kernel, search=search)
-
-correlation_surfaces_plot(
-    cc=cc_surface,
-    ncc=ncc_surface,
-    zcc=zcc_surface,
-    zncc=zncc_surface,
-    path="cc_visualization_surfaces.png",
-)
-</code></pre>
-<pre><code class="language-text">Saved: cc_visualization_surfaces.png
-</code></pre>
-<figure>
-    <img src="getting_started/cc_visualization_surfaces.png" alt="four heatmap panels comparing the CC, NCC, ZCC, and ZNCC correlation surfaces for the same kernel and search area, each with a colorbar and a red circle marking its own peak" />
-    <figcaption>The CC, NCC, ZCC, and ZNCC correlation surfaces for the kernel and search area established in <a href="getting_started/./cross_correlation.html">Cross Correlation (CC)</a>. Each panel's horizontal/vertical axes are the candidate offset <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">Δ</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">Δ</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span> — not an absolute image position — and its own colorbar shows that criterion's own value range (CC's raw sum has arbitrary units and grows with image brightness; NCC/ZNCC are bounded to <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mord">−</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mclose">]</span></span></span></span> by construction). The red circle in each panel — radius <code>vicinity_margin</code>, 4 pixels by default — marks that surface's own peak, the same radius <a href="getting_started/./cc_visualization_page_2.html">CC Visualization (page 2)</a>'s Solution Vicinity panels zoom into.</figcaption>
-</figure>
-<p>Despite the very different value ranges, all four panels peak at the same
-offset, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">19</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">33</span><span class="mclose">)</span></span></span></span> pixels — matching the
-value already found by
-<a href="getting_started/../api/dictk/translation.html#locate"><code>locate</code></a> in <a href="getting_started/./cross_correlation.html#locating-the-point">Cross Correlation
-(CC)</a>. That agreement isn't a
-coincidence: <code>kernel</code> and <code>search</code> here have identical brightness and
-contrast (both come from the same <code>checkerboard0.png</code>, only translated),
-so nothing distinguishes CC from the criteria built to tolerate brightness
-or contrast differences it can't. The next page, <a href="getting_started/./cc_fft.html">CC via
-FFT</a>, explains why <code>locate</code> computes this same underlying
-quantity in the Fourier domain rather than by sliding a kernel across
-every position directly, as done here.</p>
-<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="cc-via-fft"><a class="header" href="#cc-via-fft">CC via FFT</a></h1>
+four correlation criteria as heatmaps; the Fourier Domain section below
+explains the route <code>locate</code> itself actually takes.</p>
+<h2 id="fourier-domain"><a class="header" href="#fourier-domain">Fourier Domain</a></h2>
 <p><a href="getting_started/./cc_visualization.html">CC Visualization</a> computed CC directly in the
 spatial domain: a literal sliding sum, one value per candidate offset. The
 <strong>convolution theorem</strong> gives an equivalent route: multiplying the two
@@ -2255,7 +2178,7 @@ every frequency before inverting it (see the extensive comment in
 <a href="getting_started/../api/dictk/translation.html#locate"><code>locate</code>'s source</a> for why). Both
 differences change the surface's numeric character; neither changes where
 its peak lands here.</p>
-<h2 id="windowing"><a class="header" href="#windowing">Windowing</a></h2>
+<h3 id="windowing"><a class="header" href="#windowing">Windowing</a></h3>
 <p>The FFT implicitly treats an image as one period of an infinitely-repeating
 signal. If the content doesn't tile seamlessly — the general case, since
 nothing arranged <code>search</code>'s edges to match up — that discontinuity leaks
@@ -2277,6 +2200,81 @@ transformed signal.</p>
 of the technique for context, not a feature. <code>dictk.translation.locate</code>
 does not apply any windowing, and there is no <code>window()</code>-style function in
 this codebase yet.</p>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="cc-visualization"><a class="header" href="#cc-visualization">CC Visualization</a></h1>
+<p><a href="getting_started/./correlation_criteria.html">Correlation Criteria</a> introduced four
+spatial-domain correlation criteria — CC, NCC, ZCC, and ZNCC — as formulas.
+This page computes and visualizes all four as heatmaps, on the kernel and
+search area established in <a href="getting_started/./cross_correlation.html">Cross Correlation
+(CC)</a>, using
+<a href="getting_started/../api/dictk/correlation.html"><code>dictk.correlation</code></a>'s <code>cc</code>, <code>ncc</code>, <code>zcc</code>,
+and <code>zncc</code> functions.</p>
+<p><code>reference_image</code>, <code>p0</code>, <code>current_image</code>, <code>kernel_margin</code>, and
+<code>search_margin</code> are the same as in <a href="getting_started/./cross_correlation.html">Cross
+Correlation (CC)</a>; <code>kernel</code> and <code>search</code> are the raw
+subimage arrays those margins describe:</p>
+<pre><code class="language-python">from dictk.image import read, translate, PixelCoordinate, subimage
+
+reference_image = read(path="checkerboard0.png")
+p0 = PixelCoordinate(x=100, y=75)
+current_image = translate(arr=reference_image, dx=-6, dy=8)
+
+kernel_margin = 25
+kernel = subimage(
+    image=reference_image,
+    origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin),
+    width=2 * kernel_margin,
+    height=2 * kernel_margin,
+)
+
+search_margin = 50
+search_center = p0
+search = subimage(
+    image=current_image,
+    origin=PixelCoordinate(
+        x=search_center.x - search_margin, y=search_center.y - search_margin
+    ),
+    width=2 * search_margin,
+    height=2 * search_margin,
+)
+</code></pre>
+<p>Each function returns the full correlation surface — one value per
+candidate offset, not just its peak:</p>
+<pre><code class="language-python">from dictk.correlation import cc, ncc, zcc, zncc
+from dictk.image import correlation_surfaces_plot
+
+cc_surface = cc(kernel=kernel, search=search)
+ncc_surface = ncc(kernel=kernel, search=search)
+zcc_surface = zcc(kernel=kernel, search=search)
+zncc_surface = zncc(kernel=kernel, search=search)
+
+correlation_surfaces_plot(
+    cc=cc_surface,
+    ncc=ncc_surface,
+    zcc=zcc_surface,
+    zncc=zncc_surface,
+    path="cc_visualization_surfaces.png",
+)
+</code></pre>
+<pre><code class="language-text">Saved: cc_visualization_surfaces.png
+</code></pre>
+<figure>
+    <img src="getting_started/cc_visualization_surfaces.png" alt="four heatmap panels comparing the CC, NCC, ZCC, and ZNCC correlation surfaces for the same kernel and search area, each with a colorbar and a red circle marking its own peak" />
+    <figcaption>The CC, NCC, ZCC, and ZNCC correlation surfaces for the kernel and search area established in <a href="getting_started/./cross_correlation.html">Cross Correlation (CC)</a>. Each panel's horizontal/vertical axes are the candidate offset <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">Δ</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">Δ</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span> — not an absolute image position — and its own colorbar shows that criterion's own value range (CC's raw sum has arbitrary units and grows with image brightness; NCC/ZNCC are bounded to <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mord">−</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mclose">]</span></span></span></span> by construction). The red circle in each panel — radius <code>vicinity_margin</code>, 4 pixels by default — marks that surface's own peak, the same radius <a href="getting_started/./cc_visualization_page_2.html">CC Visualization (page 2)</a>'s Solution Vicinity panels zoom into.</figcaption>
+</figure>
+<p>Despite the very different value ranges, all four panels peak at the same
+offset, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">19</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">33</span><span class="mclose">)</span></span></span></span> pixels — matching the
+value already found by
+<a href="getting_started/../api/dictk/translation.html#locate"><code>locate</code></a> in <a href="getting_started/./cross_correlation.html#locating-the-point">Cross Correlation
+(CC)</a>. That agreement isn't a
+coincidence: <code>kernel</code> and <code>search</code> here have identical brightness and
+contrast (both come from the same <code>checkerboard0.png</code>, only translated),
+so nothing distinguishes CC from the criteria built to tolerate brightness
+or contrast differences it can't. <a href="getting_started/./correlation_criteria.html#fourier-domain">Correlation
+Criteria</a>'s Fourier Domain
+section explains why <code>locate</code> computes this same underlying quantity in
+the Fourier domain rather than by sliding a kernel across every position
+directly, as done here.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="cc-visualization-page-2"><a class="header" href="#cc-visualization-page-2">CC Visualization (page 2)</a></h1>
 <p><a href="getting_started/./cc_visualization.html">CC Visualization</a> compares all four correlation
@@ -2394,7 +2392,7 @@ spatial_correlation_quadrant_plot(
 </code></pre>
 <figure>
     <img src="getting_started/cc_visualization_page_2_zncc.png" alt="four-panel composite for ZNCC: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the ZNCC correlation surface, and a zoomed solution vicinity around its peak" />
-    <figcaption>ZNCC's quadrant composite — both bounded to <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mord">−</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mclose">]</span></span></span></span> and invariant to brightness and contrast, which is why <code>dictk.translation.locate</code>'s own underlying <code>skimage.registration.phase_cross_correlation</code> call is built on the same combination (see <a href="getting_started/./cc_fft.html">CC via FFT</a>).</figcaption>
+    <figcaption>ZNCC's quadrant composite — both bounded to <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mord">−</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mclose">]</span></span></span></span> and invariant to brightness and contrast, which is why <code>dictk.translation.locate</code>'s own underlying <code>skimage.registration.phase_cross_correlation</code> call is built on the same combination (see <a href="getting_started/./correlation_criteria.html#fourier-domain">Correlation Criteria</a>).</figcaption>
 </figure>
 <p>All four land on the same peak, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">19</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">33</span><span class="mclose">)</span></span></span></span> pixels, since <code>kernel</code> and <code>search</code> here share identical brightness
 and contrast (both come from <code>checkerboard0.png</code>, only translated) — the
@@ -2513,8 +2511,9 @@ local-sum-of-squares algorithm (Lewis's Fast Normalized
 Cross-Correlation) is needed, since there's no per-method choice to
 support.</li>
 </ul>
-<p><strong>What's still open:</strong> windowing. <a href="getting_started/./cc_fft.html#windowing">CC via FFT</a>
-describes Hann/Hamming windowing conceptually — tapering <code>kernel</code>/
+<p><strong>What's still open:</strong> windowing. <a href="getting_started/./correlation_criteria.html#windowing">Correlation
+Criteria</a> describes Hann/Hamming
+windowing conceptually — tapering <code>kernel</code>/
 <code>search</code>'s edges toward zero before the FFT, to reduce spectral leakage
 from content that doesn't tile seamlessly — but doesn't implement it.
 <code>dictk</code> has no <code>window()</code>-style function yet, and <code>phase_correlation()</code>
@@ -2717,8 +2716,9 @@ per point, and <em>that</em> function is <code>dictk</code>'s actual FFT-based D
 each point it extracts a kernel from <code>reference_image</code> and a search area
 from <code>current_image</code>, then locates the kernel within the search area via
 <code>skimage.registration.phase_cross_correlation</code> — FFT-based phase
-cross-correlation, not a spatial-domain sliding-window search (see <a href="getting_started/./cc_fft.html">CC via
-FFT</a> for the single-point version of this same technique).
+cross-correlation, not a spatial-domain sliding-window search (see
+<a href="getting_started/./correlation_criteria.html#fourier-domain">Correlation Criteria</a> for the
+single-point version of this same technique).
 Twelve points means twelve independent calls into that engine, using the
 same kernel and search-area sizes visualized above:</p>
 <pre><code class="language-python">from dictk.grid import locate

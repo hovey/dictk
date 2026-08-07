@@ -181,14 +181,14 @@
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="correlation-criteria"><a class="header" href="#correlation-criteria">Correlation Criteria</a></h1>
-<h2 id="spatial-domain-or-fourier-domain"><a class="header" href="#spatial-domain-or-fourier-domain">Spatial Domain or Fourier Domain</a></h2>
 <p>Cross-correlation itself can be computed two ways: directly in the
 <strong>spatial domain</strong> — literally sliding the kernel over the search area and
 summing a per-position inner product, as shown below — or in the <strong>Fourier
 domain</strong> via the fast Fourier transform (FFT), which is what <code>locate</code>
-actually does (see <a href="./cc_fft.html">CC via FFT</a>). Both compute the same
-underlying quantity; the FFT method is simply a much faster way than the
-sliding dot product approach.</p>
+actually does (see <a href="#fourier-domain">Fourier Domain</a>, below). Both compute
+the same underlying quantity; the FFT method is simply a much faster way
+than the sliding dot product approach.</p>
+<h2 id="spatial-domain"><a class="header" href="#spatial-domain">Spatial Domain</a></h2>
 <p><a href="./cross_correlation.html">Cross Correlation (CC)</a> walks through the
 geometry of locating a point: the kernel/search-area vector chain, solved
 by finding where their cross-correlation is maximized. This page covers
@@ -218,7 +218,7 @@ for <span class="katex"><span class="katex-html" aria-hidden="true"><span class=
 <p>where <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0257em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8312em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span></span><span style="top:-3.2634em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.0833em;"><span class="mord">ˉ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0257em;vertical-align:-0.1944em;"></span><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8312em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span></span><span style="top:-3.2634em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.0833em;"><span class="mord">ˉ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span></span></span></span> and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7622em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.5678em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.2222em;"><span class="mord">ˉ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7622em;vertical-align:-0.1944em;"></span><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.5678em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.2222em;"><span class="mord">ˉ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span></span></span></span>.</p>
 </li>
 </ul>
-<h2 id="invariance-and-robustness"><a class="header" href="#invariance-and-robustness">Invariance and Robustness</a></h2>
+<h3 id="invariance-and-robustness"><a class="header" href="#invariance-and-robustness">Invariance and Robustness</a></h3>
 <p><em>Invariance</em> describes whether or not a correlation is robust or insensitive to changes in brightness and/or contrast.</p>
 <ul>
 <li>For brightness, which is additive, subtracting each side's own mean cancels any constant <strong>added</strong> to that side, making "Zero-mean" approaches effective.</li>
@@ -235,12 +235,12 @@ for <span class="katex"><span class="katex-html" aria-hidden="true"><span class=
 <p>ZNCC combines ZCC's mean-subtraction (brightness invariance) with NCC's
 norm-division (contrast invariance), which is why it's the standard choice
 in most DIC implementations — including <code>dictk.translation.locate</code>'s own
-underlying <code>skimage.registration.phase_cross_correlation</code> call (see <a href="./cc_fft.html">CC via
-FFT</a>).</p>
+underlying <code>skimage.registration.phase_cross_correlation</code> call (see
+<a href="#fourier-domain">Fourier Domain</a>, below).</p>
 <p>Neither cancellation helps against <em>nonlinear</em> or
 <em>spatially-varying</em> brightness/contrast (a shadow crossing part of the
 kernel, sensor saturation) — none of the four criteria above address that.</p>
-<h2 id="brightness-and-contrast-invariance-in-practice"><a class="header" href="#brightness-and-contrast-invariance-in-practice">Brightness and Contrast Invariance in Practice</a></h2>
+<h3 id="brightness-and-contrast-invariance-in-practice"><a class="header" href="#brightness-and-contrast-invariance-in-practice">Brightness and Contrast Invariance in Practice</a></h3>
 <p>The table above is a formula-level guarantee, verified here on
 <a href="./image_generation.html#speckle--astronaut"><code>astronaut0</code></a> — the
 speckle-over-photograph image used from <a href="./multi_point_motion.html">Multi-Point
@@ -315,9 +315,102 @@ Visualization</a> for what those surfaces look like on
 the kernel and search area established in <a href="./cross_correlation.html">Cross Correlation
 (CC)</a>.</p>
 <p>Next: <a href="./cc_visualization.html">CC Visualization</a> computes and plots these
-four correlation criteria as heatmaps, and <a href="./cc_fft.html">CC via
-FFT</a> explains the Fourier-domain route <code>locate</code> actually
-takes.</p>
+four correlation criteria as heatmaps; the Fourier Domain section below
+explains the route <code>locate</code> itself actually takes.</p>
+<h2 id="fourier-domain"><a class="header" href="#fourier-domain">Fourier Domain</a></h2>
+<p><a href="./cc_visualization.html">CC Visualization</a> computed CC directly in the
+spatial domain: a literal sliding sum, one value per candidate offset. The
+<strong>convolution theorem</strong> gives an equivalent route: multiplying the two
+images' Fourier transforms (one of them conjugated) and inverse-transforming
+the product yields that same correlation, all at once, for every offset —
+without ever explicitly sliding a window. This is exactly what
+<a href="../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> does
+internally, via
+<a href="https://scikit-image.org/docs/stable/api/skimage.registration.html#skimage.registration.phase_cross_correlation"><code>skimage.registration.phase_cross_correlation</code></a>.
+The appeal isn't a different answer — it's speed: a fast Fourier transform
+(FFT) costs <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span> per image, against the sliding sum's <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>
+per candidate offset — decisive once images grow beyond this page's small
+teaching example.</p>
+<p><code>reference_image</code>, <code>p0</code>, <code>current_image</code>, <code>kernel</code>, and <code>search</code> are the
+same as in <a href="./cc_visualization.html">CC Visualization</a>:</p>
+<pre><code class="language-python">from dictk.image import read, translate, PixelCoordinate, subimage
+
+reference_image = read(path="checkerboard0.png")
+p0 = PixelCoordinate(x=100, y=75)
+current_image = translate(arr=reference_image, dx=-6, dy=8)
+
+kernel_margin = 25
+kernel = subimage(
+    image=reference_image,
+    origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin),
+    width=2 * kernel_margin,
+    height=2 * kernel_margin,
+)
+
+search_margin = 50
+search_center = p0
+search = subimage(
+    image=current_image,
+    origin=PixelCoordinate(
+        x=search_center.x - search_margin, y=search_center.y - search_margin
+    ),
+    width=2 * search_margin,
+    height=2 * search_margin,
+)
+</code></pre>
+<p><code>locate</code> pads <code>kernel</code> to <code>search</code>'s own shape before comparing them — the
+same padding used here:</p>
+<pre><code class="language-python">import numpy as np
+
+pad_height = search.shape[0] - kernel.shape[0]
+pad_width = search.shape[1] - kernel.shape[1]
+kernel_padded = np.pad(kernel.astype(np.float64), ((0, pad_height), (0, pad_width)))
+
+image_product = np.fft.fft2(search.astype(np.float64)) * np.fft.fft2(kernel_padded).conj()
+fft_surface = np.fft.ifft2(image_product).real
+
+dy, dx = np.unravel_index(np.argmax(fft_surface), fft_surface.shape)
+print(f"FFT-domain peak offset (dx, dy) = ({dx}, {dy})")
+</code></pre>
+<pre><code class="language-text">FFT-domain peak offset (dx, dy) = (19, 33)
+</code></pre>
+<p>That peak, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">19</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">33</span><span class="mclose">)</span></span></span></span>, matches <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span></span></span></span> exactly —
+the same offset <a href="./cc_visualization.html">CC Visualization</a>'s <code>cc()</code> surface
+and <code>locate</code> itself both find. That agreement is about the peak's
+<em>location</em> only, not the two surfaces' values: <code>fft_surface</code> here is the
+<strong>circular</strong> correlation over the full padded extent (<code>search</code>'s own
+shape, <code>100x100</code>), while <code>cc()</code> returns <strong>valid</strong> positions only (a smaller
+<code>51x51</code> array, no wraparound) — the two arrays don't share a shape and
+<code>np.allclose</code> between them wouldn't be meaningful. <code>locate</code> differs a
+second way too: it doesn't use this raw, unnormalized cross-power
+spectrum — it passes <code>normalization="phase"</code> to
+<code>phase_cross_correlation</code>, dividing that spectrum by its own magnitude at
+every frequency before inverting it (see the extensive comment in
+<a href="../api/dictk/translation.html#locate"><code>locate</code>'s source</a> for why). Both
+differences change the surface's numeric character; neither changes where
+its peak lands here.</p>
+<h3 id="windowing"><a class="header" href="#windowing">Windowing</a></h3>
+<p>The FFT implicitly treats an image as one period of an infinitely-repeating
+signal. If the content doesn't tile seamlessly — the general case, since
+nothing arranged <code>search</code>'s edges to match up — that discontinuity leaks
+energy across many frequencies rather than the few the underlying content
+actually has, an effect called <strong>spectral leakage</strong>. In a correlation
+surface, leakage broadens and can shift the peak, hurting the precision
+<code>locate</code> is built to provide.</p>
+<p><strong>Windowing</strong> counters this by tapering an image's edges toward zero
+before transforming it, so the (still discontinuous, but now near-zero)
+seam contributes far less energy. Two standard 1D windows, applied to an
+image by taking the outer product of a window with itself along each axis:</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathrm mtight">Hann</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="mord">0.5</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mop">cos</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">1</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">2</span><span class="mord mathnormal">πn</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.7693em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span></span></span></span></span></p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathrm mtight" style="margin-right:0.01389em;">Hamming</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">0.54</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="mord">0.46</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">cos</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">1</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">2</span><span class="mord mathnormal">πn</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.7693em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span></span></span></span></span></p>
+<p>for <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span> across a window of length <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span>. Hann tapers all the
+way to exactly zero at both ends; Hamming stops short (around <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.08</span></span></span></span>),
+trading a little residual discontinuity for a narrower main lobe in the
+transformed signal.</p>
+<p>Windowing is <strong>not implemented in <code>dictk</code></strong> — this section is a description
+of the technique for context, not a feature. <code>dictk.translation.locate</code>
+does not apply any windowing, and there is no <code>window()</code>-style function in
+this codebase yet.</p>
 
                     </main>
 

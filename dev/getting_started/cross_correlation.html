@@ -311,10 +311,10 @@ The <code>locate</code> function returns <span class="katex"><span class="katex-
 vector chain manually).</p>
 <p><code>phase_cross_correlation</code> is a Fourier-domain computation — every <code>locate</code>
 call in this book takes that route under the hood, rather than sliding
-the kernel across the search area one position at a time. <a href="./correlation_criteria.html">Correlation
-Criteria</a> examines that Fourier-domain
-implementation in greater depth, alongside the spatial-domain CC, NCC,
-ZCC, and ZNCC criteria it complements.</p>
+the kernel across the search area one position at a time. <a href="./correlation_criteria.html#fourier-domain">Correlation
+Criteria</a> examines that
+Fourier-domain implementation in greater depth, alongside the
+spatial-domain CC, NCC, ZCC, and ZNCC criteria it complements.</p>
 <h2 id="locating-the-point"><a class="header" href="#locating-the-point">Locating the Point</a></h2>
 <pre><code class="language-python">from dictk.translation import locate
 
@@ -440,10 +440,9 @@ approaches yield the same result: <span class="katex"><span class="katex-html" a
 locates the kernel frame in the search area frame.</p>
 </blockquote>
 <p>Next: <a href="./correlation_criteria.html">Correlation Criteria</a> defines the four
-cross-correlation formulas, <a href="./cc_visualization.html">CC Visualization</a>
-computes and plots them as heatmaps on this same kernel and search area,
-and <a href="./cc_fft.html">CC via FFT</a> explains the Fourier-domain route <code>locate</code>
-actually takes.</p>
+cross-correlation formulas and explains the Fourier-domain route <code>locate</code>
+actually takes, and <a href="./cc_visualization.html">CC Visualization</a> computes
+and plots them as heatmaps on this same kernel and search area.</p>
 
                     </main>
 
