@@ -903,13 +903,43 @@ def test_correlation_surfaces_plot_mismatched_shapes_raises(tmp_path: Path):
         )
 
 
+def _astronaut0_kernel_and_search(
+    *, dx: float, dy: float, kernel_margin: int, search_margin: int
+):
+    """`astronaut0` (rosta speckle combined atop the astronaut photo),
+    reconstructed from dictk's own public API rather than reading the
+    bundled PNG -- bit-for-bit identical thanks to rosta()'s deterministic
+    default `random_seed=42`, matching image_generation.md's own
+    construction exactly. Unlike checkerboard() (perfectly periodic, no
+    unambiguous peak) or plain astronaut() (large flat regions bias
+    un-normalized CC toward the wrong window), astronaut0's speckle
+    texture gives even plain CC a single, reliable peak -- the same reason
+    the rest of the book uses astronaut0, not plain astronaut, for
+    correlation examples."""
+    reference_image = combine(
+        a=rosta(width=300, height=300, density=0.5), b=astronaut(width=300, height=300)
+    )
+    current_image = translate(arr=reference_image, dx=dx, dy=dy)
+    point = PixelCoordinate(x=100, y=100)
+    kernel = subimage(
+        image=reference_image,
+        origin=PixelCoordinate(x=point.x - kernel_margin, y=point.y - kernel_margin),
+        width=2 * kernel_margin,
+        height=2 * kernel_margin,
+    )
+    search = subimage(
+        image=current_image,
+        origin=PixelCoordinate(x=point.x - search_margin, y=point.y - search_margin),
+        width=2 * search_margin,
+        height=2 * search_margin,
+    )
+    return kernel, search
+
+
 def test_correlation_quadrant_plot_writes_file(tmp_path: Path):
-    reference_image = checkerboard(width=200, height=200)
-    current_image = translate(arr=reference_image, dx=-6, dy=8)
-    kernel_origin = PixelCoordinate(x=75, y=50)
-    kernel = subimage(image=reference_image, origin=kernel_origin, width=50, height=50)
-    search_origin = PixelCoordinate(x=50, y=25)
-    search = subimage(image=current_image, origin=search_origin, width=100, height=100)
+    kernel, search = _astronaut0_kernel_and_search(
+        dx=-6, dy=8, kernel_margin=25, search_margin=50
+    )
 
     path = tmp_path / "correlation_quadrant.png"
     correlation_quadrant_plot(
@@ -928,12 +958,9 @@ def test_correlation_quadrant_plot_long_title_writes_file(tmp_path: Path):
     correlation-surface panel's own title and collide with its colorbar --
     now rendered as a figure-level suptitle instead, so it should never
     raise regardless of length."""
-    reference_image = checkerboard(width=200, height=200)
-    current_image = translate(arr=reference_image, dx=-6, dy=8)
-    kernel_origin = PixelCoordinate(x=75, y=50)
-    kernel = subimage(image=reference_image, origin=kernel_origin, width=50, height=50)
-    search_origin = PixelCoordinate(x=50, y=25)
-    search = subimage(image=current_image, origin=search_origin, width=100, height=100)
+    kernel, search = _astronaut0_kernel_and_search(
+        dx=-6, dy=8, kernel_margin=25, search_margin=50
+    )
 
     path = tmp_path / "correlation_quadrant_zncc.png"
     correlation_quadrant_plot(
@@ -964,33 +991,12 @@ def test_correlation_quadrant_plot_search_smaller_than_kernel_raises(tmp_path: P
 def test_correlation_quadrant_plot_peak_matches_known_displacement(tmp_path: Path):
     """The found position drawn on the Fixed Image panel (and used to
     center the Solution Vicinity zoom) must come from correlation_surface's
-    own argmax. Uses rosta() speckle, not checkerboard() -- a perfectly
-    periodic pattern has no single unambiguous peak, so plain CC (raw,
-    unnormalized) can't be trusted to land on the true displacement there
-    -- matching test_correlation.py's own precedent for verifying CC's
-    peak against a known ground truth."""
-    reference_image = rosta(width=200, height=200, density=0.5)
+    own argmax -- verified here against a known ground-truth displacement,
+    not just that a file got written."""
     dx, dy = -6, 8
-    current_image = translate(arr=reference_image, dx=dx, dy=dy)
     kernel_margin, search_margin = 25, 50
-    point = PixelCoordinate(x=100, y=75)
-    kernel_origin = PixelCoordinate(
-        x=point.x - kernel_margin, y=point.y - kernel_margin
-    )
-    kernel = subimage(
-        image=reference_image,
-        origin=kernel_origin,
-        width=2 * kernel_margin,
-        height=2 * kernel_margin,
-    )
-    search_origin = PixelCoordinate(
-        x=point.x - search_margin, y=point.y - search_margin
-    )
-    search = subimage(
-        image=current_image,
-        origin=search_origin,
-        width=2 * search_margin,
-        height=2 * search_margin,
+    kernel, search = _astronaut0_kernel_and_search(
+        dx=dx, dy=dy, kernel_margin=kernel_margin, search_margin=search_margin
     )
     surface = cc(kernel=kernel, search=search)
     expected_x = search_margin + dx - kernel_margin

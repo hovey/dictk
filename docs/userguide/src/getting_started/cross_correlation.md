@@ -300,6 +300,7 @@ criteria for pattern
 matching](https://opg.optica.org/ao/viewmedia.cfm?uri=ao-49-28-5501)."
 *Applied Optics* 2010;49(28):5501-9.
 [[download]](https://1drv.ms/b/c/3cc1bee5e2795295/IQDjuSdmrbpZT71uMkNXOaC4ATCYsBI1RAntZaKOURqobsI?e=65MdBH)
+
 [`dictk.correlation`](../api/dictk/correlation.html) implements all four as
 standalone functions (`cc`, `ncc`, `zcc`, `zncc`), each returning the full
 correlation surface rather than just its peak — see [CC
