@@ -225,7 +225,10 @@ below plots the search area in its own pixel frame <span class="katex"><span cla
 yellow dashed box marking where the kernel was found and red/green dashed
 guide lines through that box's origin — the same <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span></span></span></span>
 quantity <a href="./cross_correlation.html#solution">Cross Correlation (CC)</a> solves
-for by hand.</p>
+for by hand. The Correlation Surface panel marks that same peak with a red
+circle of radius <code>vicinity_margin</code> (4 pixels by default) — exactly the
+region the Solution Vicinity panel zooms into, so the same circle reappears
+there too, now clipped by that panel's own edges.</p>
 <h2 id="cross-correlation-cc"><a class="header" href="#cross-correlation-cc">Cross-Correlation (CC)</a></h2>
 <pre><code class="language-python">from dictk.correlation import cc
 from dictk.image import spatial_correlation_quadrant_plot
