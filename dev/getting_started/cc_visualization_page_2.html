@@ -279,7 +279,7 @@ spatial_correlation_quadrant_plot(
 </code></pre>
 <figure>
     <img src="cc_visualization_page_2_zcc.png" alt="four-panel composite for ZCC: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the ZCC correlation surface, and a zoomed solution vicinity around its peak" />
-    <figcaption>ZCC's quadrant composite — raw units like CC's (mean-subtraction alone doesn't bound the range), but brightness-invariant per <a href="./cross_correlation.html#invariance-and-robustness">Cross Correlation (CC)</a>'s table.</figcaption>
+    <figcaption>ZCC's quadrant composite — raw units like CC's (mean-subtraction alone doesn't bound the range), but brightness-invariant per <a href="./correlation_criteria.html#invariance-and-robustness">Correlation Criteria</a>'s table.</figcaption>
 </figure>
 <h2 id="zero-mean-normalized-cross-correlation-zncc"><a class="header" href="#zero-mean-normalized-cross-correlation-zncc">Zero-mean Normalized Cross-Correlation (ZNCC)</a></h2>
 <pre><code class="language-python">from dictk.correlation import zncc
@@ -303,8 +303,8 @@ and contrast (both come from <code>checkerboard0.png</code>, only translated) �
 same reason <a href="./cc_visualization.html">CC Visualization</a> gives for its own
 matching peaks. What differs between the four is what each panel's
 colorbar reveals about <em>how safely</em> that peak can be trusted once
-brightness or contrast do differ, as <a href="./cross_correlation.html#invariance-and-robustness">Cross Correlation
-(CC)</a> covers in detail.</p>
+brightness or contrast do differ, as <a href="./correlation_criteria.html#invariance-and-robustness">Correlation
+Criteria</a> covers in detail.</p>
 <h2 id="phase-correlation"><a class="header" href="#phase-correlation">Phase Correlation</a></h2>
 <p>Every panel above comes from a spatial-domain criterion —
 <a href="../api/dictk/correlation.html"><code>dictk.correlation</code></a>'s <code>cc</code>/<code>ncc</code>/<code>zcc</code>/
@@ -403,8 +403,8 @@ parameterized entry point.</li>
 <code>dictk.translation.locate()</code> already runs in production instead — a
 different (and better) technique than raw unnormalized CC-via-FFT,
 landing in the same "robust to both brightness and contrast" tier as
-ZNCC (see <a href="./cross_correlation.html#invariance-and-robustness">Cross Correlation
-(CC)</a>) and, as shown
+ZNCC (see <a href="./correlation_criteria.html#invariance-and-robustness">Correlation
+Criteria</a>) and, as shown
 above, with a dramatically sharper peak than any spatial-domain
 criterion, ZNCC included.</li>
 <li><strong>"NCC/ZCC/ZNCC via Fourier domain," the genuinely hard piece, is now
