@@ -5,8 +5,10 @@ Cross-correlation itself can be computed two ways: directly in the
 summing a per-position inner product, as shown below — or in the **Fourier
 domain** via the fast Fourier transform (FFT), which is what `locate`
 actually does (see [Fourier Domain](#fourier-domain), below). Both compute
-the same underlying quantity; the FFT method is simply a much faster way
-than the sliding dot product approach.
+the same underlying quantity, but at very different cost: $O(n^2)$ for the
+sliding sum, evaluated at every candidate offset, against $O(n \log n)$
+for the FFT, with $n$ the number of pixels — a gap that widens sharply as
+images grow beyond this page's small teaching examples.
 
 ## Spatial Domain
 
