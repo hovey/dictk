@@ -186,8 +186,10 @@
 summing a per-position inner product, as shown below — or in the <strong>Fourier
 domain</strong> via the fast Fourier transform (FFT), which is what <code>locate</code>
 actually does (see <a href="#fourier-domain">Fourier Domain</a>, below). Both compute
-the same underlying quantity; the FFT method is simply a much faster way
-than the sliding dot product approach.</p>
+the same underlying quantity, but at very different cost: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> for the
+sliding sum, evaluated at every candidate offset, against <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span>
+for the FFT, with <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span> the number of pixels — a gap that widens sharply as
+images grow beyond this page's small teaching examples.</p>
 <h2 id="spatial-domain"><a class="header" href="#spatial-domain">Spatial Domain</a></h2>
 <p><a href="./cross_correlation.html">Cross Correlation (CC)</a> walks through the
 geometry of locating a point: the kernel/search-area vector chain, solved
