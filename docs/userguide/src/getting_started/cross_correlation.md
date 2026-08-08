@@ -8,7 +8,7 @@ the varied implementations in [Correlation Criteria](./correlation_criteria.md).
 For now, it is sufficient to know only that cross-correlation is used to locate a point in a current
 image given a known location of that same point in a reference image.
 The current focus is to make the subordinate concepts underlying 
-cross-correlation be specific and concrete.
+cross-correlation be well-defined and well-illustrated.
 
 Let the **kernel** (also called a **subset**, **filter**, or
 **convolution matrix**) be a rectangular region of `reference_image` centered on

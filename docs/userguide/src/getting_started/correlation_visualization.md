@@ -74,7 +74,7 @@ spatial_correlation_quadrant_plot(
 
 <figure>
     <img src="correlation_visualization_cc.png" alt="four-panel composite: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the CC correlation surface, and a zoomed solution vicinity around its peak" />
-    <figcaption>CC's quadrant composite. checkerboard0's tiled pattern repeats every ~25 pixels, so the correlation-surface panel shows more than one strong local peak within its own (smaller, "valid") range — CC has no way to prefer the true one over its look-alikes beyond raw magnitude, unlike the normalized criteria below. The correct one, boxed in yellow in the Fixed Image panel, sits at $\boldsymbol{r}_{SK/\mathcal{S}} = (19, 33)$ pixels — matching the value already found by <code>locate</code> in <a href="./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a>.</figcaption>
+    <figcaption>CC's quadrant composite. The Correlation Surface panel is 51×51 — search's 100×100 minus kernel's 50×50, plus one in each dimension — since a value is only defined where the 50×50 kernel fits entirely inside the 100×100 search area ("valid" positions, no wraparound). checkerboard0's tiled pattern repeats every ~25 pixels, so that panel shows more than one strong local peak within its own (smaller, "valid") range — CC has no way to prefer the true one over its look-alikes beyond raw magnitude, unlike the normalized criteria below. The correct one, boxed in yellow in the Fixed Image panel, sits at $\boldsymbol{r}_{SK/\mathcal{S}} = (19, 33)$ pixels — matching the value already found by <code>locate</code> in <a href="./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a>.</figcaption>
 </figure>
 
 ## Normalized Cross-Correlation (NCC)
@@ -97,7 +97,7 @@ spatial_correlation_quadrant_plot(
 
 <figure>
     <img src="correlation_visualization_ncc.png" alt="four-panel composite for NCC: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the NCC correlation surface, and a zoomed solution vicinity around its peak" />
-    <figcaption>NCC's quadrant composite, bounded to $[-1, 1]$ by construction — visible in the colorbar range compared to CC's arbitrary raw units above. Its peak still lands at $\boldsymbol{r}_{SK/\mathcal{S}} = (19, 33)$ pixels, matching the value already found by <code>locate</code> in <a href="./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a>.</figcaption>
+    <figcaption>NCC's quadrant composite, bounded to $[-1, 1]$ by construction — visible in the colorbar range compared to CC's arbitrary raw units above. Its Correlation Surface panel is the same 51×51 "valid"-positions-only shape as CC's above. Its peak still lands at $\boldsymbol{r}_{SK/\mathcal{S}} = (19, 33)$ pixels, matching the value already found by <code>locate</code> in <a href="./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a>.</figcaption>
 </figure>
 
 ## Zero-mean Cross-Correlation (ZCC)
@@ -120,7 +120,7 @@ spatial_correlation_quadrant_plot(
 
 <figure>
     <img src="correlation_visualization_zcc.png" alt="four-panel composite for ZCC: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the ZCC correlation surface, and a zoomed solution vicinity around its peak" />
-    <figcaption>ZCC's quadrant composite — raw units like CC's (mean-subtraction alone doesn't bound the range), but brightness-invariant per <a href="./correlation_criteria.html#invariance-and-robustness">Correlation Criteria</a>'s table. Same peak, $\boldsymbol{r}_{SK/\mathcal{S}} = (19, 33)$ pixels, as <code>locate</code> already found in <a href="./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a>.</figcaption>
+    <figcaption>ZCC's quadrant composite — raw units like CC's (mean-subtraction alone doesn't bound the range), but brightness-invariant per <a href="./correlation_criteria.html#invariance-and-robustness">Correlation Criteria</a>'s table. Its Correlation Surface panel is the same 51×51 "valid"-positions-only shape as CC's and NCC's above. Same peak, $\boldsymbol{r}_{SK/\mathcal{S}} = (19, 33)$ pixels, as <code>locate</code> already found in <a href="./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a>.</figcaption>
 </figure>
 
 ## Zero-mean Normalized Cross-Correlation (ZNCC)
@@ -143,7 +143,7 @@ spatial_correlation_quadrant_plot(
 
 <figure>
     <img src="correlation_visualization_zncc.png" alt="four-panel composite for ZNCC: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the ZNCC correlation surface, and a zoomed solution vicinity around its peak" />
-    <figcaption>ZNCC's quadrant composite — both bounded to $[-1, 1]$ and invariant to brightness and contrast, which is why <code>dictk.translation.locate</code>'s own underlying <code>skimage.registration.phase_cross_correlation</code> call is built on the same combination (see <a href="./correlation_criteria.html#fourier-domain">Correlation Criteria</a>). Peak still at $\boldsymbol{r}_{SK/\mathcal{S}} = (19, 33)$ pixels, matching <code>locate</code>'s own result in <a href="./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a>.</figcaption>
+    <figcaption>ZNCC's quadrant composite — both bounded to $[-1, 1]$ and invariant to brightness and contrast, which is why <code>dictk.translation.locate</code>'s own underlying <code>skimage.registration.phase_cross_correlation</code> call is built on the same combination (see <a href="./correlation_criteria.html#fourier-domain">Correlation Criteria</a>). Its Correlation Surface panel is likewise 51×51, "valid" positions only. Peak still at $\boldsymbol{r}_{SK/\mathcal{S}} = (19, 33)$ pixels, matching <code>locate</code>'s own result in <a href="./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a>.</figcaption>
 </figure>
 
 All four land on the same peak, $\boldsymbol{r}_{SK/\mathcal{S}} = (19,
@@ -186,7 +186,7 @@ phase_correlation_quadrant_plot(
 
 <figure>
     <img src="correlation_visualization_phase.png" alt="four-panel composite for phase correlation: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, a correlation surface that is essentially flat except for one sharp isolated peak, and a zoomed solution vicinity around that peak" />
-    <figcaption>Phase correlation's quadrant composite. Same peak, $\boldsymbol{r}_{SK/\mathcal{S}} = (19, 33)$ pixels — matching the value already found by <code>locate</code> in <a href="./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a> — as every criterion above, but the correlation-surface panel looks nothing like them: essentially flat/uniform everywhere except one crisp, isolated cell, rather than the broader, multi-peaked terrain CC/NCC/ZCC/ZNCC show on this same tiled <code>checkerboard0.png</code>.</figcaption>
+    <figcaption>Phase correlation's quadrant composite. Its Correlation Surface panel is also a different size than the four above: 100×100, matching <code>search</code> itself, since <code>kernel</code> is zero-padded up to <code>search</code>'s shape before the FFT rather than restricted to "valid" positions — every candidate offset, including circular wraparound ones, gets a value. Same peak, $\boldsymbol{r}_{SK/\mathcal{S}} = (19, 33)$ pixels — matching the value already found by <code>locate</code> in <a href="./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a> — as every criterion above, but the correlation-surface panel looks nothing like them: essentially flat/uniform everywhere except one crisp, isolated cell, rather than the broader, multi-peaked terrain CC/NCC/ZCC/ZNCC show on this same tiled <code>checkerboard0.png</code>.</figcaption>
 </figure>
 
 That sharpness isn't just a visual impression. Define a correlation

@@ -25,7 +25,9 @@ pairs that are mapped to nodes of a finite element mesh (i.e., *nodes*).
 
 The basic workflow is as follows:
 
-* Collect a pair of before and after images that capture an area of interest.  The *before* image, often called the reference image, captures some (possibly undeformed or deformed) configuration of the specimen.  The *after* image captures the specimen in a newly deformed state, different from the *before* state.
+* Collect a **pair** of **before** and **after** images that capture an area of interest.
+  * The *before* image, often called the reference image, captures some (possibly undeformed or deformed) configuration of the specimen.  
+  * The *after* image, often called the current image or subject image, captures the specimen in a newly deformed state, different from the *before* state.
 * Within each pair of images, identify points of interest.
 * Use the $(X, Y)$ coordinates of the image points as coordinates of nodes that compose a finite element mesh.
 * Use DIC to quantify the displacement field of each (nodal) point.
