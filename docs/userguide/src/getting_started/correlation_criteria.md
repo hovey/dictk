@@ -142,19 +142,20 @@ matching](https://opg.optica.org/ao/viewmedia.cfm?uri=ao-49-28-5501)."
 
 [`dictk.correlation`](../api/dictk/correlation.html) implements all four as
 standalone functions (`cc`, `ncc`, `zcc`, `zncc`), each returning the full
-correlation surface rather than just its peak — see [CC
-Visualization](./cc_visualization.md) for what those surfaces look like on
-the kernel and search area established in [Cross Correlation
+correlation surface rather than just its peak — see [Correlation
+Visualization](./correlation_visualization.md) for what those surfaces
+look like on the kernel and search area established in [Cross Correlation
 (CC)](./cross_correlation.md).
 
-Next: [CC Visualization](./cc_visualization.md) computes and plots these
-four correlation criteria as heatmaps; the Fourier Domain section below
-explains the route `locate` itself actually takes.
+Next: [Correlation Visualization](./correlation_visualization.md)
+visualizes these four correlation criteria in detail; the Fourier Domain
+section below explains the route `locate` itself actually takes.
 
 ## Fourier Domain
 
-[CC Visualization](./cc_visualization.md) computed CC directly in the
-spatial domain: a literal sliding sum, one value per candidate offset. The
+[Correlation Visualization](./correlation_visualization.md) computes CC
+directly in the spatial domain: a literal sliding sum, one value per
+candidate offset. The
 **convolution theorem** gives an equivalent route: multiplying the two
 images' Fourier transforms (one of them conjugated) and inverse-transforming
 the product yields that same correlation, all at once, for every offset —
@@ -168,7 +169,7 @@ per candidate offset — decisive once images grow beyond this page's small
 teaching example.
 
 `reference_image`, `p0`, `current_image`, `kernel`, and `search` are the
-same as in [CC Visualization](./cc_visualization.md):
+same as in [Correlation Visualization](./correlation_visualization.md):
 
 ```python
 from dictk.image import read, translate, PixelCoordinate, subimage
@@ -219,8 +220,8 @@ print(f"FFT-domain peak offset (dx, dy) = ({dx}, {dy})")
 ```
 
 That peak, $(19, 33)$, matches $\boldsymbol{r}_{SK/\mathcal{S}}$ exactly —
-the same offset [CC Visualization](./cc_visualization.md)'s `cc()` surface
-and `locate` itself both find. That agreement is about the peak's
+the same offset [Correlation Visualization](./correlation_visualization.md)'s
+`cc()` surface and `locate` itself both find. That agreement is about the peak's
 *location* only, not the two surfaces' values: `fft_surface` here is the
 **circular** correlation over the full padded extent (`search`'s own
 shape, `100x100`), while `cc()` returns **valid** positions only (a smaller

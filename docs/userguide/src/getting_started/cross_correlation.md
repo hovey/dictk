@@ -317,5 +317,6 @@ $\boldsymbol{r}_{OP'/\mathcal{F}} = (94, 83)$ | current position $\boldsymbol{p}
 
 Next: [Correlation Criteria](./correlation_criteria.md) defines the four
 cross-correlation formulas and explains the Fourier-domain route `locate`
-actually takes, and [CC Visualization](./cc_visualization.md) computes
-and plots them as heatmaps on this same kernel and search area.
+actually takes, and [Correlation
+Visualization](./correlation_visualization.md) visualizes each of them on
+this same kernel and search area.

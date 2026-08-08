@@ -1,9 +1,9 @@
-# CC Visualization (page 2)
+# Correlation Visualization
 
-[CC Visualization](./cc_visualization.md) compares all four correlation
-criteria side by side as heatmaps, sharing one figure. This page instead
-shows each criterion on its own, in a four-panel composite reproducing a
-reference composite-figure layout used in prior DIC tooling, via
+This page visualizes each of the four spatial-domain correlation criteria
+from [Correlation Criteria](./correlation_criteria.md) — CC, NCC, ZCC, and
+ZNCC — one at a time, in a four-panel composite reproducing a reference
+composite-figure layout used in prior DIC tooling, via
 [`dictk.image.spatial_correlation_quadrant_plot`](../api/dictk/image.html#spatial_correlation_quadrant_plot):
 the search area with the found kernel marked (**Fixed Image**), the kernel
 itself zero-padded to the search area's shape (**Moving Image**), the full
@@ -13,7 +13,7 @@ practice than a side-by-side comparison of criteria.
 
 `reference_image`, `p0`, `current_image`, `kernel_margin`, `search_margin`,
 `kernel`, and `search` are the same as in [Cross Correlation
-(CC)](./cross_correlation.md) and [CC Visualization](./cc_visualization.md):
+(CC)](./cross_correlation.md):
 
 ```python
 from dictk.image import read, translate, PixelCoordinate, subimage
@@ -42,16 +42,16 @@ search = subimage(
 )
 ```
 
-Unlike [CC Visualization](./cc_visualization.md)'s panels, whose axes are
-the candidate offset $(\Delta x, \Delta y)$ alone, the Fixed Image panel
-below plots the search area in its own pixel frame $\mathcal{S}$, with a
-yellow dashed box marking where the kernel was found and red/green dashed
-guide lines through that box's origin — the same $\boldsymbol{r}_{SK/\mathcal{S}}$
-quantity [Cross Correlation (CC)](./cross_correlation.md#solution) solves
-for by hand. The Correlation Surface panel marks that same peak with a red
-circle of radius `vicinity_margin` (4 pixels by default) — exactly the
-region the Solution Vicinity panel zooms into, so the same circle reappears
-there too, now clipped by that panel's own edges.
+The Fixed Image panel below plots the search area in its own pixel frame
+$\mathcal{S}$, with a yellow dashed box marking where the kernel was found
+and red/green dashed guide lines through that box's origin — the same
+$\boldsymbol{r}_{SK/\mathcal{S}}$ quantity [Cross Correlation
+(CC)](./cross_correlation.md#solution) solves for by hand. The Correlation
+Surface panel plots that same quantity as candidate offset $(\Delta x,
+\Delta y)$ and marks the peak with a red circle of radius
+`vicinity_margin` (4 pixels by default) — exactly the region the Solution
+Vicinity panel zooms into, so the same circle reappears there too, now
+clipped by that panel's own edges.
 
 ## Cross-Correlation (CC)
 
@@ -64,16 +64,16 @@ spatial_correlation_quadrant_plot(
     search=search,
     correlation_surface=cc(kernel=kernel, search=search),
     title="Cross-Correlation (CC)",
-    path="cc_visualization_page_2_cc.png",
+    path="correlation_visualization_cc.png",
 )
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage, spatial_correlation_quadrant_plot; from dictk.correlation import cc; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; kernel = subimage(image=reference_image, origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin); search_margin = 50; search_center = p0; search = subimage(image=current_image, origin=PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin), width=2 * search_margin, height=2 * search_margin); spatial_correlation_quadrant_plot(kernel=kernel, search=search, correlation_surface=cc(kernel=kernel, search=search), title='Cross-Correlation (CC)', path='cc_visualization_page_2_cc.png'); print('Saved: cc_visualization_page_2_cc.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage, spatial_correlation_quadrant_plot; from dictk.correlation import cc; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; kernel = subimage(image=reference_image, origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin); search_margin = 50; search_center = p0; search = subimage(image=current_image, origin=PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin), width=2 * search_margin, height=2 * search_margin); spatial_correlation_quadrant_plot(kernel=kernel, search=search, correlation_surface=cc(kernel=kernel, search=search), title='Cross-Correlation (CC)', path='correlation_visualization_cc.png'); print('Saved: correlation_visualization_cc.png')" -->
 ```
 
 <figure>
-    <img src="cc_visualization_page_2_cc.png" alt="four-panel composite: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the CC correlation surface, and a zoomed solution vicinity around its peak" />
+    <img src="correlation_visualization_cc.png" alt="four-panel composite: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the CC correlation surface, and a zoomed solution vicinity around its peak" />
     <figcaption>CC's quadrant composite. checkerboard0's tiled pattern repeats every ~25 pixels, so the correlation-surface panel shows more than one strong local peak within its own (smaller, "valid") range — CC has no way to prefer the true one over its look-alikes beyond raw magnitude, unlike the normalized criteria below. The correct one, boxed in yellow in the Fixed Image panel, sits at $\boldsymbol{r}_{SK/\mathcal{S}} = (19, 33)$ pixels — matching the value already found by <code>locate</code> in <a href="./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a>.</figcaption>
 </figure>
 
@@ -87,16 +87,16 @@ spatial_correlation_quadrant_plot(
     search=search,
     correlation_surface=ncc(kernel=kernel, search=search),
     title="Normalized Cross-Correlation (NCC)",
-    path="cc_visualization_page_2_ncc.png",
+    path="correlation_visualization_ncc.png",
 )
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage, spatial_correlation_quadrant_plot; from dictk.correlation import ncc; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; kernel = subimage(image=reference_image, origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin); search_margin = 50; search_center = p0; search = subimage(image=current_image, origin=PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin), width=2 * search_margin, height=2 * search_margin); spatial_correlation_quadrant_plot(kernel=kernel, search=search, correlation_surface=ncc(kernel=kernel, search=search), title='Normalized Cross-Correlation (NCC)', path='cc_visualization_page_2_ncc.png'); print('Saved: cc_visualization_page_2_ncc.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage, spatial_correlation_quadrant_plot; from dictk.correlation import ncc; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; kernel = subimage(image=reference_image, origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin); search_margin = 50; search_center = p0; search = subimage(image=current_image, origin=PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin), width=2 * search_margin, height=2 * search_margin); spatial_correlation_quadrant_plot(kernel=kernel, search=search, correlation_surface=ncc(kernel=kernel, search=search), title='Normalized Cross-Correlation (NCC)', path='correlation_visualization_ncc.png'); print('Saved: correlation_visualization_ncc.png')" -->
 ```
 
 <figure>
-    <img src="cc_visualization_page_2_ncc.png" alt="four-panel composite for NCC: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the NCC correlation surface, and a zoomed solution vicinity around its peak" />
+    <img src="correlation_visualization_ncc.png" alt="four-panel composite for NCC: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the NCC correlation surface, and a zoomed solution vicinity around its peak" />
     <figcaption>NCC's quadrant composite, bounded to $[-1, 1]$ by construction — visible in the colorbar range compared to CC's arbitrary raw units above. Its peak still lands at $\boldsymbol{r}_{SK/\mathcal{S}} = (19, 33)$ pixels, matching the value already found by <code>locate</code> in <a href="./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a>.</figcaption>
 </figure>
 
@@ -110,16 +110,16 @@ spatial_correlation_quadrant_plot(
     search=search,
     correlation_surface=zcc(kernel=kernel, search=search),
     title="Zero-mean Cross-Correlation (ZCC)",
-    path="cc_visualization_page_2_zcc.png",
+    path="correlation_visualization_zcc.png",
 )
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage, spatial_correlation_quadrant_plot; from dictk.correlation import zcc; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; kernel = subimage(image=reference_image, origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin); search_margin = 50; search_center = p0; search = subimage(image=current_image, origin=PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin), width=2 * search_margin, height=2 * search_margin); spatial_correlation_quadrant_plot(kernel=kernel, search=search, correlation_surface=zcc(kernel=kernel, search=search), title='Zero-mean Cross-Correlation (ZCC)', path='cc_visualization_page_2_zcc.png'); print('Saved: cc_visualization_page_2_zcc.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage, spatial_correlation_quadrant_plot; from dictk.correlation import zcc; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; kernel = subimage(image=reference_image, origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin); search_margin = 50; search_center = p0; search = subimage(image=current_image, origin=PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin), width=2 * search_margin, height=2 * search_margin); spatial_correlation_quadrant_plot(kernel=kernel, search=search, correlation_surface=zcc(kernel=kernel, search=search), title='Zero-mean Cross-Correlation (ZCC)', path='correlation_visualization_zcc.png'); print('Saved: correlation_visualization_zcc.png')" -->
 ```
 
 <figure>
-    <img src="cc_visualization_page_2_zcc.png" alt="four-panel composite for ZCC: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the ZCC correlation surface, and a zoomed solution vicinity around its peak" />
+    <img src="correlation_visualization_zcc.png" alt="four-panel composite for ZCC: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the ZCC correlation surface, and a zoomed solution vicinity around its peak" />
     <figcaption>ZCC's quadrant composite — raw units like CC's (mean-subtraction alone doesn't bound the range), but brightness-invariant per <a href="./correlation_criteria.html#invariance-and-robustness">Correlation Criteria</a>'s table. Same peak, $\boldsymbol{r}_{SK/\mathcal{S}} = (19, 33)$ pixels, as <code>locate</code> already found in <a href="./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a>.</figcaption>
 </figure>
 
@@ -133,27 +133,26 @@ spatial_correlation_quadrant_plot(
     search=search,
     correlation_surface=zncc(kernel=kernel, search=search),
     title="Zero-mean Normalized Cross-Correlation (ZNCC)",
-    path="cc_visualization_page_2_zncc.png",
+    path="correlation_visualization_zncc.png",
 )
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage, spatial_correlation_quadrant_plot; from dictk.correlation import zncc; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; kernel = subimage(image=reference_image, origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin); search_margin = 50; search_center = p0; search = subimage(image=current_image, origin=PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin), width=2 * search_margin, height=2 * search_margin); spatial_correlation_quadrant_plot(kernel=kernel, search=search, correlation_surface=zncc(kernel=kernel, search=search), title='Zero-mean Normalized Cross-Correlation (ZNCC)', path='cc_visualization_page_2_zncc.png'); print('Saved: cc_visualization_page_2_zncc.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage, spatial_correlation_quadrant_plot; from dictk.correlation import zncc; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; kernel = subimage(image=reference_image, origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin); search_margin = 50; search_center = p0; search = subimage(image=current_image, origin=PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin), width=2 * search_margin, height=2 * search_margin); spatial_correlation_quadrant_plot(kernel=kernel, search=search, correlation_surface=zncc(kernel=kernel, search=search), title='Zero-mean Normalized Cross-Correlation (ZNCC)', path='correlation_visualization_zncc.png'); print('Saved: correlation_visualization_zncc.png')" -->
 ```
 
 <figure>
-    <img src="cc_visualization_page_2_zncc.png" alt="four-panel composite for ZNCC: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the ZNCC correlation surface, and a zoomed solution vicinity around its peak" />
+    <img src="correlation_visualization_zncc.png" alt="four-panel composite for ZNCC: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the ZNCC correlation surface, and a zoomed solution vicinity around its peak" />
     <figcaption>ZNCC's quadrant composite — both bounded to $[-1, 1]$ and invariant to brightness and contrast, which is why <code>dictk.translation.locate</code>'s own underlying <code>skimage.registration.phase_cross_correlation</code> call is built on the same combination (see <a href="./correlation_criteria.html#fourier-domain">Correlation Criteria</a>). Peak still at $\boldsymbol{r}_{SK/\mathcal{S}} = (19, 33)$ pixels, matching <code>locate</code>'s own result in <a href="./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a>.</figcaption>
 </figure>
 
 All four land on the same peak, $\boldsymbol{r}_{SK/\mathcal{S}} = (19,
 33)$ pixels, since `kernel` and `search` here share identical brightness
-and contrast (both come from `checkerboard0.png`, only translated) — the
-same reason [CC Visualization](./cc_visualization.md) gives for its own
-matching peaks. What differs between the four is what each panel's
-colorbar reveals about *how safely* that peak can be trusted once
-brightness or contrast do differ, as [Correlation
-Criteria](./correlation_criteria.md#invariance-and-robustness) covers in detail.
+and contrast (both come from `checkerboard0.png`, only translated). What
+differs between the four is what each panel's colorbar reveals about *how
+safely* that peak can be trusted once brightness or contrast do differ, as
+[Correlation Criteria](./correlation_criteria.md#invariance-and-robustness)
+covers in detail.
 
 ## Phase Correlation
 
@@ -177,16 +176,16 @@ from dictk.image import phase_correlation_quadrant_plot
 phase_correlation_quadrant_plot(
     kernel=kernel,
     search=search,
-    path="cc_visualization_page_2_phase.png",
+    path="correlation_visualization_phase.png",
 )
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage, phase_correlation_quadrant_plot; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; kernel = subimage(image=reference_image, origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin); search_margin = 50; search_center = p0; search = subimage(image=current_image, origin=PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin), width=2 * search_margin, height=2 * search_margin); phase_correlation_quadrant_plot(kernel=kernel, search=search, path='cc_visualization_page_2_phase.png'); print('Saved: cc_visualization_page_2_phase.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage, phase_correlation_quadrant_plot; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; kernel = subimage(image=reference_image, origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin); search_margin = 50; search_center = p0; search = subimage(image=current_image, origin=PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin), width=2 * search_margin, height=2 * search_margin); phase_correlation_quadrant_plot(kernel=kernel, search=search, path='correlation_visualization_phase.png'); print('Saved: correlation_visualization_phase.png')" -->
 ```
 
 <figure>
-    <img src="cc_visualization_page_2_phase.png" alt="four-panel composite for phase correlation: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, a correlation surface that is essentially flat except for one sharp isolated peak, and a zoomed solution vicinity around that peak" />
+    <img src="correlation_visualization_phase.png" alt="four-panel composite for phase correlation: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, a correlation surface that is essentially flat except for one sharp isolated peak, and a zoomed solution vicinity around that peak" />
     <figcaption>Phase correlation's quadrant composite. Same peak, $\boldsymbol{r}_{SK/\mathcal{S}} = (19, 33)$ pixels — matching the value already found by <code>locate</code> in <a href="./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a> — as every criterion above, but the correlation-surface panel looks nothing like them: essentially flat/uniform everywhere except one crisp, isolated cell, rather than the broader, multi-peaked terrain CC/NCC/ZCC/ZNCC show on this same tiled <code>checkerboard0.png</code>.</figcaption>
 </figure>
 
@@ -230,15 +229,15 @@ for ax, (name, fn) in zip(axes.flat, surfaces.items()):
     ax.set_xlabel("surface value")
     ax.set_ylabel("frequency")
 axes.flat[-1].axis("off")  # 5 panels in a 3x2 grid -- last slot stays empty
-fig.savefig("cc_visualization_page_2_prominence.png", dpi=300)
+fig.savefig("correlation_visualization_prominence.png", dpi=300)
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage; from dictk.correlation import cc, ncc, zcc, zncc, phase_correlation; import matplotlib.pyplot as plt; plt.rcParams.update({'font.family': 'serif', 'mathtext.fontset': 'cm'}); reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; kernel = subimage(image=reference_image, origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin); search_margin = 50; search_center = p0; search = subimage(image=current_image, origin=PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin), width=2 * search_margin, height=2 * search_margin); surfaces = {'CC': cc, 'NCC': ncc, 'ZCC': zcc, 'ZNCC': zncc, 'Phase correlation': phase_correlation}; fig, axes = plt.subplots(3, 2, figsize=(11, 12), constrained_layout=True); [(lambda flat: (ax.hist(flat, bins=60, color='black', alpha=0.7), ax.axvline(flat.max(), color='red', linestyle='--', linewidth=1.5), ax.set_yscale('log'), ax.set_title(f'{name}: \$P = {(flat.max() - flat.mean()) / flat.std():.1f}\$'), ax.set_xlabel('surface value'), ax.set_ylabel('frequency')))(fn(kernel=kernel, search=search).ravel()) for ax, (name, fn) in zip(axes.flat, surfaces.items())]; axes.flat[-1].axis('off'); fig.savefig('cc_visualization_page_2_prominence.png', dpi=300); print('Saved: cc_visualization_page_2_prominence.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage; from dictk.correlation import cc, ncc, zcc, zncc, phase_correlation; import matplotlib.pyplot as plt; plt.rcParams.update({'font.family': 'serif', 'mathtext.fontset': 'cm'}); reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; kernel = subimage(image=reference_image, origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin); search_margin = 50; search_center = p0; search = subimage(image=current_image, origin=PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin), width=2 * search_margin, height=2 * search_margin); surfaces = {'CC': cc, 'NCC': ncc, 'ZCC': zcc, 'ZNCC': zncc, 'Phase correlation': phase_correlation}; fig, axes = plt.subplots(3, 2, figsize=(11, 12), constrained_layout=True); [(lambda flat: (ax.hist(flat, bins=60, color='black', alpha=0.7), ax.axvline(flat.max(), color='red', linestyle='--', linewidth=1.5), ax.set_yscale('log'), ax.set_title(f'{name}: \$P = {(flat.max() - flat.mean()) / flat.std():.1f}\$'), ax.set_xlabel('surface value'), ax.set_ylabel('frequency')))(fn(kernel=kernel, search=search).ravel()) for ax, (name, fn) in zip(axes.flat, surfaces.items())]; axes.flat[-1].axis('off'); fig.savefig('correlation_visualization_prominence.png', dpi=300); print('Saved: correlation_visualization_prominence.png')" -->
 ```
 
 <figure>
-    <img src="cc_visualization_page_2_prominence.png" alt="five histogram panels, one per correlation criterion, each showing the distribution of that surface's own values with a dashed red line marking its peak; the four spatial criteria show a broad bell-like spread with the peak in a modestly separated upper tail, while phase correlation shows a narrow spike near zero with its peak isolated far to the right, well beyond any other bar" />
+    <img src="correlation_visualization_prominence.png" alt="five histogram panels, one per correlation criterion, each showing the distribution of that surface's own values with a dashed red line marking its peak; the four spatial criteria show a broad bell-like spread with the peak in a modestly separated upper tail, while phase correlation shows a narrow spike near zero with its peak isolated far to the right, well beyond any other bar" />
     <figcaption>Each surface's own value distribution (log-scaled frequency, 60 bins), dashed red line at its peak — every dashed line marks the same $\boldsymbol{r}_{SK/\mathcal{S}} = (19, 33)$-pixel location <code>locate</code> already found in <a href="./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a>, just plotted by value here rather than position. CC/NCC/ZCC/ZNCC's peaks sit a short, visible distance beyond their own bulk. Phase correlation's peak sits in a class of its own — an empty gap separates it from every other value the surface takes on.</figcaption>
 </figure>
 
