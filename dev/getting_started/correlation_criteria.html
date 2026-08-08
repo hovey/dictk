@@ -310,16 +310,17 @@ matching</a>."
 <a href="https://1drv.ms/b/c/3cc1bee5e2795295/IQDjuSdmrbpZT71uMkNXOaC4ATCYsBI1RAntZaKOURqobsI?e=65MdBH">[download]</a></p>
 <p><a href="../api/dictk/correlation.html"><code>dictk.correlation</code></a> implements all four as
 standalone functions (<code>cc</code>, <code>ncc</code>, <code>zcc</code>, <code>zncc</code>), each returning the full
-correlation surface rather than just its peak — see <a href="./cc_visualization.html">CC
-Visualization</a> for what those surfaces look like on
-the kernel and search area established in <a href="./cross_correlation.html">Cross Correlation
+correlation surface rather than just its peak — see <a href="./correlation_visualization.html">Correlation
+Visualization</a> for what those surfaces
+look like on the kernel and search area established in <a href="./cross_correlation.html">Cross Correlation
 (CC)</a>.</p>
-<p>Next: <a href="./cc_visualization.html">CC Visualization</a> computes and plots these
-four correlation criteria as heatmaps; the Fourier Domain section below
-explains the route <code>locate</code> itself actually takes.</p>
+<p>Next: <a href="./correlation_visualization.html">Correlation Visualization</a>
+visualizes these four correlation criteria in detail; the Fourier Domain
+section below explains the route <code>locate</code> itself actually takes.</p>
 <h2 id="fourier-domain"><a class="header" href="#fourier-domain">Fourier Domain</a></h2>
-<p><a href="./cc_visualization.html">CC Visualization</a> computed CC directly in the
-spatial domain: a literal sliding sum, one value per candidate offset. The
+<p><a href="./correlation_visualization.html">Correlation Visualization</a> computes CC
+directly in the spatial domain: a literal sliding sum, one value per
+candidate offset. The
 <strong>convolution theorem</strong> gives an equivalent route: multiplying the two
 images' Fourier transforms (one of them conjugated) and inverse-transforming
 the product yields that same correlation, all at once, for every offset —
@@ -332,7 +333,7 @@ The appeal isn't a different answer — it's speed: a fast Fourier transform
 per candidate offset — decisive once images grow beyond this page's small
 teaching example.</p>
 <p><code>reference_image</code>, <code>p0</code>, <code>current_image</code>, <code>kernel</code>, and <code>search</code> are the
-same as in <a href="./cc_visualization.html">CC Visualization</a>:</p>
+same as in <a href="./correlation_visualization.html">Correlation Visualization</a>:</p>
 <pre><code class="language-python">from dictk.image import read, translate, PixelCoordinate, subimage
 
 reference_image = read(path="checkerboard0.png")
@@ -375,8 +376,8 @@ print(f"FFT-domain peak offset (dx, dy) = ({dx}, {dy})")
 <pre><code class="language-text">FFT-domain peak offset (dx, dy) = (19, 33)
 </code></pre>
 <p>That peak, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">19</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">33</span><span class="mclose">)</span></span></span></span>, matches <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span></span></span></span> exactly —
-the same offset <a href="./cc_visualization.html">CC Visualization</a>'s <code>cc()</code> surface
-and <code>locate</code> itself both find. That agreement is about the peak's
+the same offset <a href="./correlation_visualization.html">Correlation Visualization</a>'s
+<code>cc()</code> surface and <code>locate</code> itself both find. That agreement is about the peak's
 <em>location</em> only, not the two surfaces' values: <code>fft_surface</code> here is the
 <strong>circular</strong> correlation over the full padded extent (<code>search</code>'s own
 shape, <code>100x100</code>), while <code>cc()</code> returns <strong>valid</strong> positions only (a smaller
@@ -420,7 +421,7 @@ this codebase yet.</p>
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../getting_started/cc_visualization.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../getting_started/correlation_visualization.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -434,7 +435,7 @@ this codebase yet.</p>
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../getting_started/cc_visualization.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../getting_started/correlation_visualization.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

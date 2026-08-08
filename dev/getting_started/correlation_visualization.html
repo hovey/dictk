@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>CC Visualization (page 2) - dictk User Guide</title>
+        <title>Correlation Visualization - dictk User Guide</title>
 
 
         <!-- Custom HTML head -->
@@ -180,11 +180,11 @@
                 <div id="content" class="content">
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="cc-visualization-page-2"><a class="header" href="#cc-visualization-page-2">CC Visualization (page 2)</a></h1>
-<p><a href="./cc_visualization.html">CC Visualization</a> compares all four correlation
-criteria side by side as heatmaps, sharing one figure. This page instead
-shows each criterion on its own, in a four-panel composite reproducing a
-reference composite-figure layout used in prior DIC tooling, via
+<h1 id="correlation-visualization"><a class="header" href="#correlation-visualization">Correlation Visualization</a></h1>
+<p>This page visualizes each of the four spatial-domain correlation criteria
+from <a href="./correlation_criteria.html">Correlation Criteria</a> — CC, NCC, ZCC, and
+ZNCC — one at a time, in a four-panel composite reproducing a reference
+composite-figure layout used in prior DIC tooling, via
 <a href="../api/dictk/image.html#spatial_correlation_quadrant_plot"><code>dictk.image.spatial_correlation_quadrant_plot</code></a>:
 the search area with the found kernel marked (<strong>Fixed Image</strong>), the kernel
 itself zero-padded to the search area's shape (<strong>Moving Image</strong>), the full
@@ -193,7 +193,7 @@ closer to how a single registration result is typically inspected in
 practice than a side-by-side comparison of criteria.</p>
 <p><code>reference_image</code>, <code>p0</code>, <code>current_image</code>, <code>kernel_margin</code>, <code>search_margin</code>,
 <code>kernel</code>, and <code>search</code> are the same as in <a href="./cross_correlation.html">Cross Correlation
-(CC)</a> and <a href="./cc_visualization.html">CC Visualization</a>:</p>
+(CC)</a>:</p>
 <pre><code class="language-python">from dictk.image import read, translate, PixelCoordinate, subimage
 
 reference_image = read(path="checkerboard0.png")
@@ -219,16 +219,15 @@ search = subimage(
     height=2 * search_margin,
 )
 </code></pre>
-<p>Unlike <a href="./cc_visualization.html">CC Visualization</a>'s panels, whose axes are
-the candidate offset <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">Δ</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">Δ</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span> alone, the Fixed Image panel
-below plots the search area in its own pixel frame <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathcal" style="margin-right:0.075em;">S</span></span></span></span>, with a
-yellow dashed box marking where the kernel was found and red/green dashed
-guide lines through that box's origin — the same <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span></span></span></span>
-quantity <a href="./cross_correlation.html#solution">Cross Correlation (CC)</a> solves
-for by hand. The Correlation Surface panel marks that same peak with a red
-circle of radius <code>vicinity_margin</code> (4 pixels by default) — exactly the
-region the Solution Vicinity panel zooms into, so the same circle reappears
-there too, now clipped by that panel's own edges.</p>
+<p>The Fixed Image panel below plots the search area in its own pixel frame
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathcal" style="margin-right:0.075em;">S</span></span></span></span>, with a yellow dashed box marking where the kernel was found
+and red/green dashed guide lines through that box's origin — the same
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span></span></span></span> quantity <a href="./cross_correlation.html#solution">Cross Correlation
+(CC)</a> solves for by hand. The Correlation
+Surface panel plots that same quantity as candidate offset <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">Δ</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">Δ</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span> and marks the peak with a red circle of radius
+<code>vicinity_margin</code> (4 pixels by default) — exactly the region the Solution
+Vicinity panel zooms into, so the same circle reappears there too, now
+clipped by that panel's own edges.</p>
 <h2 id="cross-correlation-cc"><a class="header" href="#cross-correlation-cc">Cross-Correlation (CC)</a></h2>
 <pre><code class="language-python">from dictk.correlation import cc
 from dictk.image import spatial_correlation_quadrant_plot
@@ -238,13 +237,13 @@ spatial_correlation_quadrant_plot(
     search=search,
     correlation_surface=cc(kernel=kernel, search=search),
     title="Cross-Correlation (CC)",
-    path="cc_visualization_page_2_cc.png",
+    path="correlation_visualization_cc.png",
 )
 </code></pre>
-<pre><code class="language-text">Saved: cc_visualization_page_2_cc.png
+<pre><code class="language-text">Saved: correlation_visualization_cc.png
 </code></pre>
 <figure>
-    <img src="cc_visualization_page_2_cc.png" alt="four-panel composite: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the CC correlation surface, and a zoomed solution vicinity around its peak" />
+    <img src="correlation_visualization_cc.png" alt="four-panel composite: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the CC correlation surface, and a zoomed solution vicinity around its peak" />
     <figcaption>CC's quadrant composite. checkerboard0's tiled pattern repeats every ~25 pixels, so the correlation-surface panel shows more than one strong local peak within its own (smaller, "valid") range — CC has no way to prefer the true one over its look-alikes beyond raw magnitude, unlike the normalized criteria below. The correct one, boxed in yellow in the Fixed Image panel, sits at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">19</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">33</span><span class="mclose">)</span></span></span></span> pixels — matching the value already found by <code>locate</code> in <a href="./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a>.</figcaption>
 </figure>
 <h2 id="normalized-cross-correlation-ncc"><a class="header" href="#normalized-cross-correlation-ncc">Normalized Cross-Correlation (NCC)</a></h2>
@@ -255,13 +254,13 @@ spatial_correlation_quadrant_plot(
     search=search,
     correlation_surface=ncc(kernel=kernel, search=search),
     title="Normalized Cross-Correlation (NCC)",
-    path="cc_visualization_page_2_ncc.png",
+    path="correlation_visualization_ncc.png",
 )
 </code></pre>
-<pre><code class="language-text">Saved: cc_visualization_page_2_ncc.png
+<pre><code class="language-text">Saved: correlation_visualization_ncc.png
 </code></pre>
 <figure>
-    <img src="cc_visualization_page_2_ncc.png" alt="four-panel composite for NCC: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the NCC correlation surface, and a zoomed solution vicinity around its peak" />
+    <img src="correlation_visualization_ncc.png" alt="four-panel composite for NCC: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the NCC correlation surface, and a zoomed solution vicinity around its peak" />
     <figcaption>NCC's quadrant composite, bounded to <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mord">−</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mclose">]</span></span></span></span> by construction — visible in the colorbar range compared to CC's arbitrary raw units above. Its peak still lands at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">19</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">33</span><span class="mclose">)</span></span></span></span> pixels, matching the value already found by <code>locate</code> in <a href="./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a>.</figcaption>
 </figure>
 <h2 id="zero-mean-cross-correlation-zcc"><a class="header" href="#zero-mean-cross-correlation-zcc">Zero-mean Cross-Correlation (ZCC)</a></h2>
@@ -272,13 +271,13 @@ spatial_correlation_quadrant_plot(
     search=search,
     correlation_surface=zcc(kernel=kernel, search=search),
     title="Zero-mean Cross-Correlation (ZCC)",
-    path="cc_visualization_page_2_zcc.png",
+    path="correlation_visualization_zcc.png",
 )
 </code></pre>
-<pre><code class="language-text">Saved: cc_visualization_page_2_zcc.png
+<pre><code class="language-text">Saved: correlation_visualization_zcc.png
 </code></pre>
 <figure>
-    <img src="cc_visualization_page_2_zcc.png" alt="four-panel composite for ZCC: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the ZCC correlation surface, and a zoomed solution vicinity around its peak" />
+    <img src="correlation_visualization_zcc.png" alt="four-panel composite for ZCC: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the ZCC correlation surface, and a zoomed solution vicinity around its peak" />
     <figcaption>ZCC's quadrant composite — raw units like CC's (mean-subtraction alone doesn't bound the range), but brightness-invariant per <a href="./correlation_criteria.html#invariance-and-robustness">Correlation Criteria</a>'s table. Same peak, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">19</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">33</span><span class="mclose">)</span></span></span></span> pixels, as <code>locate</code> already found in <a href="./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a>.</figcaption>
 </figure>
 <h2 id="zero-mean-normalized-cross-correlation-zncc"><a class="header" href="#zero-mean-normalized-cross-correlation-zncc">Zero-mean Normalized Cross-Correlation (ZNCC)</a></h2>
@@ -289,22 +288,21 @@ spatial_correlation_quadrant_plot(
     search=search,
     correlation_surface=zncc(kernel=kernel, search=search),
     title="Zero-mean Normalized Cross-Correlation (ZNCC)",
-    path="cc_visualization_page_2_zncc.png",
+    path="correlation_visualization_zncc.png",
 )
 </code></pre>
-<pre><code class="language-text">Saved: cc_visualization_page_2_zncc.png
+<pre><code class="language-text">Saved: correlation_visualization_zncc.png
 </code></pre>
 <figure>
-    <img src="cc_visualization_page_2_zncc.png" alt="four-panel composite for ZNCC: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the ZNCC correlation surface, and a zoomed solution vicinity around its peak" />
+    <img src="correlation_visualization_zncc.png" alt="four-panel composite for ZNCC: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, the ZNCC correlation surface, and a zoomed solution vicinity around its peak" />
     <figcaption>ZNCC's quadrant composite — both bounded to <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mord">−</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mclose">]</span></span></span></span> and invariant to brightness and contrast, which is why <code>dictk.translation.locate</code>'s own underlying <code>skimage.registration.phase_cross_correlation</code> call is built on the same combination (see <a href="./correlation_criteria.html#fourier-domain">Correlation Criteria</a>). Peak still at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">19</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">33</span><span class="mclose">)</span></span></span></span> pixels, matching <code>locate</code>'s own result in <a href="./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a>.</figcaption>
 </figure>
 <p>All four land on the same peak, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">19</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">33</span><span class="mclose">)</span></span></span></span> pixels, since <code>kernel</code> and <code>search</code> here share identical brightness
-and contrast (both come from <code>checkerboard0.png</code>, only translated) — the
-same reason <a href="./cc_visualization.html">CC Visualization</a> gives for its own
-matching peaks. What differs between the four is what each panel's
-colorbar reveals about <em>how safely</em> that peak can be trusted once
-brightness or contrast do differ, as <a href="./correlation_criteria.html#invariance-and-robustness">Correlation
-Criteria</a> covers in detail.</p>
+and contrast (both come from <code>checkerboard0.png</code>, only translated). What
+differs between the four is what each panel's colorbar reveals about <em>how
+safely</em> that peak can be trusted once brightness or contrast do differ, as
+<a href="./correlation_criteria.html#invariance-and-robustness">Correlation Criteria</a>
+covers in detail.</p>
 <h2 id="phase-correlation"><a class="header" href="#phase-correlation">Phase Correlation</a></h2>
 <p>Every panel above comes from a spatial-domain criterion —
 <a href="../api/dictk/correlation.html"><code>dictk.correlation</code></a>'s <code>cc</code>/<code>ncc</code>/<code>zcc</code>/
@@ -324,13 +322,13 @@ method to choose, nothing to compute beforehand:</p>
 phase_correlation_quadrant_plot(
     kernel=kernel,
     search=search,
-    path="cc_visualization_page_2_phase.png",
+    path="correlation_visualization_phase.png",
 )
 </code></pre>
-<pre><code class="language-text">Saved: cc_visualization_page_2_phase.png
+<pre><code class="language-text">Saved: correlation_visualization_phase.png
 </code></pre>
 <figure>
-    <img src="cc_visualization_page_2_phase.png" alt="four-panel composite for phase correlation: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, a correlation surface that is essentially flat except for one sharp isolated peak, and a zoomed solution vicinity around that peak" />
+    <img src="correlation_visualization_phase.png" alt="four-panel composite for phase correlation: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, a correlation surface that is essentially flat except for one sharp isolated peak, and a zoomed solution vicinity around that peak" />
     <figcaption>Phase correlation's quadrant composite. Same peak, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">19</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">33</span><span class="mclose">)</span></span></span></span> pixels — matching the value already found by <code>locate</code> in <a href="./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a> — as every criterion above, but the correlation-surface panel looks nothing like them: essentially flat/uniform everywhere except one crisp, isolated cell, rather than the broader, multi-peaked terrain CC/NCC/ZCC/ZNCC show on this same tiled <code>checkerboard0.png</code>.</figcaption>
 </figure>
 <p>That sharpness isn't just a visual impression. Define a correlation
@@ -366,12 +364,12 @@ for ax, (name, fn) in zip(axes.flat, surfaces.items()):
     ax.set_xlabel("surface value")
     ax.set_ylabel("frequency")
 axes.flat[-1].axis("off")  # 5 panels in a 3x2 grid -- last slot stays empty
-fig.savefig("cc_visualization_page_2_prominence.png", dpi=300)
+fig.savefig("correlation_visualization_prominence.png", dpi=300)
 </code></pre>
-<pre><code class="language-text">Saved: cc_visualization_page_2_prominence.png
+<pre><code class="language-text">Saved: correlation_visualization_prominence.png
 </code></pre>
 <figure>
-    <img src="cc_visualization_page_2_prominence.png" alt="five histogram panels, one per correlation criterion, each showing the distribution of that surface's own values with a dashed red line marking its peak; the four spatial criteria show a broad bell-like spread with the peak in a modestly separated upper tail, while phase correlation shows a narrow spike near zero with its peak isolated far to the right, well beyond any other bar" />
+    <img src="correlation_visualization_prominence.png" alt="five histogram panels, one per correlation criterion, each showing the distribution of that surface's own values with a dashed red line marking its peak; the four spatial criteria show a broad bell-like spread with the peak in a modestly separated upper tail, while phase correlation shows a narrow spike near zero with its peak isolated far to the right, well beyond any other bar" />
     <figcaption>Each surface's own value distribution (log-scaled frequency, 60 bins), dashed red line at its peak — every dashed line marks the same <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">19</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">33</span><span class="mclose">)</span></span></span></span>-pixel location <code>locate</code> already found in <a href="./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a>, just plotted by value here rather than position. CC/NCC/ZCC/ZNCC's peaks sit a short, visible distance beyond their own bulk. Phase correlation's peak sits in a class of its own — an empty gap separates it from every other value the surface takes on.</figcaption>
 </figure>
 <p>Phase correlation's peak stands roughly seven times taller above its own
@@ -447,7 +445,7 @@ def phase_correlation(
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../getting_started/cc_visualization.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../getting_started/correlation_criteria.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
@@ -461,7 +459,7 @@ def phase_correlation(
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../getting_started/cc_visualization.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../getting_started/correlation_criteria.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
