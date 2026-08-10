@@ -1,6 +1,75 @@
 """Spatial- and Fourier-domain cross-correlation criteria between a kernel and a search area."""
 
+from enum import Enum
+
 import numpy as np
+
+
+class WindowingMethod(Enum):
+    """Tapering window `window()` can apply before an FFT.
+
+    - HANN: tapers all the way to exactly 0 at both ends.
+    - HAMMING: stops short, around 0.08, trading a little residual
+      discontinuity for a narrower main lobe in the transformed signal.
+    """
+
+    HANN = "hann"
+    HAMMING = "hamming"
+
+
+def window(
+    *, arr: np.ndarray, method: WindowingMethod = WindowingMethod.HANN
+) -> np.ndarray:
+    r"""Taper `arr`'s edges toward zero with a 2D Hann or Hamming window.
+
+    An FFT implicitly treats an array as one period of an
+    infinitely-repeating signal. If the content doesn't tile seamlessly --
+    the general case, since nothing arranges `arr`'s edges to match up --
+    that discontinuity leaks energy across many frequencies rather than the
+    few the underlying content actually has, an effect called **spectral
+    leakage**. In a correlation surface, leakage broadens and can shift the
+    peak.
+
+    This counters that by tapering `arr`'s edges toward zero before it's
+    transformed, so the (still discontinuous, but now near-zero) seam
+    contributes far less energy. The 2D window is the outer product of a 1D
+    window with itself along each axis:
+
+    $$w_{\rm Hann}(n) = 0.5 \left(1 - \cos\left(\frac{2\pi n}{N - 1}\right)\right)$$
+
+    $$w_{\rm Hamming}(n) = 0.54 - 0.46 \cos\left(\frac{2\pi n}{N - 1}\right)$$
+
+    for $n = 0, \ldots, N-1$ across a window of length $N$.
+
+    See Harris FJ. "On the use of windows for harmonic analysis with the
+    discrete Fourier transform." Proceedings of the IEEE
+    1978;66(1):51-83.
+
+    Args:
+        arr: A 2D array to window.
+        method: Which window to apply. Default `WindowingMethod.HANN`.
+
+    Returns:
+        A 2D float64 array the same shape as `arr`, with `arr` multiplied
+        elementwise by the 2D window.
+
+    Raises:
+        ValueError: If `arr` is not 2D.
+    """
+    if arr.ndim != 2:
+        raise ValueError(f"arr must be 2D, got shape {arr.shape}")
+
+    match method:
+        case WindowingMethod.HANN:
+            win_func = np.hanning
+        case WindowingMethod.HAMMING:
+            win_func = np.hamming
+        case _:
+            raise ValueError(f"Unsupported windowing method: {method}")
+
+    rows, cols = arr.shape
+    window_2d = np.outer(win_func(rows), win_func(cols))
+    return arr.astype(np.float64) * window_2d
 
 
 def _prepare(
