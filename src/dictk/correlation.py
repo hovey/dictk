@@ -284,6 +284,41 @@ def zncc(*, kernel: np.ndarray, search: np.ndarray) -> np.ndarray:
     return _safe_divide(numerator=numerator, denominator=denominator)
 
 
+def _window_and_pad(
+    *,
+    kernel: np.ndarray,
+    search: np.ndarray,
+    windowing: WindowingMethod | None,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Optionally window, then zero-pad `kernel` up to `search`'s own shape.
+
+    Shared by `phase_correlation` and
+    [`dictk.translation.locate`](../translation.html#locate) -- the two
+    functions that zero-pad `kernel` before comparing it against `search`
+    via an FFT-based technique -- so the "window, then pad" step (and its
+    ordering) lives in exactly one place.
+
+    Args:
+        kernel: The fixed template subimage, before padding.
+        search: The larger subimage `kernel` is compared against.
+        windowing: If given, both `kernel` and `search` are passed through
+            `window()` with this method before padding. `None` leaves
+            both untouched -- including their dtype, so a caller that
+            never windows sees no incidental cast either.
+
+    Returns:
+        `(kernel_padded, search)` -- `kernel_padded` the same shape as
+        `search`, `search` itself unchanged except by windowing.
+    """
+    if windowing is not None:
+        kernel = window(arr=kernel, method=windowing)
+        search = window(arr=search, method=windowing)
+    pad_height = search.shape[0] - kernel.shape[0]
+    pad_width = search.shape[1] - kernel.shape[1]
+    kernel_padded = np.pad(kernel, ((0, pad_height), (0, pad_width)))
+    return kernel_padded, search
+
+
 def phase_correlation(
     *,
     kernel: np.ndarray,
@@ -357,12 +392,9 @@ def phase_correlation(
             `kernel` in either dimension.
     """
     kernel, search = _prepare(kernel=kernel, search=search)
-    if windowing is not None:
-        kernel = window(arr=kernel, method=windowing)
-        search = window(arr=search, method=windowing)
-    pad_height = search.shape[0] - kernel.shape[0]
-    pad_width = search.shape[1] - kernel.shape[1]
-    kernel_padded = np.pad(kernel, ((0, pad_height), (0, pad_width)))
+    kernel_padded, search = _window_and_pad(
+        kernel=kernel, search=search, windowing=windowing
+    )
 
     search_freq = np.fft.fft2(search)
     kernel_freq = np.fft.fft2(kernel_padded)
