@@ -195,6 +195,44 @@ def test_phase_correlation_recovers_known_translation():
     assert (found.x, found.y) == (94, 83)
 
 
+def test_phase_correlation_windowing_none_matches_default():
+    """windowing=None is identical to omitting the argument entirely."""
+    kernel, search, _search_origin, _kernel_margin = _kernel_and_search(
+        dx=-6, dy=8, kernel_margin=25, search_margin=50
+    )
+    surface_default = phase_correlation(kernel=kernel, search=search)
+    surface_explicit_none = phase_correlation(
+        kernel=kernel, search=search, windowing=None
+    )
+    assert np.array_equal(surface_default, surface_explicit_none)
+
+
+@pytest.mark.parametrize("method", [WindowingMethod.HANN, WindowingMethod.HAMMING])
+def test_phase_correlation_windowing_changes_surface(method):
+    """Windowing changes the surface relative to no windowing."""
+    kernel, search, _search_origin, _kernel_margin = _kernel_and_search(
+        dx=-6, dy=8, kernel_margin=25, search_margin=50
+    )
+    surface = phase_correlation(kernel=kernel, search=search)
+    surface_windowed = phase_correlation(kernel=kernel, search=search, windowing=method)
+    assert not np.allclose(surface, surface_windowed)
+
+
+@pytest.mark.parametrize("method", [WindowingMethod.HANN, WindowingMethod.HAMMING])
+def test_phase_correlation_windowing_still_recovers_known_translation(method):
+    """The peak still recovers the known translation with windowing applied."""
+    kernel, search, search_origin, kernel_margin = _kernel_and_search(
+        dx=-6, dy=8, kernel_margin=25, search_margin=50
+    )
+    surface = phase_correlation(kernel=kernel, search=search, windowing=method)
+    dy, dx = np.unravel_index(np.argmax(surface), surface.shape)
+    found = PixelCoordinate(
+        x=search_origin.x + dx + kernel_margin,
+        y=search_origin.y + dy + kernel_margin,
+    )
+    assert (found.x, found.y) == (94, 83)
+
+
 def test_phase_correlation_matches_locate():
     """phase_correlation() agrees with locate()'s own internal computation."""
     reference_image = rosta(width=200, height=200, density=0.5)

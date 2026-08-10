@@ -284,7 +284,12 @@ def zncc(*, kernel: np.ndarray, search: np.ndarray) -> np.ndarray:
     return _safe_divide(numerator=numerator, denominator=denominator)
 
 
-def phase_correlation(*, kernel: np.ndarray, search: np.ndarray) -> np.ndarray:
+def phase_correlation(
+    *,
+    kernel: np.ndarray,
+    search: np.ndarray,
+    windowing: WindowingMethod | None = None,
+) -> np.ndarray:
     r"""Phase correlation surface of `kernel` against `search`, via FFT.
 
     Unlike `cc`/`ncc`/`zcc`/`zncc`, which slide `kernel` over `search` one
@@ -333,6 +338,12 @@ def phase_correlation(*, kernel: np.ndarray, search: np.ndarray) -> np.ndarray:
     Args:
         kernel: The fixed template subimage (`f`, before padding).
         search: The larger subimage `kernel` is compared against (`g`).
+        windowing: If given, both `kernel` and `search` are passed through
+            `window()` with this method -- tapering their edges toward
+            zero to reduce spectral leakage -- before padding/FFT. `kernel`
+            is windowed first, then zero-padded, so the padding stays
+            outside the tapered region. Default `None` applies no
+            windowing, matching this function's original behavior exactly.
 
     Returns:
         A 2D float64 array the same shape as `search` (unlike
@@ -346,6 +357,9 @@ def phase_correlation(*, kernel: np.ndarray, search: np.ndarray) -> np.ndarray:
             `kernel` in either dimension.
     """
     kernel, search = _prepare(kernel=kernel, search=search)
+    if windowing is not None:
+        kernel = window(arr=kernel, method=windowing)
+        search = window(arr=search, method=windowing)
     pad_height = search.shape[0] - kernel.shape[0]
     pad_width = search.shape[1] - kernel.shape[1]
     kernel_padded = np.pad(kernel, ((0, pad_height), (0, pad_width)))
