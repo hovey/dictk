@@ -8,6 +8,7 @@
 - [Image Generation](./getting_started/image_generation.md)
   - [Subimage Generation](./getting_started/subimage.md)
 - [Image Preprocessing](./getting_started/preprocessing.md)
+  - [Brightness and Contrast](./getting_started/brightness_contrast.md)
 - [Image Transformation](./getting_started/transformation.md)
 - [Single Point Motion](./getting_started/single_point_motion.md)
   - [Cross Correlation (CC)](./getting_started/cross_correlation.md)
