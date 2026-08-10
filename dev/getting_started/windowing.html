@@ -187,9 +187,8 @@ general case since nothing arranges an image's edges to match up, that
 discontinuity leaks energy across many frequencies rather than the few
 the underlying content actually has, an effect called <strong>spectral
 leakage</strong>. In a correlation surface, leakage broadens and can shift the
-peak, hurting the precision
-<a href="../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> is
-built to provide.</p>
+peak, hurting the precision of any technique that searches that surface
+for a match.</p>
 <p><strong>Windowing</strong> counters this by tapering an image's edges toward zero
 before transforming it, so the (still discontinuous, but now near-zero)
 seam contributes far less energy. Two standard 1D windows, applied to an
@@ -258,7 +257,7 @@ for name, profile in weight_profiles.items():
 <pre><code class="language-text">Saved: windowing_kernel_original.png, windowing_kernel_hann.png, windowing_kernel_hamming.png, windowing_kernel_cut_none.png, windowing_kernel_cut_hann.png, windowing_kernel_cut_hamming.png
 </code></pre>
 <div class="table-wrapper"><table><thead><tr><th>none</th><th>Hann</th><th>Hamming</th></tr></thead><tbody>
-<tr><td><img src="windowing_kernel_original.png" alt="original kernel" /></td><td><img src="windowing_kernel_hann.png" alt="Hann-windowed kernel" /></td><td><img src="windowing_kernel_hamming.png" alt="Hamming-windowed kernel" /></td></tr>
+<tr><td><img src="windowing_kernel_original.png" alt="original kernel" style="display: block; margin: 0 auto;"></td><td><img src="windowing_kernel_hann.png" alt="Hann-windowed kernel" style="display: block; margin: 0 auto;"></td><td><img src="windowing_kernel_hamming.png" alt="Hamming-windowed kernel" style="display: block; margin: 0 auto;"></td></tr>
 <tr><td><img src="windowing_kernel_cut_none.png" alt="none weight cut-through" /></td><td><img src="windowing_kernel_cut_hann.png" alt="Hann weight cut-through" /></td><td><img src="windowing_kernel_cut_hamming.png" alt="Hamming weight cut-through" /></td></tr>
 </tbody></table>
 </div>
@@ -275,19 +274,6 @@ alone: Hann reaches exactly <span class="katex"><span class="katex-html" aria-hi
 <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.08</span></span></span></span> -- not the smaller <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.006</span></span></span></span> corner value above, since a corner is
 where <em>both</em> axes are simultaneously at their own edge, and a mid-height
 cut only ever passes through one axis's edge at a time.</p>
-<h2 id="windowing-in-phase_correlation"><a class="header" href="#windowing-in-phase_correlation">Windowing in <code>phase_correlation()</code></a></h2>
-<p><a href="../api/dictk/correlation.html#phase_correlation"><code>dictk.correlation.phase_correlation</code></a>
-takes an optional <code>windowing</code> parameter: when given, both <code>kernel</code> and
-<code>search</code> are passed through <code>window()</code> before the existing pad/FFT steps.
-Default <code>None</code> applies no windowing, matching every earlier page in this
-book that calls <code>phase_correlation</code> without it. See <a href="./correlation_visualization.html#phase-correlation">Correlation
-Visualization</a> for
-this in action -- No Windowing, Hann Windowing, and Hamming Windowing
-each get their own worked example there, run on the same <code>kernel</code>/
-<code>search</code> pair as the rest of that page, plus a
-<a href="./correlation_visualization.html#peak-prominence">Peak Prominence</a>
-comparison quantifying what windowing actually buys, alongside CC,
-NCC, ZCC, and ZNCC.</p>
 
                     </main>
 
