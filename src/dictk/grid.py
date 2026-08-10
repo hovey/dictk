@@ -5,6 +5,7 @@ from collections.abc import Sequence
 import numpy as np
 
 from dictk import translation
+from dictk.correlation import WindowingMethod
 from dictk.image import PixelCoordinate
 
 
@@ -64,6 +65,7 @@ def locate(
     kernel_margin_height: int,
     search_margin_width: int,
     search_margin_height: int,
+    windowing: WindowingMethod | None = None,
 ) -> list[PixelCoordinate]:
     """Batch version of `dictk.translation.locate`: track many points at once.
 
@@ -94,6 +96,11 @@ def locate(
             Must be greater than `kernel_margin_width`.
         search_margin_height: Half each search area's height, in pixels.
             Must be greater than `kernel_margin_height`.
+        windowing: Passed straight through to each per-point
+            [`dictk.translation.locate`](./translation.html#locate) call
+            -- see its own `windowing` parameter. Default `None` applies
+            no windowing to any point, matching this function's original
+            behavior exactly.
 
     Returns:
         Each point's location, in `current_image`'s pixel reference
@@ -122,6 +129,7 @@ def locate(
             kernel_margin_height=kernel_margin_height,
             search_margin_width=search_margin_width,
             search_margin_height=search_margin_height,
+            windowing=windowing,
         )
         for reference_point, search_center in zip(reference_points, search_centers)
     ]
