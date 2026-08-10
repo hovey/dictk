@@ -25,7 +25,7 @@ src/dictk/cli.py:20:0: R0917: Too many positional arguments (6/5) (too-many-posi
 ************* Module dictk.grid
 src/dictk/grid.py:57:0: R0913: Too many arguments (8/5) (too-many-arguments)
 ************* Module dictk.correlation
-src/dictk/correlation.py:287:10: E1101: Instance of &#x27;finfo&#x27; has no &#x27;eps&#x27; member (no-member)
+src/dictk/correlation.py:356:10: E1101: Instance of &#x27;finfo&#x27; has no &#x27;eps&#x27; member (no-member)
 ************* Module dictk.image
 src/dictk/image.py:1584:0: C0301: Line too long (101/100) (line-too-long)
 src/dictk/image.py:1:0: C0302: Too many lines in module (1990/1000) (too-many-lines)
@@ -51,7 +51,7 @@ src/dictk/image.py:1884:0: R0914: Too many local variables (26/15) (too-many-loc
 
 Report
 ======
-715 statements analysed.
+729 statements analysed.
 
 Statistics by type
 ------------------
@@ -61,11 +61,11 @@ Statistics by type
 +=========+=======+===========+===========+============+=========+
 |module   |7      |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
-|class    |6      |NC         |NC         |100.00      |0.00     |
+|class    |7      |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
 |method   |1      |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
-|function |53     |NC         |NC         |100.00      |0.00     |
+|function |54     |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
 
 
@@ -90,7 +90,7 @@ External dependencies
 
 
 
-3015 lines have been analyzed
+3084 lines have been analyzed
 
 Raw metrics
 -----------
@@ -98,13 +98,13 @@ Raw metrics
 +----------+-------+------+---------+-----------+
 |type      |number |%     |previous |difference |
 +==========+=======+======+=========+===========+
-|code      |1366   |45.31 |NC       |NC         |
+|code      |1385   |44.91 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|docstring |1251   |41.49 |NC       |NC         |
+|docstring |1293   |41.93 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|comment   |130    |4.31  |NC       |NC         |
+|comment   |130    |4.22  |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|empty     |268    |8.89  |NC       |NC         |
+|empty     |276    |8.95  |NC       |NC         |
 +----------+-------+------+---------+-----------+
 
 
@@ -189,7 +189,7 @@ Messages
 
 
 -----------------------------------
-Your code has been rated at 9.50/10
+Your code has been rated at 9.51/10
 </pre>
 </body>
 </html>
