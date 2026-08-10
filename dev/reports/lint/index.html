@@ -25,7 +25,8 @@ src/dictk/cli.py:20:0: R0917: Too many positional arguments (6/5) (too-many-posi
 ************* Module dictk.grid
 src/dictk/grid.py:58:0: R0913: Too many arguments (9/5) (too-many-arguments)
 ************* Module dictk.correlation
-src/dictk/correlation.py:402:10: E1101: Instance of &#x27;finfo&#x27; has no &#x27;eps&#x27; member (no-member)
+src/dictk/correlation.py:46:0: C0301: Line too long (140/100) (line-too-long)
+src/dictk/correlation.py:404:10: E1101: Instance of &#x27;finfo&#x27; has no &#x27;eps&#x27; member (no-member)
 ************* Module dictk.image
 src/dictk/image.py:1584:0: C0301: Line too long (101/100) (line-too-long)
 src/dictk/image.py:1:0: C0302: Too many lines in module (2000/1000) (too-many-lines)
@@ -90,7 +91,7 @@ External dependencies
 
 
 
-3161 lines have been analyzed
+3163 lines have been analyzed
 
 Raw metrics
 -----------
@@ -98,11 +99,11 @@ Raw metrics
 +----------+-------+------+---------+-----------+
 |type      |number |%     |previous |difference |
 +==========+=======+======+=========+===========+
-|code      |1411   |44.64 |NC       |NC         |
+|code      |1411   |44.61 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|docstring |1340   |42.39 |NC       |NC         |
+|docstring |1342   |42.43 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|comment   |132    |4.18  |NC       |NC         |
+|comment   |132    |4.17  |NC       |NC         |
 +----------+-------+------+---------+-----------+
 |empty     |278    |8.79  |NC       |NC         |
 +----------+-------+------+---------+-----------+
@@ -128,7 +129,7 @@ Messages by category
 +-----------+-------+---------+-----------+
 |type       |number |previous |difference |
 +===========+=======+=========+===========+
-|convention |2      |NC       |NC         |
+|convention |3      |NC       |NC         |
 +-----------+-------+---------+-----------+
 |refactor   |23     |NC       |NC         |
 +-----------+-------+---------+-----------+
@@ -147,9 +148,9 @@ Messages by category
 +==================+======+========+=========+===========+
 |dictk.translation |50.00 |0.00    |8.70     |0.00       |
 +------------------+------+--------+---------+-----------+
-|dictk.correlation |50.00 |0.00    |0.00     |0.00       |
+|dictk.correlation |50.00 |0.00    |0.00     |33.33      |
 +------------------+------+--------+---------+-----------+
-|dictk.image       |0.00  |100.00  |73.91    |100.00     |
+|dictk.image       |0.00  |100.00  |73.91    |66.67      |
 +------------------+------+--------+---------+-----------+
 |dictk.cli         |0.00  |0.00    |8.70     |0.00       |
 +------------------+------+--------+---------+-----------+
@@ -170,6 +171,8 @@ Messages
 +------------------------------+------------+
 |too-many-locals               |8           |
 +------------------------------+------------+
+|line-too-long                 |2           |
++------------------------------+------------+
 |unbalanced-tuple-unpacking    |1           |
 +------------------------------+------------+
 |too-many-statements           |1           |
@@ -182,14 +185,12 @@ Messages
 +------------------------------+------------+
 |no-member                     |1           |
 +------------------------------+------------+
-|line-too-long                 |1           |
-+------------------------------+------------+
 
 
 
 
 -----------------------------------
-Your code has been rated at 9.51/10
+Your code has been rated at 9.50/10
 </pre>
 </body>
 </html>
