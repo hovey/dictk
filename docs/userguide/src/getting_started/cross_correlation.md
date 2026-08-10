@@ -208,42 +208,6 @@ pixels using only the two images and $\boldsymbol{p}_0$ — exactly the
 information available for a real (not synthetically generated) image
 pair.
 
-## Windowing
-
-`locate` also accepts an optional `windowing` parameter — the same one
-[`dictk.correlation.phase_correlation`](../api/dictk/correlation.html#phase_correlation)
-exposes, described in full on [Windowing](./windowing.md). Passing it
-here reproduces the same point, still using only the two images and
-$\boldsymbol{p}_0$:
-
-```python
-from dictk.correlation import WindowingMethod
-
-found_hann = locate(
-    reference_image=reference_image,
-    current_image=current_image,
-    reference_point=p0,
-    search_center=search_center,
-    kernel_margin_width=kernel_margin,
-    kernel_margin_height=kernel_margin,
-    search_margin_width=search_margin,
-    search_margin_height=search_margin,
-    windowing=WindowingMethod.HANN,
-)
-print(f"found_hann = {found_hann}")
-```
-
-```text
-<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate; from dictk.translation import locate; from dictk.correlation import WindowingMethod; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; search_margin = 50; search_center = p0; found_hann = locate(reference_image=reference_image, current_image=current_image, reference_point=p0, search_center=search_center, kernel_margin_width=kernel_margin, kernel_margin_height=kernel_margin, search_margin_width=search_margin, search_margin_height=search_margin, windowing=WindowingMethod.HANN); print(f'found_hann = {found_hann}')" -->
-```
-
-`found_hann` matches `found` above exactly, $\boldsymbol{p}_1 = (94,
-83)$ pixels — windowing changes the correlation surface `locate`
-searches internally (see [Windowing](./windowing.md) and [Correlation
-Visualization](./correlation_visualization.md#peak-prominence) for how
-and why), not the answer, on this book's clean, noise-free synthetic
-images.
-
 ## Visualizing the Solution
 
 For illustration, we can back out $\boldsymbol{r}_{SK/\mathcal{S}}$ — the
