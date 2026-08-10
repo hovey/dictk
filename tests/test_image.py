@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from dictk.correlation import cc, phase_correlation, zncc
+from dictk.correlation import WindowingMethod, cc, phase_correlation, zncc
 from dictk.grid import generate as grid_generate
 from dictk.rosta import rosta
 from dictk.image import (
@@ -1044,6 +1044,44 @@ def test_phase_correlation_quadrant_plot_peak_matches_known_displacement(
 
     path = tmp_path / "phase_correlation_quadrant.png"
     phase_correlation_quadrant_plot(kernel=kernel, search=search, path=path)
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+@pytest.mark.parametrize("method", [WindowingMethod.HANN, WindowingMethod.HAMMING])
+def test_phase_correlation_quadrant_plot_windowing_writes_file(tmp_path: Path, method):
+    """windowing is accepted and still writes a valid figure."""
+    kernel, search = _astronaut0_kernel_and_search(
+        dx=-6, dy=8, kernel_margin=25, search_margin=50
+    )
+    path = tmp_path / "phase_correlation_quadrant.png"
+    phase_correlation_quadrant_plot(
+        kernel=kernel, search=search, windowing=method, path=path
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+@pytest.mark.parametrize("method", [WindowingMethod.HANN, WindowingMethod.HAMMING])
+def test_phase_correlation_quadrant_plot_windowing_peak_matches_known_displacement(
+    tmp_path: Path, method
+):
+    """The peak still matches a known displacement with windowing applied."""
+    dx, dy = -6, 8
+    kernel_margin, search_margin = 25, 50
+    kernel, search = _astronaut0_kernel_and_search(
+        dx=dx, dy=dy, kernel_margin=kernel_margin, search_margin=search_margin
+    )
+    surface = phase_correlation(kernel=kernel, search=search, windowing=method)
+    expected_x = search_margin + dx - kernel_margin
+    expected_y = search_margin + dy - kernel_margin
+    found_y, found_x = np.unravel_index(np.argmax(surface), surface.shape)
+    assert (found_x, found_y) == (expected_x, expected_y)
+
+    path = tmp_path / "phase_correlation_quadrant.png"
+    phase_correlation_quadrant_plot(
+        kernel=kernel, search=search, windowing=method, path=path
+    )
     assert path.exists()
     assert path.stat().st_size > 0
 

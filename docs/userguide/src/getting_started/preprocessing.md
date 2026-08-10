@@ -8,5 +8,5 @@ FFT-based technique such as phase correlation.
 * [**Brightness and Contrast**](./brightness_contrast.md) shift and
   stretch the pixel-intensity histogram, the two most basic differences
   a reference and current image can have.
-* **Windowing** tapers an image's edges toward zero before a Fourier
-  transform, reducing spectral leakage.
+* [**Windowing**](./windowing.md) tapers an image's edges toward zero
+  before a Fourier transform, reducing spectral leakage.

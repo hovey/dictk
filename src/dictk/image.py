@@ -15,7 +15,7 @@ from matplotlib.path import Path as MarkerPath
 from scipy.interpolate import RegularGridInterpolator
 from scipy.ndimage import zoom
 
-from dictk.correlation import phase_correlation
+from dictk.correlation import WindowingMethod, phase_correlation
 
 
 class PixelCoordinate(NamedTuple):
@@ -1659,6 +1659,7 @@ def phase_correlation_quadrant_plot(
     *,
     kernel: np.ndarray,
     search: np.ndarray,
+    windowing: WindowingMethod | None = None,
     title: str = "Phase Correlation",
     path: Path,
     figsize: tuple[float, float] = (8.0, 8.0),
@@ -1706,6 +1707,13 @@ def phase_correlation_quadrant_plot(
         kernel: The extracted kernel subimage (2D grayscale array).
         search: The extracted search-area subimage (2D grayscale array);
             must be at least as large as `kernel` in both dimensions.
+        windowing: If given, passed straight through to
+            [`phase_correlation`](../correlation.html#phase_correlation) --
+            tapers `kernel`/`search` before computing the surface. Only
+            the Correlation Surface and Solution Vicinity panels reflect
+            this; the Fixed Image and Moving Image panels always show the
+            raw, un-tapered `kernel`/`search` as given, the same as when
+            `windowing` is `None`. Default `None` applies no windowing.
         title: Figure-level title, rendered as a `suptitle` spanning the
             full figure width. Defaults to `"Phase Correlation"` since
             there's only one flavor here -- override if different phrasing
@@ -1721,7 +1729,9 @@ def phase_correlation_quadrant_plot(
         ValueError: If `search` is smaller than `kernel` in either
             dimension.
     """
-    correlation_surface = phase_correlation(kernel=kernel, search=search)
+    correlation_surface = phase_correlation(
+        kernel=kernel, search=search, windowing=windowing
+    )
     _correlation_quadrant_plot(
         kernel=kernel,
         search=search,
