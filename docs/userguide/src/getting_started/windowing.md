@@ -87,8 +87,3 @@ each get their own worked example there, run on the same `kernel`/
 [Peak Prominence](./correlation_visualization.md#peak-prominence)
 comparison quantifying what windowing actually buys, alongside CC,
 NCC, ZCC, and ZNCC.
-
-**Not yet wired up:** `windowing` lives on `phase_correlation()` only.
-[`dictk.translation.locate`](../api/dictk/translation.html#locate) --
-the function every worked example in this book actually calls to find a
-point -- does not accept a `windowing` parameter and applies none.
