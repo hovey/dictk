@@ -25,8 +25,11 @@ way to exactly zero at both ends; Hamming stops short (around $0.08$),
 trading a little residual discontinuity for a narrower main lobe in the
 transformed signal.
 
-See Harris FJ. "On the use of windows for harmonic analysis with the
-discrete Fourier transform." Proceedings of the IEEE 1978;66(1):51-83.
+See Harris FJ. "[On the use of windows for harmonic analysis with the
+discrete Fourier
+transform](https://www.cs.cmu.edu/afs/cs/user/bhiksha/WWW/courses/dsp/spring2013/WWW/schedule/readings/windows_comparison2_harris.pdf)."
+*Proceedings of the IEEE* 1978;66(1):51-83. A U.S. government work, not
+protected by U.S. copyright.
 
 ## `window()`
 
