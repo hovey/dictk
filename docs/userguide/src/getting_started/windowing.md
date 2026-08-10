@@ -6,9 +6,8 @@ general case since nothing arranges an image's edges to match up, that
 discontinuity leaks energy across many frequencies rather than the few
 the underlying content actually has, an effect called **spectral
 leakage**. In a correlation surface, leakage broadens and can shift the
-peak, hurting the precision
-[`dictk.translation.locate`](../api/dictk/translation.html#locate) is
-built to provide.
+peak, hurting the precision of any technique that searches that surface
+for a match.
 
 **Windowing** counters this by tapering an image's edges toward zero
 before transforming it, so the (still discontinuous, but now near-zero)
@@ -90,7 +89,7 @@ for name, profile in weight_profiles.items():
 
 none | Hann | Hamming
 --- | --- | ---
-![original kernel](windowing_kernel_original.png) | ![Hann-windowed kernel](windowing_kernel_hann.png) | ![Hamming-windowed kernel](windowing_kernel_hamming.png)
+<img src="windowing_kernel_original.png" alt="original kernel" style="display: block; margin: 0 auto;"> | <img src="windowing_kernel_hann.png" alt="Hann-windowed kernel" style="display: block; margin: 0 auto;"> | <img src="windowing_kernel_hamming.png" alt="Hamming-windowed kernel" style="display: block; margin: 0 auto;">
 ![none weight cut-through](windowing_kernel_cut_none.png) | ![Hann weight cut-through](windowing_kernel_cut_hann.png) | ![Hamming weight cut-through](windowing_kernel_cut_hamming.png)
 
 Every edge fades toward black; Hann's corners go fully black (tapers to
@@ -108,18 +107,3 @@ alone: Hann reaches exactly $0$ at both edges, Hamming levels off at
 $0.08$ -- not the smaller $0.006$ corner value above, since a corner is
 where *both* axes are simultaneously at their own edge, and a mid-height
 cut only ever passes through one axis's edge at a time.
-
-## Windowing in `phase_correlation()`
-
-[`dictk.correlation.phase_correlation`](../api/dictk/correlation.html#phase_correlation)
-takes an optional `windowing` parameter: when given, both `kernel` and
-`search` are passed through `window()` before the existing pad/FFT steps.
-Default `None` applies no windowing, matching every earlier page in this
-book that calls `phase_correlation` without it. See [Correlation
-Visualization](./correlation_visualization.md#phase-correlation) for
-this in action -- No Windowing, Hann Windowing, and Hamming Windowing
-each get their own worked example there, run on the same `kernel`/
-`search` pair as the rest of that page, plus a
-[Peak Prominence](./correlation_visualization.md#peak-prominence)
-comparison quantifying what windowing actually buys, alongside CC,
-NCC, ZCC, and ZNCC.
