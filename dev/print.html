@@ -1322,10 +1322,23 @@ subimage_comparison_plot(image=astronaut0, origin=origin, width=40, height=100, 
 </figure>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="image-preprocessing"><a class="header" href="#image-preprocessing">Image Preprocessing</a></h1>
-<p>Certain preprocessing steps can make digital image correlation more robust
-to differences in brightness and contrast between a reference and deformed
-image. This page covers two of them, using the <a href="getting_started/./image_generation.html#astronaut">astronaut reference
-image</a> from the previous page as an
+<p>Certain preprocessing steps can make digital image correlation more
+robust to differences between a reference and current image — some in
+pixel intensity, others in how well an image's content suits an
+FFT-based technique such as phase correlation.</p>
+<ul>
+<li><a href="getting_started/./brightness_contrast.html"><strong>Brightness and Contrast</strong></a> shift and
+stretch the pixel-intensity histogram, the two most basic differences
+a reference and current image can have.</li>
+<li><a href="getting_started/./windowing.html"><strong>Windowing</strong></a> tapers an image's edges toward zero
+before a Fourier transform, reducing spectral leakage.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="brightness-and-contrast"><a class="header" href="#brightness-and-contrast">Brightness and Contrast</a></h1>
+<p>This page covers two preprocessing steps that can make digital image
+correlation more robust to pixel-intensity differences between a
+reference and deformed image, using the <a href="getting_started/./image_generation.html#astronaut">astronaut reference
+image</a> from Image Generation as an
 example.</p>
 <h2 id="brightness"><a class="header" href="#brightness">Brightness</a></h2>
 <p><a href="getting_started/../api/dictk/image.html#brightness"><strong>Brightness</strong></a> shifts the entire
@@ -1400,6 +1413,112 @@ even as high-contrast edges sharpen further.</p>
 <p><strong>Key Insight:</strong> Contrast stretches the histogram, while brightness
 translates it.</p>
 </blockquote>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="windowing"><a class="header" href="#windowing">Windowing</a></h1>
+<p>The FFT implicitly treats an image as one period of an
+infinitely-repeating signal. If the content doesn't tile seamlessly, which is the
+general case since nothing arranges an image's edges to match up, that
+discontinuity leaks energy across many frequencies rather than the few
+the underlying content actually has, an effect called <strong>spectral
+leakage</strong>. In a correlation surface, leakage broadens and can shift the
+peak, hurting the precision
+<a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> is
+built to provide.</p>
+<p><strong>Windowing</strong> counters this by tapering an image's edges toward zero
+before transforming it, so the (still discontinuous, but now near-zero)
+seam contributes far less energy. Two standard 1D windows, applied to an
+image by taking the outer product of a window with itself along each
+axis:</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathrm mtight">Hann</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="mord">0.5</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mop">cos</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">1</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">2</span><span class="mord mathnormal">πn</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.7693em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span></span></span></span></span></p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathrm mtight" style="margin-right:0.01389em;">Hamming</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">0.54</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="mord">0.46</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">cos</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">1</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">2</span><span class="mord mathnormal">πn</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.7693em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span></span></span></span></span></p>
+<p>for <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span> across a window of length <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span>. Hann tapers all the
+way to exactly zero at both ends; Hamming stops short (around <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.08</span></span></span></span>),
+trading a little residual discontinuity for a narrower main lobe in the
+transformed signal.</p>
+<p>See Harris FJ. "On the use of windows for harmonic analysis with the
+discrete Fourier transform." Proceedings of the IEEE 1978;66(1):51-83.</p>
+<h2 id="window"><a class="header" href="#window"><code>window()</code></a></h2>
+<p><a href="getting_started/../api/dictk/correlation.html#window"><code>dictk.correlation.window</code></a>
+applies either taper to a 2D array. This reuses <code>kernel</code> from <a href="getting_started/./cross_correlation.html">Cross
+Correlation (CC)</a> and the <a href="getting_started/./correlation_criteria.html#fourier-domain">Fourier
+Domain</a> section of Correlation
+Criteria — the same <code>checkerboard0</code>, <code>p0</code>, and <code>kernel_margin</code> — to show
+what tapering actually does to an image before it's passed to an FFT:</p>
+<pre><code class="language-python">import numpy as np
+import matplotlib.pyplot as plt
+from dictk.image import read, PixelCoordinate, subimage, write
+from dictk.correlation import window, WindowingMethod
+
+reference_image = read(path="checkerboard0.png")
+p0 = PixelCoordinate(x=100, y=75)
+kernel_margin = 25
+kernel = subimage(
+    image=reference_image,
+    origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin),
+    width=2 * kernel_margin,
+    height=2 * kernel_margin,
+)
+write(arr=kernel, path="windowing_kernel_original.png")
+
+kernel_hann = window(arr=kernel, method=WindowingMethod.HANN)
+write(arr=kernel_hann.astype(np.uint8), path="windowing_kernel_hann.png")
+
+kernel_hamming = window(arr=kernel, method=WindowingMethod.HAMMING)
+write(arr=kernel_hamming.astype(np.uint8), path="windowing_kernel_hamming.png")
+
+# window()'s own weights, isolated from kernel's content: windowing an
+# all-ones array leaves exactly the 2D weight array behind. A single row
+# at the kernel's mid-height cuts through the row axis's own peak (~1.0),
+# so what's left is each method's column-axis taper alone.
+mid_row = kernel.shape[0] // 2
+ones = np.ones_like(kernel, dtype=np.float64)
+weight_profiles = {
+    "none": np.ones(kernel.shape[1]),
+    "hann": window(arr=ones, method=WindowingMethod.HANN)[mid_row, :],
+    "hamming": window(arr=ones, method=WindowingMethod.HAMMING)[mid_row, :],
+}
+for name, profile in weight_profiles.items():
+    fig, ax = plt.subplots(figsize=(4, 2.5), constrained_layout=True)
+    ax.plot(profile, color="black")
+    ax.set_ylim(-0.05, 1.05)  # shared across all three, for a fair comparison
+    ax.set_xlabel("x (pixels)")
+    ax.set_ylabel("window weight")
+    fig.savefig(f"windowing_kernel_cut_{name}.png", dpi=300)
+    plt.close(fig)
+</code></pre>
+<pre><code class="language-text">Saved: windowing_kernel_original.png, windowing_kernel_hann.png, windowing_kernel_hamming.png, windowing_kernel_cut_none.png, windowing_kernel_cut_hann.png, windowing_kernel_cut_hamming.png
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>none</th><th>Hann</th><th>Hamming</th></tr></thead><tbody>
+<tr><td><img src="getting_started/windowing_kernel_original.png" alt="original kernel" /></td><td><img src="getting_started/windowing_kernel_hann.png" alt="Hann-windowed kernel" /></td><td><img src="getting_started/windowing_kernel_hamming.png" alt="Hamming-windowed kernel" /></td></tr>
+<tr><td><img src="getting_started/windowing_kernel_cut_none.png" alt="none weight cut-through" /></td><td><img src="getting_started/windowing_kernel_cut_hann.png" alt="Hann weight cut-through" /></td><td><img src="getting_started/windowing_kernel_cut_hamming.png" alt="Hamming weight cut-through" /></td></tr>
+</tbody></table>
+</div>
+<p>Every edge fades toward black; Hann's corners go fully black (tapers to
+exactly 0), while Hamming's stay a faint gray (tapers to <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">0.08</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.08</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.006</span></span></span></span> of the original corner pixel, the product of both
+axes' own <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.08</span></span></span></span> edge value).</p>
+<p>The bottom row makes each method's own taper precise, independent of
+<code>checkerboard0</code>'s content: a horizontal cut through the window's weight
+array at the kernel's mid-height, all three sharing the same <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>-axis.
+<code>none</code> is flat at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1.0</span></span></span></span> everywhere -- no taper at all. Hann and Hamming
+both peak at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1.0</span></span></span></span> at that same mid-height (the row axis's own window is
+near its own peak there), so this cut isolates the column axis's taper
+alone: Hann reaches exactly <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span> at both edges, Hamming levels off at
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.08</span></span></span></span> -- not the smaller <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.006</span></span></span></span> corner value above, since a corner is
+where <em>both</em> axes are simultaneously at their own edge, and a mid-height
+cut only ever passes through one axis's edge at a time.</p>
+<h2 id="windowing-in-phase_correlation"><a class="header" href="#windowing-in-phase_correlation">Windowing in <code>phase_correlation()</code></a></h2>
+<p><a href="getting_started/../api/dictk/correlation.html#phase_correlation"><code>dictk.correlation.phase_correlation</code></a>
+takes an optional <code>windowing</code> parameter: when given, both <code>kernel</code> and
+<code>search</code> are passed through <code>window()</code> before the existing pad/FFT steps.
+Default <code>None</code> applies no windowing, matching every earlier page in this
+book that calls <code>phase_correlation</code> without it. See <a href="getting_started/./correlation_visualization.html#phase-correlation">Correlation
+Visualization</a> for
+this in action -- No Windowing, Hann Windowing, and Hamming Windowing
+each get their own worked example there, run on the same <code>kernel</code>/
+<code>search</code> pair as the rest of that page, plus a
+<a href="getting_started/./correlation_visualization.html#peak-prominence">Peak Prominence</a>
+comparison quantifying what windowing actually buys, alongside CC,
+NCC, ZCC, and ZNCC.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="image-transformation"><a class="header" href="#image-transformation">Image Transformation</a></h1>
 <p>Image deformations, also called <em>transformations</em> in the computer vision
@@ -1869,6 +1988,34 @@ earlier, recovering the known displacement <span class="katex"><span class="kate
 pixels using only the two images and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6886em;vertical-align:-0.2441em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span></span></span></span> — exactly the
 information available for a real (not synthetically generated) image
 pair.</p>
+<h2 id="windowing-1"><a class="header" href="#windowing-1">Windowing</a></h2>
+<p><code>locate</code> also accepts an optional <code>windowing</code> parameter — the same one
+<a href="getting_started/../api/dictk/correlation.html#phase_correlation"><code>dictk.correlation.phase_correlation</code></a>
+exposes, described in full on <a href="getting_started/./windowing.html">Windowing</a>. Passing it
+here reproduces the same point, still using only the two images and
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6886em;vertical-align:-0.2441em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span></span></span></span>:</p>
+<pre><code class="language-python">from dictk.correlation import WindowingMethod
+
+found_hann = locate(
+    reference_image=reference_image,
+    current_image=current_image,
+    reference_point=p0,
+    search_center=search_center,
+    kernel_margin_width=kernel_margin,
+    kernel_margin_height=kernel_margin,
+    search_margin_width=search_margin,
+    search_margin_height=search_margin,
+    windowing=WindowingMethod.HANN,
+)
+print(f"found_hann = {found_hann}")
+</code></pre>
+<pre><code class="language-text">found_hann = PixelCoordinate(x=94, y=83)
+</code></pre>
+<p><code>found_hann</code> matches <code>found</code> above exactly, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6886em;vertical-align:-0.2441em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">94</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">83</span><span class="mclose">)</span></span></span></span> pixels — windowing changes the correlation surface <code>locate</code>
+searches internally (see <a href="getting_started/./windowing.html">Windowing</a> and <a href="getting_started/./correlation_visualization.html#peak-prominence">Correlation
+Visualization</a> for how
+and why), not the answer, on this book's clean, noise-free synthetic
+images.</p>
 <h2 id="visualizing-the-solution"><a class="header" href="#visualizing-the-solution">Visualizing the Solution</a></h2>
 <p>For illustration, we can back out <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span></span></span></span> — the
 one quantity <code>locate</code> finds via cross-correlation, everything else here
@@ -2187,7 +2334,7 @@ every frequency before inverting it (see the extensive comment in
 <a href="getting_started/../api/dictk/translation.html#locate"><code>locate</code>'s source</a> for why). Both
 differences change the surface's numeric character; neither changes where
 its peak lands here.</p>
-<h3 id="windowing"><a class="header" href="#windowing">Windowing</a></h3>
+<h3 id="windowing-2"><a class="header" href="#windowing-2">Windowing</a></h3>
 <p>The FFT implicitly treats an image as one period of an infinitely-repeating
 signal. If the content doesn't tile seamlessly — the general case, since
 nothing arranged <code>search</code>'s edges to match up — that discontinuity leaks
@@ -2346,21 +2493,63 @@ runs internally via <code>skimage.registration.phase_cross_correlation</code>. U
 its spatial-domain siblings, there's only one Fourier-domain flavor here,
 so <a href="getting_started/../api/dictk/image.html#phase_correlation_quadrant_plot"><code>phase_correlation_quadrant_plot</code></a>
 takes <code>kernel</code>/<code>search</code> directly rather than a pre-computed surface — no
-method to choose, nothing to compute beforehand:</p>
+method to choose, nothing to compute beforehand. It does, however, take
+an optional <code>windowing</code> parameter (see <a href="getting_started/./windowing.html">Windowing</a>): the
+three subsections below run this same <code>kernel</code>/<code>search</code> pair through no
+windowing, Hann windowing, and Hamming windowing in turn, so the effect
+is directly comparable rather than just described.</p>
+<h3 id="no-windowing-default"><a class="header" href="#no-windowing-default">No Windowing (default)</a></h3>
+<p><code>windowing</code> defaults to <code>None</code>, applying no tapering — this reproduces
+exactly what every earlier page in this book that calls
+<code>phase_correlation</code>/<code>locate</code> already does.</p>
 <pre><code class="language-python">from dictk.image import phase_correlation_quadrant_plot
 
 phase_correlation_quadrant_plot(
     kernel=kernel,
     search=search,
-    path="correlation_visualization_phase.png",
+    title="Phase Correlation (No Windowing)",
+    path="correlation_visualization_phase_none.png",
 )
 </code></pre>
-<pre><code class="language-text">Saved: correlation_visualization_phase.png
+<pre><code class="language-text">Saved: correlation_visualization_phase_none.png
 </code></pre>
 <figure>
-    <img src="getting_started/correlation_visualization_phase.png" alt="four-panel composite for phase correlation: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, a correlation surface that is essentially flat except for one sharp isolated peak, and a zoomed solution vicinity around that peak" />
-    <figcaption>Phase correlation's quadrant composite. Its Correlation Surface panel is also a different size than the four above: 100×100, matching <code>search</code> itself, since <code>kernel</code> is zero-padded up to <code>search</code>'s shape before the FFT rather than restricted to "valid" positions — every candidate offset, including circular wraparound ones, gets a value. Same peak, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">19</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">33</span><span class="mclose">)</span></span></span></span> pixels — matching the value already found by <code>locate</code> in <a href="getting_started/./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a> — as every criterion above, but the correlation-surface panel looks nothing like them: essentially flat/uniform everywhere except one crisp, isolated cell, rather than the broader, multi-peaked terrain CC/NCC/ZCC/ZNCC show on this same tiled <code>checkerboard0.png</code>.</figcaption>
+    <img src="getting_started/correlation_visualization_phase_none.png" alt="four-panel composite for phase correlation with no windowing: fixed image with the found kernel boxed in yellow and red/green guide lines, the zero-padded moving image, a correlation surface that is essentially flat except for one sharp isolated peak, and a zoomed solution vicinity around that peak" />
+    <figcaption>Phase correlation's quadrant composite, no windowing. Its Correlation Surface panel is a different size than the four above: 100×100, matching <code>search</code> itself, since <code>kernel</code> is zero-padded up to <code>search</code>'s shape before the FFT rather than restricted to "valid" positions — every candidate offset, including circular wraparound ones, gets a value. Same peak, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">19</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">33</span><span class="mclose">)</span></span></span></span> pixels — matching the value already found by <code>locate</code> in <a href="getting_started/./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a> — as every criterion above, but the correlation-surface panel looks nothing like them: essentially flat/uniform everywhere except one crisp, isolated cell, rather than the broader, multi-peaked terrain CC/NCC/ZCC/ZNCC show on this same tiled <code>checkerboard0.png</code>.</figcaption>
 </figure>
+<h3 id="hann-windowing"><a class="header" href="#hann-windowing">Hann Windowing</a></h3>
+<pre><code class="language-python">from dictk.correlation import WindowingMethod
+
+phase_correlation_quadrant_plot(
+    kernel=kernel,
+    search=search,
+    windowing=WindowingMethod.HANN,
+    title="Phase Correlation (Hann Windowing)",
+    path="correlation_visualization_phase_hann.png",
+)
+</code></pre>
+<pre><code class="language-text">Saved: correlation_visualization_phase_hann.png
+</code></pre>
+<figure>
+    <img src="getting_started/correlation_visualization_phase_hann.png" alt="four-panel composite for phase correlation with Hann windowing: same layout as no windowing above, same peak location" />
+    <figcaption>Same 100×100 Correlation Surface shape and the same peak, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">19</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">33</span><span class="mclose">)</span></span></span></span> pixels, as No Windowing above — <code>window()</code> only tapers <code>kernel</code>/<code>search</code> before the FFT, it doesn't change the surface's shape or relocate the peak. The Fixed Image and Moving Image panels are identical to No Windowing's too, since <code>phase_correlation_quadrant_plot</code>'s display panels always show the raw, un-tapered input (see its own <code>windowing</code> parameter docs). What windowing changes is the surface's own values — see <a href="getting_started/correlation_visualization.html#peak-prominence">Peak Prominence</a> below for how much.</figcaption>
+</figure>
+<h3 id="hamming-windowing"><a class="header" href="#hamming-windowing">Hamming Windowing</a></h3>
+<pre><code class="language-python">phase_correlation_quadrant_plot(
+    kernel=kernel,
+    search=search,
+    windowing=WindowingMethod.HAMMING,
+    title="Phase Correlation (Hamming Windowing)",
+    path="correlation_visualization_phase_hamming.png",
+)
+</code></pre>
+<pre><code class="language-text">Saved: correlation_visualization_phase_hamming.png
+</code></pre>
+<figure>
+    <img src="getting_started/correlation_visualization_phase_hamming.png" alt="four-panel composite for phase correlation with Hamming windowing: same layout as no windowing above, same peak location" />
+    <figcaption>Same shape and peak as No Windowing and Hann Windowing above too. Hamming's taper stops short of exactly 0 at the edges (around <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.08</span></span></span></span>, per <a href="getting_started/./windowing.html">Windowing</a>), trading a little residual discontinuity for a narrower main lobe — see <a href="getting_started/correlation_visualization.html#peak-prominence">Peak Prominence</a> below for how that plays out numerically against Hann.</figcaption>
+</figure>
+<h2 id="peak-prominence"><a class="header" href="#peak-prominence">Peak Prominence</a></h2>
 <p>That sharpness isn't just a visual impression. Define a correlation
 surface's peak <em>prominence</em> <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span> as how many standard deviations above its
 own mean the peak sits — a scale-independent way to compare surfaces with
@@ -2368,24 +2557,37 @@ very different raw units (CC's arbitrary sums, NCC/ZNCC's <span class="katex"><s
 values, phase correlation's own normalized range):</p>
 <p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">:=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.3331em;vertical-align:-0.836em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.4971em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.07153em;">C</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mop">max</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8201em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span></span><span style="top:-3.2523em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1667em;"><span class="mord">ˉ</span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.836em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8201em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span></span><span style="top:-3.2523em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1667em;"><span class="mord">ˉ</span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">:=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.9291em;vertical-align:-1.2777em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">n</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.6514em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2777em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.07153em;">C</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">:=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.1568em;vertical-align:-1.2777em;"></span><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8791em;"><span class="svg-align" style="top:-5.1168em;"><span class="pstrut" style="height:5.1168em;"></span><span class="mord" style="padding-left:1.056em;"><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">n</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.6514em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2777em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size1">(</span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8201em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span></span><span style="top:-3.2523em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1667em;"><span class="mord">ˉ</span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size1">)</span></span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:1.054em;"><span style="top:-3.3029em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span><span style="top:-3.8391em;"><span class="pstrut" style="height:5.1168em;"></span><span class="hide-tail" style="min-width:0.742em;height:3.1968em;"><svg xmlns="http://www.w3.org/2000/svg" width='400em' height='3.1968em' viewBox='0 0 400000 3196' preserveAspectRatio='xMinYMin slice'><path d='M702 80H40000040 H742v3062l-4 4-4 4c-.667.7 -2 1.5-4 2.5s-4.167 1.833-6.5 2.5-5.5 1-9.5 1 h-12l-28-84c-16.667-52-96.667 -294.333-240-727l-212 -643 -85 170 c-4-3.333-8.333-7.667-13 -13l-13-13l77-155 77-156c66 199.333 139 419.667 219 661 l218 661zM702 80H400000v40H742z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2777em;"><span></span></span></span></span></span></span></span></span></span></p>
 <p>for a correlation surface <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span></span></span></span> flattened to its <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span> values. By this
-measure, phase correlation's peak is dramatically higher:</p>
+measure, all three phase correlation surfaces above are dramatically
+higher than any spatial-domain criterion — and windowing raises that
+further still, even on this book's clean, noise-free synthetic images:</p>
 <pre><code class="language-text">CC: prominence P = 4.93
 NCC: prominence P = 5.60
 ZCC: prominence P = 5.48
 ZNCC: prominence P = 5.60
-Phase correlation: prominence P = 38.91
+Phase correlation (no windowing): prominence P = 38.91
+Phase correlation (Hann): prominence P = 56.76
+Phase correlation (Hamming): prominence P = 58.95
 </code></pre>
 <p>A histogram of each surface's own values makes the same result visual:
 each panel's dashed red line is that surface's peak, at the value
 computed above.</p>
 <pre><code class="language-python">import matplotlib.pyplot as plt
+from dictk.correlation import cc, ncc, zcc, zncc, phase_correlation, WindowingMethod
 
-surfaces = {"CC": cc, "NCC": ncc, "ZCC": zcc, "ZNCC": zncc, "Phase correlation": phase_correlation}
+surfaces = {
+    "CC": cc(kernel=kernel, search=search),
+    "NCC": ncc(kernel=kernel, search=search),
+    "ZCC": zcc(kernel=kernel, search=search),
+    "ZNCC": zncc(kernel=kernel, search=search),
+    "Phase correlation\n(no windowing)": phase_correlation(kernel=kernel, search=search),
+    "Phase correlation\n(Hann)": phase_correlation(kernel=kernel, search=search, windowing=WindowingMethod.HANN),
+    "Phase correlation\n(Hamming)": phase_correlation(kernel=kernel, search=search, windowing=WindowingMethod.HAMMING),
+}
 
 plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
-fig, axes = plt.subplots(3, 2, figsize=(11, 12), constrained_layout=True)
-for ax, (name, fn) in zip(axes.flat, surfaces.items()):
-    flat = fn(kernel=kernel, search=search).ravel()
+fig, axes = plt.subplots(4, 2, figsize=(11, 16), constrained_layout=True)
+for ax, (name, surface) in zip(axes.flat, surfaces.items()):
+    flat = surface.ravel()
     prominence = (flat.max() - flat.mean()) / flat.std()
     ax.hist(flat, bins=60, color="black", alpha=0.7)
     ax.axvline(flat.max(), color="red", linestyle="--", linewidth=1.5)
@@ -2393,22 +2595,40 @@ for ax, (name, fn) in zip(axes.flat, surfaces.items()):
     ax.set_title(f"{name}: $P = {prominence:.1f}$")
     ax.set_xlabel("surface value")
     ax.set_ylabel("frequency")
-axes.flat[-1].axis("off")  # 5 panels in a 3x2 grid -- last slot stays empty
+axes.flat[-1].axis("off")  # 7 panels in a 4x2 grid -- last slot stays empty
 fig.savefig("correlation_visualization_prominence.png", dpi=300)
 </code></pre>
 <pre><code class="language-text">Saved: correlation_visualization_prominence.png
 </code></pre>
 <figure>
-    <img src="getting_started/correlation_visualization_prominence.png" alt="five histogram panels, one per correlation criterion, each showing the distribution of that surface's own values with a dashed red line marking its peak; the four spatial criteria show a broad bell-like spread with the peak in a modestly separated upper tail, while phase correlation shows a narrow spike near zero with its peak isolated far to the right, well beyond any other bar" />
-    <figcaption>Each surface's own value distribution (log-scaled frequency, 60 bins), dashed red line at its peak — every dashed line marks the same <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">19</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">33</span><span class="mclose">)</span></span></span></span>-pixel location <code>locate</code> already found in <a href="getting_started/./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a>, just plotted by value here rather than position. CC/NCC/ZCC/ZNCC's peaks sit a short, visible distance beyond their own bulk. Phase correlation's peak sits in a class of its own — an empty gap separates it from every other value the surface takes on.</figcaption>
+    <img src="getting_started/correlation_visualization_prominence.png" alt="seven histogram panels, one per correlation criterion/windowing combination, each showing the distribution of that surface's own values with a dashed red line marking its peak; the four spatial criteria show a broad bell-like spread with the peak in a modestly separated upper tail, while the three phase correlation panels each show a narrow spike near zero with its peak isolated far to the right, well beyond any other bar, windowed variants more so" />
+    <figcaption>Each surface's own value distribution (log-scaled frequency, 60 bins), dashed red line at its peak — every dashed line marks the same <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">19</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">33</span><span class="mclose">)</span></span></span></span>-pixel location <code>locate</code> already found in <a href="getting_started/./cross_correlation.html#locating-the-point">Cross Correlation (CC)</a>, just plotted by value here rather than position. CC/NCC/ZCC/ZNCC's peaks sit a short, visible distance beyond their own bulk. All three phase correlation panels sit in a class of their own — an empty gap separates each peak from every other value its surface takes on — and windowing (Hann, Hamming) narrows that surface's own bulk further still, widening the gap even more.</figcaption>
 </figure>
-<p>Phase correlation's peak stands roughly seven times taller above its own
-background, relative to the surface's own spread, than even ZNCC — the
-most robust of the four spatial criteria. That sharpness, not just
-brightness/contrast invariance, is a second, independent reason
-<code>dictk.translation.locate</code> is built on phase correlation rather than a
-spatial-domain criterion: a sharper peak is easier to locate with
-confidence and precision, and harder to confuse with a nearby runner-up.</p>
+<p>Windowing's effect here isn't about relocating the peak — all seven
+surfaces, spatial and Fourier alike, land on the same
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">19</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">33</span><span class="mclose">)</span></span></span></span>-pixel offset — it's about how
+far above the rest of the surface that peak stands. No-windowing phase
+correlation already beats every spatial criterion by a wide margin
+(prominence 38.91 vs. ZNCC's 5.60, the best of the four); Hann windowing
+raises that to 56.76 and Hamming to 58.95, by lowering the energy the
+leaking, untapered edges were contributing everywhere else on the
+surface, so the same peak stands out further above that now-lower
+background. Hann and Hamming land close to each other, both clearly above
+no windowing — a real, measurable benefit even before considering the
+noisier, less-clean real-world images this book's synthetic ones
+deliberately simplify away.</p>
+<p>Phase correlation's peak already stands roughly seven times taller above
+its own background, relative to the surface's own spread, than even
+ZNCC — the most robust of the four spatial criteria — before windowing is
+even applied. That sharpness, not just brightness/contrast invariance, is
+a second, independent reason <code>dictk.translation.locate</code> is built on phase
+correlation rather than a spatial-domain criterion: a sharper peak is
+easier to locate with confidence and precision, and harder to confuse
+with a nearby runner-up. <code>locate</code> itself doesn't yet accept a <code>windowing</code>
+parameter (see <a href="getting_started/./windowing.html">Windowing</a>), so every worked example in
+this book that calls <code>locate</code> runs the no-windowing case today —
+windowing's further prominence gain above is real, but not yet available
+through <code>locate</code>.</p>
 <h2 id="todo-windowing-for-phase-correlation"><a class="header" href="#todo-windowing-for-phase-correlation">TODO: windowing for phase correlation</a></h2>
 <p>The "spatial vs. Fourier domain" question this section used to scope is
 resolved and shipped: <code>dictk.correlation.phase_correlation()</code> and

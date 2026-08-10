@@ -369,78 +369,124 @@
 </span><span id="L-284"><a href="#L-284"><span class="linenos">284</span></a>    <span class="k">return</span> <span class="n">_safe_divide</span><span class="p">(</span><span class="n">numerator</span><span class="o">=</span><span class="n">numerator</span><span class="p">,</span> <span class="n">denominator</span><span class="o">=</span><span class="n">denominator</span><span class="p">)</span>
 </span><span id="L-285"><a href="#L-285"><span class="linenos">285</span></a>
 </span><span id="L-286"><a href="#L-286"><span class="linenos">286</span></a>
-</span><span id="L-287"><a href="#L-287"><span class="linenos">287</span></a><span class="k">def</span><span class="w"> </span><span class="nf">phase_correlation</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">kernel</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">search</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-</span><span id="L-288"><a href="#L-288"><span class="linenos">288</span></a><span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Phase correlation surface of `kernel` against `search`, via FFT.</span>
-</span><span id="L-289"><a href="#L-289"><span class="linenos">289</span></a>
-</span><span id="L-290"><a href="#L-290"><span class="linenos">290</span></a><span class="sd">    Unlike `cc`/`ncc`/`zcc`/`zncc`, which slide `kernel` over `search` one</span>
-</span><span id="L-291"><a href="#L-291"><span class="linenos">291</span></a><span class="sd">    valid window at a time, this computes the same kind of answer all at</span>
-</span><span id="L-292"><a href="#L-292"><span class="linenos">292</span></a><span class="sd">    once in the Fourier domain: `kernel` is zero-padded (bottom and right)</span>
-</span><span id="L-293"><a href="#L-293"><span class="linenos">293</span></a><span class="sd">    up to `search`&#39;s own shape, then</span>
+</span><span id="L-287"><a href="#L-287"><span class="linenos">287</span></a><span class="k">def</span><span class="w"> </span><span class="nf">_window_and_pad</span><span class="p">(</span>
+</span><span id="L-288"><a href="#L-288"><span class="linenos">288</span></a>    <span class="o">*</span><span class="p">,</span>
+</span><span id="L-289"><a href="#L-289"><span class="linenos">289</span></a>    <span class="n">kernel</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+</span><span id="L-290"><a href="#L-290"><span class="linenos">290</span></a>    <span class="n">search</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+</span><span id="L-291"><a href="#L-291"><span class="linenos">291</span></a>    <span class="n">windowing</span><span class="p">:</span> <span class="n">WindowingMethod</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="L-292"><a href="#L-292"><span class="linenos">292</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+</span><span id="L-293"><a href="#L-293"><span class="linenos">293</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Optionally window, then zero-pad `kernel` up to `search`&#39;s own shape.</span>
 </span><span id="L-294"><a href="#L-294"><span class="linenos">294</span></a>
-</span><span id="L-295"><a href="#L-295"><span class="linenos">295</span></a><span class="sd">    $$</span>
-</span><span id="L-296"><a href="#L-296"><span class="linenos">296</span></a><span class="sd">    C_{\rm phase} = \mathcal{F}^{-1}\!\left(\frac{\mathcal{F}(g)\,</span>
-</span><span id="L-297"><a href="#L-297"><span class="linenos">297</span></a><span class="sd">    \overline{\mathcal{F}(f)}}{\left|\mathcal{F}(g)\,\overline{\mathcal{F}(f)}\right|}\right)</span>
-</span><span id="L-298"><a href="#L-298"><span class="linenos">298</span></a><span class="sd">    $$</span>
-</span><span id="L-299"><a href="#L-299"><span class="linenos">299</span></a>
-</span><span id="L-300"><a href="#L-300"><span class="linenos">300</span></a><span class="sd">    where $f$ is the zero-padded `kernel`, $g$ is `search`, and</span>
-</span><span id="L-301"><a href="#L-301"><span class="linenos">301</span></a><span class="sd">    $\mathcal{F}$ is the 2D discrete Fourier transform. Dividing by the</span>
-</span><span id="L-302"><a href="#L-302"><span class="linenos">302</span></a><span class="sd">    cross-power spectrum&#39;s own magnitude at every frequency -- rather than</span>
-</span><span id="L-303"><a href="#L-303"><span class="linenos">303</span></a><span class="sd">    summing raw products like `cc` does -- is the classic Kuglin-Hines</span>
-</span><span id="L-304"><a href="#L-304"><span class="linenos">304</span></a><span class="sd">    *phase correlation* technique, and is robust to both brightness</span>
-</span><span id="L-305"><a href="#L-305"><span class="linenos">305</span></a><span class="sd">    (additive) and contrast (multiplicative) differences between `kernel`</span>
-</span><span id="L-306"><a href="#L-306"><span class="linenos">306</span></a><span class="sd">    and `search`, the same pair of invariances `zncc` has, though by a</span>
-</span><span id="L-307"><a href="#L-307"><span class="linenos">307</span></a><span class="sd">    completely different mechanism: a brightness shift only touches the</span>
-</span><span id="L-308"><a href="#L-308"><span class="linenos">308</span></a><span class="sd">    zero-frequency (DC) term, leaving every other frequency -- and thus the</span>
-</span><span id="L-309"><a href="#L-309"><span class="linenos">309</span></a><span class="sd">    peak&#39;s position -- untouched, while dividing by magnitude at every</span>
-</span><span id="L-310"><a href="#L-310"><span class="linenos">310</span></a><span class="sd">    frequency cancels any overall contrast scaling directly. This is *not*</span>
-</span><span id="L-311"><a href="#L-311"><span class="linenos">311</span></a><span class="sd">    a Fourier-domain equivalent of `zncc`&#39;s formula -- `zncc` recomputes a</span>
-</span><span id="L-312"><a href="#L-312"><span class="linenos">312</span></a><span class="sd">    local mean/variance at every candidate window as it slides; this</span>
-</span><span id="L-313"><a href="#L-313"><span class="linenos">313</span></a><span class="sd">    normalizes once, globally, per frequency, over the whole padded</span>
-</span><span id="L-314"><a href="#L-314"><span class="linenos">314</span></a><span class="sd">    extent -- it just lands in the same &quot;robust to both&quot; category.</span>
-</span><span id="L-315"><a href="#L-315"><span class="linenos">315</span></a>
-</span><span id="L-316"><a href="#L-316"><span class="linenos">316</span></a><span class="sd">    This is exactly what [`dictk.translation.locate`](../translation.html#locate)</span>
-</span><span id="L-317"><a href="#L-317"><span class="linenos">317</span></a><span class="sd">    computes internally via `skimage.registration.phase_cross_correlation`</span>
-</span><span id="L-318"><a href="#L-318"><span class="linenos">318</span></a><span class="sd">    (`normalization=&quot;phase&quot;`), reproduced here to expose the full surface</span>
-</span><span id="L-319"><a href="#L-319"><span class="linenos">319</span></a><span class="sd">    for visualization -- `phase_cross_correlation` itself only returns the</span>
-</span><span id="L-320"><a href="#L-320"><span class="linenos">320</span></a><span class="sd">    final shift, not the array it was computed from. The two aren&#39;t</span>
-</span><span id="L-321"><a href="#L-321"><span class="linenos">321</span></a><span class="sd">    directly comparable value-for-value, though: `locate` additionally</span>
-</span><span id="L-322"><a href="#L-322"><span class="linenos">322</span></a><span class="sd">    unwraps indices past the array&#39;s midpoint into negative shifts (since</span>
-</span><span id="L-323"><a href="#L-323"><span class="linenos">323</span></a><span class="sd">    this surface is circular/periodic), which this function does not --</span>
-</span><span id="L-324"><a href="#L-324"><span class="linenos">324</span></a><span class="sd">    its raw `argmax` is always in `[0, search.shape)`, matching the same</span>
-</span><span id="L-325"><a href="#L-325"><span class="linenos">325</span></a><span class="sd">    offset-within-`search` convention `cc`/`ncc`/`zcc`/`zncc` use. For the</span>
-</span><span id="L-326"><a href="#L-326"><span class="linenos">326</span></a><span class="sd">    small, comfortably-within-bounds displacements this book&#39;s examples</span>
-</span><span id="L-327"><a href="#L-327"><span class="linenos">327</span></a><span class="sd">    use, the two agree without any unwrapping needed.</span>
-</span><span id="L-328"><a href="#L-328"><span class="linenos">328</span></a>
-</span><span id="L-329"><a href="#L-329"><span class="linenos">329</span></a><span class="sd">    See Kuglin CD, Hines DC. &quot;The phase correlation image alignment</span>
-</span><span id="L-330"><a href="#L-330"><span class="linenos">330</span></a><span class="sd">    method.&quot; Proceedings of IEEE International Conference on Cybernetics</span>
-</span><span id="L-331"><a href="#L-331"><span class="linenos">331</span></a><span class="sd">    and Society, 1975:163-165.</span>
-</span><span id="L-332"><a href="#L-332"><span class="linenos">332</span></a>
-</span><span id="L-333"><a href="#L-333"><span class="linenos">333</span></a><span class="sd">    Args:</span>
-</span><span id="L-334"><a href="#L-334"><span class="linenos">334</span></a><span class="sd">        kernel: The fixed template subimage (`f`, before padding).</span>
-</span><span id="L-335"><a href="#L-335"><span class="linenos">335</span></a><span class="sd">        search: The larger subimage `kernel` is compared against (`g`).</span>
-</span><span id="L-336"><a href="#L-336"><span class="linenos">336</span></a>
-</span><span id="L-337"><a href="#L-337"><span class="linenos">337</span></a><span class="sd">    Returns:</span>
-</span><span id="L-338"><a href="#L-338"><span class="linenos">338</span></a><span class="sd">        A 2D float64 array the same shape as `search` (unlike</span>
-</span><span id="L-339"><a href="#L-339"><span class="linenos">339</span></a><span class="sd">        `cc`/`ncc`/`zcc`/`zncc`&#39;s smaller &quot;valid&quot; shape, since nothing</span>
-</span><span id="L-340"><a href="#L-340"><span class="linenos">340</span></a><span class="sd">        here excludes any candidate offset). Entry `[dy, dx]` is</span>
-</span><span id="L-341"><a href="#L-341"><span class="linenos">341</span></a><span class="sd">        $C_{\rm phase}$ with `kernel`&#39;s top-left corner at offset</span>
-</span><span id="L-342"><a href="#L-342"><span class="linenos">342</span></a><span class="sd">        `(dx, dy)` in `search`&#39;s local frame.</span>
-</span><span id="L-343"><a href="#L-343"><span class="linenos">343</span></a>
-</span><span id="L-344"><a href="#L-344"><span class="linenos">344</span></a><span class="sd">    Raises:</span>
-</span><span id="L-345"><a href="#L-345"><span class="linenos">345</span></a><span class="sd">        ValueError: If either array is not 2D, or `search` is smaller than</span>
-</span><span id="L-346"><a href="#L-346"><span class="linenos">346</span></a><span class="sd">            `kernel` in either dimension.</span>
-</span><span id="L-347"><a href="#L-347"><span class="linenos">347</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-348"><a href="#L-348"><span class="linenos">348</span></a>    <span class="n">kernel</span><span class="p">,</span> <span class="n">search</span> <span class="o">=</span> <span class="n">_prepare</span><span class="p">(</span><span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> <span class="n">search</span><span class="o">=</span><span class="n">search</span><span class="p">)</span>
-</span><span id="L-349"><a href="#L-349"><span class="linenos">349</span></a>    <span class="n">pad_height</span> <span class="o">=</span> <span class="n">search</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">kernel</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-</span><span id="L-350"><a href="#L-350"><span class="linenos">350</span></a>    <span class="n">pad_width</span> <span class="o">=</span> <span class="n">search</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">kernel</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-</span><span id="L-351"><a href="#L-351"><span class="linenos">351</span></a>    <span class="n">kernel_padded</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">kernel</span><span class="p">,</span> <span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">pad_height</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">pad_width</span><span class="p">)))</span>
-</span><span id="L-352"><a href="#L-352"><span class="linenos">352</span></a>
-</span><span id="L-353"><a href="#L-353"><span class="linenos">353</span></a>    <span class="n">search_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft2</span><span class="p">(</span><span class="n">search</span><span class="p">)</span>
-</span><span id="L-354"><a href="#L-354"><span class="linenos">354</span></a>    <span class="n">kernel_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft2</span><span class="p">(</span><span class="n">kernel_padded</span><span class="p">)</span>
-</span><span id="L-355"><a href="#L-355"><span class="linenos">355</span></a>    <span class="n">image_product</span> <span class="o">=</span> <span class="n">search_freq</span> <span class="o">*</span> <span class="n">kernel_freq</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span>
-</span><span id="L-356"><a href="#L-356"><span class="linenos">356</span></a>    <span class="n">eps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="n">image_product</span><span class="o">.</span><span class="n">real</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">eps</span>
-</span><span id="L-357"><a href="#L-357"><span class="linenos">357</span></a>    <span class="n">image_product</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">image_product</span><span class="p">),</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">eps</span><span class="p">)</span>
-</span><span id="L-358"><a href="#L-358"><span class="linenos">358</span></a>    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft2</span><span class="p">(</span><span class="n">image_product</span><span class="p">)</span><span class="o">.</span><span class="n">real</span>
+</span><span id="L-295"><a href="#L-295"><span class="linenos">295</span></a><span class="sd">    Shared by `phase_correlation` and</span>
+</span><span id="L-296"><a href="#L-296"><span class="linenos">296</span></a><span class="sd">    [`dictk.translation.locate`](../translation.html#locate) -- the two</span>
+</span><span id="L-297"><a href="#L-297"><span class="linenos">297</span></a><span class="sd">    functions that zero-pad `kernel` before comparing it against `search`</span>
+</span><span id="L-298"><a href="#L-298"><span class="linenos">298</span></a><span class="sd">    via an FFT-based technique -- so the &quot;window, then pad&quot; step (and its</span>
+</span><span id="L-299"><a href="#L-299"><span class="linenos">299</span></a><span class="sd">    ordering) lives in exactly one place.</span>
+</span><span id="L-300"><a href="#L-300"><span class="linenos">300</span></a>
+</span><span id="L-301"><a href="#L-301"><span class="linenos">301</span></a><span class="sd">    Args:</span>
+</span><span id="L-302"><a href="#L-302"><span class="linenos">302</span></a><span class="sd">        kernel: The fixed template subimage, before padding.</span>
+</span><span id="L-303"><a href="#L-303"><span class="linenos">303</span></a><span class="sd">        search: The larger subimage `kernel` is compared against.</span>
+</span><span id="L-304"><a href="#L-304"><span class="linenos">304</span></a><span class="sd">        windowing: If given, both `kernel` and `search` are passed through</span>
+</span><span id="L-305"><a href="#L-305"><span class="linenos">305</span></a><span class="sd">            `window()` with this method before padding. `None` leaves</span>
+</span><span id="L-306"><a href="#L-306"><span class="linenos">306</span></a><span class="sd">            both untouched -- including their dtype, so a caller that</span>
+</span><span id="L-307"><a href="#L-307"><span class="linenos">307</span></a><span class="sd">            never windows sees no incidental cast either.</span>
+</span><span id="L-308"><a href="#L-308"><span class="linenos">308</span></a>
+</span><span id="L-309"><a href="#L-309"><span class="linenos">309</span></a><span class="sd">    Returns:</span>
+</span><span id="L-310"><a href="#L-310"><span class="linenos">310</span></a><span class="sd">        `(kernel_padded, search)` -- `kernel_padded` the same shape as</span>
+</span><span id="L-311"><a href="#L-311"><span class="linenos">311</span></a><span class="sd">        `search`, `search` itself unchanged except by windowing.</span>
+</span><span id="L-312"><a href="#L-312"><span class="linenos">312</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-313"><a href="#L-313"><span class="linenos">313</span></a>    <span class="k">if</span> <span class="n">windowing</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-314"><a href="#L-314"><span class="linenos">314</span></a>        <span class="n">kernel</span> <span class="o">=</span> <span class="n">window</span><span class="p">(</span><span class="n">arr</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">windowing</span><span class="p">)</span>
+</span><span id="L-315"><a href="#L-315"><span class="linenos">315</span></a>        <span class="n">search</span> <span class="o">=</span> <span class="n">window</span><span class="p">(</span><span class="n">arr</span><span class="o">=</span><span class="n">search</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">windowing</span><span class="p">)</span>
+</span><span id="L-316"><a href="#L-316"><span class="linenos">316</span></a>    <span class="n">pad_height</span> <span class="o">=</span> <span class="n">search</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">kernel</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</span><span id="L-317"><a href="#L-317"><span class="linenos">317</span></a>    <span class="n">pad_width</span> <span class="o">=</span> <span class="n">search</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">kernel</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</span><span id="L-318"><a href="#L-318"><span class="linenos">318</span></a>    <span class="n">kernel_padded</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">kernel</span><span class="p">,</span> <span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">pad_height</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">pad_width</span><span class="p">)))</span>
+</span><span id="L-319"><a href="#L-319"><span class="linenos">319</span></a>    <span class="k">return</span> <span class="n">kernel_padded</span><span class="p">,</span> <span class="n">search</span>
+</span><span id="L-320"><a href="#L-320"><span class="linenos">320</span></a>
+</span><span id="L-321"><a href="#L-321"><span class="linenos">321</span></a>
+</span><span id="L-322"><a href="#L-322"><span class="linenos">322</span></a><span class="k">def</span><span class="w"> </span><span class="nf">phase_correlation</span><span class="p">(</span>
+</span><span id="L-323"><a href="#L-323"><span class="linenos">323</span></a>    <span class="o">*</span><span class="p">,</span>
+</span><span id="L-324"><a href="#L-324"><span class="linenos">324</span></a>    <span class="n">kernel</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+</span><span id="L-325"><a href="#L-325"><span class="linenos">325</span></a>    <span class="n">search</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+</span><span id="L-326"><a href="#L-326"><span class="linenos">326</span></a>    <span class="n">windowing</span><span class="p">:</span> <span class="n">WindowingMethod</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="L-327"><a href="#L-327"><span class="linenos">327</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="L-328"><a href="#L-328"><span class="linenos">328</span></a><span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Phase correlation surface of `kernel` against `search`, via FFT.</span>
+</span><span id="L-329"><a href="#L-329"><span class="linenos">329</span></a>
+</span><span id="L-330"><a href="#L-330"><span class="linenos">330</span></a><span class="sd">    Unlike `cc`/`ncc`/`zcc`/`zncc`, which slide `kernel` over `search` one</span>
+</span><span id="L-331"><a href="#L-331"><span class="linenos">331</span></a><span class="sd">    valid window at a time, this computes the same kind of answer all at</span>
+</span><span id="L-332"><a href="#L-332"><span class="linenos">332</span></a><span class="sd">    once in the Fourier domain: `kernel` is zero-padded (bottom and right)</span>
+</span><span id="L-333"><a href="#L-333"><span class="linenos">333</span></a><span class="sd">    up to `search`&#39;s own shape, then</span>
+</span><span id="L-334"><a href="#L-334"><span class="linenos">334</span></a>
+</span><span id="L-335"><a href="#L-335"><span class="linenos">335</span></a><span class="sd">    $$</span>
+</span><span id="L-336"><a href="#L-336"><span class="linenos">336</span></a><span class="sd">    C_{\rm phase} = \mathcal{F}^{-1}\!\left(\frac{\mathcal{F}(g)\,</span>
+</span><span id="L-337"><a href="#L-337"><span class="linenos">337</span></a><span class="sd">    \overline{\mathcal{F}(f)}}{\left|\mathcal{F}(g)\,\overline{\mathcal{F}(f)}\right|}\right)</span>
+</span><span id="L-338"><a href="#L-338"><span class="linenos">338</span></a><span class="sd">    $$</span>
+</span><span id="L-339"><a href="#L-339"><span class="linenos">339</span></a>
+</span><span id="L-340"><a href="#L-340"><span class="linenos">340</span></a><span class="sd">    where $f$ is the zero-padded `kernel`, $g$ is `search`, and</span>
+</span><span id="L-341"><a href="#L-341"><span class="linenos">341</span></a><span class="sd">    $\mathcal{F}$ is the 2D discrete Fourier transform. Dividing by the</span>
+</span><span id="L-342"><a href="#L-342"><span class="linenos">342</span></a><span class="sd">    cross-power spectrum&#39;s own magnitude at every frequency -- rather than</span>
+</span><span id="L-343"><a href="#L-343"><span class="linenos">343</span></a><span class="sd">    summing raw products like `cc` does -- is the classic Kuglin-Hines</span>
+</span><span id="L-344"><a href="#L-344"><span class="linenos">344</span></a><span class="sd">    *phase correlation* technique, and is robust to both brightness</span>
+</span><span id="L-345"><a href="#L-345"><span class="linenos">345</span></a><span class="sd">    (additive) and contrast (multiplicative) differences between `kernel`</span>
+</span><span id="L-346"><a href="#L-346"><span class="linenos">346</span></a><span class="sd">    and `search`, the same pair of invariances `zncc` has, though by a</span>
+</span><span id="L-347"><a href="#L-347"><span class="linenos">347</span></a><span class="sd">    completely different mechanism: a brightness shift only touches the</span>
+</span><span id="L-348"><a href="#L-348"><span class="linenos">348</span></a><span class="sd">    zero-frequency (DC) term, leaving every other frequency -- and thus the</span>
+</span><span id="L-349"><a href="#L-349"><span class="linenos">349</span></a><span class="sd">    peak&#39;s position -- untouched, while dividing by magnitude at every</span>
+</span><span id="L-350"><a href="#L-350"><span class="linenos">350</span></a><span class="sd">    frequency cancels any overall contrast scaling directly. This is *not*</span>
+</span><span id="L-351"><a href="#L-351"><span class="linenos">351</span></a><span class="sd">    a Fourier-domain equivalent of `zncc`&#39;s formula -- `zncc` recomputes a</span>
+</span><span id="L-352"><a href="#L-352"><span class="linenos">352</span></a><span class="sd">    local mean/variance at every candidate window as it slides; this</span>
+</span><span id="L-353"><a href="#L-353"><span class="linenos">353</span></a><span class="sd">    normalizes once, globally, per frequency, over the whole padded</span>
+</span><span id="L-354"><a href="#L-354"><span class="linenos">354</span></a><span class="sd">    extent -- it just lands in the same &quot;robust to both&quot; category.</span>
+</span><span id="L-355"><a href="#L-355"><span class="linenos">355</span></a>
+</span><span id="L-356"><a href="#L-356"><span class="linenos">356</span></a><span class="sd">    This is exactly what [`dictk.translation.locate`](../translation.html#locate)</span>
+</span><span id="L-357"><a href="#L-357"><span class="linenos">357</span></a><span class="sd">    computes internally via `skimage.registration.phase_cross_correlation`</span>
+</span><span id="L-358"><a href="#L-358"><span class="linenos">358</span></a><span class="sd">    (`normalization=&quot;phase&quot;`), reproduced here to expose the full surface</span>
+</span><span id="L-359"><a href="#L-359"><span class="linenos">359</span></a><span class="sd">    for visualization -- `phase_cross_correlation` itself only returns the</span>
+</span><span id="L-360"><a href="#L-360"><span class="linenos">360</span></a><span class="sd">    final shift, not the array it was computed from. The two aren&#39;t</span>
+</span><span id="L-361"><a href="#L-361"><span class="linenos">361</span></a><span class="sd">    directly comparable value-for-value, though: `locate` additionally</span>
+</span><span id="L-362"><a href="#L-362"><span class="linenos">362</span></a><span class="sd">    unwraps indices past the array&#39;s midpoint into negative shifts (since</span>
+</span><span id="L-363"><a href="#L-363"><span class="linenos">363</span></a><span class="sd">    this surface is circular/periodic), which this function does not --</span>
+</span><span id="L-364"><a href="#L-364"><span class="linenos">364</span></a><span class="sd">    its raw `argmax` is always in `[0, search.shape)`, matching the same</span>
+</span><span id="L-365"><a href="#L-365"><span class="linenos">365</span></a><span class="sd">    offset-within-`search` convention `cc`/`ncc`/`zcc`/`zncc` use. For the</span>
+</span><span id="L-366"><a href="#L-366"><span class="linenos">366</span></a><span class="sd">    small, comfortably-within-bounds displacements this book&#39;s examples</span>
+</span><span id="L-367"><a href="#L-367"><span class="linenos">367</span></a><span class="sd">    use, the two agree without any unwrapping needed.</span>
+</span><span id="L-368"><a href="#L-368"><span class="linenos">368</span></a>
+</span><span id="L-369"><a href="#L-369"><span class="linenos">369</span></a><span class="sd">    See Kuglin CD, Hines DC. &quot;The phase correlation image alignment</span>
+</span><span id="L-370"><a href="#L-370"><span class="linenos">370</span></a><span class="sd">    method.&quot; Proceedings of IEEE International Conference on Cybernetics</span>
+</span><span id="L-371"><a href="#L-371"><span class="linenos">371</span></a><span class="sd">    and Society, 1975:163-165.</span>
+</span><span id="L-372"><a href="#L-372"><span class="linenos">372</span></a>
+</span><span id="L-373"><a href="#L-373"><span class="linenos">373</span></a><span class="sd">    Args:</span>
+</span><span id="L-374"><a href="#L-374"><span class="linenos">374</span></a><span class="sd">        kernel: The fixed template subimage (`f`, before padding).</span>
+</span><span id="L-375"><a href="#L-375"><span class="linenos">375</span></a><span class="sd">        search: The larger subimage `kernel` is compared against (`g`).</span>
+</span><span id="L-376"><a href="#L-376"><span class="linenos">376</span></a><span class="sd">        windowing: If given, both `kernel` and `search` are passed through</span>
+</span><span id="L-377"><a href="#L-377"><span class="linenos">377</span></a><span class="sd">            `window()` with this method -- tapering their edges toward</span>
+</span><span id="L-378"><a href="#L-378"><span class="linenos">378</span></a><span class="sd">            zero to reduce spectral leakage -- before padding/FFT. `kernel`</span>
+</span><span id="L-379"><a href="#L-379"><span class="linenos">379</span></a><span class="sd">            is windowed first, then zero-padded, so the padding stays</span>
+</span><span id="L-380"><a href="#L-380"><span class="linenos">380</span></a><span class="sd">            outside the tapered region. Default `None` applies no</span>
+</span><span id="L-381"><a href="#L-381"><span class="linenos">381</span></a><span class="sd">            windowing, matching this function&#39;s original behavior exactly.</span>
+</span><span id="L-382"><a href="#L-382"><span class="linenos">382</span></a>
+</span><span id="L-383"><a href="#L-383"><span class="linenos">383</span></a><span class="sd">    Returns:</span>
+</span><span id="L-384"><a href="#L-384"><span class="linenos">384</span></a><span class="sd">        A 2D float64 array the same shape as `search` (unlike</span>
+</span><span id="L-385"><a href="#L-385"><span class="linenos">385</span></a><span class="sd">        `cc`/`ncc`/`zcc`/`zncc`&#39;s smaller &quot;valid&quot; shape, since nothing</span>
+</span><span id="L-386"><a href="#L-386"><span class="linenos">386</span></a><span class="sd">        here excludes any candidate offset). Entry `[dy, dx]` is</span>
+</span><span id="L-387"><a href="#L-387"><span class="linenos">387</span></a><span class="sd">        $C_{\rm phase}$ with `kernel`&#39;s top-left corner at offset</span>
+</span><span id="L-388"><a href="#L-388"><span class="linenos">388</span></a><span class="sd">        `(dx, dy)` in `search`&#39;s local frame.</span>
+</span><span id="L-389"><a href="#L-389"><span class="linenos">389</span></a>
+</span><span id="L-390"><a href="#L-390"><span class="linenos">390</span></a><span class="sd">    Raises:</span>
+</span><span id="L-391"><a href="#L-391"><span class="linenos">391</span></a><span class="sd">        ValueError: If either array is not 2D, or `search` is smaller than</span>
+</span><span id="L-392"><a href="#L-392"><span class="linenos">392</span></a><span class="sd">            `kernel` in either dimension.</span>
+</span><span id="L-393"><a href="#L-393"><span class="linenos">393</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-394"><a href="#L-394"><span class="linenos">394</span></a>    <span class="n">kernel</span><span class="p">,</span> <span class="n">search</span> <span class="o">=</span> <span class="n">_prepare</span><span class="p">(</span><span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> <span class="n">search</span><span class="o">=</span><span class="n">search</span><span class="p">)</span>
+</span><span id="L-395"><a href="#L-395"><span class="linenos">395</span></a>    <span class="n">kernel_padded</span><span class="p">,</span> <span class="n">search</span> <span class="o">=</span> <span class="n">_window_and_pad</span><span class="p">(</span>
+</span><span id="L-396"><a href="#L-396"><span class="linenos">396</span></a>        <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> <span class="n">search</span><span class="o">=</span><span class="n">search</span><span class="p">,</span> <span class="n">windowing</span><span class="o">=</span><span class="n">windowing</span>
+</span><span id="L-397"><a href="#L-397"><span class="linenos">397</span></a>    <span class="p">)</span>
+</span><span id="L-398"><a href="#L-398"><span class="linenos">398</span></a>
+</span><span id="L-399"><a href="#L-399"><span class="linenos">399</span></a>    <span class="n">search_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft2</span><span class="p">(</span><span class="n">search</span><span class="p">)</span>
+</span><span id="L-400"><a href="#L-400"><span class="linenos">400</span></a>    <span class="n">kernel_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft2</span><span class="p">(</span><span class="n">kernel_padded</span><span class="p">)</span>
+</span><span id="L-401"><a href="#L-401"><span class="linenos">401</span></a>    <span class="n">image_product</span> <span class="o">=</span> <span class="n">search_freq</span> <span class="o">*</span> <span class="n">kernel_freq</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span>
+</span><span id="L-402"><a href="#L-402"><span class="linenos">402</span></a>    <span class="n">eps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="n">image_product</span><span class="o">.</span><span class="n">real</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">eps</span>
+</span><span id="L-403"><a href="#L-403"><span class="linenos">403</span></a>    <span class="n">image_product</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">image_product</span><span class="p">),</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">eps</span><span class="p">)</span>
+</span><span id="L-404"><a href="#L-404"><span class="linenos">404</span></a>    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft2</span><span class="p">(</span><span class="n">image_product</span><span class="p">)</span><span class="o">.</span><span class="n">real</span>
 </span></pre></div>
 
 
@@ -941,84 +987,95 @@ criteria for pattern matching." Applied Optics 2010;49(28):5501-9.</p>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">phase_correlation</span><span class="signature pdoc-code condensed">(<span class="param"><span class="o">*</span>, </span><span class="param"><span class="n">kernel</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>, </span><span class="param"><span class="n">search</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span></span><span class="return-annotation">) -> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>:</span></span>
+        <span class="name">phase_correlation</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="o">*</span>,</span><span class="param">	<span class="n">kernel</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">search</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">windowing</span><span class="p">:</span> <span class="n"><a href="#WindowingMethod">WindowingMethod</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></span><span class="return-annotation">) -> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>:</span></span>
 
                 <label class="view-source-button" for="phase_correlation-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#phase_correlation"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="phase_correlation-288"><a href="#phase_correlation-288"><span class="linenos">288</span></a><span class="k">def</span><span class="w"> </span><span class="nf">phase_correlation</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">kernel</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">search</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-</span><span id="phase_correlation-289"><a href="#phase_correlation-289"><span class="linenos">289</span></a><span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Phase correlation surface of `kernel` against `search`, via FFT.</span>
-</span><span id="phase_correlation-290"><a href="#phase_correlation-290"><span class="linenos">290</span></a>
-</span><span id="phase_correlation-291"><a href="#phase_correlation-291"><span class="linenos">291</span></a><span class="sd">    Unlike `cc`/`ncc`/`zcc`/`zncc`, which slide `kernel` over `search` one</span>
-</span><span id="phase_correlation-292"><a href="#phase_correlation-292"><span class="linenos">292</span></a><span class="sd">    valid window at a time, this computes the same kind of answer all at</span>
-</span><span id="phase_correlation-293"><a href="#phase_correlation-293"><span class="linenos">293</span></a><span class="sd">    once in the Fourier domain: `kernel` is zero-padded (bottom and right)</span>
-</span><span id="phase_correlation-294"><a href="#phase_correlation-294"><span class="linenos">294</span></a><span class="sd">    up to `search`&#39;s own shape, then</span>
-</span><span id="phase_correlation-295"><a href="#phase_correlation-295"><span class="linenos">295</span></a>
-</span><span id="phase_correlation-296"><a href="#phase_correlation-296"><span class="linenos">296</span></a><span class="sd">    $$</span>
-</span><span id="phase_correlation-297"><a href="#phase_correlation-297"><span class="linenos">297</span></a><span class="sd">    C_{\rm phase} = \mathcal{F}^{-1}\!\left(\frac{\mathcal{F}(g)\,</span>
-</span><span id="phase_correlation-298"><a href="#phase_correlation-298"><span class="linenos">298</span></a><span class="sd">    \overline{\mathcal{F}(f)}}{\left|\mathcal{F}(g)\,\overline{\mathcal{F}(f)}\right|}\right)</span>
-</span><span id="phase_correlation-299"><a href="#phase_correlation-299"><span class="linenos">299</span></a><span class="sd">    $$</span>
-</span><span id="phase_correlation-300"><a href="#phase_correlation-300"><span class="linenos">300</span></a>
-</span><span id="phase_correlation-301"><a href="#phase_correlation-301"><span class="linenos">301</span></a><span class="sd">    where $f$ is the zero-padded `kernel`, $g$ is `search`, and</span>
-</span><span id="phase_correlation-302"><a href="#phase_correlation-302"><span class="linenos">302</span></a><span class="sd">    $\mathcal{F}$ is the 2D discrete Fourier transform. Dividing by the</span>
-</span><span id="phase_correlation-303"><a href="#phase_correlation-303"><span class="linenos">303</span></a><span class="sd">    cross-power spectrum&#39;s own magnitude at every frequency -- rather than</span>
-</span><span id="phase_correlation-304"><a href="#phase_correlation-304"><span class="linenos">304</span></a><span class="sd">    summing raw products like `cc` does -- is the classic Kuglin-Hines</span>
-</span><span id="phase_correlation-305"><a href="#phase_correlation-305"><span class="linenos">305</span></a><span class="sd">    *phase correlation* technique, and is robust to both brightness</span>
-</span><span id="phase_correlation-306"><a href="#phase_correlation-306"><span class="linenos">306</span></a><span class="sd">    (additive) and contrast (multiplicative) differences between `kernel`</span>
-</span><span id="phase_correlation-307"><a href="#phase_correlation-307"><span class="linenos">307</span></a><span class="sd">    and `search`, the same pair of invariances `zncc` has, though by a</span>
-</span><span id="phase_correlation-308"><a href="#phase_correlation-308"><span class="linenos">308</span></a><span class="sd">    completely different mechanism: a brightness shift only touches the</span>
-</span><span id="phase_correlation-309"><a href="#phase_correlation-309"><span class="linenos">309</span></a><span class="sd">    zero-frequency (DC) term, leaving every other frequency -- and thus the</span>
-</span><span id="phase_correlation-310"><a href="#phase_correlation-310"><span class="linenos">310</span></a><span class="sd">    peak&#39;s position -- untouched, while dividing by magnitude at every</span>
-</span><span id="phase_correlation-311"><a href="#phase_correlation-311"><span class="linenos">311</span></a><span class="sd">    frequency cancels any overall contrast scaling directly. This is *not*</span>
-</span><span id="phase_correlation-312"><a href="#phase_correlation-312"><span class="linenos">312</span></a><span class="sd">    a Fourier-domain equivalent of `zncc`&#39;s formula -- `zncc` recomputes a</span>
-</span><span id="phase_correlation-313"><a href="#phase_correlation-313"><span class="linenos">313</span></a><span class="sd">    local mean/variance at every candidate window as it slides; this</span>
-</span><span id="phase_correlation-314"><a href="#phase_correlation-314"><span class="linenos">314</span></a><span class="sd">    normalizes once, globally, per frequency, over the whole padded</span>
-</span><span id="phase_correlation-315"><a href="#phase_correlation-315"><span class="linenos">315</span></a><span class="sd">    extent -- it just lands in the same &quot;robust to both&quot; category.</span>
-</span><span id="phase_correlation-316"><a href="#phase_correlation-316"><span class="linenos">316</span></a>
-</span><span id="phase_correlation-317"><a href="#phase_correlation-317"><span class="linenos">317</span></a><span class="sd">    This is exactly what [`dictk.translation.locate`](../translation.html#locate)</span>
-</span><span id="phase_correlation-318"><a href="#phase_correlation-318"><span class="linenos">318</span></a><span class="sd">    computes internally via `skimage.registration.phase_cross_correlation`</span>
-</span><span id="phase_correlation-319"><a href="#phase_correlation-319"><span class="linenos">319</span></a><span class="sd">    (`normalization=&quot;phase&quot;`), reproduced here to expose the full surface</span>
-</span><span id="phase_correlation-320"><a href="#phase_correlation-320"><span class="linenos">320</span></a><span class="sd">    for visualization -- `phase_cross_correlation` itself only returns the</span>
-</span><span id="phase_correlation-321"><a href="#phase_correlation-321"><span class="linenos">321</span></a><span class="sd">    final shift, not the array it was computed from. The two aren&#39;t</span>
-</span><span id="phase_correlation-322"><a href="#phase_correlation-322"><span class="linenos">322</span></a><span class="sd">    directly comparable value-for-value, though: `locate` additionally</span>
-</span><span id="phase_correlation-323"><a href="#phase_correlation-323"><span class="linenos">323</span></a><span class="sd">    unwraps indices past the array&#39;s midpoint into negative shifts (since</span>
-</span><span id="phase_correlation-324"><a href="#phase_correlation-324"><span class="linenos">324</span></a><span class="sd">    this surface is circular/periodic), which this function does not --</span>
-</span><span id="phase_correlation-325"><a href="#phase_correlation-325"><span class="linenos">325</span></a><span class="sd">    its raw `argmax` is always in `[0, search.shape)`, matching the same</span>
-</span><span id="phase_correlation-326"><a href="#phase_correlation-326"><span class="linenos">326</span></a><span class="sd">    offset-within-`search` convention `cc`/`ncc`/`zcc`/`zncc` use. For the</span>
-</span><span id="phase_correlation-327"><a href="#phase_correlation-327"><span class="linenos">327</span></a><span class="sd">    small, comfortably-within-bounds displacements this book&#39;s examples</span>
-</span><span id="phase_correlation-328"><a href="#phase_correlation-328"><span class="linenos">328</span></a><span class="sd">    use, the two agree without any unwrapping needed.</span>
-</span><span id="phase_correlation-329"><a href="#phase_correlation-329"><span class="linenos">329</span></a>
-</span><span id="phase_correlation-330"><a href="#phase_correlation-330"><span class="linenos">330</span></a><span class="sd">    See Kuglin CD, Hines DC. &quot;The phase correlation image alignment</span>
-</span><span id="phase_correlation-331"><a href="#phase_correlation-331"><span class="linenos">331</span></a><span class="sd">    method.&quot; Proceedings of IEEE International Conference on Cybernetics</span>
-</span><span id="phase_correlation-332"><a href="#phase_correlation-332"><span class="linenos">332</span></a><span class="sd">    and Society, 1975:163-165.</span>
-</span><span id="phase_correlation-333"><a href="#phase_correlation-333"><span class="linenos">333</span></a>
-</span><span id="phase_correlation-334"><a href="#phase_correlation-334"><span class="linenos">334</span></a><span class="sd">    Args:</span>
-</span><span id="phase_correlation-335"><a href="#phase_correlation-335"><span class="linenos">335</span></a><span class="sd">        kernel: The fixed template subimage (`f`, before padding).</span>
-</span><span id="phase_correlation-336"><a href="#phase_correlation-336"><span class="linenos">336</span></a><span class="sd">        search: The larger subimage `kernel` is compared against (`g`).</span>
-</span><span id="phase_correlation-337"><a href="#phase_correlation-337"><span class="linenos">337</span></a>
-</span><span id="phase_correlation-338"><a href="#phase_correlation-338"><span class="linenos">338</span></a><span class="sd">    Returns:</span>
-</span><span id="phase_correlation-339"><a href="#phase_correlation-339"><span class="linenos">339</span></a><span class="sd">        A 2D float64 array the same shape as `search` (unlike</span>
-</span><span id="phase_correlation-340"><a href="#phase_correlation-340"><span class="linenos">340</span></a><span class="sd">        `cc`/`ncc`/`zcc`/`zncc`&#39;s smaller &quot;valid&quot; shape, since nothing</span>
-</span><span id="phase_correlation-341"><a href="#phase_correlation-341"><span class="linenos">341</span></a><span class="sd">        here excludes any candidate offset). Entry `[dy, dx]` is</span>
-</span><span id="phase_correlation-342"><a href="#phase_correlation-342"><span class="linenos">342</span></a><span class="sd">        $C_{\rm phase}$ with `kernel`&#39;s top-left corner at offset</span>
-</span><span id="phase_correlation-343"><a href="#phase_correlation-343"><span class="linenos">343</span></a><span class="sd">        `(dx, dy)` in `search`&#39;s local frame.</span>
-</span><span id="phase_correlation-344"><a href="#phase_correlation-344"><span class="linenos">344</span></a>
-</span><span id="phase_correlation-345"><a href="#phase_correlation-345"><span class="linenos">345</span></a><span class="sd">    Raises:</span>
-</span><span id="phase_correlation-346"><a href="#phase_correlation-346"><span class="linenos">346</span></a><span class="sd">        ValueError: If either array is not 2D, or `search` is smaller than</span>
-</span><span id="phase_correlation-347"><a href="#phase_correlation-347"><span class="linenos">347</span></a><span class="sd">            `kernel` in either dimension.</span>
-</span><span id="phase_correlation-348"><a href="#phase_correlation-348"><span class="linenos">348</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="phase_correlation-349"><a href="#phase_correlation-349"><span class="linenos">349</span></a>    <span class="n">kernel</span><span class="p">,</span> <span class="n">search</span> <span class="o">=</span> <span class="n">_prepare</span><span class="p">(</span><span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> <span class="n">search</span><span class="o">=</span><span class="n">search</span><span class="p">)</span>
-</span><span id="phase_correlation-350"><a href="#phase_correlation-350"><span class="linenos">350</span></a>    <span class="n">pad_height</span> <span class="o">=</span> <span class="n">search</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">kernel</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-</span><span id="phase_correlation-351"><a href="#phase_correlation-351"><span class="linenos">351</span></a>    <span class="n">pad_width</span> <span class="o">=</span> <span class="n">search</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">kernel</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-</span><span id="phase_correlation-352"><a href="#phase_correlation-352"><span class="linenos">352</span></a>    <span class="n">kernel_padded</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">kernel</span><span class="p">,</span> <span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">pad_height</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">pad_width</span><span class="p">)))</span>
-</span><span id="phase_correlation-353"><a href="#phase_correlation-353"><span class="linenos">353</span></a>
-</span><span id="phase_correlation-354"><a href="#phase_correlation-354"><span class="linenos">354</span></a>    <span class="n">search_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft2</span><span class="p">(</span><span class="n">search</span><span class="p">)</span>
-</span><span id="phase_correlation-355"><a href="#phase_correlation-355"><span class="linenos">355</span></a>    <span class="n">kernel_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft2</span><span class="p">(</span><span class="n">kernel_padded</span><span class="p">)</span>
-</span><span id="phase_correlation-356"><a href="#phase_correlation-356"><span class="linenos">356</span></a>    <span class="n">image_product</span> <span class="o">=</span> <span class="n">search_freq</span> <span class="o">*</span> <span class="n">kernel_freq</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span>
-</span><span id="phase_correlation-357"><a href="#phase_correlation-357"><span class="linenos">357</span></a>    <span class="n">eps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="n">image_product</span><span class="o">.</span><span class="n">real</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">eps</span>
-</span><span id="phase_correlation-358"><a href="#phase_correlation-358"><span class="linenos">358</span></a>    <span class="n">image_product</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">image_product</span><span class="p">),</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">eps</span><span class="p">)</span>
-</span><span id="phase_correlation-359"><a href="#phase_correlation-359"><span class="linenos">359</span></a>    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft2</span><span class="p">(</span><span class="n">image_product</span><span class="p">)</span><span class="o">.</span><span class="n">real</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="phase_correlation-323"><a href="#phase_correlation-323"><span class="linenos">323</span></a><span class="k">def</span><span class="w"> </span><span class="nf">phase_correlation</span><span class="p">(</span>
+</span><span id="phase_correlation-324"><a href="#phase_correlation-324"><span class="linenos">324</span></a>    <span class="o">*</span><span class="p">,</span>
+</span><span id="phase_correlation-325"><a href="#phase_correlation-325"><span class="linenos">325</span></a>    <span class="n">kernel</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+</span><span id="phase_correlation-326"><a href="#phase_correlation-326"><span class="linenos">326</span></a>    <span class="n">search</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+</span><span id="phase_correlation-327"><a href="#phase_correlation-327"><span class="linenos">327</span></a>    <span class="n">windowing</span><span class="p">:</span> <span class="n">WindowingMethod</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="phase_correlation-328"><a href="#phase_correlation-328"><span class="linenos">328</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="phase_correlation-329"><a href="#phase_correlation-329"><span class="linenos">329</span></a><span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Phase correlation surface of `kernel` against `search`, via FFT.</span>
+</span><span id="phase_correlation-330"><a href="#phase_correlation-330"><span class="linenos">330</span></a>
+</span><span id="phase_correlation-331"><a href="#phase_correlation-331"><span class="linenos">331</span></a><span class="sd">    Unlike `cc`/`ncc`/`zcc`/`zncc`, which slide `kernel` over `search` one</span>
+</span><span id="phase_correlation-332"><a href="#phase_correlation-332"><span class="linenos">332</span></a><span class="sd">    valid window at a time, this computes the same kind of answer all at</span>
+</span><span id="phase_correlation-333"><a href="#phase_correlation-333"><span class="linenos">333</span></a><span class="sd">    once in the Fourier domain: `kernel` is zero-padded (bottom and right)</span>
+</span><span id="phase_correlation-334"><a href="#phase_correlation-334"><span class="linenos">334</span></a><span class="sd">    up to `search`&#39;s own shape, then</span>
+</span><span id="phase_correlation-335"><a href="#phase_correlation-335"><span class="linenos">335</span></a>
+</span><span id="phase_correlation-336"><a href="#phase_correlation-336"><span class="linenos">336</span></a><span class="sd">    $$</span>
+</span><span id="phase_correlation-337"><a href="#phase_correlation-337"><span class="linenos">337</span></a><span class="sd">    C_{\rm phase} = \mathcal{F}^{-1}\!\left(\frac{\mathcal{F}(g)\,</span>
+</span><span id="phase_correlation-338"><a href="#phase_correlation-338"><span class="linenos">338</span></a><span class="sd">    \overline{\mathcal{F}(f)}}{\left|\mathcal{F}(g)\,\overline{\mathcal{F}(f)}\right|}\right)</span>
+</span><span id="phase_correlation-339"><a href="#phase_correlation-339"><span class="linenos">339</span></a><span class="sd">    $$</span>
+</span><span id="phase_correlation-340"><a href="#phase_correlation-340"><span class="linenos">340</span></a>
+</span><span id="phase_correlation-341"><a href="#phase_correlation-341"><span class="linenos">341</span></a><span class="sd">    where $f$ is the zero-padded `kernel`, $g$ is `search`, and</span>
+</span><span id="phase_correlation-342"><a href="#phase_correlation-342"><span class="linenos">342</span></a><span class="sd">    $\mathcal{F}$ is the 2D discrete Fourier transform. Dividing by the</span>
+</span><span id="phase_correlation-343"><a href="#phase_correlation-343"><span class="linenos">343</span></a><span class="sd">    cross-power spectrum&#39;s own magnitude at every frequency -- rather than</span>
+</span><span id="phase_correlation-344"><a href="#phase_correlation-344"><span class="linenos">344</span></a><span class="sd">    summing raw products like `cc` does -- is the classic Kuglin-Hines</span>
+</span><span id="phase_correlation-345"><a href="#phase_correlation-345"><span class="linenos">345</span></a><span class="sd">    *phase correlation* technique, and is robust to both brightness</span>
+</span><span id="phase_correlation-346"><a href="#phase_correlation-346"><span class="linenos">346</span></a><span class="sd">    (additive) and contrast (multiplicative) differences between `kernel`</span>
+</span><span id="phase_correlation-347"><a href="#phase_correlation-347"><span class="linenos">347</span></a><span class="sd">    and `search`, the same pair of invariances `zncc` has, though by a</span>
+</span><span id="phase_correlation-348"><a href="#phase_correlation-348"><span class="linenos">348</span></a><span class="sd">    completely different mechanism: a brightness shift only touches the</span>
+</span><span id="phase_correlation-349"><a href="#phase_correlation-349"><span class="linenos">349</span></a><span class="sd">    zero-frequency (DC) term, leaving every other frequency -- and thus the</span>
+</span><span id="phase_correlation-350"><a href="#phase_correlation-350"><span class="linenos">350</span></a><span class="sd">    peak&#39;s position -- untouched, while dividing by magnitude at every</span>
+</span><span id="phase_correlation-351"><a href="#phase_correlation-351"><span class="linenos">351</span></a><span class="sd">    frequency cancels any overall contrast scaling directly. This is *not*</span>
+</span><span id="phase_correlation-352"><a href="#phase_correlation-352"><span class="linenos">352</span></a><span class="sd">    a Fourier-domain equivalent of `zncc`&#39;s formula -- `zncc` recomputes a</span>
+</span><span id="phase_correlation-353"><a href="#phase_correlation-353"><span class="linenos">353</span></a><span class="sd">    local mean/variance at every candidate window as it slides; this</span>
+</span><span id="phase_correlation-354"><a href="#phase_correlation-354"><span class="linenos">354</span></a><span class="sd">    normalizes once, globally, per frequency, over the whole padded</span>
+</span><span id="phase_correlation-355"><a href="#phase_correlation-355"><span class="linenos">355</span></a><span class="sd">    extent -- it just lands in the same &quot;robust to both&quot; category.</span>
+</span><span id="phase_correlation-356"><a href="#phase_correlation-356"><span class="linenos">356</span></a>
+</span><span id="phase_correlation-357"><a href="#phase_correlation-357"><span class="linenos">357</span></a><span class="sd">    This is exactly what [`dictk.translation.locate`](../translation.html#locate)</span>
+</span><span id="phase_correlation-358"><a href="#phase_correlation-358"><span class="linenos">358</span></a><span class="sd">    computes internally via `skimage.registration.phase_cross_correlation`</span>
+</span><span id="phase_correlation-359"><a href="#phase_correlation-359"><span class="linenos">359</span></a><span class="sd">    (`normalization=&quot;phase&quot;`), reproduced here to expose the full surface</span>
+</span><span id="phase_correlation-360"><a href="#phase_correlation-360"><span class="linenos">360</span></a><span class="sd">    for visualization -- `phase_cross_correlation` itself only returns the</span>
+</span><span id="phase_correlation-361"><a href="#phase_correlation-361"><span class="linenos">361</span></a><span class="sd">    final shift, not the array it was computed from. The two aren&#39;t</span>
+</span><span id="phase_correlation-362"><a href="#phase_correlation-362"><span class="linenos">362</span></a><span class="sd">    directly comparable value-for-value, though: `locate` additionally</span>
+</span><span id="phase_correlation-363"><a href="#phase_correlation-363"><span class="linenos">363</span></a><span class="sd">    unwraps indices past the array&#39;s midpoint into negative shifts (since</span>
+</span><span id="phase_correlation-364"><a href="#phase_correlation-364"><span class="linenos">364</span></a><span class="sd">    this surface is circular/periodic), which this function does not --</span>
+</span><span id="phase_correlation-365"><a href="#phase_correlation-365"><span class="linenos">365</span></a><span class="sd">    its raw `argmax` is always in `[0, search.shape)`, matching the same</span>
+</span><span id="phase_correlation-366"><a href="#phase_correlation-366"><span class="linenos">366</span></a><span class="sd">    offset-within-`search` convention `cc`/`ncc`/`zcc`/`zncc` use. For the</span>
+</span><span id="phase_correlation-367"><a href="#phase_correlation-367"><span class="linenos">367</span></a><span class="sd">    small, comfortably-within-bounds displacements this book&#39;s examples</span>
+</span><span id="phase_correlation-368"><a href="#phase_correlation-368"><span class="linenos">368</span></a><span class="sd">    use, the two agree without any unwrapping needed.</span>
+</span><span id="phase_correlation-369"><a href="#phase_correlation-369"><span class="linenos">369</span></a>
+</span><span id="phase_correlation-370"><a href="#phase_correlation-370"><span class="linenos">370</span></a><span class="sd">    See Kuglin CD, Hines DC. &quot;The phase correlation image alignment</span>
+</span><span id="phase_correlation-371"><a href="#phase_correlation-371"><span class="linenos">371</span></a><span class="sd">    method.&quot; Proceedings of IEEE International Conference on Cybernetics</span>
+</span><span id="phase_correlation-372"><a href="#phase_correlation-372"><span class="linenos">372</span></a><span class="sd">    and Society, 1975:163-165.</span>
+</span><span id="phase_correlation-373"><a href="#phase_correlation-373"><span class="linenos">373</span></a>
+</span><span id="phase_correlation-374"><a href="#phase_correlation-374"><span class="linenos">374</span></a><span class="sd">    Args:</span>
+</span><span id="phase_correlation-375"><a href="#phase_correlation-375"><span class="linenos">375</span></a><span class="sd">        kernel: The fixed template subimage (`f`, before padding).</span>
+</span><span id="phase_correlation-376"><a href="#phase_correlation-376"><span class="linenos">376</span></a><span class="sd">        search: The larger subimage `kernel` is compared against (`g`).</span>
+</span><span id="phase_correlation-377"><a href="#phase_correlation-377"><span class="linenos">377</span></a><span class="sd">        windowing: If given, both `kernel` and `search` are passed through</span>
+</span><span id="phase_correlation-378"><a href="#phase_correlation-378"><span class="linenos">378</span></a><span class="sd">            `window()` with this method -- tapering their edges toward</span>
+</span><span id="phase_correlation-379"><a href="#phase_correlation-379"><span class="linenos">379</span></a><span class="sd">            zero to reduce spectral leakage -- before padding/FFT. `kernel`</span>
+</span><span id="phase_correlation-380"><a href="#phase_correlation-380"><span class="linenos">380</span></a><span class="sd">            is windowed first, then zero-padded, so the padding stays</span>
+</span><span id="phase_correlation-381"><a href="#phase_correlation-381"><span class="linenos">381</span></a><span class="sd">            outside the tapered region. Default `None` applies no</span>
+</span><span id="phase_correlation-382"><a href="#phase_correlation-382"><span class="linenos">382</span></a><span class="sd">            windowing, matching this function&#39;s original behavior exactly.</span>
+</span><span id="phase_correlation-383"><a href="#phase_correlation-383"><span class="linenos">383</span></a>
+</span><span id="phase_correlation-384"><a href="#phase_correlation-384"><span class="linenos">384</span></a><span class="sd">    Returns:</span>
+</span><span id="phase_correlation-385"><a href="#phase_correlation-385"><span class="linenos">385</span></a><span class="sd">        A 2D float64 array the same shape as `search` (unlike</span>
+</span><span id="phase_correlation-386"><a href="#phase_correlation-386"><span class="linenos">386</span></a><span class="sd">        `cc`/`ncc`/`zcc`/`zncc`&#39;s smaller &quot;valid&quot; shape, since nothing</span>
+</span><span id="phase_correlation-387"><a href="#phase_correlation-387"><span class="linenos">387</span></a><span class="sd">        here excludes any candidate offset). Entry `[dy, dx]` is</span>
+</span><span id="phase_correlation-388"><a href="#phase_correlation-388"><span class="linenos">388</span></a><span class="sd">        $C_{\rm phase}$ with `kernel`&#39;s top-left corner at offset</span>
+</span><span id="phase_correlation-389"><a href="#phase_correlation-389"><span class="linenos">389</span></a><span class="sd">        `(dx, dy)` in `search`&#39;s local frame.</span>
+</span><span id="phase_correlation-390"><a href="#phase_correlation-390"><span class="linenos">390</span></a>
+</span><span id="phase_correlation-391"><a href="#phase_correlation-391"><span class="linenos">391</span></a><span class="sd">    Raises:</span>
+</span><span id="phase_correlation-392"><a href="#phase_correlation-392"><span class="linenos">392</span></a><span class="sd">        ValueError: If either array is not 2D, or `search` is smaller than</span>
+</span><span id="phase_correlation-393"><a href="#phase_correlation-393"><span class="linenos">393</span></a><span class="sd">            `kernel` in either dimension.</span>
+</span><span id="phase_correlation-394"><a href="#phase_correlation-394"><span class="linenos">394</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="phase_correlation-395"><a href="#phase_correlation-395"><span class="linenos">395</span></a>    <span class="n">kernel</span><span class="p">,</span> <span class="n">search</span> <span class="o">=</span> <span class="n">_prepare</span><span class="p">(</span><span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> <span class="n">search</span><span class="o">=</span><span class="n">search</span><span class="p">)</span>
+</span><span id="phase_correlation-396"><a href="#phase_correlation-396"><span class="linenos">396</span></a>    <span class="n">kernel_padded</span><span class="p">,</span> <span class="n">search</span> <span class="o">=</span> <span class="n">_window_and_pad</span><span class="p">(</span>
+</span><span id="phase_correlation-397"><a href="#phase_correlation-397"><span class="linenos">397</span></a>        <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> <span class="n">search</span><span class="o">=</span><span class="n">search</span><span class="p">,</span> <span class="n">windowing</span><span class="o">=</span><span class="n">windowing</span>
+</span><span id="phase_correlation-398"><a href="#phase_correlation-398"><span class="linenos">398</span></a>    <span class="p">)</span>
+</span><span id="phase_correlation-399"><a href="#phase_correlation-399"><span class="linenos">399</span></a>
+</span><span id="phase_correlation-400"><a href="#phase_correlation-400"><span class="linenos">400</span></a>    <span class="n">search_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft2</span><span class="p">(</span><span class="n">search</span><span class="p">)</span>
+</span><span id="phase_correlation-401"><a href="#phase_correlation-401"><span class="linenos">401</span></a>    <span class="n">kernel_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft2</span><span class="p">(</span><span class="n">kernel_padded</span><span class="p">)</span>
+</span><span id="phase_correlation-402"><a href="#phase_correlation-402"><span class="linenos">402</span></a>    <span class="n">image_product</span> <span class="o">=</span> <span class="n">search_freq</span> <span class="o">*</span> <span class="n">kernel_freq</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span>
+</span><span id="phase_correlation-403"><a href="#phase_correlation-403"><span class="linenos">403</span></a>    <span class="n">eps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="n">image_product</span><span class="o">.</span><span class="n">real</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">eps</span>
+</span><span id="phase_correlation-404"><a href="#phase_correlation-404"><span class="linenos">404</span></a>    <span class="n">image_product</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">image_product</span><span class="p">),</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">eps</span><span class="p">)</span>
+</span><span id="phase_correlation-405"><a href="#phase_correlation-405"><span class="linenos">405</span></a>    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft2</span><span class="p">(</span><span class="n">image_product</span><span class="p">)</span><span class="o">.</span><span class="n">real</span>
 </span></pre></div>
 
 
@@ -1069,7 +1126,13 @@ and Society, 1975:163-165.</p>
 
 <p>Args:
     kernel: The fixed template subimage (<code>f</code>, before padding).
-    search: The larger subimage <code>kernel</code> is compared against (<code>g</code>).</p>
+    search: The larger subimage <code>kernel</code> is compared against (<code>g</code>).
+    windowing: If given, both <code>kernel</code> and <code>search</code> are passed through
+        <code><a href="#window">window()</a></code> with this method -- tapering their edges toward
+        zero to reduce spectral leakage -- before padding/FFT. <code>kernel</code>
+        is windowed first, then zero-padded, so the padding stays
+        outside the tapered region. Default <code>None</code> applies no
+        windowing, matching this function's original behavior exactly.</p>
 
 <p>Returns:
     A 2D float64 array the same shape as <code>search</code> (unlike

@@ -339,6 +339,34 @@ earlier, recovering the known displacement <span class="katex"><span class="kate
 pixels using only the two images and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6886em;vertical-align:-0.2441em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span></span></span></span> — exactly the
 information available for a real (not synthetically generated) image
 pair.</p>
+<h2 id="windowing"><a class="header" href="#windowing">Windowing</a></h2>
+<p><code>locate</code> also accepts an optional <code>windowing</code> parameter — the same one
+<a href="../api/dictk/correlation.html#phase_correlation"><code>dictk.correlation.phase_correlation</code></a>
+exposes, described in full on <a href="./windowing.html">Windowing</a>. Passing it
+here reproduces the same point, still using only the two images and
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6886em;vertical-align:-0.2441em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span></span></span></span>:</p>
+<pre><code class="language-python">from dictk.correlation import WindowingMethod
+
+found_hann = locate(
+    reference_image=reference_image,
+    current_image=current_image,
+    reference_point=p0,
+    search_center=search_center,
+    kernel_margin_width=kernel_margin,
+    kernel_margin_height=kernel_margin,
+    search_margin_width=search_margin,
+    search_margin_height=search_margin,
+    windowing=WindowingMethod.HANN,
+)
+print(f"found_hann = {found_hann}")
+</code></pre>
+<pre><code class="language-text">found_hann = PixelCoordinate(x=94, y=83)
+</code></pre>
+<p><code>found_hann</code> matches <code>found</code> above exactly, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6886em;vertical-align:-0.2441em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">94</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">83</span><span class="mclose">)</span></span></span></span> pixels — windowing changes the correlation surface <code>locate</code>
+searches internally (see <a href="./windowing.html">Windowing</a> and <a href="./correlation_visualization.html#peak-prominence">Correlation
+Visualization</a> for how
+and why), not the answer, on this book's clean, noise-free synthetic
+images.</p>
 <h2 id="visualizing-the-solution"><a class="header" href="#visualizing-the-solution">Visualizing the Solution</a></h2>
 <p>For illustration, we can back out <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span></span></span></span> — the
 one quantity <code>locate</code> finds via cross-correlation, everything else here
