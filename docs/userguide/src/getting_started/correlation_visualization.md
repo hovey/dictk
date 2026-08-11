@@ -330,76 +330,8 @@ even applied. That sharpness, not just brightness/contrast invariance, is
 a second, independent reason `dictk.translation.locate` is built on phase
 correlation rather than a spatial-domain criterion: a sharper peak is
 easier to locate with confidence and precision, and harder to confuse
-with a nearby runner-up. `locate` itself doesn't yet accept a `windowing`
-parameter (see [Windowing](./windowing.md)), so every worked example in
-this book that calls `locate` runs the no-windowing case today —
-windowing's further prominence gain above is real, but not yet available
-through `locate`.
-
-## TODO: windowing for phase correlation
-
-The "spatial vs. Fourier domain" question this section used to scope is
-resolved and shipped: `dictk.correlation.phase_correlation()` and
-[`phase_correlation_quadrant_plot`](#phase-correlation) above are both
-implemented. That resolution took a different shape than originally
-sketched here, worth recording:
-
-- **The domain-selector design decision** (an enum belongs in the
-  parameter list of the function that *computes* the surface, decided by
-  the caller, never inside the plotting function itself) held up exactly
-  as reasoned — but rather than one generic `correlation_surface(method,
-  domain, ...)` dispatcher, it became two separate, plainly-named public
-  functions,
-  [`spatial_correlation_quadrant_plot`](../api/dictk/image.html#spatial_correlation_quadrant_plot)
-  and
-  [`phase_correlation_quadrant_plot`](../api/dictk/image.html#phase_correlation_quadrant_plot),
-  each with their own complete docstring rather than one shared,
-  parameterized entry point.
-- **"CC via Fourier domain," as originally scoped, was never built.**
-  `phase_correlation()` reproduces the exact computation
-  `dictk.translation.locate()` already runs in production instead — a
-  different (and better) technique than raw unnormalized CC-via-FFT,
-  landing in the same "robust to both brightness and contrast" tier as
-  ZNCC (see [Correlation
-  Criteria](./correlation_criteria.md#invariance-and-robustness)) and, as shown
-  above, with a dramatically sharper peak than any spatial-domain
-  criterion, ZNCC included.
-- **"NCC/ZCC/ZNCC via Fourier domain," the genuinely hard piece, is now
-  moot.** That work only existed to give the Fourier domain the same
-  four-way choice the spatial domain has. Adopting phase correlation as
-  the *one* Fourier-domain flavor sidesteps it entirely — no per-method
-  local-sum-of-squares algorithm (Lewis's Fast Normalized
-  Cross-Correlation) is needed, since there's no per-method choice to
-  support.
-
-**What's still open:** windowing. [Correlation
-Criteria](./correlation_criteria.md#windowing) describes Hann/Hamming
-windowing conceptually — tapering `kernel`/
-`search`'s edges toward zero before the FFT, to reduce spectral leakage
-from content that doesn't tile seamlessly — but doesn't implement it.
-`dictk` has no `window()`-style function yet, and `phase_correlation()`
-applies none today.
-
-**Illustrative sketch only** (not implemented, not wired up — matches the
-same "sketch, don't build yet" pattern
-[Parallelization](./parallelization.md) uses for its own
-`ProcessPoolExecutor` example) of where a future `windowing` parameter
-would land:
-
-```python
-from enum import Enum
-
-class WindowingMethod(Enum):
-    HANN = "hann"
-    HAMMING = "hamming"
-
-def phase_correlation(
-    *,
-    kernel: np.ndarray,
-    search: np.ndarray,
-    windowing: WindowingMethod | None = None,
-) -> np.ndarray:
-    ...  # unchanged behavior when windowing=None; new when set
-```
-
-Not scheduled work — don't start on this without Chad raising it again.
+with a nearby runner-up. `locate` accepts the same `windowing` parameter
+too (see [Windowing](./windowing.md)) — the prominence gain above isn't
+unique to the surface `phase_correlation()` exposes for visualization;
+it applies wherever the same FFT-based comparison runs, `locate`
+included.

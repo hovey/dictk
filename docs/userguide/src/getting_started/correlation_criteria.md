@@ -236,32 +236,3 @@ every frequency before inverting it (see the extensive comment in
 [`locate`'s source](../api/dictk/translation.html#locate) for why). Both
 differences change the surface's numeric character; neither changes where
 its peak lands here.
-
-### Windowing
-
-The FFT implicitly treats an image as one period of an infinitely-repeating
-signal. If the content doesn't tile seamlessly — the general case, since
-nothing arranged `search`'s edges to match up — that discontinuity leaks
-energy across many frequencies rather than the few the underlying content
-actually has, an effect called **spectral leakage**. In a correlation
-surface, leakage broadens and can shift the peak, hurting the precision
-`locate` is built to provide.
-
-**Windowing** counters this by tapering an image's edges toward zero
-before transforming it, so the (still discontinuous, but now near-zero)
-seam contributes far less energy. Two standard 1D windows, applied to an
-image by taking the outer product of a window with itself along each axis:
-
-$$w_{\rm Hann}(n) = 0.5 \left(1 - \cos\left(\frac{2\pi n}{N - 1}\right)\right)$$
-
-$$w_{\rm Hamming}(n) = 0.54 - 0.46 \cos\left(\frac{2\pi n}{N - 1}\right)$$
-
-for $n = 0, \ldots, N-1$ across a window of length $N$. Hann tapers all the
-way to exactly zero at both ends; Hamming stops short (around $0.08$),
-trading a little residual discontinuity for a narrower main lobe in the
-transformed signal.
-
-Windowing is **not implemented in `dictk`** — this section is a description
-of the technique for context, not a feature. `dictk.translation.locate`
-does not apply any windowing, and there is no `window()`-style function in
-this codebase yet.
