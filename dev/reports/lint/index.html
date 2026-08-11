@@ -28,8 +28,8 @@ src/dictk/grid.py:58:0: R0913: Too many arguments (9/5) (too-many-arguments)
 src/dictk/correlation.py:46:0: C0301: Line too long (140/100) (line-too-long)
 src/dictk/correlation.py:404:10: E1101: Instance of &#x27;finfo&#x27; has no &#x27;eps&#x27; member (no-member)
 ************* Module dictk.image
-src/dictk/image.py:1584:0: C0301: Line too long (101/100) (line-too-long)
-src/dictk/image.py:1:0: C0302: Too many lines in module (2007/1000) (too-many-lines)
+src/dictk/image.py:1615:0: C0301: Line too long (101/100) (line-too-long)
+src/dictk/image.py:1:0: C0302: Too many lines in module (2038/1000) (too-many-lines)
 src/dictk/image.py:116:0: R0913: Too many arguments (6/5) (too-many-arguments)
 src/dictk/image.py:116:0: R0914: Too many local variables (16/15) (too-many-locals)
 src/dictk/image.py:212:0: R0913: Too many arguments (6/5) (too-many-arguments)
@@ -39,20 +39,21 @@ src/dictk/image.py:285:0: R0915: Too many statements (58/50) (too-many-statement
 src/dictk/image.py:574:0: R0913: Too many arguments (8/5) (too-many-arguments)
 src/dictk/image.py:574:0: R0914: Too many local variables (28/15) (too-many-locals)
 src/dictk/image.py:733:0: R0914: Too many local variables (28/15) (too-many-locals)
-src/dictk/image.py:1433:0: R0913: Too many arguments (8/5) (too-many-arguments)
-src/dictk/image.py:1433:0: R0914: Too many local variables (26/15) (too-many-locals)
-src/dictk/image.py:1465:4: W0632: Possible unbalanced tuple unpacking with sequence defined at line 2 of : left side has 2 labels, right side has 1 value (unbalanced-tuple-unpacking)
-src/dictk/image.py:1573:0: R0913: Too many arguments (8/5) (too-many-arguments)
-src/dictk/image.py:1658:0: R0913: Too many arguments (8/5) (too-many-arguments)
-src/dictk/image.py:1754:0: R0913: Too many arguments (8/5) (too-many-arguments)
-src/dictk/image.py:1754:0: R0914: Too many local variables (22/15) (too-many-locals)
-src/dictk/image.py:1901:0: R0913: Too many arguments (6/5) (too-many-arguments)
-src/dictk/image.py:1901:0: R0914: Too many local variables (26/15) (too-many-locals)
+src/dictk/image.py:1459:0: R0913: Too many arguments (8/5) (too-many-arguments)
+src/dictk/image.py:1459:0: R0914: Too many local variables (28/15) (too-many-locals)
+src/dictk/image.py:1491:4: W0632: Possible unbalanced tuple unpacking with sequence defined at line 2 of : left side has 2 labels, right side has 1 value (unbalanced-tuple-unpacking)
+src/dictk/image.py:1459:0: R0915: Too many statements (52/50) (too-many-statements)
+src/dictk/image.py:1604:0: R0913: Too many arguments (8/5) (too-many-arguments)
+src/dictk/image.py:1689:0: R0913: Too many arguments (8/5) (too-many-arguments)
+src/dictk/image.py:1785:0: R0913: Too many arguments (8/5) (too-many-arguments)
+src/dictk/image.py:1785:0: R0914: Too many local variables (22/15) (too-many-locals)
+src/dictk/image.py:1932:0: R0913: Too many arguments (6/5) (too-many-arguments)
+src/dictk/image.py:1932:0: R0914: Too many local variables (26/15) (too-many-locals)
 
 
 Report
 ======
-739 statements analysed.
+746 statements analysed.
 
 Statistics by type
 ------------------
@@ -66,7 +67,7 @@ Statistics by type
 +---------+-------+-----------+-----------+------------+---------+
 |method   |1      |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
-|function |55     |NC         |NC         |100.00      |0.00     |
+|function |56     |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
 
 
@@ -91,7 +92,7 @@ External dependencies
 
 
 
-3170 lines have been analyzed
+3201 lines have been analyzed
 
 Raw metrics
 -----------
@@ -99,13 +100,13 @@ Raw metrics
 +----------+-------+------+---------+-----------+
 |type      |number |%     |previous |difference |
 +==========+=======+======+=========+===========+
-|code      |1415   |44.64 |NC       |NC         |
+|code      |1422   |44.42 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|docstring |1345   |42.43 |NC       |NC         |
+|docstring |1365   |42.64 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|comment   |132    |4.16  |NC       |NC         |
+|comment   |134    |4.19  |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|empty     |278    |8.77  |NC       |NC         |
+|empty     |280    |8.75  |NC       |NC         |
 +----------+-------+------+---------+-----------+
 
 
@@ -131,7 +132,7 @@ Messages by category
 +===========+=======+=========+===========+
 |convention |3      |NC       |NC         |
 +-----------+-------+---------+-----------+
-|refactor   |23     |NC       |NC         |
+|refactor   |24     |NC       |NC         |
 +-----------+-------+---------+-----------+
 |warning    |1      |NC       |NC         |
 +-----------+-------+---------+-----------+
@@ -146,17 +147,17 @@ Messages by category
 +------------------+------+--------+---------+-----------+
 |module            |error |warning |refactor |convention |
 +==================+======+========+=========+===========+
-|dictk.translation |50.00 |0.00    |8.70     |0.00       |
+|dictk.translation |50.00 |0.00    |8.33     |0.00       |
 +------------------+------+--------+---------+-----------+
 |dictk.correlation |50.00 |0.00    |0.00     |33.33      |
 +------------------+------+--------+---------+-----------+
-|dictk.image       |0.00  |100.00  |73.91    |66.67      |
+|dictk.image       |0.00  |100.00  |75.00    |66.67      |
 +------------------+------+--------+---------+-----------+
-|dictk.cli         |0.00  |0.00    |8.70     |0.00       |
+|dictk.cli         |0.00  |0.00    |8.33     |0.00       |
 +------------------+------+--------+---------+-----------+
-|dictk.rosta       |0.00  |0.00    |4.35     |0.00       |
+|dictk.rosta       |0.00  |0.00    |4.17     |0.00       |
 +------------------+------+--------+---------+-----------+
-|dictk.grid        |0.00  |0.00    |4.35     |0.00       |
+|dictk.grid        |0.00  |0.00    |4.17     |0.00       |
 +------------------+------+--------+---------+-----------+
 
 
@@ -171,11 +172,11 @@ Messages
 +------------------------------+------------+
 |too-many-locals               |8           |
 +------------------------------+------------+
+|too-many-statements           |2           |
++------------------------------+------------+
 |line-too-long                 |2           |
 +------------------------------+------------+
 |unbalanced-tuple-unpacking    |1           |
-+------------------------------+------------+
-|too-many-statements           |1           |
 +------------------------------+------------+
 |too-many-positional-arguments |1           |
 +------------------------------+------------+
@@ -190,7 +191,7 @@ Messages
 
 
 -----------------------------------
-Your code has been rated at 9.50/10
+Your code has been rated at 9.49/10
 </pre>
 </body>
 </html>
