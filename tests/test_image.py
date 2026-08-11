@@ -1086,6 +1086,31 @@ def test_phase_correlation_quadrant_plot_windowing_peak_matches_known_displaceme
     assert path.stat().st_size > 0
 
 
+@pytest.mark.parametrize("method", [WindowingMethod.HANN, WindowingMethod.HAMMING])
+def test_phase_correlation_quadrant_plot_windowing_changes_display(
+    tmp_path: Path, method
+):
+    """The Fixed Image/Moving Image panels change too, not just the
+    surface -- regression guard for a real bug: windowing used to reach
+    the correlation surface but silently leave the displayed
+    kernel/search untapered, showing panels that no longer matched what
+    was actually correlated. A byte-difference check doesn't prove which
+    panel changed (the surface panels already differed before this fix),
+    but it does prove the windowed and unwindowed renders aren't
+    identical -- see the visual check in the commit history for
+    confirmation the correct panels taper toward black."""
+    kernel, search = _astronaut0_kernel_and_search(
+        dx=-6, dy=8, kernel_margin=25, search_margin=50
+    )
+    path_none = tmp_path / "phase_correlation_quadrant_none.png"
+    path_windowed = tmp_path / "phase_correlation_quadrant_windowed.png"
+    phase_correlation_quadrant_plot(kernel=kernel, search=search, path=path_none)
+    phase_correlation_quadrant_plot(
+        kernel=kernel, search=search, windowing=method, path=path_windowed
+    )
+    assert path_none.read_bytes() != path_windowed.read_bytes()
+
+
 def test_point_grid_plot_writes_file(tmp_path: Path):
     photo = astronaut(width=300, height=300)
     points = grid_generate(

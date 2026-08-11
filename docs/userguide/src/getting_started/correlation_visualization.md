@@ -219,8 +219,8 @@ phase_correlation_quadrant_plot(
 ```
 
 <figure>
-    <img src="correlation_visualization_phase_hann.png" alt="four-panel composite for phase correlation with Hann windowing: same layout as no windowing above, same peak location" />
-    <figcaption>Same 100×100 Correlation Surface shape and the same peak, $\boldsymbol{r}_{SK/\mathcal{S}} = (19, 33)$ pixels, as No Windowing above — <code>window()</code> only tapers <code>kernel</code>/<code>search</code> before the FFT, it doesn't change the surface's shape or relocate the peak. The Fixed Image and Moving Image panels are identical to No Windowing's too, since <code>phase_correlation_quadrant_plot</code>'s display panels always show the raw, un-tapered input (see its own <code>windowing</code> parameter docs). What windowing changes is the surface's own values — see <a href="#peak-prominence">Peak Prominence</a> below for how much.</figcaption>
+    <img src="correlation_visualization_phase_hann.png" alt="four-panel composite for phase correlation with Hann windowing: fixed image and moving image both darken toward their own edges, same correlation surface peak location as no windowing" />
+    <figcaption>Same 100×100 Correlation Surface shape and the same peak, $\boldsymbol{r}_{SK/\mathcal{S}} = (19, 33)$ pixels, as No Windowing above — <code>window()</code> only tapers <code>kernel</code>/<code>search</code> before the FFT, it doesn't change the surface's shape or relocate the peak. Unlike No Windowing's panels, though, the Fixed Image and Moving Image panels here darken toward their own edges too — the same Hann taper <a href="./windowing.html">Windowing</a> shows on this exact kernel, now applied to what's actually fed into the FFT rather than left as a stale, untapered view next to a surface that no longer matches it. What windowing changes numerically is the surface's own values — see <a href="#peak-prominence">Peak Prominence</a> below for how much.</figcaption>
 </figure>
 
 ### Hamming Windowing
@@ -240,8 +240,8 @@ phase_correlation_quadrant_plot(
 ```
 
 <figure>
-    <img src="correlation_visualization_phase_hamming.png" alt="four-panel composite for phase correlation with Hamming windowing: same layout as no windowing above, same peak location" />
-    <figcaption>Same shape and peak as No Windowing and Hann Windowing above too. Hamming's taper stops short of exactly 0 at the edges (around $0.08$, per <a href="./windowing.html">Windowing</a>), trading a little residual discontinuity for a narrower main lobe — see <a href="#peak-prominence">Peak Prominence</a> below for how that plays out numerically against Hann.</figcaption>
+    <img src="correlation_visualization_phase_hamming.png" alt="four-panel composite for phase correlation with Hamming windowing: fixed image and moving image both darken toward their own edges but not fully to black, same correlation surface peak location as no windowing" />
+    <figcaption>Same shape and peak as No Windowing and Hann Windowing above too, and the same tapered Fixed Image/Moving Image panels — but Hamming's taper stops short of exactly 0 at the edges (around $0.08$, per <a href="./windowing.html">Windowing</a>), trading a little residual discontinuity for a narrower main lobe, visible here as a fainter, not-quite-black edge compared to Hann's above. See <a href="#peak-prominence">Peak Prominence</a> below for how that plays out numerically against Hann.</figcaption>
 </figure>
 
 ## Peak Prominence

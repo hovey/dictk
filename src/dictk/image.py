@@ -15,7 +15,7 @@ from matplotlib.path import Path as MarkerPath
 from scipy.interpolate import RegularGridInterpolator
 from scipy.ndimage import zoom
 
-from dictk.correlation import WindowingMethod, phase_correlation
+from dictk.correlation import WindowingMethod, phase_correlation, window
 
 
 class PixelCoordinate(NamedTuple):
@@ -1709,11 +1709,14 @@ def phase_correlation_quadrant_plot(
             must be at least as large as `kernel` in both dimensions.
         windowing: If given, passed straight through to
             [`phase_correlation`](../correlation.html#phase_correlation) --
-            tapers `kernel`/`search` before computing the surface. Only
-            the Correlation Surface and Solution Vicinity panels reflect
-            this; the Fixed Image and Moving Image panels always show the
-            raw, un-tapered `kernel`/`search` as given, the same as when
-            `windowing` is `None`. Default `None` applies no windowing.
+            tapers `kernel`/`search` before computing the surface. The
+            same tapered `kernel`/`search` are what the Fixed Image and
+            Moving Image panels display too (windowed, *then* zero-padded
+            for the Moving Image panel, same order the surface itself is
+            computed in), so those panels always show what was actually
+            correlated -- not a stale, untapered view next to a surface
+            that no longer matches it. Default `None` applies no
+            windowing, and the panels look exactly as they always have.
         title: Figure-level title, rendered as a `suptitle` spanning the
             full figure width. Defaults to `"Phase Correlation"` since
             there's only one flavor here -- override if different phrasing
@@ -1732,9 +1735,13 @@ def phase_correlation_quadrant_plot(
     correlation_surface = phase_correlation(
         kernel=kernel, search=search, windowing=windowing
     )
+    display_kernel, display_search = kernel, search
+    if windowing is not None:
+        display_kernel = window(arr=kernel, method=windowing)
+        display_search = window(arr=search, method=windowing)
     _correlation_quadrant_plot(
-        kernel=kernel,
-        search=search,
+        kernel=display_kernel,
+        search=display_search,
         correlation_surface=correlation_surface,
         title=title,
         path=path,

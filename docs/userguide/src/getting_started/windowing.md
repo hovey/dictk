@@ -107,3 +107,7 @@ alone: Hann reaches exactly $0$ at both edges, Hamming levels off at
 $0.08$ -- not the smaller $0.006$ corner value above, since a corner is
 where *both* axes are simultaneously at their own edge, and a mid-height
 cut only ever passes through one axis's edge at a time.
+
+See [Correlation Visualization](./correlation_visualization.md#phase-correlation)
+for windowing shown in action, tapering a real kernel and search area
+before they're compared.
