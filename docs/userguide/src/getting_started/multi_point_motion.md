@@ -56,9 +56,20 @@ point_grid_plot(
     <figcaption>Reference image <code>astronaut0</code> with a 3x4 grid of 12 points (<code>count_x=3</code>, <code>count_y=4</code>), spaced 50 pixels apart along $x$ and 55 pixels apart along $y$ (<code>spacing_x=50</code>, <code>spacing_y=55</code>), labeled 00-11 in row-major order (top-left to bottom-right).</figcaption>
 </figure>
 
-The pixel coordinates of each point follow:
+The reference coordinates $(X, Y)$ in pixels for each point follow:
 
-<!-- cmdrun python3 -c "from dictk.image import PixelCoordinate; from dictk.grid import generate; points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); print('| Point | x (pixels) | y (pixels) |'); print('|---|---|---|'); [print(f'| {i:02d} | {p.x} | {p.y} |') for i, p in enumerate(points)]" -->
+<!-- cmdrun python3 -c "from dictk.image import PixelCoordinate; from dictk.grid import generate; points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); print('<table>'); print('<thead>'); print('<tr><th rowspan=\"2\">Point</th><th colspan=\"2\">Reference Configuration \$(X, Y)\$</th></tr>'); print('<tr><th>\$X\$ (pixels)</th><th>\$Y\$ (pixels)</th></tr>'); print('</thead>'); print('<tbody>'); [print(f'<tr><td>{i:02d}</td><td>{p.x}</td><td>{p.y}</td></tr>') for i, p in enumerate(points)]; print('</tbody>'); print('</table>')" -->
+
+`dx, dy = -6, 8` is the same known rigid-body displacement [Single Point
+Motion](./single_point_motion.md#current-configuration-and-displacement)
+gave `checkerboard0`. Applying it to `astronaut0` produces `current_image`:
+
+```python
+from dictk.image import translate
+
+dx, dy = -6, 8
+current_image = translate(arr=reference_image, dx=dx, dy=dy)
+```
 
 Every point will need a **kernel** (the patch of `reference_image` used to
 identify it) and a **search area** (the region of `current_image` searched
@@ -93,9 +104,14 @@ point_grid_boxes_plot(
     <figcaption>Every point's kernel, each in its own color (<code>margin_width=20</code>, <code>margin_height=20</code>).</figcaption>
 </figure>
 
+The kernel comes from `reference_image`. The search area comes from
+`current_image` instead — still centered on each point's *reference*
+position (`search_centers` defaults to `reference_points`), since the
+point's true displacement is exactly what tracking is trying to find:
+
 ```python
 point_grid_boxes_plot(
-    image=reference_image,
+    image=current_image,
     points=points,
     margin_width=48,
     margin_height=52,
@@ -106,12 +122,12 @@ point_grid_boxes_plot(
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, point_grid_boxes_plot; from dictk.grid import generate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); point_grid_boxes_plot(image=reference_image, points=points, margin_width=48, margin_height=52, label_prefix='search area', figsize=(6.4, 4.8), path='multi_point_motion_search.png'); print('Saved: multi_point_motion_search.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, point_grid_boxes_plot; from dictk.grid import generate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); dx, dy = -6, 8; current_image = translate(arr=reference_image, dx=dx, dy=dy); point_grid_boxes_plot(image=current_image, points=points, margin_width=48, margin_height=52, label_prefix='search area', figsize=(6.4, 4.8), path='multi_point_motion_search.png'); print('Saved: multi_point_motion_search.png')" -->
 ```
 
 <figure>
-    <img src="multi_point_motion_search.png" alt="reference image astronaut0 with each of the 12 points' search-area boxes overlaid, each in its own color, labeled search area 00 through search area 11" />
-    <figcaption>Every point's search area, each in its own color (<code>margin_width=48</code>, <code>margin_height=52</code>).</figcaption>
+    <img src="multi_point_motion_search.png" alt="current image astronaut0, shifted by (-6, 8) pixels, with each of the 12 points' search-area boxes overlaid, each in its own color, labeled search area 00 through search area 11" />
+    <figcaption>Every point's search area, each in its own color (<code>margin_width=48</code>, <code>margin_height=52</code>), drawn on <code>current_image</code> — the region actually searched — and still centered on each point's reference position.</figcaption>
 </figure>
 
 ## Tracking the Grid
@@ -170,25 +186,48 @@ for p in (p0, p1):
         edgecolor="green", facecolor="none", linewidth=1.5,
     ))
 
-# 50-pixel point spacing
-dim_y = 95
-for p in (p0, p1):
-    ax.plot([p.x, p.x], [p0.y + kernel_margin, dim_y], color="gray", linestyle="--", linewidth=0.8)
-ax.annotate("", xy=(p0.x, dim_y), xytext=(p1.x, dim_y), arrowprops=dict(arrowstyle="<->", color="black"))
-ax.text((p0.x + p1.x) / 2, dim_y + 4, "50 px", ha="center", va="bottom", fontsize=9)
+box_top = p0.y - kernel_margin      # 30
+box_bottom = p0.y + kernel_margin   # 70
 
-# 40-pixel kernel width
-top_y = p0.y - kernel_margin - 8
-ax.annotate("", xy=(p0.x - kernel_margin, top_y), xytext=(p0.x + kernel_margin, top_y), arrowprops=dict(arrowstyle="<->", color="green"))
+# 50-pixel point spacing. The dashed guide lines start near each point
+# (nearly touching its marker) and run down through its kernel box to
+# the dimension line just below the boxes. Arrow flush with the dashed
+# lines (shrinkA/shrinkB=0); label centered at the true midpoint between
+# the box bottom and the dimension line.
+dim_y = box_bottom + 8
+for p in (p0, p1):
+    ax.plot([p.x, p.x], [p.y + 3, dim_y], color="gray", linestyle="--", linewidth=0.8)
+ax.annotate("", xy=(p0.x, dim_y), xytext=(p1.x, dim_y), arrowprops=dict(arrowstyle="<->", color="black", shrinkA=0, shrinkB=0))
+ax.text((p0.x + p1.x) / 2, (box_bottom + dim_y) / 2, "50 px", ha="center", va="center", fontsize=9)
+
+# 40-pixel kernel width, flush with the box's own left/right edges
+# (shrinkA/shrinkB=0 so the arrow isn't inset from those edges).
+top_y = box_top - 10
+ax.annotate("", xy=(p0.x - kernel_margin, top_y), xytext=(p0.x + kernel_margin, top_y), arrowprops=dict(arrowstyle="<->", color="green", shrinkA=0, shrinkB=0))
 ax.text(p0.x, top_y - 4, "40 px", ha="center", va="bottom", fontsize=8, color="green")
 
-# 10-pixel gap between the two kernels' facing edges
-gap_y = p0.y + 12
-ax.annotate("", xy=(p0.x + kernel_margin, gap_y), xytext=(p1.x - kernel_margin, gap_y), arrowprops=dict(arrowstyle="<->", color="tab:red"))
-ax.text(p0.x + kernel_margin + (p1.x - kernel_margin - (p0.x + kernel_margin)) / 2, gap_y + 10, "10 px", ha="center", va="bottom", fontsize=7, color="tab:red")
+# 10-pixel gap between the two kernels' facing edges, moved up to the
+# boxes' shared top edge, flush with the box's own edges (shrinkA/
+# shrinkB=0), with the label on top of the dimension line.
+gap_y = box_top - 2
+ax.annotate("", xy=(p0.x + kernel_margin, gap_y), xytext=(p1.x - kernel_margin, gap_y), arrowprops=dict(arrowstyle="<->", color="tab:red", shrinkA=0, shrinkB=0))
+ax.text(p0.x + kernel_margin + (p1.x - kernel_margin - (p0.x + kernel_margin)) / 2, gap_y - 4, "10 px", ha="center", va="bottom", fontsize=7, color="tab:red")
 
 ax.set_xlim(15, 175)
-ax.set_ylim(105, 5)
+ax.set_ylim(84, 8)
+
+# Tick marks: 50/100/150 in x (the point positions), 40 pixels apart
+# starting at 20; every 10 pixels in y, but text labels only at
+# 30/50/70 (the box's top edge, the point row, and the box's bottom
+# edge) -- a tight range with no dead space below the boxes, since the
+# dimension line sits just beneath them.
+xticks = list(range(20, 161, 10))
+ax.set_xticks(xticks)
+ax.set_xticklabels([str(v) if v in (50, 100, 150) else "" for v in xticks])
+yticks = list(range(20, 81, 10))
+ax.set_yticks(yticks)
+ax.set_yticklabels([str(v) if v in (30, 50, 70) else "" for v in yticks])
+
 ax.set_xlabel("x (pixels)")
 ax.set_ylabel("y (pixels)")
 ax.set_aspect("equal")
@@ -196,7 +235,7 @@ fig.savefig("multi_point_motion_spacing.png", dpi=300)
 ```
 
 ```text
-<!-- cmdrun python3 -c "import matplotlib.pyplot as plt; import matplotlib.patches as patches; from dictk.image import PixelCoordinate; p0, p1, p2 = PixelCoordinate(x=50, y=50), PixelCoordinate(x=100, y=50), PixelCoordinate(x=150, y=50); kernel_margin = 20; plt.rcParams.update({'font.family': 'serif', 'mathtext.fontset': 'cm'}); fig, ax = plt.subplots(figsize=(7, 3.2), constrained_layout=True); [ (ax.plot(p.x, p.y, 'o', color='black', markersize=4), ax.annotate(label, (p.x, p.y), textcoords='offset points', xytext=(6, 6), fontsize=8)) for p, label in [(p0, '00'), (p1, '01'), (p2, '02')] ]; [ax.add_patch(patches.Rectangle((p.x - kernel_margin, p.y - kernel_margin), 2 * kernel_margin, 2 * kernel_margin, edgecolor='green', facecolor='none', linewidth=1.5)) for p in (p0, p1)]; dim_y = 95; [ax.plot([p.x, p.x], [p0.y + kernel_margin, dim_y], color='gray', linestyle='--', linewidth=0.8) for p in (p0, p1)]; ax.annotate('', xy=(p0.x, dim_y), xytext=(p1.x, dim_y), arrowprops=dict(arrowstyle='<->', color='black')); ax.text((p0.x + p1.x) / 2, dim_y + 4, '50 px', ha='center', va='bottom', fontsize=9); top_y = p0.y - kernel_margin - 8; ax.annotate('', xy=(p0.x - kernel_margin, top_y), xytext=(p0.x + kernel_margin, top_y), arrowprops=dict(arrowstyle='<->', color='green')); ax.text(p0.x, top_y - 4, '40 px', ha='center', va='bottom', fontsize=8, color='green'); gap_y = p0.y + 12; ax.annotate('', xy=(p0.x + kernel_margin, gap_y), xytext=(p1.x - kernel_margin, gap_y), arrowprops=dict(arrowstyle='<->', color='tab:red')); ax.text(p0.x + kernel_margin + (p1.x - kernel_margin - (p0.x + kernel_margin)) / 2, gap_y + 10, '10 px', ha='center', va='bottom', fontsize=7, color='tab:red'); ax.set_xlim(15, 175); ax.set_ylim(105, 5); ax.set_xlabel('x (pixels)'); ax.set_ylabel('y (pixels)'); ax.set_aspect('equal'); fig.savefig('multi_point_motion_spacing.png', dpi=300); print('Saved: multi_point_motion_spacing.png')" -->
+<!-- cmdrun python3 -c "import matplotlib.pyplot as plt; import matplotlib.patches as patches; from dictk.image import PixelCoordinate; p0, p1, p2 = PixelCoordinate(x=50, y=50), PixelCoordinate(x=100, y=50), PixelCoordinate(x=150, y=50); kernel_margin = 20; plt.rcParams.update({'font.family': 'serif', 'mathtext.fontset': 'cm'}); fig, ax = plt.subplots(figsize=(7, 3.2), constrained_layout=True); [ (ax.plot(p.x, p.y, 'o', color='black', markersize=4), ax.annotate(label, (p.x, p.y), textcoords='offset points', xytext=(6, 6), fontsize=8)) for p, label in [(p0, '00'), (p1, '01'), (p2, '02')] ]; [ax.add_patch(patches.Rectangle((p.x - kernel_margin, p.y - kernel_margin), 2 * kernel_margin, 2 * kernel_margin, edgecolor='green', facecolor='none', linewidth=1.5)) for p in (p0, p1)]; box_top = p0.y - kernel_margin; box_bottom = p0.y + kernel_margin; dim_y = box_bottom + 8; [ax.plot([p.x, p.x], [p.y + 3, dim_y], color='gray', linestyle='--', linewidth=0.8) for p in (p0, p1)]; ax.annotate('', xy=(p0.x, dim_y), xytext=(p1.x, dim_y), arrowprops=dict(arrowstyle='<->', color='black', shrinkA=0, shrinkB=0)); ax.text((p0.x + p1.x) / 2, (box_bottom + dim_y) / 2, '50 px', ha='center', va='center', fontsize=9); top_y = box_top - 10; ax.annotate('', xy=(p0.x - kernel_margin, top_y), xytext=(p0.x + kernel_margin, top_y), arrowprops=dict(arrowstyle='<->', color='green', shrinkA=0, shrinkB=0)); ax.text(p0.x, top_y - 4, '40 px', ha='center', va='bottom', fontsize=8, color='green'); gap_y = box_top - 2; ax.annotate('', xy=(p0.x + kernel_margin, gap_y), xytext=(p1.x - kernel_margin, gap_y), arrowprops=dict(arrowstyle='<->', color='tab:red', shrinkA=0, shrinkB=0)); ax.text(p0.x + kernel_margin + (p1.x - kernel_margin - (p0.x + kernel_margin)) / 2, gap_y - 4, '10 px', ha='center', va='bottom', fontsize=7, color='tab:red'); ax.set_xlim(15, 175); ax.set_ylim(84, 8); xticks = list(range(20, 161, 10)); ax.set_xticks(xticks); ax.set_xticklabels([str(v) if v in (50, 100, 150) else '' for v in xticks]); yticks = list(range(20, 81, 10)); ax.set_yticks(yticks); ax.set_yticklabels([str(v) if v in (30, 50, 70) else '' for v in yticks]); ax.set_xlabel('x (pixels)'); ax.set_ylabel('y (pixels)'); ax.set_aspect('equal'); fig.savefig('multi_point_motion_spacing.png', dpi=300); print('Saved: multi_point_motion_spacing.png')" -->
 ```
 
 <figure>
@@ -232,19 +271,11 @@ crop the search area down to the kernel's size; rather, it zero-pads the kernel 
 > **Note:** In practice, kernel size has little effect on FFT runtime once a search area size is chosen because the transform zero-pads the kernel size up to match the size of the search area. So shrinking an already-small kernel further doesn't make the correlation any faster.
 
 [Single Point Motion](./single_point_motion.md#current-configuration-and-displacement)
-gave `checkerboard0` a known rigid-body displacement of $\delta
-\boldsymbol{p} = (-6, 8)$ pixels via
-[`dictk.image.translate`](../api/dictk/image.html#translate), and confirmed
-that a single point's found position matched that displacement exactly.
-The same idea, applied to all 12 points in the grid at once, is exactly
-what a real DIC workflow looks like:
-
-```python
-from dictk.image import translate
-
-dx, dy = -6, 8
-current_image = translate(arr=reference_image, dx=dx, dy=dy)
-```
+confirmed that a single point's found position matches a known
+displacement exactly. Reuse `current_image` from [Point
+Grid](#point-grid) — the same $\delta \boldsymbol{p} = (-6, 8)$-pixel
+displacement. The same idea, applied to all 12 points in the grid at
+once, is exactly what a real DIC workflow looks like.
 
 [`dictk.grid.locate`](../api/dictk/grid.html#locate) tracks all 12 points
 in one call. It doesn't do the correlation itself — it calls
@@ -317,3 +348,57 @@ can't.
 This page tracked rigid-body translation. Every point moved by the same
 amount. [Simple Stretch](./simple_stretch.md) is next. It tracks a real
 deformation instead, where each point moves by a different amount.
+
+## Data Download
+
+Every image this page used is downloadable below as a TIFF.
+
+### Full Images
+
+* `astronaut0.tiff` is `reference_image`.
+* `astronaut1.tiff` is `current_image` — `reference_image` displaced down and to the left by $\delta \boldsymbol{p} = (-6, 8)$ pixels, the same displacement [Tracking the Grid](#tracking-the-grid) tracked:
+
+```python
+from dictk.image import write
+
+write(arr=reference_image, path="astronaut0.tiff")
+write(arr=current_image, path="astronaut1.tiff")
+```
+
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, write; reference_image = read(path='astronaut0.png'); dx, dy = -6, 8; current_image = translate(arr=reference_image, dx=dx, dy=dy); write(arr=reference_image, path='astronaut0.tiff'); write(arr=current_image, path='astronaut1.tiff'); print('| File | Description |'); print('|---|---|'); print('| [astronaut0.tiff](astronaut0.tiff) | Reference image, 300x300 pixels |'); print(f'| [astronaut1.tiff](astronaut1.tiff) | Current image, displaced by (dx, dy) = ({dx}, {dy}) pixels |')" -->
+
+### Kernels
+
+Every point's kernel, extracted from `reference_image` — the same 12
+boxes shown in [Point Grid](#point-grid) (`kernel_margin_width=20`,
+`kernel_margin_height=20`, 40x40 pixels each):
+
+```python
+from dictk.image import subimage, write
+
+kernel_margin = 20
+for i, point in enumerate(points):
+    origin = PixelCoordinate(x=point.x - kernel_margin, y=point.y - kernel_margin)
+    kernel = subimage(image=reference_image, origin=origin, width=2 * kernel_margin, height=2 * kernel_margin)
+    write(arr=kernel, path=f"kernel_{i:02d}.tiff")
+```
+
+<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, subimage, write; from dictk.grid import generate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); kernel_margin = 20; print('| File | Point | Origin (pixels) |'); print('|---|---|---|'); [ (lambda origin, kernel: (write(arr=kernel, path=f'kernel_{i:02d}.tiff'), print(f'| [kernel_{i:02d}.tiff](kernel_{i:02d}.tiff) | {i:02d} | ({origin.x}, {origin.y}) |')))(PixelCoordinate(x=p.x - kernel_margin, y=p.y - kernel_margin), subimage(image=reference_image, origin=PixelCoordinate(x=p.x - kernel_margin, y=p.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin)) for i, p in enumerate(points) ]" -->
+
+### Search Areas
+
+Every point's search area, extracted from `current_image` — not
+`reference_image`, since a search area is always a region of the current
+image (see [Point Grid](#point-grid)). The same 12 boxes shown there
+(`search_margin_width=48`, `search_margin_height=52`, 96x104 pixels
+each), still centered on each point's *reference* position:
+
+```python
+search_margin_width, search_margin_height = 48, 52
+for i, point in enumerate(points):
+    origin = PixelCoordinate(x=point.x - search_margin_width, y=point.y - search_margin_height)
+    search_area = subimage(image=current_image, origin=origin, width=2 * search_margin_width, height=2 * search_margin_height)
+    write(arr=search_area, path=f"search_area_{i:02d}.tiff")
+```
+
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage, write; from dictk.grid import generate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); dx, dy = -6, 8; current_image = translate(arr=reference_image, dx=dx, dy=dy); search_margin_width, search_margin_height = 48, 52; print('| File | Point | Origin (pixels) |'); print('|---|---|---|'); [ (lambda origin, search_area: (write(arr=search_area, path=f'search_area_{i:02d}.tiff'), print(f'| [search_area_{i:02d}.tiff](search_area_{i:02d}.tiff) | {i:02d} | ({origin.x}, {origin.y}) |')))(PixelCoordinate(x=p.x - search_margin_width, y=p.y - search_margin_height), subimage(image=current_image, origin=PixelCoordinate(x=p.x - search_margin_width, y=p.y - search_margin_height), width=2 * search_margin_width, height=2 * search_margin_height)) for i, p in enumerate(points) ]" -->

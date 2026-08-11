@@ -94,9 +94,7 @@ expected = [
 ]
 ```
 
-```text
-<!-- cmdrun python3 -c "from dictk.image import PixelCoordinate; from dictk.grid import generate; points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); factor_x = 1.02; expected = [PixelCoordinate(x=int(p.x * factor_x), y=p.y) for p in points]; print('| Point | expected x | expected y |'); print('|---|---|---|'); [print(f'| {i:02d} | {e.x} | {e.y} |') for i, e in enumerate(expected)]" -->
-```
+<!-- cmdrun python3 -c "from dictk.image import PixelCoordinate; from dictk.grid import generate; points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); factor_x = 1.02; expected = [PixelCoordinate(x=int(p.x * factor_x), y=p.y) for p in points]; print('<table>'); print('<thead>'); print('<tr><th rowspan=\"2\">Point</th><th colspan=\"2\">Expected \$(x, y)\$</th></tr>'); print('<tr><th>\$x\$ (pixels)</th><th>\$y\$ (pixels)</th></tr>'); print('</thead>'); print('<tbody>'); [print(f'<tr><td>{i:02d}</td><td>{e.x}</td><td>{e.y}</td></tr>') for i, e in enumerate(expected)]; print('</tbody>'); print('</table>')" -->
 
 This is a real deformation, not a rigid shift. [Multi-Point
 Motion](./multi_point_motion.md) moved every point by the same $(\delta x,
@@ -159,3 +157,64 @@ deformation too.
 Twelve points, twelve independent correlations, whether the underlying
 motion is a rigid shift or a stretch:
 [Parallelization](./parallelization.md) picks up from here.
+
+## Data Download
+
+Every image this page used is downloadable below, as a TIFF — see
+[Multi-Point Motion's Data Download](./multi_point_motion.md#data-download)
+for why, and for a note on the `.tif`/`.tiff` naming.
+
+### Full Images
+
+`astronaut0.tiff` is `reference_image` — identical to [Multi-Point
+Motion's](./multi_point_motion.md#full-images) copy, since both pages
+reuse the same reference image. `astronaut2.tiff` is `current_image`,
+stretched by `factor_x=1.02` — named `astronaut2`, not `astronaut1`, to
+stay distinct from Multi-Point Motion's *translated* current image,
+which is a different file with different content:
+
+```python
+from dictk.image import write
+
+write(arr=reference_image, path="astronaut0.tiff")
+write(arr=current_image, path="astronaut2.tiff")
+```
+
+<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, stretch, write; from dictk.grid import generate; reference_image = read(path='astronaut0.png'); factor_x = 1.02; current_image = stretch(arr=reference_image, factor_x=factor_x); write(arr=reference_image, path='astronaut0.tiff'); write(arr=current_image, path='astronaut2.tiff'); print('| File | Description |'); print('|---|---|'); print('| [astronaut0.tiff](astronaut0.tiff) | Reference image, 300x300 pixels (same as Multi-Point Motion) |'); print(f'| [astronaut2.tiff](astronaut2.tiff) | Current image, stretched by factor_x={factor_x} |')" -->
+
+### Kernels
+
+Kernels are unchanged from [Multi-Point
+Motion](./multi_point_motion.md#kernels): the stretch only ever moves
+`current_image`, and a kernel always comes from `reference_image`.
+Regenerated here, byte-for-byte identical, for a self-contained download
+set:
+
+```python
+from dictk.image import subimage, write
+
+kernel_margin = 20
+for i, point in enumerate(points):
+    origin = PixelCoordinate(x=point.x - kernel_margin, y=point.y - kernel_margin)
+    kernel = subimage(image=reference_image, origin=origin, width=2 * kernel_margin, height=2 * kernel_margin)
+    write(arr=kernel, path=f"kernel_{i:02d}.tiff")
+```
+
+<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, subimage, write; from dictk.grid import generate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); kernel_margin = 20; print('| File | Point | Origin (pixels) |'); print('|---|---|---|'); [ (lambda origin, kernel: (write(arr=kernel, path=f'kernel_{i:02d}.tiff'), print(f'| [kernel_{i:02d}.tiff](kernel_{i:02d}.tiff) | {i:02d} | ({origin.x}, {origin.y}) |')))(PixelCoordinate(x=p.x - kernel_margin, y=p.y - kernel_margin), subimage(image=reference_image, origin=PixelCoordinate(x=p.x - kernel_margin, y=p.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin)) for i, p in enumerate(points) ]" -->
+
+### Search Areas
+
+Search areas, unlike kernels, *are* different from Multi-Point Motion's:
+they come from this page's `current_image` — the stretched one, not the
+translated one. Named `search_area_stretch_*` to keep the two sets of
+files distinct, still centered on each point's reference position:
+
+```python
+search_margin_width, search_margin_height = 48, 52
+for i, point in enumerate(points):
+    origin = PixelCoordinate(x=point.x - search_margin_width, y=point.y - search_margin_height)
+    search_area = subimage(image=current_image, origin=origin, width=2 * search_margin_width, height=2 * search_margin_height)
+    write(arr=search_area, path=f"search_area_stretch_{i:02d}.tiff")
+```
+
+<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, stretch, subimage, write; from dictk.grid import generate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); factor_x = 1.02; current_image = stretch(arr=reference_image, factor_x=factor_x); search_margin_width, search_margin_height = 48, 52; print('| File | Point | Origin (pixels) |'); print('|---|---|---|'); [ (lambda origin, search_area: (write(arr=search_area, path=f'search_area_stretch_{i:02d}.tiff'), print(f'| [search_area_stretch_{i:02d}.tiff](search_area_stretch_{i:02d}.tiff) | {i:02d} | ({origin.x}, {origin.y}) |')))(PixelCoordinate(x=p.x - search_margin_width, y=p.y - search_margin_height), subimage(image=current_image, origin=PixelCoordinate(x=p.x - search_margin_width, y=p.y - search_margin_height), width=2 * search_margin_width, height=2 * search_margin_height)) for i, p in enumerate(points) ]" -->
