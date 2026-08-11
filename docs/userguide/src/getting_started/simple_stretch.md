@@ -70,5 +70,92 @@ aggressive stretch that still keeps every point's ground-truth position an
 exact pixel, with `factor_x = 1.02` giving new $x$ values of 51, 102, and
 153.
 
-*(remaining sections — applying the stretch to `astronaut0`, and verifying
-`dictk.grid.locate` recovers these exact positions — coming soon)*
+## Applying the Stretch
+
+Reuse `points` and `reference_image` from [Point
+Grid](./multi_point_motion.md#point-grid).
+[`dictk.image.stretch`](../api/dictk/image.html#stretch) builds `current_image`:
+
+```python
+from dictk.image import read, stretch, PixelCoordinate
+
+reference_image = read(path="astronaut0.png")
+factor_x = 1.02
+current_image = stretch(arr=reference_image, factor_x=factor_x)
+```
+
+`factor_y` defaults to `1.0`. Every point's $y$ stays fixed. Only $x$
+changes, and by a different amount for each point:
+
+```python
+expected = [
+    PixelCoordinate(x=int(point.x * factor_x), y=point.y)
+    for point in points
+]
+```
+
+```text
+<!-- cmdrun python3 -c "from dictk.image import PixelCoordinate; from dictk.grid import generate; points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); factor_x = 1.02; expected = [PixelCoordinate(x=int(p.x * factor_x), y=p.y) for p in points]; print('| Point | expected x | expected y |'); print('|---|---|---|'); [print(f'| {i:02d} | {e.x} | {e.y} |') for i, e in enumerate(expected)]" -->
+```
+
+This is a real deformation, not a rigid shift. [Multi-Point
+Motion](./multi_point_motion.md) moved every point by the same $(\delta x,
+\delta y)$. A stretch moves each point by a different amount. A point at
+$x = 50$ moves 1 pixel. A point at $x = 150$ moves 3 pixels. The grid
+spreads apart under the stretch. It does not translate as one block.
+
+## Locating the Stretched Grid
+
+[`dictk.grid.locate`](../api/dictk/grid.html#locate) tracks the stretched
+grid the same way it tracked the translated one in [Tracking the
+Grid](./multi_point_motion.md#tracking-the-grid). Reuse the same kernel
+and search-area margins:
+
+```python
+from dictk.grid import locate
+
+found = locate(
+    reference_image=reference_image,
+    current_image=current_image,
+    reference_points=points,
+    kernel_margin_width=20,
+    kernel_margin_height=20,
+    search_margin_width=48,
+    search_margin_height=52,
+)
+```
+
+```text
+<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, stretch; from dictk.grid import generate, locate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); factor_x = 1.02; current_image = stretch(arr=reference_image, factor_x=factor_x); expected = [PixelCoordinate(x=int(p.x * factor_x), y=p.y) for p in points]; found = locate(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=20, kernel_margin_height=20, search_margin_width=48, search_margin_height=52); print('Point  found        expected     match'); [print(f'{i:02d}     {f.x:4d},{f.y:<4d}   {e.x:4d},{e.y:<4d}   {f == e}') for i, (f, e) in enumerate(zip(found, expected))]" -->
+```
+
+```python
+from dictk.image import point_grid_plot
+
+point_grid_plot(
+    image=current_image,
+    points=found,
+    color="orange",
+    figsize=(6.4, 4.8),
+    path="simple_stretch_current.png",
+)
+```
+
+```text
+<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, stretch, point_grid_plot; from dictk.grid import generate, locate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); factor_x = 1.02; current_image = stretch(arr=reference_image, factor_x=factor_x); found = locate(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=20, kernel_margin_height=20, search_margin_width=48, search_margin_height=52); point_grid_plot(image=current_image, points=found, color='orange', figsize=(6.4, 4.8), path='simple_stretch_current.png'); print('Saved: simple_stretch_current.png')" -->
+```
+
+<figure>
+    <img src="simple_stretch_current.png" alt="stretched current image astronaut0 with the 12 found points overlaid in orange, still labeled 00 through 11" />
+    <figcaption>The stretched current image, with all 12 found positions marked. Every found position matches its expected stretched position exactly.</figcaption>
+</figure>
+
+Every found position matches the expected stretched position exactly.
+The stretch introduces no sub-pixel error at these 12 points. [Multi-Point
+Motion](./multi_point_motion.md) established this exact-integer guarantee
+for rigid translation. This page confirms it holds under a real
+deformation too.
+
+Twelve points, twelve independent correlations, whether the underlying
+motion is a rigid shift or a stretch:
+[Parallelization](./parallelization.md) picks up from here.

@@ -1,29 +1,29 @@
 # Multi-Point Motion
 
 [Single Point Motion](./single_point_motion.md) tracked exactly one point,
-$P$, between a reference and current image. Real digital image correlation
-work needs to track *many* points at once — a whole collection of tracked
-points is exactly what a **finite element mesh**'s nodes are built from.
+$P$, between a reference and current image. Digital image correlation was
+illustrated in context of that single point.  Now, we turn to consider
+*many* points at once.
+A collection of tracked
+points will serve as the **nodes** of a finite element mesh.
 This page shows how to track many points simultaneously, and motivates the
 connection to the **Finite Element Method (FEM)**.
 
 ## Point Grid
 
-A grid of points spans some number of points along $x$ and along $y$,
+A **grid** is an ordered, sequential collection of points, arranged in a rectalinear
+pattern. 
+The function [`dictk.grid.generate`](../api/dictk/grid.html#generate) creates
+a grid that span some number of points along $x$ and along $y$,
 with some spacing between adjacent points along each axis.
-[`dictk.grid.generate`](../api/dictk/grid.html#generate) builds one: the
-count of points along $x$ and along $y$ need not be equal, and the
-spacing along $x$ and along $y$ need not be equal either — this is a
+The count of points along $x$ and along $y$ need not be equal, and the
+spacing along $x$ and along $y$ need not be equal either. The grid is a
 general rectangular collection of points, not necessarily a square or
-uniformly-spaced one. `spacing_x` and `spacing_y` are in pixels, the same
-units as every other coordinate in this guide.
+uniformly-spaced one. `spacing_x` and `spacing_y` are in pixels.
 
-This page reuses `astronaut0`, the speckle pattern combined with the
+This page uses `astronaut0`, the speckle pattern combined with the
 astronaut photograph introduced in [Image
-Generation](./image_generation.md#speckle--astronaut) — the same kind of
-reference image [Single Point Motion](./single_point_motion.md) used
-`checkerboard0` for, just a different one, to keep some visual variety
-across this guide:
+Generation](./image_generation.md#speckle--astronaut).
 
 ```python
 from dictk.image import read, PixelCoordinate, point_grid_plot
@@ -56,6 +56,10 @@ point_grid_plot(
     <figcaption>Reference image <code>astronaut0</code> with a 3x4 grid of 12 points (<code>count_x=3</code>, <code>count_y=4</code>), spaced 50 pixels apart along $x$ and 55 pixels apart along $y$ (<code>spacing_x=50</code>, <code>spacing_y=55</code>), labeled 00-11 in row-major order (top-left to bottom-right).</figcaption>
 </figure>
 
+The pixel coordinates of each point follow:
+
+<!-- cmdrun python3 -c "from dictk.image import PixelCoordinate; from dictk.grid import generate; points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); print('| Point | x (pixels) | y (pixels) |'); print('|---|---|---|'); [print(f'| {i:02d} | {p.x} | {p.y} |') for i, p in enumerate(points)]" -->
+
 Every point will need a **kernel** (the patch of `reference_image` used to
 identify it) and a **search area** (the region of `current_image` searched
 for a match). Before tracking the grid, it helps to see both relative to
@@ -64,7 +68,7 @@ the point spacing.
 draws one box type per call, so kernel and search area each get their own
 figure — each point's own box gets its own color and its own legend
 entry (`kernel 00`, `kernel 01`, ..., `kernel 11`), cycling through a
-12-color palette drawn from matplotlib's Tableau colormap:
+12-color palette (using matplotlib's Tableau colormap):
 
 ```python
 from dictk.image import point_grid_boxes_plot
@@ -110,35 +114,31 @@ point_grid_boxes_plot(
     <figcaption>Every point's search area, each in its own color (<code>margin_width=48</code>, <code>margin_height=52</code>).</figcaption>
 </figure>
 
-[Tracking the Grid](#tracking-the-grid) explains what these are actually
-used for, and why these particular sizes were chosen.
-
-Each point's pixel coordinates, in the same row-major order as its label
-above:
-
-<!-- cmdrun python3 -c "from dictk.image import PixelCoordinate; from dictk.grid import generate; points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); print('| Point | x (pixels) | y (pixels) |'); print('|---|---|---|'); [print(f'| {i:02d} | {p.x} | {p.y} |') for i, p in enumerate(points)]" -->
-
 ## Tracking the Grid
 
 Choosing a kernel size relative to point spacing is a tradeoff: a kernel
 needs to be large enough to contain enough distinctive texture to locate
 reliably, but small enough that neighboring kernels don't just duplicate
-each other's content. A common rule of thumb (with no hard requirement
+each other's content.
+
+A common rule of thumb (with no hard requirement
 behind it) is to space points roughly half a kernel's side length apart.
 A kernel's full side length is twice its margin, so `kernel_margin_width`
 and `kernel_margin_height` are themselves already exactly half that side
-length — meaning the rule of thumb reduces to a simple comparison: each
-margin should be close to the spacing itself, without exceeding it (past
+length — meaning the **rule of thumb** reduces to a simple comparison: **each
+margin should be close to the point spacing itself**, without exceeding it (past
 that point, neighboring kernels start overlapping).
 
 The point spacing above is 50 pixels in $x$ and 55 pixels in $y$
 (`spacing_x=50`, `spacing_y=55`). Keeping the kernel isotropic (a single
 margin for both axes, `kernel_margin_width=kernel_margin_height`) means
 the *smaller* of the two spacings is the binding constraint: a margin
-above 25 would overlap its $x$-neighbor, since $2 \times 25 = 50$ is
-already the full spacing in $x$. 25 is therefore the largest isotropic
+of greater than 25 pixels would overlap its $x$-neighbor, since $2 \times 25 = 50$ is
+already the full spacing in $x$. The 25 value, therefore, is the largest isotropic
 margin with zero overlap — but right at that ceiling, adjacent kernels
-touch exactly, sharing a boundary with no gap at all. The kernel figure
+touch exactly, sharing a boundary with no gap at all. 
+
+The kernel figure
 above backs off from that ceiling on purpose: `kernel_margin_width=20`,
 `kernel_margin_height=20`, leaving a clear 10-pixel gap in $x$ and a
 15-pixel gap in $y$, comfortably inside the no-overlap ceiling in both
@@ -156,22 +156,21 @@ non-isotropic shape: `search_margin_width=48`, `search_margin_height=52`
 — just under the point spacing itself, comfortably containing the known
 $(-6, 8)$-pixel displacement with plenty of room to spare, while staying
 just shy of `spacing_x`/`spacing_y` rather than matching them outright.
+
 That much slack still means search areas overlap their neighbors heavily
 and run off the image at the edges, which is harmless:
 [`subimage`](../api/dictk/image.html#subimage) zero-pads whatever falls
-outside `current_image`. Unlike kernels, overlapping search areas cost
-nothing but some redundant computation — there's no accuracy downside to
-searching the same region from two different points.
+outside `current_image`. Unlike kernels, search areas that overlap cost
+nothing aside from redundant computation; there's no accuracy downside to
+searching the same region for two different points.
 
-One more practical detail worth knowing: `phase_cross_correlation`
-requires the kernel and search area to be exactly the same shape, so
+One important practical detail: `phase_cross_correlation`
+requires the kernel and search area to be exactly the same shape. So
 [`dictk.translation.locate`](../api/dictk/translation.html#locate) doesn't
-crop the search area down — it pads the kernel up to match it, here a
-40x40 kernel zero-padded up to the search area's 96x104. In practice,
-that means kernel size has little effect on FFT runtime once a search
-area is chosen: the transform itself is sized by the larger of the two,
-so shrinking an already-small kernel further doesn't make the correlation
-any faster.
+crop the search area down to the kernel's size; rather, it zero-pads the kernel up to match the search area's size. Here a
+40x40 kernel is zero-padded up to the search area's 96x104 size.
+
+> **Note:** In practice, kernel size has little effect on FFT runtime once a search area size is chosen because the transform zero-pads the kernel size up to match the size of the search area. So shrinking an already-small kernel further doesn't make the correlation any faster.
 
 [Single Point Motion](./single_point_motion.md#current-configuration-and-displacement)
 gave `checkerboard0` a known rigid-body displacement of $\delta
@@ -216,7 +215,7 @@ found = locate(
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate; from dictk.grid import generate, locate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); dx, dy = -6, 8; current_image = translate(arr=reference_image, dx=dx, dy=dy); found = locate(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=20, kernel_margin_height=20, search_margin_width=48, search_margin_height=52); expected = [PixelCoordinate(x=p.x + dx, y=p.y + dy) for p in points]; print('Point  found        expected     match'); [print(f'{i:02d}     {f.x:4d},{f.y:<4d}   {e.x:4d},{e.y:<4d}   {f == e}') for i, (f, e) in enumerate(zip(found, expected))]" -->
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate; from dictk.grid import generate, locate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); dx, dy = -6, 8; current_image = translate(arr=reference_image, dx=dx, dy=dy); found = locate(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=20, kernel_margin_height=20, search_margin_width=48, search_margin_height=52); expected = [PixelCoordinate(x=p.x + dx, y=p.y + dy) for p in points]; print('Point  found        expected     match'); [print(f'{i:02d}    {f.x:4d},{f.y:<4d}   {e.x:4d},{e.y:<4d}     {f == e}') for i, (f, e) in enumerate(zip(found, expected))]" -->
 ```
 
 Every one of the 12 found positions matches `reference_points[i] + (dx,
@@ -256,6 +255,6 @@ too; it's on real, noisier imagery, or content with repetitive texture,
 that a larger kernel's extra context resolves an ambiguity a smaller one
 can't.
 
-Twelve calls into an FFT-based correlation engine, each entirely
-independent of the other eleven, are a small example of a much bigger
-pattern: [Parallelization](./parallelization.md) picks up from here.
+This page tracked rigid-body translation. Every point moved by the same
+amount. [Simple Stretch](./simple_stretch.md) is next. It tracks a real
+deformation instead, where each point moves by a different amount.

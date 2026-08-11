@@ -16,7 +16,6 @@
   - [Correlation Criteria](./getting_started/correlation_criteria.md)
   - [Correlation Visualization](./getting_started/correlation_visualization.md)
 - [Multi-Point Motion](./getting_started/multi_point_motion.md)
-  - [Parallelization](./getting_started/parallelization.md)
   - [Simple Stretch](./getting_started/simple_stretch.md)
-- [Image Processing](./getting_started/processing.md)
+  - [Parallelization](./getting_started/parallelization.md)
 - [Contributing](./contributing.md)
