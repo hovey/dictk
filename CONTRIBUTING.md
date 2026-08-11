@@ -1,6 +1,6 @@
-# Contributing to dictk
+# Contributing to `dictk`
 
-dictk is developed on [GitHub](https://github.com/hovey/dictk) using
+`dictk` is developed on [GitHub](https://github.com/hovey/dictk) using
 [Git](https://git-scm.com/) for version control. Git is the tool that tracks
 changes to the source on your own computer; GitHub is the hosting service
 that holds the canonical copy of the repository, tracks issues and pull
@@ -8,7 +8,7 @@ requests, and runs the CI/CD pipeline described [below](#cicd-architecture).
 
 ## Cloning vs. forking
 
-Contributors can get a working copy of dictk by either cloning or forking
+Contributors can get a working copy of `dictk` by either cloning or forking
 the repository.
 
 | Cloning | Forking |
@@ -215,17 +215,16 @@ If you already have a newer `mdbook` from Homebrew or elsewhere on your
 `PATH`, make sure `~/.cargo/bin` comes first (or check `mdbook --version`
 reports `0.4.52` before building).
 
+`book.toml` lives at the repo root (not inside `docs/userguide/`), with
+`src = "docs/userguide/src"` and `build-dir = "docs/userguide/book"`, so
+both commands below run from the repo root:
+
 ```bash
-# mdbook-cmdrun resolves each cmdrun command's working directory relative
-# to the process's cwd, so you must `cd` into docs/userguide first — running
-# `mdbook build docs/userguide` from the repo root will fail with
-# "Fail to run shell".
-cd docs/userguide
 uv run mdbook build           # build once, output in docs/userguide/book/
-uv run mdbook serve           # live preview at http://localhost:3000
+uv run mdbook serve --open    # live preview at http://localhost:3000
 ```
 
-`uv run` puts dictk's own CLI on `PATH` for the build, since some
+`uv run` puts `dictk`'s own CLI on `PATH` for the build, since some
 `cmdrun` directives invoke `dictk` directly.
 
 ### Building the API docs
@@ -234,21 +233,21 @@ Python API reference docs (function signatures, docstrings) are generated
 from source with [pdoc](https://pdoc.dev/), a dev dependency:
 
 ```bash
-uv run pdoc dictk dictk.image dictk.translation dictk.cli -o docs/api
+uv run pdoc dictk dictk.image dictk.translation dictk.correlation dictk.grid dictk.cli -o docs/api
 ```
 
 `dictk.rosta` doesn't need to be listed explicitly — pdoc's submodule
 discovery respects a package's `__all__`, and `rosta` is exported there (see
 below), so it's picked up automatically. The other submodules (`image`,
-`translation`, `cli`) aren't in `__all__` — `dictk/__init__.py` only lists
-the individual functions it re-exports, not module names — so pdoc's
-automatic package walk skips them unless named explicitly on the command
-line, per
+`translation`, `correlation`, `grid`, `cli`) aren't in `__all__` —
+`dictk/__init__.py` only lists the individual functions it re-exports, not
+module names — so pdoc's automatic package walk skips them unless named
+explicitly on the command line, per
 [pdoc's `__all__` handling](https://pdoc.dev/docs/pdoc.html#what-objects-are-documented). If you add a new top-level submodule, add it to this
 command too, or it will silently go undocumented.
 
 ```bash
-uv run pdoc dictk dictk.image dictk.translation dictk.cli   # live preview, serves on localhost
+uv run pdoc dictk dictk.image dictk.translation dictk.correlation dictk.grid dictk.cli   # live preview, serves on localhost
 ```
 
 Output goes to `docs/api/` (gitignored, regenerated on demand). CI builds
@@ -363,8 +362,8 @@ the checks manually:
 uv run ruff format --check
 uv run ruff check
 uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html
-(cd docs/userguide && uv run mdbook build)
-uv run pdoc dictk dictk.image dictk.translation dictk.cli -o docs/api
+uv run mdbook build
+uv run pdoc dictk dictk.image dictk.translation dictk.correlation dictk.grid dictk.cli -o docs/api
 uv run genbadge coverage -i coverage.xml -o coverage-badge.svg
 uv run pylint src/dictk --output-format=text --reports=yes
 ```
@@ -389,7 +388,7 @@ invoke it as a reusable workflow:
   `ci.yml` from a tag push, since the ref won't be `refs/heads/main` or
   `refs/heads/dev`). Installs the pinned `mdbook` 0.4.52, `mdbook-cmdrun`,
   and `mdbook-katex` (cached via `actions/cache`), downloads the `test`
-  job's coverage artifact, builds the mdBook user guide with dictk's own
+  job's coverage artifact, builds the mdBook user guide with `dictk`'s own
   CLI on `PATH`, builds the pdoc API reference, generates a coverage badge from
   `coverage.xml` with [genbadge](https://smarie.github.io/python-genbadge/),
   runs pylint informationally to get a 0-10 score (fetched as a shields.io
@@ -436,7 +435,7 @@ invoke it as a reusable workflow:
 This is intentionally a minimal setup — no matrix OS/Python testing, no
 containerized builds. pytribeam's `ci.yml` and
 rattlesnake-vibration-controller's `ci.yml`/`release.yml` are useful
-references for growing any of this out later (dictk's `release.yml` is in
+references for growing any of this out later (`dictk`'s `release.yml` is in
 fact modeled on rattlesnake-vibration-controller's, with one addition: tying
 the branch check to prerelease status, described above).
 

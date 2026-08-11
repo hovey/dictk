@@ -2,11 +2,12 @@
 title = "dictk User Guide"
 description = "Digital Image Correlation Toolkit"
 authors = ["Chad Hovey"]
-src = "src"
+src = "docs/userguide/src"
 language = "en"
 
 [output.html]
 git-repository-url = "https://github.com/hovey/dictk"
+additional-css = ["docs/userguide/theme/custom.css"]
 
 # KaTeX renders $$...$$ math blocks; faster than MathJax, no local LaTeX
 # install needed. Same [preprocessor.katex] config hdic's userguide uses.
@@ -14,3 +15,6 @@ git-repository-url = "https://github.com/hovey/dictk"
 after = ["links"]
 
 [preprocessor.cmdrun]
+
+[build]
+build-dir = "docs/userguide/book"

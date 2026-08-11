@@ -1,6 +1,77 @@
-"""Spatial-domain cross-correlation criteria between a kernel and a search area."""
+"""Spatial- and Fourier-domain cross-correlation criteria between a kernel and a search area."""
+
+from enum import Enum
 
 import numpy as np
+
+
+class WindowingMethod(Enum):
+    """Tapering window `window()` can apply before an FFT.
+
+    - HANN: tapers all the way to exactly 0 at both ends.
+    - HAMMING: stops short, around 0.08, trading a little residual
+      discontinuity for a narrower main lobe in the transformed signal.
+    """
+
+    HANN = "hann"
+    HAMMING = "hamming"
+
+
+def window(
+    *, arr: np.ndarray, method: WindowingMethod = WindowingMethod.HANN
+) -> np.ndarray:
+    r"""Taper `arr`'s edges toward zero with a 2D Hann or Hamming window.
+
+    An FFT implicitly treats an array as one period of an
+    infinitely-repeating signal. If the content doesn't tile seamlessly --
+    the general case, since nothing arranges `arr`'s edges to match up --
+    that discontinuity leaks energy across many frequencies rather than the
+    few the underlying content actually has, an effect called **spectral
+    leakage**. In a correlation surface, leakage broadens and can shift the
+    peak.
+
+    This counters that by tapering `arr`'s edges toward zero before it's
+    transformed, so the (still discontinuous, but now near-zero) seam
+    contributes far less energy. The 2D window is the outer product of a 1D
+    window with itself along each axis:
+
+    $$w_{\rm Hann}(n) = 0.5 \left(1 - \cos\left(\frac{2\pi n}{N - 1}\right)\right)$$
+
+    $$w_{\rm Hamming}(n) = 0.54 - 0.46 \cos\left(\frac{2\pi n}{N - 1}\right)$$
+
+    for $n = 0, \ldots, N-1$ across a window of length $N$.
+
+    See Harris FJ. "[On the use of windows for harmonic analysis with
+    the discrete Fourier
+    transform](https://www.cs.cmu.edu/afs/cs/user/bhiksha/WWW/courses/dsp/spring2013/WWW/schedule/readings/windows_comparison2_harris.pdf)."
+    *Proceedings of the IEEE* 1978;66(1):51-83. A U.S. government work,
+    not protected by U.S. copyright.
+
+    Args:
+        arr: A 2D array to window.
+        method: Which window to apply. Default `WindowingMethod.HANN`.
+
+    Returns:
+        A 2D float64 array the same shape as `arr`, with `arr` multiplied
+        elementwise by the 2D window.
+
+    Raises:
+        ValueError: If `arr` is not 2D.
+    """
+    if arr.ndim != 2:
+        raise ValueError(f"arr must be 2D, got shape {arr.shape}")
+
+    match method:
+        case WindowingMethod.HANN:
+            win_func = np.hanning
+        case WindowingMethod.HAMMING:
+            win_func = np.hamming
+        case _:
+            raise ValueError(f"Unsupported windowing method: {method}")
+
+    rows, cols = arr.shape
+    window_2d = np.outer(win_func(rows), win_func(cols))
+    return arr.astype(np.float64) * window_2d
 
 
 def _prepare(
@@ -213,3 +284,123 @@ def zncc(*, kernel: np.ndarray, search: np.ndarray) -> np.ndarray:
     window_energy = (windows_centered**2).sum(axis=(-2, -1))
     denominator = np.sqrt(kernel_energy * window_energy)
     return _safe_divide(numerator=numerator, denominator=denominator)
+
+
+def _window_and_pad(
+    *,
+    kernel: np.ndarray,
+    search: np.ndarray,
+    windowing: WindowingMethod | None,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Optionally window, then zero-pad `kernel` up to `search`'s own shape.
+
+    Shared by `phase_correlation` and
+    [`dictk.translation.locate`](../translation.html#locate) -- the two
+    functions that zero-pad `kernel` before comparing it against `search`
+    via an FFT-based technique -- so the "window, then pad" step (and its
+    ordering) lives in exactly one place.
+
+    Args:
+        kernel: The fixed template subimage, before padding.
+        search: The larger subimage `kernel` is compared against.
+        windowing: If given, both `kernel` and `search` are passed through
+            `window()` with this method before padding. `None` leaves
+            both untouched -- including their dtype, so a caller that
+            never windows sees no incidental cast either.
+
+    Returns:
+        `(kernel_padded, search)` -- `kernel_padded` the same shape as
+        `search`, `search` itself unchanged except by windowing.
+    """
+    if windowing is not None:
+        kernel = window(arr=kernel, method=windowing)
+        search = window(arr=search, method=windowing)
+    pad_height = search.shape[0] - kernel.shape[0]
+    pad_width = search.shape[1] - kernel.shape[1]
+    kernel_padded = np.pad(kernel, ((0, pad_height), (0, pad_width)))
+    return kernel_padded, search
+
+
+def phase_correlation(
+    *,
+    kernel: np.ndarray,
+    search: np.ndarray,
+    windowing: WindowingMethod | None = None,
+) -> np.ndarray:
+    r"""Phase correlation surface of `kernel` against `search`, via FFT.
+
+    Unlike `cc`/`ncc`/`zcc`/`zncc`, which slide `kernel` over `search` one
+    valid window at a time, this computes the same kind of answer all at
+    once in the Fourier domain: `kernel` is zero-padded (bottom and right)
+    up to `search`'s own shape, then
+
+    $$
+    C_{\rm phase} = \mathcal{F}^{-1}\!\left(\frac{\mathcal{F}(g)\,
+    \overline{\mathcal{F}(f)}}{\left|\mathcal{F}(g)\,\overline{\mathcal{F}(f)}\right|}\right)
+    $$
+
+    where $f$ is the zero-padded `kernel`, $g$ is `search`, and
+    $\mathcal{F}$ is the 2D discrete Fourier transform. Dividing by the
+    cross-power spectrum's own magnitude at every frequency -- rather than
+    summing raw products like `cc` does -- is the classic Kuglin-Hines
+    *phase correlation* technique, and is robust to both brightness
+    (additive) and contrast (multiplicative) differences between `kernel`
+    and `search`, the same pair of invariances `zncc` has, though by a
+    completely different mechanism: a brightness shift only touches the
+    zero-frequency (DC) term, leaving every other frequency -- and thus the
+    peak's position -- untouched, while dividing by magnitude at every
+    frequency cancels any overall contrast scaling directly. This is *not*
+    a Fourier-domain equivalent of `zncc`'s formula -- `zncc` recomputes a
+    local mean/variance at every candidate window as it slides; this
+    normalizes once, globally, per frequency, over the whole padded
+    extent -- it just lands in the same "robust to both" category.
+
+    This is exactly what [`dictk.translation.locate`](../translation.html#locate)
+    computes internally via `skimage.registration.phase_cross_correlation`
+    (`normalization="phase"`), reproduced here to expose the full surface
+    for visualization -- `phase_cross_correlation` itself only returns the
+    final shift, not the array it was computed from. The two aren't
+    directly comparable value-for-value, though: `locate` additionally
+    unwraps indices past the array's midpoint into negative shifts (since
+    this surface is circular/periodic), which this function does not --
+    its raw `argmax` is always in `[0, search.shape)`, matching the same
+    offset-within-`search` convention `cc`/`ncc`/`zcc`/`zncc` use. For the
+    small, comfortably-within-bounds displacements this book's examples
+    use, the two agree without any unwrapping needed.
+
+    See Kuglin CD, Hines DC. "The phase correlation image alignment
+    method." Proceedings of IEEE International Conference on Cybernetics
+    and Society, 1975:163-165.
+
+    Args:
+        kernel: The fixed template subimage (`f`, before padding).
+        search: The larger subimage `kernel` is compared against (`g`).
+        windowing: If given, both `kernel` and `search` are passed through
+            `window()` with this method -- tapering their edges toward
+            zero to reduce spectral leakage -- before padding/FFT. `kernel`
+            is windowed first, then zero-padded, so the padding stays
+            outside the tapered region. Default `None` applies no
+            windowing, matching this function's original behavior exactly.
+
+    Returns:
+        A 2D float64 array the same shape as `search` (unlike
+        `cc`/`ncc`/`zcc`/`zncc`'s smaller "valid" shape, since nothing
+        here excludes any candidate offset). Entry `[dy, dx]` is
+        $C_{\rm phase}$ with `kernel`'s top-left corner at offset
+        `(dx, dy)` in `search`'s local frame.
+
+    Raises:
+        ValueError: If either array is not 2D, or `search` is smaller than
+            `kernel` in either dimension.
+    """
+    kernel, search = _prepare(kernel=kernel, search=search)
+    kernel_padded, search = _window_and_pad(
+        kernel=kernel, search=search, windowing=windowing
+    )
+
+    search_freq = np.fft.fft2(search)
+    kernel_freq = np.fft.fft2(kernel_padded)
+    image_product = search_freq * kernel_freq.conj()
+    eps = np.finfo(image_product.real.dtype).eps
+    image_product /= np.maximum(np.abs(image_product), 100 * eps)
+    return np.fft.ifft2(image_product).real

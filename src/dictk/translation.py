@@ -3,6 +3,7 @@
 import numpy as np
 from skimage.registration import phase_cross_correlation
 
+from dictk.correlation import WindowingMethod, _window_and_pad
 from dictk.image import PixelCoordinate, subimage
 
 
@@ -16,6 +17,7 @@ def locate(
     kernel_margin_height: int,
     search_margin_width: int,
     search_margin_height: int,
+    windowing: WindowingMethod | None = None,
 ) -> PixelCoordinate:
     """Given a `reference_point` expressed in the `reference_image`
     frame, find its position expressed in the `current_image` frame.
@@ -59,6 +61,15 @@ def locate(
             Must be greater than `kernel_margin_width`.
         search_margin_height: Half the search area's height, in pixels.
             Must be greater than `kernel_margin_height`.
+        windowing: If given, both the kernel and search area are passed
+            through [`dictk.correlation.window`](./correlation.html#window)
+            with this method -- tapering their edges toward zero to
+            reduce spectral leakage -- before padding/FFT, the same
+            `windowing` parameter
+            [`dictk.correlation.phase_correlation`](./correlation.html#phase_correlation)
+            exposes for the surface this function doesn't return. Default
+            `None` applies no windowing, matching this function's
+            original behavior exactly.
 
     Returns:
         The point's location, in `current_image`'s pixel reference frame.
@@ -113,9 +124,11 @@ def locate(
 
     # phase_cross_correlation requires both images the same shape; only
     # the kernel needs padding, since the search area is always larger.
-    pad_width = search_width - kernel_width
-    pad_height = search_height - kernel_height
-    kernel_padded = np.pad(kernel, ((0, pad_height), (0, pad_width)))
+    # _window_and_pad optionally tapers both (kernel first, then padded)
+    # before that -- the same shared step `phase_correlation` uses.
+    kernel_padded, search = _window_and_pad(
+        kernel=kernel, search=search, windowing=windowing
+    )
 
     # search=reference_image, kernel_padded=moving_image, not the other
     # way around: skimage docs define `shift` as "the shift required to

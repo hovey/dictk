@@ -1,10 +1,19 @@
 # Cross Correlation (CC)
 
-The `locate` function uses **cross-correlation** to find where point $P$ in
-the `reference_image` can be found in the `current_image`.
-Let the **kernel** — also called a **subset**, **filter**, or **convolution
-matrix** — be a rectangular region of `reference_image` centered on
-$\boldsymbol{p}_0$. The kernel is a small, distinctive patch of the reference image
+**Cross-correlation** can be used to find where point $P$ in the `reference_image`
+can be found in the `current_image`.
+
+There are many different *implementations* of cross-correlation.  We discuss
+the varied implementations in [Correlation Criteria](./correlation_criteria.md).
+For now, it is sufficient to know only that cross-correlation is used to locate a point in a current
+image given a known location of that same point in a reference image.
+The current focus is to make the subordinate concepts underlying 
+cross-correlation be well-defined and well-illustrated.
+
+Let the **kernel** (also called a **subset**, **filter**, or
+**convolution matrix**) be a rectangular region of `reference_image` centered on
+$\boldsymbol{p}_0$, the vector that locates point $P$ from origin $O$ in the `reference_image`.
+The kernel is a small, distinctive patch of the reference image
 content that we want to locate within a subsequent image.
 
 In the **needle in a haystack** idiom, the kernel is the needle, and the
@@ -163,56 +172,12 @@ for $\boldsymbol{r}_{SK/\mathcal{S}}$.
 The `locate` function returns $\boldsymbol{p}_1$ directly (one does not assemble the
 vector chain manually).
 
-## Spatial Domain or Fourier Domain
-
-Cross-correlation itself can be computed two ways: directly in the
-**spatial domain** — literally sliding the kernel over the search area and
-summing a per-position criterion, as shown below — or in the **Fourier
-domain** via the fast Fourier transform (FFT), which is what `locate`
-actually does (see [CC via FFT](./cc_fft.md)). Both compute the same
-underlying quantity; the FFT route is simply a much faster way to get
-there.
-
-## Correlation Criteria
-
-Several related criteria are used in the spatial domain, differing in how
-robust each is to brightness and contrast differences between the kernel
-$f$ and a candidate window $g$ — a same-sized window of the search area at
-one particular offset — summed pixelwise over index $i$:
-
-* **Cross-Correlation (CC)**
-
-  $$C_{\rm CC} = \sum f_i g_i$$
-
-  Robust to neither brightness nor contrast differences between $f$ and $g$.
-
-* **Normalized Cross-Correlation (NCC)**
-
-  $$C_{\rm NCC} = \frac{\sum f_i g_i}{\sqrt{\sum f_i^2 \sum g_i^2}}$$
-
-  Robust to contrast (a uniform multiplicative scaling of either side).
-
-* **Zero-mean Cross-Correlation (ZCC)**
-
-  $$C_{\rm ZCC} = \sum (f_i - \bar{f})(g_i - \bar{g})$$
-
-  where $\bar{f} = \frac{1}{n}\sum_{i=0}^{n-1} f_i$ and $\bar{g}$ likewise
-  for $g$. Robust to brightness (a uniform additive offset on either side).
-
-* **Zero-mean Normalized Cross-Correlation (ZNCC)**
-
-  $$C_{\rm ZNCC} = \frac{\sum \bar{f}_i \bar{g}_i}{\sqrt{\sum \bar{f}_i^2 \sum \bar{g}_i^2}}$$
-
-  where $\bar{f}_i = f_i - \bar{f}$ and $\bar{g}_i = g_i - \bar{g}$. Robust
-  to both brightness and contrast differences.
-
-See Pan B, Xie H, Wang Z. "Equivalence of digital image correlation
-criteria for pattern matching." *Applied Optics* 2010;49(28):5501-9.
-[`dictk.correlation`](../api/dictk/correlation.html) implements all four as
-standalone functions (`cc`, `ncc`, `zcc`, `zncc`), each returning the full
-correlation surface rather than just its peak — see [CC
-Visualization](./cc_visualization.md) for what those surfaces look like on
-the kernel and search area established above.
+`phase_cross_correlation` is a Fourier-domain computation — every `locate`
+call in this book takes that route under the hood, rather than sliding
+the kernel across the search area one position at a time. [Correlation
+Criteria](./correlation_criteria.md#fourier-domain) examines that
+Fourier-domain implementation in greater depth, alongside the
+spatial-domain CC, NCC, ZCC, and ZNCC criteria it complements.
 
 ## Locating the Point
 
@@ -341,7 +306,17 @@ $\boldsymbol{r}_{SK/\mathcal{S}} = (19, 33)$ + | kernel located within the searc
 $\boldsymbol{r}_{KP/\mathcal{K}} = (25, 25)$ = | point's fixed position within the kernel (green arrow)
 $\boldsymbol{r}_{OP'/\mathcal{F}} = (94, 83)$ | current position $\boldsymbol{p}_1$, matching `found` above (cyan arrow)
 
-Next: [CC Visualization](./cc_visualization.md) computes and plots the four
-correlation criteria above as heatmaps on this same kernel and search area,
-and [CC via FFT](./cc_fft.md) explains the Fourier-domain route `locate`
-actually takes.
+> **NOTE:**
+> Cross-correlation may be conceptualized as the sliding dot product of pixel
+> values from the kernel with pixel values from the search area.  In this discussion
+> we have described sliding the kernel across a stationary search area.
+> The reverse, sliding the search area across a stationary kernel,
+> is conceptually different but mathematically identical.  Both
+> approaches yield the same result: $\boldsymbol{r}_{SK/\mathcal{S}}$, which
+> locates the kernel frame in the search area frame.
+
+Next: [Correlation Criteria](./correlation_criteria.md) defines the four
+cross-correlation formulas and explains the Fourier-domain route `locate`
+actually takes, and [Correlation
+Visualization](./correlation_visualization.md) visualizes each of them on
+this same kernel and search area.

@@ -11,8 +11,11 @@ import numpy as np
 from matplotlib import patches
 from matplotlib import patheffects
 from matplotlib import pyplot as plt
+from matplotlib.path import Path as MarkerPath
 from scipy.interpolate import RegularGridInterpolator
 from scipy.ndimage import zoom
+
+from dictk.correlation import WindowingMethod, phase_correlation, window
 
 
 class PixelCoordinate(NamedTuple):
@@ -34,6 +37,26 @@ class PixelCoordinate(NamedTuple):
 # instead of both rendering at roughly the same size regardless of how
 # many pixels each actually covers.
 _FIGURE_PIXELS_PER_INCH = 100
+
+# The first 12 colors of matplotlib's "tab20" (Tableau 20) colormap: 6 hues
+# (blue, orange, green, red, purple, brown), each as a dark/light pair.
+# Deliberately stops short of tab20's gray pair (its indices 14-15) --
+# gray has no hue to contrast against a grayscale image with, so it all
+# but disappears drawn on top of one.
+_TABLEAU_PALETTE = (
+    "#1f77b4",
+    "#aec7e8",  # blue
+    "#ff7f0e",
+    "#ffbb78",  # orange
+    "#2ca02c",
+    "#98df8a",  # green
+    "#d62728",
+    "#ff9896",  # red
+    "#9467bd",
+    "#c5b0d5",  # purple
+    "#8c564b",
+    "#c49c94",  # brown
+)
 
 
 def subimage(
@@ -1407,62 +1430,609 @@ def histogram_save(*, arr: np.ndarray, path: Path, dpi: int = 300) -> None:
     plt.close()
 
 
-def correlation_surfaces_plot(
-    *,
-    cc: np.ndarray,
-    ncc: np.ndarray,
-    zcc: np.ndarray,
-    zncc: np.ndarray,
-    path: Path,
-    figsize: tuple[float, float] | None = None,
-    dpi: int = 300,
-) -> None:
-    r"""Save a 2x2 grid comparing four correlation-criterion surfaces side by side.
+def _correlation_surface_ticks(size: int) -> list[int]:
+    """Fixed Correlation Surface tick marks for an axis of length `size`.
 
-    Each of `cc`/`ncc`/`zcc`/`zncc` (see
-    [`dictk.correlation`](../correlation.html)) is drawn as its own heatmap
-    panel (`viridis` colormap, its own colorbar), with a marker at that
-    panel's own peak -- the position `dictk.correlation`'s own docstrings
-    describe as the answer a correlation criterion is searching for. All
-    four arrays must share one shape, so the panels are directly comparable
-    position-for-position.
+    Correlation Visualization shows this panel seven times: CC/NCC/ZCC/
+    ZNCC's 51x51 "valid" surfaces, and phase correlation's three
+    same-shape-as-`search` 100x100 ones (no windowing/Hann/Hamming).
+    Rather than matplotlib's own per-panel default (which lands on
+    different steps for the two sizes, and doesn't always reach the
+    axis's own upper bound), each size gets one fixed, round-number tick
+    list spanning its own full extent -- so every 51x51 panel matches
+    every other 51x51 panel, and every 100x100 one matches every other
+    100x100 one, when read side by side.
 
     Args:
-        cc: The CC surface (`dictk.correlation.cc`'s return value).
-        ncc: The NCC surface (`dictk.correlation.ncc`'s return value).
-        zcc: The ZCC surface (`dictk.correlation.zcc`'s return value).
-        zncc: The ZNCC surface (`dictk.correlation.zncc`'s return value).
+        size: The axis's length in pixels (a Correlation Surface panel's
+            own height or width).
+
+    Returns:
+        `[0, 10, 20, 30, 40, 50]` for the 51-wide "valid" surfaces,
+        `[0, 20, 40, 60, 80, 100]` for the 100-wide full-search ones.
+    """
+    if size > 60:
+        return [0, 20, 40, 60, 80, 100]
+    return [0, 10, 20, 30, 40, 50]
+
+
+def _correlation_quadrant_plot(
+    *,
+    kernel: np.ndarray,
+    search: np.ndarray,
+    correlation_surface: np.ndarray,
+    title: str,
+    path: Path,
+    figsize: tuple[float, float] = (8.0, 8.0),
+    dpi: int = 300,
+    vicinity_margin: int = 4,
+) -> None:
+    """Shared renderer behind spatial_correlation_quadrant_plot() and
+    phase_correlation_quadrant_plot() -- private (never published by
+    pdoc), so those two public functions each carry their own complete
+    docstring rather than pointing here.
+
+    Draws the Fixed Image / Moving Image / correlation surface / Solution
+    Vicinity 2x2 layout for whatever `correlation_surface` array it's
+    given. Shape-agnostic on purpose: works identically whether the
+    surface came from a spatial-domain "valid" computation (smaller than
+    `search`) or a same-shape-as-`search` Fourier-domain one -- it only
+    ever takes that array's own argmax and plots whatever shape comes in.
+    """
+    if search.shape[0] < kernel.shape[0] or search.shape[1] < kernel.shape[1]:
+        raise ValueError(
+            f"search shape {search.shape} must be >= kernel shape {kernel.shape} "
+            "in both dimensions"
+        )
+
+    search_height, search_width = search.shape
+    kernel_height, kernel_width = kernel.shape
+
+    peak_y, peak_x = np.unravel_index(
+        np.argmax(correlation_surface), correlation_surface.shape
+    )
+    peak_y, peak_x = int(peak_y), int(peak_x)
+
+    # Same bottom/right zero-padding dictk.translation.locate() applies
+    # internally, here purely for display so the kernel's content sits at
+    # the correct corner of a search-shaped canvas.
+    kernel_padded = np.pad(
+        kernel,
+        ((0, search_height - kernel_height), (0, search_width - kernel_width)),
+    )
+
+    with plt.rc_context({"font.family": "serif", "mathtext.fontset": "cm"}):
+        fig, axes = plt.subplots(2, 2, figsize=figsize, constrained_layout=True)
+        fig.suptitle(title)
+        ax1, ax2, ax3, ax4 = axes.flat
+
+        im1 = ax1.imshow(
+            search,
+            cmap="gray",
+            vmin=0,
+            vmax=255,
+            origin="upper",
+            extent=(0, search_width, search_height, 0),
+        )
+        plt.colorbar(im1, ax=ax1, shrink=0.8)
+        ax1.add_patch(
+            patches.Rectangle(
+                (peak_x, peak_y),
+                kernel_width,
+                kernel_height,
+                edgecolor="yellow",
+                facecolor="none",
+                linestyle="--",
+                linewidth=1,
+                alpha=0.8,
+            )
+        )
+        ax1.axvline(x=peak_x, color="red", linestyle="--", linewidth=1, alpha=0.8)
+        ax1.axhline(y=peak_y, color="green", linestyle="--", linewidth=1, alpha=0.8)
+        ax1.set_xticks(sorted({0, search_width, peak_x}))
+        ax1.set_yticks(sorted({0, search_height, peak_y}))
+        for label in ax1.get_xticklabels():
+            if label.get_text() == str(peak_x):
+                label.set_color("red")
+        for label in ax1.get_yticklabels():
+            if label.get_text() == str(peak_y):
+                label.set_color("green")
+        ax1.set_title(r"Fixed Image with frame $\mathcal{S}$")
+        ax1.set_xlabel("x (pixels)")
+        ax1.set_ylabel("y (pixels)")
+
+        im2 = ax2.imshow(
+            kernel_padded,
+            cmap="gray",
+            vmin=0,
+            vmax=255,
+            origin="upper",
+            extent=(0, search_width, search_height, 0),
+        )
+        plt.colorbar(im2, ax=ax2, shrink=0.8)
+        ax2.set_xticks(sorted({0, search_width, kernel_width}))
+        ax2.set_yticks(sorted({0, search_height, kernel_height}))
+        ax2.set_title(r"Moving Image with frame $\mathcal{K}$")
+        ax2.set_xlabel("x (pixels)")
+        ax2.set_ylabel("y (pixels)")
+
+        im3 = ax3.imshow(correlation_surface, cmap="viridis", origin="upper")
+        plt.colorbar(im3, ax=ax3, shrink=0.8)
+        ax3.add_patch(
+            patches.Circle(
+                (peak_x, peak_y),
+                radius=vicinity_margin,
+                edgecolor="red",
+                facecolor="none",
+                linewidth=1.5,
+            )
+        )
+        ax3.set_title("Correlation Surface")
+        ax3.set_xlabel(r"$\Delta x$ offset (pixels)")
+        ax3.set_ylabel(r"$\Delta y$ offset (pixels)")
+        # Fixed ticks, not matplotlib's own auto-choice -- see
+        # _correlation_surface_ticks() for why.
+        surface_height, surface_width = correlation_surface.shape
+        ax3.set_xticks(_correlation_surface_ticks(surface_width))
+        ax3.set_yticks(_correlation_surface_ticks(surface_height))
+
+        im4 = ax4.imshow(correlation_surface, cmap="viridis", origin="upper")
+        plt.colorbar(im4, ax=ax4, shrink=0.8)
+        ax4.set_xlim(peak_x - vicinity_margin, peak_x + vicinity_margin)
+        ax4.set_ylim(peak_y + vicinity_margin, peak_y - vicinity_margin)
+        # Same circle as ax3, same radius, in the same data coordinates --
+        # since this panel is zoomed to exactly peak +/- vicinity_margin,
+        # the circle exactly reaches this panel's own edges, appearing
+        # clipped by them rather than fully visible as it was in ax3.
+        ax4.add_patch(
+            patches.Circle(
+                (peak_x, peak_y),
+                radius=vicinity_margin,
+                edgecolor="red",
+                facecolor="none",
+                linewidth=1.5,
+            )
+        )
+        ax4.set_title("Solution Vicinity")
+        ax4.set_xlabel(r"$\Delta x$ offset (pixels)")
+        ax4.set_ylabel(r"$\Delta y$ offset (pixels)")
+
+        fig.savefig(path, dpi=dpi)
+        plt.close(fig)
+
+
+def spatial_correlation_quadrant_plot(
+    *,
+    kernel: np.ndarray,
+    search: np.ndarray,
+    correlation_surface: np.ndarray,
+    title: str,
+    path: Path,
+    figsize: tuple[float, float] = (8.0, 8.0),
+    dpi: int = 300,
+    vicinity_margin: int = 4,
+) -> None:
+    r"""Save a 2x2 composite figure illustrating one spatial-domain correlation criterion end to end.
+
+    Reproduces a reference composite-figure layout used in prior DIC
+    tooling -- Fixed Image, Moving Image, the correlation surface, and a
+    zoomed Solution Vicinity -- using dictk's own spatial-domain
+    correlation surfaces ([`dictk.correlation`](../correlation.html)'s
+    `cc`/`ncc`/`zcc`/`zncc`) rather than a zero-padded whole-image FFT
+    approach. See
+    [`phase_correlation_quadrant_plot`](#phase_correlation_quadrant_plot)
+    for the Fourier-domain sibling of this function.
+    `correlation_surface`'s own argmax directly gives the kernel's found
+    offset within `search`'s own frame $\mathcal{S}$ -- the same
+    $\boldsymbol{r}_{SK/\mathcal{S}}$ quantity [Cross Correlation
+    (CC)](../../getting_started/cross_correlation.html) walks through by
+    hand -- so no separate found-position argument is needed the way that
+    prior tooling's own composite-figure function takes one.
+
+    Top-left panel: `search`, in its own local frame $\mathcal{S}$, with a
+    yellow dashed box marking where `kernel` was found, plus red/green
+    dashed guide lines through that box's origin (and matching red/green
+    tick labels at that position). Top-right panel: `kernel` zero-padded
+    (bottom and right) up to `search`'s own shape -- the same padding
+    [`dictk.translation.locate`](../translation.html#locate) does
+    internally -- so its content occupies only the top-left corner of an
+    otherwise-black canvas the size of `search`, labeled frame
+    $\mathcal{K}$. Bottom-left: `correlation_surface` as a heatmap, peak
+    marked with a red circle of radius `vicinity_margin`. Bottom-right:
+    the same surface, zoomed to exactly that same `vicinity_margin`
+    pixels around its own peak -- the same circle reappears there too,
+    now clipped by the panel's own edges, since the zoom window is
+    exactly the circle's own bounding box.
+
+    Text renders via matplotlib's built-in mathtext with a Computer-Modern
+    -style serif font (`mathtext.fontset="cm"`), not real LaTeX
+    (`text.usetex`) -- visually close to a real-LaTeX-rendered figure
+    without a system TeX install, scoped to this function alone via
+    `rc_context` so it can't leak into any other figure.
+
+    Args:
+        kernel: The extracted kernel subimage (2D grayscale array).
+        search: The extracted search-area subimage (2D grayscale array);
+            must be at least as large as `kernel` in both dimensions.
+        correlation_surface: One of `dictk.correlation`'s `cc`/`ncc`/`zcc`/
+            `zncc` surfaces, computed from this same `kernel`/`search`
+            pair. Its own argmax is taken as the found position.
+        title: Figure-level title naming the correlation criterion shown,
+            e.g. `"Zero-mean Normalized Cross-Correlation (ZNCC)"` --
+            rendered as a `suptitle` spanning the full figure width rather
+            than the correlation-surface panel's own title, since panel
+            titles are too narrow to reliably fit the longer criterion
+            names without truncating or overlapping their colorbar.
+        path: Output file path for the figure; format is inferred from the
+            extension by matplotlib's savefig (e.g. .png).
+        figsize: (width, height) in inches for the saved figure.
+        dpi: Resolution of the saved figure.
+        vicinity_margin: Half-width/height, in pixels, of the Solution
+            Vicinity zoom window around the correlation surface's peak.
+
+    Raises:
+        ValueError: If `search` is smaller than `kernel` in either
+            dimension.
+    """
+    _correlation_quadrant_plot(
+        kernel=kernel,
+        search=search,
+        correlation_surface=correlation_surface,
+        title=title,
+        path=path,
+        figsize=figsize,
+        dpi=dpi,
+        vicinity_margin=vicinity_margin,
+    )
+
+
+def phase_correlation_quadrant_plot(
+    *,
+    kernel: np.ndarray,
+    search: np.ndarray,
+    windowing: WindowingMethod | None = None,
+    title: str = "Phase Correlation",
+    path: Path,
+    figsize: tuple[float, float] = (8.0, 8.0),
+    dpi: int = 300,
+    vicinity_margin: int = 4,
+) -> None:
+    r"""Save a 2x2 composite figure illustrating Fourier-domain phase correlation end to end.
+
+    The Fourier-domain sibling of
+    [`spatial_correlation_quadrant_plot`](#spatial_correlation_quadrant_plot),
+    sharing that function's exact panel layout (Fixed Image, Moving Image,
+    correlation surface, zoomed Solution Vicinity). Unlike its sibling,
+    this function takes raw `kernel`/`search` rather than a pre-computed
+    surface: spatial-domain correlation has four interchangeable criteria
+    (`cc`/`ncc`/`zcc`/`zncc`) a caller must choose between and compute
+    themselves, but there is only one Fourier-domain flavor here, so this
+    computes it internally via
+    [`dictk.correlation.phase_correlation`](../correlation.html#phase_correlation)
+    -- see that function's own docstring for the algorithm itself and why
+    it lands in the same "robust to both brightness and contrast" tier as
+    `zncc`, by a completely different mechanism.
+
+    Top-left panel: `search`, in its own local frame $\mathcal{S}$, with a
+    yellow dashed box marking where `kernel` was found, plus red/green
+    dashed guide lines through that box's origin (and matching red/green
+    tick labels at that position). Top-right panel: `kernel` zero-padded
+    (bottom and right) up to `search`'s own shape -- the same padding
+    [`dictk.translation.locate`](../translation.html#locate) does
+    internally -- so its content occupies only the top-left corner of an
+    otherwise-black canvas the size of `search`, labeled frame
+    $\mathcal{K}$. Bottom-left: the phase correlation surface as a
+    heatmap, peak marked with a red circle of radius `vicinity_margin`.
+    Bottom-right: the same surface, zoomed to exactly that same
+    `vicinity_margin` pixels around its own peak -- the same circle
+    reappears there too, now clipped by the panel's own edges, since the
+    zoom window is exactly the circle's own bounding box.
+
+    Text renders via matplotlib's built-in mathtext with a Computer-Modern
+    -style serif font (`mathtext.fontset="cm"`), not real LaTeX
+    (`text.usetex`) -- visually close to a real-LaTeX-rendered figure
+    without a system TeX install, scoped to this function alone via
+    `rc_context` so it can't leak into any other figure.
+
+    Args:
+        kernel: The extracted kernel subimage (2D grayscale array).
+        search: The extracted search-area subimage (2D grayscale array);
+            must be at least as large as `kernel` in both dimensions.
+        windowing: If given, passed straight through to
+            [`phase_correlation`](../correlation.html#phase_correlation) --
+            tapers `kernel`/`search` before computing the surface. The
+            same tapered `kernel`/`search` are what the Fixed Image and
+            Moving Image panels display too (windowed, *then* zero-padded
+            for the Moving Image panel, same order the surface itself is
+            computed in), so those panels always show what was actually
+            correlated -- not a stale, untapered view next to a surface
+            that no longer matches it. Default `None` applies no
+            windowing, and the panels look exactly as they always have.
+        title: Figure-level title, rendered as a `suptitle` spanning the
+            full figure width. Defaults to `"Phase Correlation"` since
+            there's only one flavor here -- override if different phrasing
+            is wanted.
+        path: Output file path for the figure; format is inferred from the
+            extension by matplotlib's savefig (e.g. .png).
+        figsize: (width, height) in inches for the saved figure.
+        dpi: Resolution of the saved figure.
+        vicinity_margin: Half-width/height, in pixels, of the Solution
+            Vicinity zoom window around the correlation surface's peak.
+
+    Raises:
+        ValueError: If `search` is smaller than `kernel` in either
+            dimension.
+    """
+    correlation_surface = phase_correlation(
+        kernel=kernel, search=search, windowing=windowing
+    )
+    display_kernel, display_search = kernel, search
+    if windowing is not None:
+        display_kernel = window(arr=kernel, method=windowing)
+        display_search = window(arr=search, method=windowing)
+    _correlation_quadrant_plot(
+        kernel=display_kernel,
+        search=display_search,
+        correlation_surface=correlation_surface,
+        title=title,
+        path=path,
+        figsize=figsize,
+        dpi=dpi,
+        vicinity_margin=vicinity_margin,
+    )
+
+
+def point_grid_boxes_plot(
+    *,
+    image: np.ndarray,
+    points: Sequence[PixelCoordinate],
+    margin_width: int,
+    margin_height: int,
+    label_prefix: str,
+    figsize: tuple[float, float] | None = None,
+    path: Path,
+    dpi: int = 300,
+) -> None:
+    """Save a figure overlaying one uniquely colored, labeled box per point on `image`.
+
+    For each of `points`, draws an unfilled rectangle centered on it, sized
+    `2 * margin_width` by `2 * margin_height` -- e.g. a kernel (the patch
+    [`dictk.translation.locate`](../translation.html#locate) would extract
+    from the reference image) or a search area (its default search
+    region), one call per box type. Agnostic to which: call it once with a
+    kernel's margins and once with a search area's margins (on separate
+    figures, or via multiple calls onto the same `ax` for a combined one)
+    to compare either against point spacing at a glance -- e.g. whether
+    neighboring kernels overlap, or whether search areas run off the image
+    -- across the whole grid at once, not just one point.
+
+    Each point's box gets its own color, cycling through a 12-color
+    Tableau palette (`dictk.image._TABLEAU_PALETTE`; if there are more
+    than 12 points, colors repeat), and its own legend entry -- `points[0]`
+    labeled `"{label_prefix} 00"`, `points[19]` labeled `"{label_prefix}
+    19"`, for a 20-point collection -- so overlapping boxes stay visually
+    distinguishable and individually identifiable, not just grouped by box
+    type.
+
+    Args:
+        image: Source 2D grayscale image array.
+        points: The points to draw boxes around, in the image's own pixel
+            reference frame. May be empty (an unmarked copy of `image` is
+            saved).
+        margin_width: Half each box's width, in pixels.
+        margin_height: Half each box's height, in pixels.
+        label_prefix: Legend label prefix for the boxes, e.g. `"kernel"`
+            or `"search area"` -- each point's own zero-padded index is
+            appended to it.
+        figsize: Optional (width, height) in inches for the saved figure.
+            By default the canvas is sized from `image`/the boxes' own
+            data extent; pass this to override with a fixed size instead.
         path: Output file path for the figure; format is inferred from the
             extension by matplotlib's savefig (e.g. .png), not dictk's own
             write/write_svg.
-        figsize: Optional (width, height) in inches for the saved figure.
-            By default matplotlib's own default, `(6.4, 4.8)`, doubled to
-            fit four panels; pass this to override.
         dpi: Resolution of the saved figure.
-
-    Raises:
-        ValueError: If `cc`/`ncc`/`zcc`/`zncc` don't all share one shape.
     """
-    surfaces = {"CC": cc, "NCC": ncc, "ZCC": zcc, "ZNCC": zncc}
-    shapes = {name: surface.shape for name, surface in surfaces.items()}
-    if len(set(shapes.values())) != 1:
-        raise ValueError(f"cc/ncc/zcc/zncc must all share one shape, got {shapes}")
+    image_height, image_width = image.shape
+
+    endpoints_x = [
+        point.x + sign * margin_width for point in points for sign in (-1, 1)
+    ]
+    endpoints_y = [
+        point.y + sign * margin_height for point in points for sign in (-1, 1)
+    ]
+    margin = max(image_width, image_height) * 0.05
+    x_min = min(0, *endpoints_x, 0) - margin
+    x_max = max(image_width, *endpoints_x, image_width) + margin
+    y_min = min(0, *endpoints_y, 0) - margin
+    y_max = max(image_height, *endpoints_y, image_height) + margin
 
     if figsize is None:
-        default_width, default_height = 6.4, 4.8
-        figsize = (default_width * 2, default_height * 2)
-    fig, axes = plt.subplots(2, 2, figsize=figsize, constrained_layout=True)
+        figsize = (
+            (x_max - x_min) / _FIGURE_PIXELS_PER_INCH,
+            (y_max - y_min) / _FIGURE_PIXELS_PER_INCH,
+        )
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.imshow(
+        image, cmap="gray", origin="upper", extent=(0, image_width, image_height, 0)
+    )
 
-    for ax, (name, surface) in zip(axes.flat, surfaces.items()):
-        im = ax.imshow(surface, cmap="viridis", origin="upper")
-        plt.colorbar(im, ax=ax, shrink=0.8)
+    index_width = len(str(len(points) - 1)) if len(points) > 1 else 2
+    for i, point in enumerate(points):
+        ax.add_patch(
+            patches.Rectangle(
+                (point.x - margin_width, point.y - margin_height),
+                2 * margin_width,
+                2 * margin_height,
+                edgecolor=_TABLEAU_PALETTE[i % len(_TABLEAU_PALETTE)],
+                facecolor="none",
+                linewidth=1.0,
+                label=f"{label_prefix} {i:0{index_width}d}",
+            )
+        )
 
-        peak_y, peak_x = np.unravel_index(np.argmax(surface), surface.shape)
-        ax.plot(peak_x, peak_y, marker="x", color="red", markersize=8)
+    ax.set_xlim(x_min, x_max)
+    ax.set_ylim(y_max, y_min)  # inverted: image y increases downward
+    ax.set_xlabel("x (pixels)")
+    ax.set_ylabel("y (pixels)")
+    if points:
+        ax.legend(loc="center left", bbox_to_anchor=(1.02, 0.5), fontsize=7)
 
-        ax.set_title(rf"$C_{{\mathrm{{{name}}}}}$")
-        ax.set_xlabel(r"$\Delta x$ offset (pixels)")
-        ax.set_ylabel(r"$\Delta y$ offset (pixels)")
+    plt.savefig(path, dpi=dpi, bbox_inches="tight")
+    plt.close(fig)
+
+
+def _reticle_marker_path(
+    *,
+    ring_radius: float = 0.85,
+    tick_outer: float = 1.20,
+    num_circle_points: int = 64,
+) -> MarkerPath:
+    """A target-reticle glyph: a ring with four tick marks poking through it.
+
+    Built as a matplotlib marker path (unit-scaled to roughly [-1, 1]) meant
+    to be *stroked*, not filled -- a circle outline, plus four short line
+    segments along +/-x and +/-y running from the circle's own radius out
+    past it, so the center stays fully open. Unlike a filled ring (an
+    annulus), a stroked outline's thickness is set directly via
+    `markeredgewidth` (in points), independent of this path's own geometry
+    -- letting the line be pushed far thinner than a filled band can go
+    before anti-aliasing makes it look patchy.
+
+    Args:
+        ring_radius: The circle's radius; also each tick's start radius.
+        tick_outer: Each tick's end radius (past `ring_radius`).
+        num_circle_points: Number of vertices approximating the circle.
+
+    Returns:
+        A compound `matplotlib.path.Path` usable as a `marker=` argument,
+        with `markerfacecolor="none"` so only its stroke renders.
+    """
+    theta = np.linspace(0, 2 * np.pi, num_circle_points, endpoint=False)
+    circle = np.column_stack((ring_radius * np.cos(theta), ring_radius * np.sin(theta)))
+    # Path(..., closed=True) treats the *last* vertex as the ignored
+    # CLOSEPOLY placeholder rather than drawing through it, so it must be a
+    # repeat of the first vertex -- otherwise the final edge is dropped.
+    circle_path = MarkerPath(np.vstack([circle, circle[:1]]), closed=True)
+
+    tick_codes = [MarkerPath.MOVETO, MarkerPath.LINETO]
+    tick_paths = [
+        MarkerPath(
+            [
+                (direction_x * ring_radius, direction_y * ring_radius),
+                (direction_x * tick_outer, direction_y * tick_outer),
+            ],
+            codes=tick_codes,
+        )
+        for direction_x, direction_y in [(1, 0), (-1, 0), (0, 1), (0, -1)]
+    ]
+
+    return MarkerPath.make_compound_path(circle_path, *tick_paths)
+
+
+def point_grid_plot(
+    *,
+    image: np.ndarray,
+    points: Sequence[PixelCoordinate],
+    color: str = "red",
+    figsize: tuple[float, float] | None = None,
+    path: Path,
+    dpi: int = 300,
+) -> None:
+    """Save a figure marking each of `points` on `image`, labeled by its own index.
+
+    Each point is drawn as a target-reticle glyph in `color` -- a ring with
+    four tick marks poking through it, open at the center so the
+    underlying image stays visible, plus a single-pixel dot at the point's
+    exact location (where the N/S or E/W ticks would cross, if extended
+    across the open center) -- with its position in `points` (its
+    row-major index, e.g. from
+    [`dictk.grid.generate`](../grid.html#generate)) as a short zero-padded
+    label just up-right of the marker -- e.g. `points[0]` is labeled `"00"`,
+    `points[19]` is labeled `"19"`, for a 20-point collection.
+
+    Args:
+        image: Source 2D grayscale image array.
+        points: The points to mark, in the image's own pixel reference
+            frame. May be empty (an unmarked copy of `image` is saved).
+        color: Matplotlib color name for every marker and label.
+        figsize: Optional (width, height) in inches for the saved figure.
+            By default the canvas is sized from `image`/`points`' own data
+            extent; pass this to override with a fixed size instead.
+        path: Output file path for the figure; format is inferred from the
+            extension by matplotlib's savefig (e.g. .png), not dictk's own
+            write/write_svg.
+        dpi: Resolution of the saved figure.
+    """
+    image_height, image_width = image.shape
+
+    endpoints_x = [point.x for point in points]
+    endpoints_y = [point.y for point in points]
+    margin = max(image_width, image_height) * 0.05
+    # Small up-right offset for point labels, so label text doesn't sit
+    # directly on top of its own marker -- same convention as point_plot().
+    label_offset = max(image_width, image_height) * 0.03
+    label_font_size = 12
+    if points:
+        label_text_height = label_font_size / 72 * _FIGURE_PIXELS_PER_INCH
+        # Grow the margin uniformly (not just at the top) so a label above
+        # the topmost point still has room, while all four margins match.
+        margin = max(margin, 2 * label_offset + label_text_height)
+    x_min = min(0, *endpoints_x, 0) - margin
+    x_max = max(image_width, *endpoints_x, image_width) + margin
+    y_min = min(0, *endpoints_y, 0) - margin
+    y_max = max(image_height, *endpoints_y, image_height) + margin
+    label_outline = [patheffects.withStroke(linewidth=1, foreground="white")]
+
+    if figsize is None:
+        figsize = (
+            (x_max - x_min) / _FIGURE_PIXELS_PER_INCH,
+            (y_max - y_min) / _FIGURE_PIXELS_PER_INCH,
+        )
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.imshow(
+        image, cmap="gray", origin="upper", extent=(0, image_width, image_height, 0)
+    )
+
+    reticle = _reticle_marker_path()
+    # A single-raster-pixel dot at each point's exact location: where the
+    # reticle's N/S ticks (or E/W ticks), if extended across the open
+    # center, would cross. markeredgewidth=0 is required -- otherwise the
+    # default 1pt stroke dominates a marker this small and floors its
+    # rendered size at several pixels regardless of markersize.
+    center_dot_size = 72 / dpi
+    index_width = len(str(len(points) - 1)) if len(points) > 1 else 2
+    for i, point in enumerate(points):
+        ax.plot(
+            point.x,
+            point.y,
+            marker=reticle,
+            markerfacecolor="none",
+            markeredgecolor=color,
+            markeredgewidth=0.5,
+            markersize=20,
+        )
+        ax.plot(
+            point.x,
+            point.y,
+            marker="s",
+            color=color,
+            markersize=center_dot_size,
+            markeredgewidth=0,
+        )
+        ax.text(
+            point.x + label_offset,
+            point.y - label_offset,
+            f"{i:0{index_width}d}",
+            color=color,
+            fontsize=label_font_size,
+            va="bottom",
+            path_effects=label_outline,
+        )
+
+    ax.set_xlim(x_min, x_max)
+    ax.set_ylim(y_max, y_min)  # inverted: image y increases downward
+    ax.set_xlabel("x (pixels)")
+    ax.set_ylabel("y (pixels)")
 
     plt.savefig(path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)

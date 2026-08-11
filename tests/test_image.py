@@ -3,7 +3,9 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from dictk.correlation import cc, ncc, zcc, zncc
+from dictk.correlation import WindowingMethod, cc, phase_correlation, zncc
+from dictk.grid import generate as grid_generate
+from dictk.rosta import rosta
 from dictk.image import (
     ArrowAnnotation,
     BoxAnnotation,
@@ -15,9 +17,11 @@ from dictk.image import (
     combine,
     complex_deform,
     contrast,
-    correlation_surfaces_plot,
     crack_dislocation,
     describe,
+    phase_correlation_quadrant_plot,
+    point_grid_boxes_plot,
+    point_grid_plot,
     point_plot,
     reference_frame_plot,
     subimage_plot,
@@ -27,6 +31,7 @@ from dictk.image import (
     rgba_to_gray,
     rotate,
     shear,
+    spatial_correlation_quadrant_plot,
     stretch,
     subimage,
     translate,
@@ -864,35 +869,303 @@ def test_reference_frame_plot_non_square_image(tmp_path: Path):
     assert path.stat().st_size > 0
 
 
-def test_correlation_surfaces_plot_writes_file(tmp_path: Path):
-    reference_image = checkerboard(width=200, height=200)
-    current_image = translate(arr=reference_image, dx=-6, dy=8)
-    kernel_origin = PixelCoordinate(x=75, y=50)
-    kernel = subimage(image=reference_image, origin=kernel_origin, width=50, height=50)
-    search_origin = PixelCoordinate(x=50, y=25)
-    search = subimage(image=current_image, origin=search_origin, width=100, height=100)
+def _astronaut0_kernel_and_search(
+    *, dx: float, dy: float, kernel_margin: int, search_margin: int
+):
+    """`astronaut0` (rosta speckle combined atop the astronaut photo),
+    reconstructed from dictk's own public API rather than reading the
+    bundled PNG -- bit-for-bit identical thanks to rosta()'s deterministic
+    default `random_seed=42`, matching image_generation.md's own
+    construction exactly. Unlike checkerboard() (perfectly periodic, no
+    unambiguous peak) or plain astronaut() (large flat regions bias
+    un-normalized CC toward the wrong window), astronaut0's speckle
+    texture gives even plain CC a single, reliable peak -- the same reason
+    the rest of the book uses astronaut0, not plain astronaut, for
+    correlation examples."""
+    reference_image = combine(
+        a=rosta(width=300, height=300, density=0.5), b=astronaut(width=300, height=300)
+    )
+    current_image = translate(arr=reference_image, dx=dx, dy=dy)
+    point = PixelCoordinate(x=100, y=100)
+    kernel = subimage(
+        image=reference_image,
+        origin=PixelCoordinate(x=point.x - kernel_margin, y=point.y - kernel_margin),
+        width=2 * kernel_margin,
+        height=2 * kernel_margin,
+    )
+    search = subimage(
+        image=current_image,
+        origin=PixelCoordinate(x=point.x - search_margin, y=point.y - search_margin),
+        width=2 * search_margin,
+        height=2 * search_margin,
+    )
+    return kernel, search
 
-    path = tmp_path / "correlation_surfaces.png"
-    correlation_surfaces_plot(
-        cc=cc(kernel=kernel, search=search),
-        ncc=ncc(kernel=kernel, search=search),
-        zcc=zcc(kernel=kernel, search=search),
-        zncc=zncc(kernel=kernel, search=search),
+
+def test_spatial_correlation_quadrant_plot_writes_file(tmp_path: Path):
+    kernel, search = _astronaut0_kernel_and_search(
+        dx=-6, dy=8, kernel_margin=25, search_margin=50
+    )
+
+    path = tmp_path / "correlation_quadrant.png"
+    spatial_correlation_quadrant_plot(
+        kernel=kernel,
+        search=search,
+        correlation_surface=cc(kernel=kernel, search=search),
+        title="Cross-Correlation (CC)",
         path=path,
     )
     assert path.exists()
     assert path.stat().st_size > 0
 
 
-def test_correlation_surfaces_plot_mismatched_shapes_raises(tmp_path: Path):
-    surface_small = np.zeros((10, 10))
-    surface_large = np.zeros((20, 20))
-    path = tmp_path / "correlation_surfaces.png"
+def test_spatial_correlation_quadrant_plot_long_title_writes_file(tmp_path: Path):
+    """Regression test: the full criterion name used to overflow the
+    correlation-surface panel's own title and collide with its colorbar --
+    now rendered as a figure-level suptitle instead, so it should never
+    raise regardless of length."""
+    kernel, search = _astronaut0_kernel_and_search(
+        dx=-6, dy=8, kernel_margin=25, search_margin=50
+    )
+
+    path = tmp_path / "correlation_quadrant_zncc.png"
+    spatial_correlation_quadrant_plot(
+        kernel=kernel,
+        search=search,
+        correlation_surface=zncc(kernel=kernel, search=search),
+        title="Zero-mean Normalized Cross-Correlation (ZNCC)",
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_spatial_correlation_quadrant_plot_search_smaller_than_kernel_raises(
+    tmp_path: Path,
+):
+    kernel = np.zeros((20, 20), dtype=np.uint8)
+    search = np.zeros((10, 10), dtype=np.uint8)
+    path = tmp_path / "correlation_quadrant.png"
     with pytest.raises(ValueError):
-        correlation_surfaces_plot(
-            cc=surface_small,
-            ncc=surface_small,
-            zcc=surface_small,
-            zncc=surface_large,
+        spatial_correlation_quadrant_plot(
+            kernel=kernel,
+            search=search,
+            correlation_surface=np.zeros((1, 1)),
+            title="Cross-Correlation (CC)",
             path=path,
         )
+
+
+def test_spatial_correlation_quadrant_plot_peak_matches_known_displacement(
+    tmp_path: Path,
+):
+    """The found position drawn on the Fixed Image panel (and used to
+    center the Solution Vicinity zoom) must come from correlation_surface's
+    own argmax -- verified here against a known ground-truth displacement,
+    not just that a file got written."""
+    dx, dy = -6, 8
+    kernel_margin, search_margin = 25, 50
+    kernel, search = _astronaut0_kernel_and_search(
+        dx=dx, dy=dy, kernel_margin=kernel_margin, search_margin=search_margin
+    )
+    surface = cc(kernel=kernel, search=search)
+    expected_x = search_margin + dx - kernel_margin
+    expected_y = search_margin + dy - kernel_margin
+    found_y, found_x = np.unravel_index(np.argmax(surface), surface.shape)
+    assert (found_x, found_y) == (expected_x, expected_y)
+
+    path = tmp_path / "correlation_quadrant.png"
+    spatial_correlation_quadrant_plot(
+        kernel=kernel,
+        search=search,
+        correlation_surface=surface,
+        title="Cross-Correlation (CC)",
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_phase_correlation_quadrant_plot_writes_file(tmp_path: Path):
+    kernel, search = _astronaut0_kernel_and_search(
+        dx=-6, dy=8, kernel_margin=25, search_margin=50
+    )
+
+    path = tmp_path / "phase_correlation_quadrant.png"
+    phase_correlation_quadrant_plot(
+        kernel=kernel,
+        search=search,
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_phase_correlation_quadrant_plot_default_title(tmp_path: Path):
+    # No method choice to make for the Fourier domain (unlike spatial's
+    # cc/ncc/zcc/zncc), so title has a sensible default and is optional --
+    # verify that omitting it doesn't raise, matching the sibling function's
+    # required title.
+    kernel, search = _astronaut0_kernel_and_search(
+        dx=-6, dy=8, kernel_margin=25, search_margin=50
+    )
+    path = tmp_path / "phase_correlation_quadrant.png"
+    phase_correlation_quadrant_plot(kernel=kernel, search=search, path=path)
+    assert path.exists()
+
+
+def test_phase_correlation_quadrant_plot_search_smaller_than_kernel_raises(
+    tmp_path: Path,
+):
+    kernel = np.zeros((20, 20), dtype=np.uint8)
+    search = np.zeros((10, 10), dtype=np.uint8)
+    path = tmp_path / "phase_correlation_quadrant.png"
+    with pytest.raises(ValueError):
+        phase_correlation_quadrant_plot(kernel=kernel, search=search, path=path)
+
+
+def test_phase_correlation_quadrant_plot_peak_matches_known_displacement(
+    tmp_path: Path,
+):
+    """Same correctness bar as
+    test_spatial_correlation_quadrant_plot_peak_matches_known_displacement:
+    verify the found position against a known ground-truth displacement,
+    not just that a file got written."""
+    dx, dy = -6, 8
+    kernel_margin, search_margin = 25, 50
+    kernel, search = _astronaut0_kernel_and_search(
+        dx=dx, dy=dy, kernel_margin=kernel_margin, search_margin=search_margin
+    )
+    surface = phase_correlation(kernel=kernel, search=search)
+    expected_x = search_margin + dx - kernel_margin
+    expected_y = search_margin + dy - kernel_margin
+    found_y, found_x = np.unravel_index(np.argmax(surface), surface.shape)
+    assert (found_x, found_y) == (expected_x, expected_y)
+
+    path = tmp_path / "phase_correlation_quadrant.png"
+    phase_correlation_quadrant_plot(kernel=kernel, search=search, path=path)
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+@pytest.mark.parametrize("method", [WindowingMethod.HANN, WindowingMethod.HAMMING])
+def test_phase_correlation_quadrant_plot_windowing_writes_file(tmp_path: Path, method):
+    """windowing is accepted and still writes a valid figure."""
+    kernel, search = _astronaut0_kernel_and_search(
+        dx=-6, dy=8, kernel_margin=25, search_margin=50
+    )
+    path = tmp_path / "phase_correlation_quadrant.png"
+    phase_correlation_quadrant_plot(
+        kernel=kernel, search=search, windowing=method, path=path
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+@pytest.mark.parametrize("method", [WindowingMethod.HANN, WindowingMethod.HAMMING])
+def test_phase_correlation_quadrant_plot_windowing_peak_matches_known_displacement(
+    tmp_path: Path, method
+):
+    """The peak still matches a known displacement with windowing applied."""
+    dx, dy = -6, 8
+    kernel_margin, search_margin = 25, 50
+    kernel, search = _astronaut0_kernel_and_search(
+        dx=dx, dy=dy, kernel_margin=kernel_margin, search_margin=search_margin
+    )
+    surface = phase_correlation(kernel=kernel, search=search, windowing=method)
+    expected_x = search_margin + dx - kernel_margin
+    expected_y = search_margin + dy - kernel_margin
+    found_y, found_x = np.unravel_index(np.argmax(surface), surface.shape)
+    assert (found_x, found_y) == (expected_x, expected_y)
+
+    path = tmp_path / "phase_correlation_quadrant.png"
+    phase_correlation_quadrant_plot(
+        kernel=kernel, search=search, windowing=method, path=path
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+@pytest.mark.parametrize("method", [WindowingMethod.HANN, WindowingMethod.HAMMING])
+def test_phase_correlation_quadrant_plot_windowing_changes_display(
+    tmp_path: Path, method
+):
+    """The Fixed Image/Moving Image panels change too, not just the
+    surface -- regression guard for a real bug: windowing used to reach
+    the correlation surface but silently leave the displayed
+    kernel/search untapered, showing panels that no longer matched what
+    was actually correlated. A byte-difference check doesn't prove which
+    panel changed (the surface panels already differed before this fix),
+    but it does prove the windowed and unwindowed renders aren't
+    identical -- see the visual check in the commit history for
+    confirmation the correct panels taper toward black."""
+    kernel, search = _astronaut0_kernel_and_search(
+        dx=-6, dy=8, kernel_margin=25, search_margin=50
+    )
+    path_none = tmp_path / "phase_correlation_quadrant_none.png"
+    path_windowed = tmp_path / "phase_correlation_quadrant_windowed.png"
+    phase_correlation_quadrant_plot(kernel=kernel, search=search, path=path_none)
+    phase_correlation_quadrant_plot(
+        kernel=kernel, search=search, windowing=method, path=path_windowed
+    )
+    assert path_none.read_bytes() != path_windowed.read_bytes()
+
+
+def test_point_grid_plot_writes_file(tmp_path: Path):
+    photo = astronaut(width=300, height=300)
+    points = grid_generate(
+        origin=PixelCoordinate(x=50, y=50),
+        count_x=5,
+        count_y=4,
+        spacing_x=45,
+        spacing_y=55,
+    )
+    path = tmp_path / "point_grid.png"
+    point_grid_plot(image=photo, points=points, path=path)
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_grid_plot_empty_points_writes_file(tmp_path: Path):
+    arr = checkerboard(width=100, height=100)
+    path = tmp_path / "point_grid_empty.png"
+    point_grid_plot(image=arr, points=[], path=path)
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_grid_boxes_plot_writes_file(tmp_path: Path):
+    photo = astronaut(width=300, height=300)
+    points = grid_generate(
+        origin=PixelCoordinate(x=50, y=50),
+        count_x=3,
+        count_y=4,
+        spacing_x=50,
+        spacing_y=55,
+    )
+    path = tmp_path / "point_grid_boxes.png"
+    point_grid_boxes_plot(
+        image=photo,
+        points=points,
+        margin_width=25,
+        margin_height=25,
+        label_prefix="kernel",
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_grid_boxes_plot_empty_points_writes_file(tmp_path: Path):
+    arr = checkerboard(width=100, height=100)
+    path = tmp_path / "point_grid_boxes_empty.png"
+    point_grid_boxes_plot(
+        image=arr,
+        points=[],
+        margin_width=10,
+        margin_height=10,
+        label_prefix="kernel",
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0

@@ -148,11 +148,10 @@ jobs:
         run: command -v mdbook-katex || cargo install mdbook-katex --version 0.9.4 --locked
 
       - name: Build user guide
-        # mdbook-cmdrun resolves each cmdrun command's working directory
-        # relative to the process cwd, so this must run from inside
-        # docs/userguide (matching `book.src = "src"` in book.toml), not as
-        # `mdbook build docs/userguide` from the repo root.
-        run: cd docs/userguide && uv run --project ../.. mdbook build
+        # book.toml lives at the repo root (src = "docs/userguide/src",
+        # build-dir = "docs/userguide/book") so this runs from the repo
+        # root, same as a contributor's `mdbook build`.
+        run: uv run mdbook build
 
       - name: Build API docs
         # dictk.image/translation/cli must be listed explicitly: pdoc's
@@ -163,7 +162,7 @@ jobs:
         # published docs (as dictk.image and dictk.translation were until
         # this comment), so double-check this list against src/dictk/*.py
         # when adding a new top-level module.
-        run: uv run pdoc dictk dictk.image dictk.translation dictk.correlation dictk.cli -o docs/api
+        run: uv run pdoc dictk dictk.image dictk.translation dictk.correlation dictk.grid dictk.cli -o docs/api
 
       - name: Generate status dashboard
         run: |

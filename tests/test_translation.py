@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+from dictk.correlation import WindowingMethod
 from dictk.image import PixelCoordinate, translate
 from dictk.rosta import rosta
 from dictk.translation import locate
@@ -153,3 +154,38 @@ def test_locate_requires_keyword_arguments():
     p = PixelCoordinate(x=25, y=25)
     with pytest.raises(TypeError):
         locate(arr, arr, p, p, 10, 10, 20, 20)
+
+
+def test_locate_windowing_none_matches_default():
+    """windowing=None is identical to omitting the argument entirely."""
+    ref, cur = _reference_and_current(dx=-6, dy=8)
+    p0 = PixelCoordinate(x=60, y=60)
+    kwargs = dict(
+        reference_image=ref,
+        current_image=cur,
+        reference_point=p0,
+        search_center=p0,
+        kernel_margin_width=20,
+        kernel_margin_height=20,
+        search_margin_width=35,
+        search_margin_height=35,
+    )
+    assert locate(**kwargs) == locate(**kwargs, windowing=None)
+
+
+@pytest.mark.parametrize("method", [WindowingMethod.HANN, WindowingMethod.HAMMING])
+def test_locate_windowing_still_recovers_known_translation(method):
+    ref, cur = _reference_and_current(dx=-6, dy=8)
+    p0 = PixelCoordinate(x=60, y=60)
+    p1 = locate(
+        reference_image=ref,
+        current_image=cur,
+        reference_point=p0,
+        search_center=p0,
+        kernel_margin_width=20,
+        kernel_margin_height=20,
+        search_margin_width=35,
+        search_margin_height=35,
+        windowing=method,
+    )
+    assert (p1.x - p0.x, p1.y - p0.y) == (-6, 8)

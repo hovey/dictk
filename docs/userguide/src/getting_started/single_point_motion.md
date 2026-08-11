@@ -68,7 +68,7 @@ point_plot(
 For this page, the current image $i_1$ is generated with
 [`dictk.image.translate`](../api/dictk/image.html#translate) (see [Image
 Transformation](./transformation.md#pure-translation-rigid-body-motion)): every pixel of
-`reference_image` shifts by the same `(dx, dy)`, a **rigid body
+`reference_image` shifts by the same `(dx, dy)`, a **rigid-body
 translation**.  Because the whole
 image moves together, point $P$'s new location follows directly:
 
