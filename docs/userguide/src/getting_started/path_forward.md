@@ -12,7 +12,8 @@ at least a billion correlations. Realistically, tens of billions. The
 working assumption is that this stays under a trillion — that's the
 ceiling to design for, not a target to reach.
 
-**Two avenues toward that**, in the order we'll likely explore them:
+**Four directions worth exploring**, in the order we'll likely take
+them:
 
 1. **GPU implementations.** [Parallelization](./parallelization.md)
    only covers CPU-bound threads and processes so far. GPU work is
@@ -28,6 +29,24 @@ ceiling to design for, not a target to reach.
    than a fixed worst-case margin — shrinks that per-correlation cost
    directly, for every point in a mesh, not just the parallelizable
    part of the problem.
+3. **Pure rotation.** [Rigid Body Motion](./rigid_body_motion.md) and
+   the polar decomposition ($\boldsymbol{F} = \boldsymbol{R}\boldsymbol{U}$,
+   see [Continuum Mechanics](./continuum_mechanics.md#polar-decomposition))
+   already separate rotation from stretch: a pure rotation carries zero
+   strain by construction. Two things worth testing empirically, not
+   just assuming from the closed-form math: how large a rigid-body
+   rotation angle `dictk`'s own correlation-based tracking can actually
+   recover before it breaks down — a large enough rotation distorts a
+   kernel's own content beyond what a translation-only search can still
+   match — and confirming a correctly-tracked pure rotation reports
+   zero strain end to end, not just in theory.
+4. **Synthetic dataset comparison to XCorrel and VIC-2D.** Run the same
+   synthetic datasets this book already uses through both tools, and
+   compare their reported displacements and strain against `dictk`'s
+   own. A synthetic dataset has a known, exact ground truth — the same
+   trick every worked example in this book already relies on — so this
+   is a direct, numeric check against established DIC software, not
+   just a qualitative one.
 
 **A practical constraint to design around**: real DIC data typically
 uses kernel sizes from about 35x35 pixels on the small end up to about

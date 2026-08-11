@@ -145,6 +145,65 @@ above backs off from that ceiling on purpose: `kernel_margin_width=20`,
 directions, so every kernel's own boundary reads as visibly separate from
 its neighbors', not merely non-overlapping.
 
+The two numbers side by side make the relationship exact, not just
+described:
+
+```python
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from dictk.image import PixelCoordinate
+
+p0, p1, p2 = PixelCoordinate(x=50, y=50), PixelCoordinate(x=100, y=50), PixelCoordinate(x=150, y=50)
+kernel_margin = 20
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+fig, ax = plt.subplots(figsize=(7, 3.2), constrained_layout=True)
+
+for p, label in [(p0, "00"), (p1, "01"), (p2, "02")]:
+    ax.plot(p.x, p.y, "o", color="black", markersize=4)
+    ax.annotate(label, (p.x, p.y), textcoords="offset points", xytext=(6, 6), fontsize=8)
+
+for p in (p0, p1):
+    ax.add_patch(patches.Rectangle(
+        (p.x - kernel_margin, p.y - kernel_margin),
+        2 * kernel_margin, 2 * kernel_margin,
+        edgecolor="green", facecolor="none", linewidth=1.5,
+    ))
+
+# 50-pixel point spacing
+dim_y = 95
+for p in (p0, p1):
+    ax.plot([p.x, p.x], [p0.y + kernel_margin, dim_y], color="gray", linestyle="--", linewidth=0.8)
+ax.annotate("", xy=(p0.x, dim_y), xytext=(p1.x, dim_y), arrowprops=dict(arrowstyle="<->", color="black"))
+ax.text((p0.x + p1.x) / 2, dim_y + 4, "50 px", ha="center", va="bottom", fontsize=9)
+
+# 40-pixel kernel width
+top_y = p0.y - kernel_margin - 8
+ax.annotate("", xy=(p0.x - kernel_margin, top_y), xytext=(p0.x + kernel_margin, top_y), arrowprops=dict(arrowstyle="<->", color="green"))
+ax.text(p0.x, top_y - 4, "40 px", ha="center", va="bottom", fontsize=8, color="green")
+
+# 10-pixel gap between the two kernels' facing edges
+gap_y = p0.y + 12
+ax.annotate("", xy=(p0.x + kernel_margin, gap_y), xytext=(p1.x - kernel_margin, gap_y), arrowprops=dict(arrowstyle="<->", color="tab:red"))
+ax.text(p0.x + kernel_margin + (p1.x - kernel_margin - (p0.x + kernel_margin)) / 2, gap_y + 10, "10 px", ha="center", va="bottom", fontsize=7, color="tab:red")
+
+ax.set_xlim(15, 175)
+ax.set_ylim(105, 5)
+ax.set_xlabel("x (pixels)")
+ax.set_ylabel("y (pixels)")
+ax.set_aspect("equal")
+fig.savefig("multi_point_motion_spacing.png", dpi=300)
+```
+
+```text
+<!-- cmdrun python3 -c "import matplotlib.pyplot as plt; import matplotlib.patches as patches; from dictk.image import PixelCoordinate; p0, p1, p2 = PixelCoordinate(x=50, y=50), PixelCoordinate(x=100, y=50), PixelCoordinate(x=150, y=50); kernel_margin = 20; plt.rcParams.update({'font.family': 'serif', 'mathtext.fontset': 'cm'}); fig, ax = plt.subplots(figsize=(7, 3.2), constrained_layout=True); [ (ax.plot(p.x, p.y, 'o', color='black', markersize=4), ax.annotate(label, (p.x, p.y), textcoords='offset points', xytext=(6, 6), fontsize=8)) for p, label in [(p0, '00'), (p1, '01'), (p2, '02')] ]; [ax.add_patch(patches.Rectangle((p.x - kernel_margin, p.y - kernel_margin), 2 * kernel_margin, 2 * kernel_margin, edgecolor='green', facecolor='none', linewidth=1.5)) for p in (p0, p1)]; dim_y = 95; [ax.plot([p.x, p.x], [p0.y + kernel_margin, dim_y], color='gray', linestyle='--', linewidth=0.8) for p in (p0, p1)]; ax.annotate('', xy=(p0.x, dim_y), xytext=(p1.x, dim_y), arrowprops=dict(arrowstyle='<->', color='black')); ax.text((p0.x + p1.x) / 2, dim_y + 4, '50 px', ha='center', va='bottom', fontsize=9); top_y = p0.y - kernel_margin - 8; ax.annotate('', xy=(p0.x - kernel_margin, top_y), xytext=(p0.x + kernel_margin, top_y), arrowprops=dict(arrowstyle='<->', color='green')); ax.text(p0.x, top_y - 4, '40 px', ha='center', va='bottom', fontsize=8, color='green'); gap_y = p0.y + 12; ax.annotate('', xy=(p0.x + kernel_margin, gap_y), xytext=(p1.x - kernel_margin, gap_y), arrowprops=dict(arrowstyle='<->', color='tab:red')); ax.text(p0.x + kernel_margin + (p1.x - kernel_margin - (p0.x + kernel_margin)) / 2, gap_y + 10, '10 px', ha='center', va='bottom', fontsize=7, color='tab:red'); ax.set_xlim(15, 175); ax.set_ylim(105, 5); ax.set_xlabel('x (pixels)'); ax.set_ylabel('y (pixels)'); ax.set_aspect('equal'); fig.savefig('multi_point_motion_spacing.png', dpi=300); print('Saved: multi_point_motion_spacing.png')" -->
+```
+
+<figure>
+    <img src="multi_point_motion_spacing.png" alt="two green 40x40 pixel kernel boxes centered on points 00 and 01, 50 pixels apart, with a third point 02 shown for context; dimension arrows show 40 px across each kernel, 50 px between point centers, and 10 px in the gap between the two kernels' facing edges" />
+    <figcaption>Points 00 and 01, 50 pixels apart, each with its own 40x40 kernel (green). The 10-pixel gap between the two boxes is exactly $50 - 40$ — the point spacing minus the kernel's own full side length, with nothing left over to round away.</figcaption>
+</figure>
+
 Nothing requires the kernel to be isotropic — `dictk` supports an
 independent margin per axis just as easily. The equal `20`/`20` above is
 a deliberate choice to illustrate that `dictk` supports both isotropic and
