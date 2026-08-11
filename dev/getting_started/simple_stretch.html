@@ -273,21 +273,26 @@ changes, and by a different amount for each point:</p>
     for point in points
 ]
 </code></pre>
-<pre><code class="language-text">| Point | expected x | expected y |
-|---|---|---|
-| 00 | 51 | 50 |
-| 01 | 102 | 50 |
-| 02 | 153 | 50 |
-| 03 | 51 | 105 |
-| 04 | 102 | 105 |
-| 05 | 153 | 105 |
-| 06 | 51 | 160 |
-| 07 | 102 | 160 |
-| 08 | 153 | 160 |
-| 09 | 51 | 215 |
-| 10 | 102 | 215 |
-| 11 | 153 | 215 |
-</code></pre>
+<table>
+<thead>
+<tr><th rowspan="2">Point</th><th colspan="2">Expected <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span></th></tr>
+<tr><th><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> (pixels)</th><th><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> (pixels)</th></tr>
+</thead>
+<tbody>
+<tr><td>00</td><td>51</td><td>50</td></tr>
+<tr><td>01</td><td>102</td><td>50</td></tr>
+<tr><td>02</td><td>153</td><td>50</td></tr>
+<tr><td>03</td><td>51</td><td>105</td></tr>
+<tr><td>04</td><td>102</td><td>105</td></tr>
+<tr><td>05</td><td>153</td><td>105</td></tr>
+<tr><td>06</td><td>51</td><td>160</td></tr>
+<tr><td>07</td><td>102</td><td>160</td></tr>
+<tr><td>08</td><td>153</td><td>160</td></tr>
+<tr><td>09</td><td>51</td><td>215</td></tr>
+<tr><td>10</td><td>102</td><td>215</td></tr>
+<tr><td>11</td><td>153</td><td>215</td></tr>
+</tbody>
+</table>
 <p>This is a real deformation, not a rigid shift. <a href="./multi_point_motion.html">Multi-Point
 Motion</a> moved every point by the same <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03785em;">δ</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">δy</span><span class="mclose">)</span></span></span></span>. A stretch moves each point by a different amount. A point at
 <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">50</span></span></span></span> moves 1 pixel. A point at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">150</span></span></span></span> moves 3 pixels. The grid
@@ -347,7 +352,82 @@ deformation too.</p>
 <p>Twelve points, twelve independent correlations, whether the underlying
 motion is a rigid shift or a stretch:
 <a href="./parallelization.html">Parallelization</a> picks up from here.</p>
+<h2 id="data-download"><a class="header" href="#data-download">Data Download</a></h2>
+<p>Every image this page used is downloadable below, as a TIFF — see
+<a href="./multi_point_motion.html#data-download">Multi-Point Motion's Data Download</a>
+for why, and for a note on the <code>.tif</code>/<code>.tiff</code> naming.</p>
+<h3 id="full-images"><a class="header" href="#full-images">Full Images</a></h3>
+<p><code>astronaut0.tiff</code> is <code>reference_image</code> — identical to <a href="./multi_point_motion.html#full-images">Multi-Point
+Motion's</a> copy, since both pages
+reuse the same reference image. <code>astronaut2.tiff</code> is <code>current_image</code>,
+stretched by <code>factor_x=1.02</code> — named <code>astronaut2</code>, not <code>astronaut1</code>, to
+stay distinct from Multi-Point Motion's <em>translated</em> current image,
+which is a different file with different content:</p>
+<pre><code class="language-python">from dictk.image import write
 
+write(arr=reference_image, path="astronaut0.tiff")
+write(arr=current_image, path="astronaut2.tiff")
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>File</th><th>Description</th></tr></thead><tbody>
+<tr><td><a href="astronaut0.tiff">astronaut0.tiff</a></td><td>Reference image, 300x300 pixels (same as Multi-Point Motion)</td></tr>
+<tr><td><a href="astronaut2.tiff">astronaut2.tiff</a></td><td>Current image, stretched by factor_x=1.02</td></tr>
+</tbody></table>
+</div>
+<h3 id="kernels"><a class="header" href="#kernels">Kernels</a></h3>
+<p>Kernels are unchanged from <a href="./multi_point_motion.html#kernels">Multi-Point
+Motion</a>: the stretch only ever moves
+<code>current_image</code>, and a kernel always comes from <code>reference_image</code>.
+Regenerated here, byte-for-byte identical, for a self-contained download
+set:</p>
+<pre><code class="language-python">from dictk.image import subimage, write
+
+kernel_margin = 20
+for i, point in enumerate(points):
+    origin = PixelCoordinate(x=point.x - kernel_margin, y=point.y - kernel_margin)
+    kernel = subimage(image=reference_image, origin=origin, width=2 * kernel_margin, height=2 * kernel_margin)
+    write(arr=kernel, path=f"kernel_{i:02d}.tiff")
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>File</th><th>Point</th><th>Origin (pixels)</th></tr></thead><tbody>
+<tr><td><a href="kernel_00.tiff">kernel_00.tiff</a></td><td>00</td><td>(30, 30)</td></tr>
+<tr><td><a href="kernel_01.tiff">kernel_01.tiff</a></td><td>01</td><td>(80, 30)</td></tr>
+<tr><td><a href="kernel_02.tiff">kernel_02.tiff</a></td><td>02</td><td>(130, 30)</td></tr>
+<tr><td><a href="kernel_03.tiff">kernel_03.tiff</a></td><td>03</td><td>(30, 85)</td></tr>
+<tr><td><a href="kernel_04.tiff">kernel_04.tiff</a></td><td>04</td><td>(80, 85)</td></tr>
+<tr><td><a href="kernel_05.tiff">kernel_05.tiff</a></td><td>05</td><td>(130, 85)</td></tr>
+<tr><td><a href="kernel_06.tiff">kernel_06.tiff</a></td><td>06</td><td>(30, 140)</td></tr>
+<tr><td><a href="kernel_07.tiff">kernel_07.tiff</a></td><td>07</td><td>(80, 140)</td></tr>
+<tr><td><a href="kernel_08.tiff">kernel_08.tiff</a></td><td>08</td><td>(130, 140)</td></tr>
+<tr><td><a href="kernel_09.tiff">kernel_09.tiff</a></td><td>09</td><td>(30, 195)</td></tr>
+<tr><td><a href="kernel_10.tiff">kernel_10.tiff</a></td><td>10</td><td>(80, 195)</td></tr>
+<tr><td><a href="kernel_11.tiff">kernel_11.tiff</a></td><td>11</td><td>(130, 195)</td></tr>
+</tbody></table>
+</div>
+<h3 id="search-areas"><a class="header" href="#search-areas">Search Areas</a></h3>
+<p>Search areas, unlike kernels, <em>are</em> different from Multi-Point Motion's:
+they come from this page's <code>current_image</code> — the stretched one, not the
+translated one. Named <code>search_area_stretch_*</code> to keep the two sets of
+files distinct, still centered on each point's reference position:</p>
+<pre><code class="language-python">search_margin_width, search_margin_height = 48, 52
+for i, point in enumerate(points):
+    origin = PixelCoordinate(x=point.x - search_margin_width, y=point.y - search_margin_height)
+    search_area = subimage(image=current_image, origin=origin, width=2 * search_margin_width, height=2 * search_margin_height)
+    write(arr=search_area, path=f"search_area_stretch_{i:02d}.tiff")
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>File</th><th>Point</th><th>Origin (pixels)</th></tr></thead><tbody>
+<tr><td><a href="search_area_stretch_00.tiff">search_area_stretch_00.tiff</a></td><td>00</td><td>(2, -2)</td></tr>
+<tr><td><a href="search_area_stretch_01.tiff">search_area_stretch_01.tiff</a></td><td>01</td><td>(52, -2)</td></tr>
+<tr><td><a href="search_area_stretch_02.tiff">search_area_stretch_02.tiff</a></td><td>02</td><td>(102, -2)</td></tr>
+<tr><td><a href="search_area_stretch_03.tiff">search_area_stretch_03.tiff</a></td><td>03</td><td>(2, 53)</td></tr>
+<tr><td><a href="search_area_stretch_04.tiff">search_area_stretch_04.tiff</a></td><td>04</td><td>(52, 53)</td></tr>
+<tr><td><a href="search_area_stretch_05.tiff">search_area_stretch_05.tiff</a></td><td>05</td><td>(102, 53)</td></tr>
+<tr><td><a href="search_area_stretch_06.tiff">search_area_stretch_06.tiff</a></td><td>06</td><td>(2, 108)</td></tr>
+<tr><td><a href="search_area_stretch_07.tiff">search_area_stretch_07.tiff</a></td><td>07</td><td>(52, 108)</td></tr>
+<tr><td><a href="search_area_stretch_08.tiff">search_area_stretch_08.tiff</a></td><td>08</td><td>(102, 108)</td></tr>
+<tr><td><a href="search_area_stretch_09.tiff">search_area_stretch_09.tiff</a></td><td>09</td><td>(2, 163)</td></tr>
+<tr><td><a href="search_area_stretch_10.tiff">search_area_stretch_10.tiff</a></td><td>10</td><td>(52, 163)</td></tr>
+<tr><td><a href="search_area_stretch_11.tiff">search_area_stretch_11.tiff</a></td><td>11</td><td>(102, 163)</td></tr>
+</tbody></table>
+</div>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

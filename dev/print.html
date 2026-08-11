@@ -2620,8 +2620,13 @@ point_grid_plot(
     <img src="getting_started/multi_point_motion_grid.png" alt="reference image astronaut0 with a 3x4 grid of 12 numbered points overlaid in orange, labeled 00 through 11 in row-major order" />
     <figcaption>Reference image <code>astronaut0</code> with a 3x4 grid of 12 points (<code>count_x=3</code>, <code>count_y=4</code>), spaced 50 pixels apart along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and 55 pixels apart along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> (<code>spacing_x=50</code>, <code>spacing_y=55</code>), labeled 00-11 in row-major order (top-left to bottom-right).</figcaption>
 </figure>
-<p>The pixel coordinates of each point follow:</p>
-<div class="table-wrapper"><table><thead><tr><th>Point</th><th>x (pixels)</th><th>y (pixels)</th></tr></thead><tbody>
+<p>The reference coordinates <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">Y</span><span class="mclose">)</span></span></span></span> in pixels for each point follow:</p>
+<table>
+<thead>
+<tr><th rowspan="2">Point</th><th colspan="2">Reference Configuration <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">Y</span><span class="mclose">)</span></span></span></span></th></tr>
+<tr><th><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span> (pixels)</th><th><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">Y</span></span></span></span> (pixels)</th></tr>
+</thead>
+<tbody>
 <tr><td>00</td><td>50</td><td>50</td></tr>
 <tr><td>01</td><td>100</td><td>50</td></tr>
 <tr><td>02</td><td>150</td><td>50</td></tr>
@@ -2634,8 +2639,16 @@ point_grid_plot(
 <tr><td>09</td><td>50</td><td>215</td></tr>
 <tr><td>10</td><td>100</td><td>215</td></tr>
 <tr><td>11</td><td>150</td><td>215</td></tr>
-</tbody></table>
-</div>
+</tbody>
+</table>
+<p><code>dx, dy = -6, 8</code> is the same known rigid-body displacement <a href="getting_started/./single_point_motion.html#current-configuration-and-displacement">Single Point
+Motion</a>
+gave <code>checkerboard0</code>. Applying it to <code>astronaut0</code> produces <code>current_image</code>:</p>
+<pre><code class="language-python">from dictk.image import translate
+
+dx, dy = -6, 8
+current_image = translate(arr=reference_image, dx=dx, dy=dy)
+</code></pre>
 <p>Every point will need a <strong>kernel</strong> (the patch of <code>reference_image</code> used to
 identify it) and a <strong>search area</strong> (the region of <code>current_image</code> searched
 for a match). Before tracking the grid, it helps to see both relative to
@@ -2663,8 +2676,12 @@ point_grid_boxes_plot(
     <img src="getting_started/multi_point_motion_kernels.png" alt="reference image astronaut0 with each of the 12 points' kernel boxes overlaid, each in its own color, labeled kernel 00 through kernel 11" />
     <figcaption>Every point's kernel, each in its own color (<code>margin_width=20</code>, <code>margin_height=20</code>).</figcaption>
 </figure>
+<p>The kernel comes from <code>reference_image</code>. The search area comes from
+<code>current_image</code> instead — still centered on each point's <em>reference</em>
+position (<code>search_centers</code> defaults to <code>reference_points</code>), since the
+point's true displacement is exactly what tracking is trying to find:</p>
 <pre><code class="language-python">point_grid_boxes_plot(
-    image=reference_image,
+    image=current_image,
     points=points,
     margin_width=48,
     margin_height=52,
@@ -2676,8 +2693,8 @@ point_grid_boxes_plot(
 <pre><code class="language-text">Saved: multi_point_motion_search.png
 </code></pre>
 <figure>
-    <img src="getting_started/multi_point_motion_search.png" alt="reference image astronaut0 with each of the 12 points' search-area boxes overlaid, each in its own color, labeled search area 00 through search area 11" />
-    <figcaption>Every point's search area, each in its own color (<code>margin_width=48</code>, <code>margin_height=52</code>).</figcaption>
+    <img src="getting_started/multi_point_motion_search.png" alt="current image astronaut0, shifted by (-6, 8) pixels, with each of the 12 points' search-area boxes overlaid, each in its own color, labeled search area 00 through search area 11" />
+    <figcaption>Every point's search area, each in its own color (<code>margin_width=48</code>, <code>margin_height=52</code>), drawn on <code>current_image</code> — the region actually searched — and still centered on each point's reference position.</figcaption>
 </figure>
 <h2 id="tracking-the-grid"><a class="header" href="#tracking-the-grid">Tracking the Grid</a></h2>
 <p>Choosing a kernel size relative to point spacing is a tradeoff: a kernel
@@ -2728,25 +2745,48 @@ for p in (p0, p1):
         edgecolor="green", facecolor="none", linewidth=1.5,
     ))
 
-# 50-pixel point spacing
-dim_y = 95
-for p in (p0, p1):
-    ax.plot([p.x, p.x], [p0.y + kernel_margin, dim_y], color="gray", linestyle="--", linewidth=0.8)
-ax.annotate("", xy=(p0.x, dim_y), xytext=(p1.x, dim_y), arrowprops=dict(arrowstyle="&lt;-&gt;", color="black"))
-ax.text((p0.x + p1.x) / 2, dim_y + 4, "50 px", ha="center", va="bottom", fontsize=9)
+box_top = p0.y - kernel_margin      # 30
+box_bottom = p0.y + kernel_margin   # 70
 
-# 40-pixel kernel width
-top_y = p0.y - kernel_margin - 8
-ax.annotate("", xy=(p0.x - kernel_margin, top_y), xytext=(p0.x + kernel_margin, top_y), arrowprops=dict(arrowstyle="&lt;-&gt;", color="green"))
+# 50-pixel point spacing. The dashed guide lines start near each point
+# (nearly touching its marker) and run down through its kernel box to
+# the dimension line just below the boxes. Arrow flush with the dashed
+# lines (shrinkA/shrinkB=0); label centered at the true midpoint between
+# the box bottom and the dimension line.
+dim_y = box_bottom + 8
+for p in (p0, p1):
+    ax.plot([p.x, p.x], [p.y + 3, dim_y], color="gray", linestyle="--", linewidth=0.8)
+ax.annotate("", xy=(p0.x, dim_y), xytext=(p1.x, dim_y), arrowprops=dict(arrowstyle="&lt;-&gt;", color="black", shrinkA=0, shrinkB=0))
+ax.text((p0.x + p1.x) / 2, (box_bottom + dim_y) / 2, "50 px", ha="center", va="center", fontsize=9)
+
+# 40-pixel kernel width, flush with the box's own left/right edges
+# (shrinkA/shrinkB=0 so the arrow isn't inset from those edges).
+top_y = box_top - 10
+ax.annotate("", xy=(p0.x - kernel_margin, top_y), xytext=(p0.x + kernel_margin, top_y), arrowprops=dict(arrowstyle="&lt;-&gt;", color="green", shrinkA=0, shrinkB=0))
 ax.text(p0.x, top_y - 4, "40 px", ha="center", va="bottom", fontsize=8, color="green")
 
-# 10-pixel gap between the two kernels' facing edges
-gap_y = p0.y + 12
-ax.annotate("", xy=(p0.x + kernel_margin, gap_y), xytext=(p1.x - kernel_margin, gap_y), arrowprops=dict(arrowstyle="&lt;-&gt;", color="tab:red"))
-ax.text(p0.x + kernel_margin + (p1.x - kernel_margin - (p0.x + kernel_margin)) / 2, gap_y + 10, "10 px", ha="center", va="bottom", fontsize=7, color="tab:red")
+# 10-pixel gap between the two kernels' facing edges, moved up to the
+# boxes' shared top edge, flush with the box's own edges (shrinkA/
+# shrinkB=0), with the label on top of the dimension line.
+gap_y = box_top - 2
+ax.annotate("", xy=(p0.x + kernel_margin, gap_y), xytext=(p1.x - kernel_margin, gap_y), arrowprops=dict(arrowstyle="&lt;-&gt;", color="tab:red", shrinkA=0, shrinkB=0))
+ax.text(p0.x + kernel_margin + (p1.x - kernel_margin - (p0.x + kernel_margin)) / 2, gap_y - 4, "10 px", ha="center", va="bottom", fontsize=7, color="tab:red")
 
 ax.set_xlim(15, 175)
-ax.set_ylim(105, 5)
+ax.set_ylim(84, 8)
+
+# Tick marks: 50/100/150 in x (the point positions), 40 pixels apart
+# starting at 20; every 10 pixels in y, but text labels only at
+# 30/50/70 (the box's top edge, the point row, and the box's bottom
+# edge) -- a tight range with no dead space below the boxes, since the
+# dimension line sits just beneath them.
+xticks = list(range(20, 161, 10))
+ax.set_xticks(xticks)
+ax.set_xticklabels([str(v) if v in (50, 100, 150) else "" for v in xticks])
+yticks = list(range(20, 81, 10))
+ax.set_yticks(yticks)
+ax.set_yticklabels([str(v) if v in (30, 50, 70) else "" for v in yticks])
+
 ax.set_xlabel("x (pixels)")
 ax.set_ylabel("y (pixels)")
 ax.set_aspect("equal")
@@ -2783,16 +2823,11 @@ crop the search area down to the kernel's size; rather, it zero-pads the kernel 
 <p><strong>Note:</strong> In practice, kernel size has little effect on FFT runtime once a search area size is chosen because the transform zero-pads the kernel size up to match the size of the search area. So shrinking an already-small kernel further doesn't make the correlation any faster.</p>
 </blockquote>
 <p><a href="getting_started/./single_point_motion.html#current-configuration-and-displacement">Single Point Motion</a>
-gave <code>checkerboard0</code> a known rigid-body displacement of <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03785em;">δ</span><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">−</span><span class="mord">6</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">8</span><span class="mclose">)</span></span></span></span> pixels via
-<a href="getting_started/../api/dictk/image.html#translate"><code>dictk.image.translate</code></a>, and confirmed
-that a single point's found position matched that displacement exactly.
-The same idea, applied to all 12 points in the grid at once, is exactly
-what a real DIC workflow looks like:</p>
-<pre><code class="language-python">from dictk.image import translate
-
-dx, dy = -6, 8
-current_image = translate(arr=reference_image, dx=dx, dy=dy)
-</code></pre>
+confirmed that a single point's found position matches a known
+displacement exactly. Reuse <code>current_image</code> from <a href="getting_started/multi_point_motion.html#point-grid">Point
+Grid</a> — the same <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03785em;">δ</span><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">−</span><span class="mord">6</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">8</span><span class="mclose">)</span></span></span></span>-pixel
+displacement. The same idea, applied to all 12 points in the grid at
+once, is exactly what a real DIC workflow looks like.</p>
 <p><a href="getting_started/../api/dictk/grid.html#locate"><code>dictk.grid.locate</code></a> tracks all 12 points
 in one call. It doesn't do the correlation itself — it calls
 <a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> once
@@ -2863,7 +2898,77 @@ can't.</p>
 <p>This page tracked rigid-body translation. Every point moved by the same
 amount. <a href="getting_started/./simple_stretch.html">Simple Stretch</a> is next. It tracks a real
 deformation instead, where each point moves by a different amount.</p>
-<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h2 id="data-download"><a class="header" href="#data-download">Data Download</a></h2>
+<p>Every image this page used is downloadable below as a TIFF.</p>
+<h3 id="full-images"><a class="header" href="#full-images">Full Images</a></h3>
+<ul>
+<li><code>astronaut0.tiff</code> is <code>reference_image</code>.</li>
+<li><code>astronaut1.tiff</code> is <code>current_image</code> — <code>reference_image</code> displaced down and to the left by <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03785em;">δ</span><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">−</span><span class="mord">6</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">8</span><span class="mclose">)</span></span></span></span> pixels, the same displacement <a href="getting_started/multi_point_motion.html#tracking-the-grid">Tracking the Grid</a> tracked:</li>
+</ul>
+<pre><code class="language-python">from dictk.image import write
+
+write(arr=reference_image, path="astronaut0.tiff")
+write(arr=current_image, path="astronaut1.tiff")
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>File</th><th>Description</th></tr></thead><tbody>
+<tr><td><a href="getting_started/astronaut0.tiff">astronaut0.tiff</a></td><td>Reference image, 300x300 pixels</td></tr>
+<tr><td><a href="getting_started/astronaut1.tiff">astronaut1.tiff</a></td><td>Current image, displaced by (dx, dy) = (-6, 8) pixels</td></tr>
+</tbody></table>
+</div>
+<h3 id="kernels"><a class="header" href="#kernels">Kernels</a></h3>
+<p>Every point's kernel, extracted from <code>reference_image</code> — the same 12
+boxes shown in <a href="getting_started/multi_point_motion.html#point-grid">Point Grid</a> (<code>kernel_margin_width=20</code>,
+<code>kernel_margin_height=20</code>, 40x40 pixels each):</p>
+<pre><code class="language-python">from dictk.image import subimage, write
+
+kernel_margin = 20
+for i, point in enumerate(points):
+    origin = PixelCoordinate(x=point.x - kernel_margin, y=point.y - kernel_margin)
+    kernel = subimage(image=reference_image, origin=origin, width=2 * kernel_margin, height=2 * kernel_margin)
+    write(arr=kernel, path=f"kernel_{i:02d}.tiff")
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>File</th><th>Point</th><th>Origin (pixels)</th></tr></thead><tbody>
+<tr><td><a href="getting_started/kernel_00.tiff">kernel_00.tiff</a></td><td>00</td><td>(30, 30)</td></tr>
+<tr><td><a href="getting_started/kernel_01.tiff">kernel_01.tiff</a></td><td>01</td><td>(80, 30)</td></tr>
+<tr><td><a href="getting_started/kernel_02.tiff">kernel_02.tiff</a></td><td>02</td><td>(130, 30)</td></tr>
+<tr><td><a href="getting_started/kernel_03.tiff">kernel_03.tiff</a></td><td>03</td><td>(30, 85)</td></tr>
+<tr><td><a href="getting_started/kernel_04.tiff">kernel_04.tiff</a></td><td>04</td><td>(80, 85)</td></tr>
+<tr><td><a href="getting_started/kernel_05.tiff">kernel_05.tiff</a></td><td>05</td><td>(130, 85)</td></tr>
+<tr><td><a href="getting_started/kernel_06.tiff">kernel_06.tiff</a></td><td>06</td><td>(30, 140)</td></tr>
+<tr><td><a href="getting_started/kernel_07.tiff">kernel_07.tiff</a></td><td>07</td><td>(80, 140)</td></tr>
+<tr><td><a href="getting_started/kernel_08.tiff">kernel_08.tiff</a></td><td>08</td><td>(130, 140)</td></tr>
+<tr><td><a href="getting_started/kernel_09.tiff">kernel_09.tiff</a></td><td>09</td><td>(30, 195)</td></tr>
+<tr><td><a href="getting_started/kernel_10.tiff">kernel_10.tiff</a></td><td>10</td><td>(80, 195)</td></tr>
+<tr><td><a href="getting_started/kernel_11.tiff">kernel_11.tiff</a></td><td>11</td><td>(130, 195)</td></tr>
+</tbody></table>
+</div>
+<h3 id="search-areas"><a class="header" href="#search-areas">Search Areas</a></h3>
+<p>Every point's search area, extracted from <code>current_image</code> — not
+<code>reference_image</code>, since a search area is always a region of the current
+image (see <a href="getting_started/multi_point_motion.html#point-grid">Point Grid</a>). The same 12 boxes shown there
+(<code>search_margin_width=48</code>, <code>search_margin_height=52</code>, 96x104 pixels
+each), still centered on each point's <em>reference</em> position:</p>
+<pre><code class="language-python">search_margin_width, search_margin_height = 48, 52
+for i, point in enumerate(points):
+    origin = PixelCoordinate(x=point.x - search_margin_width, y=point.y - search_margin_height)
+    search_area = subimage(image=current_image, origin=origin, width=2 * search_margin_width, height=2 * search_margin_height)
+    write(arr=search_area, path=f"search_area_{i:02d}.tiff")
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>File</th><th>Point</th><th>Origin (pixels)</th></tr></thead><tbody>
+<tr><td><a href="getting_started/search_area_00.tiff">search_area_00.tiff</a></td><td>00</td><td>(2, -2)</td></tr>
+<tr><td><a href="getting_started/search_area_01.tiff">search_area_01.tiff</a></td><td>01</td><td>(52, -2)</td></tr>
+<tr><td><a href="getting_started/search_area_02.tiff">search_area_02.tiff</a></td><td>02</td><td>(102, -2)</td></tr>
+<tr><td><a href="getting_started/search_area_03.tiff">search_area_03.tiff</a></td><td>03</td><td>(2, 53)</td></tr>
+<tr><td><a href="getting_started/search_area_04.tiff">search_area_04.tiff</a></td><td>04</td><td>(52, 53)</td></tr>
+<tr><td><a href="getting_started/search_area_05.tiff">search_area_05.tiff</a></td><td>05</td><td>(102, 53)</td></tr>
+<tr><td><a href="getting_started/search_area_06.tiff">search_area_06.tiff</a></td><td>06</td><td>(2, 108)</td></tr>
+<tr><td><a href="getting_started/search_area_07.tiff">search_area_07.tiff</a></td><td>07</td><td>(52, 108)</td></tr>
+<tr><td><a href="getting_started/search_area_08.tiff">search_area_08.tiff</a></td><td>08</td><td>(102, 108)</td></tr>
+<tr><td><a href="getting_started/search_area_09.tiff">search_area_09.tiff</a></td><td>09</td><td>(2, 163)</td></tr>
+<tr><td><a href="getting_started/search_area_10.tiff">search_area_10.tiff</a></td><td>10</td><td>(52, 163)</td></tr>
+<tr><td><a href="getting_started/search_area_11.tiff">search_area_11.tiff</a></td><td>11</td><td>(102, 163)</td></tr>
+</tbody></table>
+</div><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="simple-stretch"><a class="header" href="#simple-stretch">Simple Stretch</a></h1>
 <p><a href="getting_started/./multi_point_motion.html">Multi-Point Motion</a> tracked a grid of points under
 <strong>rigid-body translation</strong> — every point moves by the same <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03785em;">δ</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">δy</span><span class="mclose">)</span></span></span></span>, so <a href="getting_started/./single_point_motion.html">Single Point Motion</a>'s known-integer-pixel
@@ -2957,21 +3062,26 @@ changes, and by a different amount for each point:</p>
     for point in points
 ]
 </code></pre>
-<pre><code class="language-text">| Point | expected x | expected y |
-|---|---|---|
-| 00 | 51 | 50 |
-| 01 | 102 | 50 |
-| 02 | 153 | 50 |
-| 03 | 51 | 105 |
-| 04 | 102 | 105 |
-| 05 | 153 | 105 |
-| 06 | 51 | 160 |
-| 07 | 102 | 160 |
-| 08 | 153 | 160 |
-| 09 | 51 | 215 |
-| 10 | 102 | 215 |
-| 11 | 153 | 215 |
-</code></pre>
+<table>
+<thead>
+<tr><th rowspan="2">Point</th><th colspan="2">Expected <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span></th></tr>
+<tr><th><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> (pixels)</th><th><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> (pixels)</th></tr>
+</thead>
+<tbody>
+<tr><td>00</td><td>51</td><td>50</td></tr>
+<tr><td>01</td><td>102</td><td>50</td></tr>
+<tr><td>02</td><td>153</td><td>50</td></tr>
+<tr><td>03</td><td>51</td><td>105</td></tr>
+<tr><td>04</td><td>102</td><td>105</td></tr>
+<tr><td>05</td><td>153</td><td>105</td></tr>
+<tr><td>06</td><td>51</td><td>160</td></tr>
+<tr><td>07</td><td>102</td><td>160</td></tr>
+<tr><td>08</td><td>153</td><td>160</td></tr>
+<tr><td>09</td><td>51</td><td>215</td></tr>
+<tr><td>10</td><td>102</td><td>215</td></tr>
+<tr><td>11</td><td>153</td><td>215</td></tr>
+</tbody>
+</table>
 <p>This is a real deformation, not a rigid shift. <a href="getting_started/./multi_point_motion.html">Multi-Point
 Motion</a> moved every point by the same <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03785em;">δ</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">δy</span><span class="mclose">)</span></span></span></span>. A stretch moves each point by a different amount. A point at
 <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">50</span></span></span></span> moves 1 pixel. A point at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">150</span></span></span></span> moves 3 pixels. The grid
@@ -3031,7 +3141,82 @@ deformation too.</p>
 <p>Twelve points, twelve independent correlations, whether the underlying
 motion is a rigid shift or a stretch:
 <a href="getting_started/./parallelization.html">Parallelization</a> picks up from here.</p>
-<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h2 id="data-download-1"><a class="header" href="#data-download-1">Data Download</a></h2>
+<p>Every image this page used is downloadable below, as a TIFF — see
+<a href="getting_started/./multi_point_motion.html#data-download">Multi-Point Motion's Data Download</a>
+for why, and for a note on the <code>.tif</code>/<code>.tiff</code> naming.</p>
+<h3 id="full-images-1"><a class="header" href="#full-images-1">Full Images</a></h3>
+<p><code>astronaut0.tiff</code> is <code>reference_image</code> — identical to <a href="getting_started/./multi_point_motion.html#full-images">Multi-Point
+Motion's</a> copy, since both pages
+reuse the same reference image. <code>astronaut2.tiff</code> is <code>current_image</code>,
+stretched by <code>factor_x=1.02</code> — named <code>astronaut2</code>, not <code>astronaut1</code>, to
+stay distinct from Multi-Point Motion's <em>translated</em> current image,
+which is a different file with different content:</p>
+<pre><code class="language-python">from dictk.image import write
+
+write(arr=reference_image, path="astronaut0.tiff")
+write(arr=current_image, path="astronaut2.tiff")
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>File</th><th>Description</th></tr></thead><tbody>
+<tr><td><a href="getting_started/astronaut0.tiff">astronaut0.tiff</a></td><td>Reference image, 300x300 pixels (same as Multi-Point Motion)</td></tr>
+<tr><td><a href="getting_started/astronaut2.tiff">astronaut2.tiff</a></td><td>Current image, stretched by factor_x=1.02</td></tr>
+</tbody></table>
+</div>
+<h3 id="kernels-1"><a class="header" href="#kernels-1">Kernels</a></h3>
+<p>Kernels are unchanged from <a href="getting_started/./multi_point_motion.html#kernels">Multi-Point
+Motion</a>: the stretch only ever moves
+<code>current_image</code>, and a kernel always comes from <code>reference_image</code>.
+Regenerated here, byte-for-byte identical, for a self-contained download
+set:</p>
+<pre><code class="language-python">from dictk.image import subimage, write
+
+kernel_margin = 20
+for i, point in enumerate(points):
+    origin = PixelCoordinate(x=point.x - kernel_margin, y=point.y - kernel_margin)
+    kernel = subimage(image=reference_image, origin=origin, width=2 * kernel_margin, height=2 * kernel_margin)
+    write(arr=kernel, path=f"kernel_{i:02d}.tiff")
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>File</th><th>Point</th><th>Origin (pixels)</th></tr></thead><tbody>
+<tr><td><a href="getting_started/kernel_00.tiff">kernel_00.tiff</a></td><td>00</td><td>(30, 30)</td></tr>
+<tr><td><a href="getting_started/kernel_01.tiff">kernel_01.tiff</a></td><td>01</td><td>(80, 30)</td></tr>
+<tr><td><a href="getting_started/kernel_02.tiff">kernel_02.tiff</a></td><td>02</td><td>(130, 30)</td></tr>
+<tr><td><a href="getting_started/kernel_03.tiff">kernel_03.tiff</a></td><td>03</td><td>(30, 85)</td></tr>
+<tr><td><a href="getting_started/kernel_04.tiff">kernel_04.tiff</a></td><td>04</td><td>(80, 85)</td></tr>
+<tr><td><a href="getting_started/kernel_05.tiff">kernel_05.tiff</a></td><td>05</td><td>(130, 85)</td></tr>
+<tr><td><a href="getting_started/kernel_06.tiff">kernel_06.tiff</a></td><td>06</td><td>(30, 140)</td></tr>
+<tr><td><a href="getting_started/kernel_07.tiff">kernel_07.tiff</a></td><td>07</td><td>(80, 140)</td></tr>
+<tr><td><a href="getting_started/kernel_08.tiff">kernel_08.tiff</a></td><td>08</td><td>(130, 140)</td></tr>
+<tr><td><a href="getting_started/kernel_09.tiff">kernel_09.tiff</a></td><td>09</td><td>(30, 195)</td></tr>
+<tr><td><a href="getting_started/kernel_10.tiff">kernel_10.tiff</a></td><td>10</td><td>(80, 195)</td></tr>
+<tr><td><a href="getting_started/kernel_11.tiff">kernel_11.tiff</a></td><td>11</td><td>(130, 195)</td></tr>
+</tbody></table>
+</div>
+<h3 id="search-areas-1"><a class="header" href="#search-areas-1">Search Areas</a></h3>
+<p>Search areas, unlike kernels, <em>are</em> different from Multi-Point Motion's:
+they come from this page's <code>current_image</code> — the stretched one, not the
+translated one. Named <code>search_area_stretch_*</code> to keep the two sets of
+files distinct, still centered on each point's reference position:</p>
+<pre><code class="language-python">search_margin_width, search_margin_height = 48, 52
+for i, point in enumerate(points):
+    origin = PixelCoordinate(x=point.x - search_margin_width, y=point.y - search_margin_height)
+    search_area = subimage(image=current_image, origin=origin, width=2 * search_margin_width, height=2 * search_margin_height)
+    write(arr=search_area, path=f"search_area_stretch_{i:02d}.tiff")
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>File</th><th>Point</th><th>Origin (pixels)</th></tr></thead><tbody>
+<tr><td><a href="getting_started/search_area_stretch_00.tiff">search_area_stretch_00.tiff</a></td><td>00</td><td>(2, -2)</td></tr>
+<tr><td><a href="getting_started/search_area_stretch_01.tiff">search_area_stretch_01.tiff</a></td><td>01</td><td>(52, -2)</td></tr>
+<tr><td><a href="getting_started/search_area_stretch_02.tiff">search_area_stretch_02.tiff</a></td><td>02</td><td>(102, -2)</td></tr>
+<tr><td><a href="getting_started/search_area_stretch_03.tiff">search_area_stretch_03.tiff</a></td><td>03</td><td>(2, 53)</td></tr>
+<tr><td><a href="getting_started/search_area_stretch_04.tiff">search_area_stretch_04.tiff</a></td><td>04</td><td>(52, 53)</td></tr>
+<tr><td><a href="getting_started/search_area_stretch_05.tiff">search_area_stretch_05.tiff</a></td><td>05</td><td>(102, 53)</td></tr>
+<tr><td><a href="getting_started/search_area_stretch_06.tiff">search_area_stretch_06.tiff</a></td><td>06</td><td>(2, 108)</td></tr>
+<tr><td><a href="getting_started/search_area_stretch_07.tiff">search_area_stretch_07.tiff</a></td><td>07</td><td>(52, 108)</td></tr>
+<tr><td><a href="getting_started/search_area_stretch_08.tiff">search_area_stretch_08.tiff</a></td><td>08</td><td>(102, 108)</td></tr>
+<tr><td><a href="getting_started/search_area_stretch_09.tiff">search_area_stretch_09.tiff</a></td><td>09</td><td>(2, 163)</td></tr>
+<tr><td><a href="getting_started/search_area_stretch_10.tiff">search_area_stretch_10.tiff</a></td><td>10</td><td>(52, 163)</td></tr>
+<tr><td><a href="getting_started/search_area_stretch_11.tiff">search_area_stretch_11.tiff</a></td><td>11</td><td>(102, 163)</td></tr>
+</tbody></table>
+</div><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="parallelization"><a class="header" href="#parallelization">Parallelization</a></h1>
 <p><a href="getting_started/./multi_point_motion.html#tracking-the-grid">Multi-Point Motion</a> just ran 12
 independent calls to
