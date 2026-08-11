@@ -1,0 +1,26 @@
+/* .figure-box: gray boxed figure style used by figures
+ * (Continuum Mechanics, Rigid Body Motion, Simple Shear).
+ */
+.figure-box {
+    background-color: #ccc;
+    border: 1px solid darkgray;
+    padding: 15px;
+    margin: 15px auto;
+    max-width: 90%;
+    text-align: center;
+}
+
+.figure-box img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto 10px;
+}
+
+.figure-box figcaption {
+    font-style: normal;
+    font-weight: bolder;
+    font-size: 0.8em;
+    color: black;
+    margin-top: 5px;
+}

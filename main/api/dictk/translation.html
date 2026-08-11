@@ -61,159 +61,172 @@
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 </span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">skimage.registration</span><span class="w"> </span><span class="kn">import</span> <span class="n">phase_cross_correlation</span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">dictk.image</span><span class="w"> </span><span class="kn">import</span> <span class="n">PixelCoordinate</span><span class="p">,</span> <span class="n">subimage</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">dictk.correlation</span><span class="w"> </span><span class="kn">import</span> <span class="n">WindowingMethod</span><span class="p">,</span> <span class="n">_window_and_pad</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">dictk.image</span><span class="w"> </span><span class="kn">import</span> <span class="n">PixelCoordinate</span><span class="p">,</span> <span class="n">subimage</span>
 </span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="k">def</span><span class="w"> </span><span class="nf">locate</span><span class="p">(</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>    <span class="o">*</span><span class="p">,</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a>    <span class="n">reference_image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>    <span class="n">current_image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>    <span class="n">reference_point</span><span class="p">:</span> <span class="n">PixelCoordinate</span><span class="p">,</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>    <span class="n">search_center</span><span class="p">:</span> <span class="n">PixelCoordinate</span><span class="p">,</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>    <span class="n">kernel_margin_width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>    <span class="n">kernel_margin_height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>    <span class="n">search_margin_width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>    <span class="n">search_margin_height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PixelCoordinate</span><span class="p">:</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Given a `reference_point` expressed in the `reference_image`</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="sd">    frame, find its position expressed in the `current_image` frame.</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>
-</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="sd">    `reference_point` is a fixed, already-known point in `reference_image`.</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="sd">    Where that same physical point ends up in `current_image` is exactly</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="sd">    what this function finds — it is *not* an input, it&#39;s the return</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="sd">    value. `search_center` is a different thing: just where to center the</span>
-</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="sd">    search area in `current_image`, i.e., a guess of roughly where to</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="sd">    look. It doesn&#39;t need to be exact — only close enough that the true</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a><span class="sd">    (unknown) position falls within the search area — and if no better</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a><span class="sd">    guess is available, passing `reference_point` again is a reasonable</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a><span class="sd">    default.</span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a>
-</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a><span class="sd">    Concretely: extracts a rectangular kernel (also called a subset,</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a><span class="sd">    filter, or convolution matrix; `2 * kernel_margin_width` wide,</span>
-</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a><span class="sd">    `2 * kernel_margin_height` tall) from `reference_image` centered at</span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a><span class="sd">    `reference_point`, and a rectangular search area (also called a</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a><span class="sd">    search window, scanning zone, or area of interest (AOI);</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a><span class="sd">    `2 * search_margin_width` wide, `2 * search_margin_height` tall)</span>
-</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a><span class="sd">    from `current_image` centered at `search_center`, then locates the</span>
-</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a><span class="sd">    kernel within the search area via FFT-based phase cross-correlation</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a><span class="sd">    (`skimage.registration.phase_cross_correlation`). The kernel always</span>
-</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a><span class="sd">    comes from `reference_image`; the search area always comes from</span>
-</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a><span class="sd">    `current_image`. Integer-pixel precision only; subpixel refinement is</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a><span class="sd">    out of scope for now.</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>
-</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a><span class="sd">    Args:</span>
-</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a><span class="sd">        reference_image: The reference (undeformed) 2D grayscale image.</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a><span class="sd">        current_image: The current (deformed) 2D grayscale image.</span>
-</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a><span class="sd">        reference_point: The point&#39;s fixed, known position, in</span>
-</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a><span class="sd">            `reference_image`&#39;s pixel reference frame.</span>
-</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a><span class="sd">        search_center: Where to center the search area, in</span>
-</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="sd">            `current_image`&#39;s pixel reference frame — a guess of roughly</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a><span class="sd">            where `reference_point` ended up, not the answer itself.</span>
-</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a><span class="sd">        kernel_margin_width: Half the kernel&#39;s width, in pixels. Must</span>
-</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a><span class="sd">            be &gt;= 1.</span>
-</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="sd">        kernel_margin_height: Half the kernel&#39;s height, in pixels. Must</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="k">def</span><span class="w"> </span><span class="nf">locate</span><span class="p">(</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a>    <span class="o">*</span><span class="p">,</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>    <span class="n">reference_image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>    <span class="n">current_image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>    <span class="n">reference_point</span><span class="p">:</span> <span class="n">PixelCoordinate</span><span class="p">,</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>    <span class="n">search_center</span><span class="p">:</span> <span class="n">PixelCoordinate</span><span class="p">,</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>    <span class="n">kernel_margin_width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>    <span class="n">kernel_margin_height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>    <span class="n">search_margin_width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>    <span class="n">search_margin_height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a>    <span class="n">windowing</span><span class="p">:</span> <span class="n">WindowingMethod</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PixelCoordinate</span><span class="p">:</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Given a `reference_point` expressed in the `reference_image`</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="sd">    frame, find its position expressed in the `current_image` frame.</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>
+</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="sd">    `reference_point` is a fixed, already-known point in `reference_image`.</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="sd">    Where that same physical point ends up in `current_image` is exactly</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="sd">    what this function finds — it is *not* an input, it&#39;s the return</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="sd">    value. `search_center` is a different thing: just where to center the</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a><span class="sd">    search area in `current_image`, i.e., a guess of roughly where to</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a><span class="sd">    look. It doesn&#39;t need to be exact — only close enough that the true</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a><span class="sd">    (unknown) position falls within the search area — and if no better</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a><span class="sd">    guess is available, passing `reference_point` again is a reasonable</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a><span class="sd">    default.</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a>
+</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a><span class="sd">    Concretely: extracts a rectangular kernel (also called a subset,</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a><span class="sd">    filter, or convolution matrix; `2 * kernel_margin_width` wide,</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a><span class="sd">    `2 * kernel_margin_height` tall) from `reference_image` centered at</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a><span class="sd">    `reference_point`, and a rectangular search area (also called a</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a><span class="sd">    search window, scanning zone, or area of interest (AOI);</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a><span class="sd">    `2 * search_margin_width` wide, `2 * search_margin_height` tall)</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a><span class="sd">    from `current_image` centered at `search_center`, then locates the</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a><span class="sd">    kernel within the search area via FFT-based phase cross-correlation</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a><span class="sd">    (`skimage.registration.phase_cross_correlation`). The kernel always</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a><span class="sd">    comes from `reference_image`; the search area always comes from</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a><span class="sd">    `current_image`. Integer-pixel precision only; subpixel refinement is</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a><span class="sd">    out of scope for now.</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>
+</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a><span class="sd">    Args:</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a><span class="sd">        reference_image: The reference (undeformed) 2D grayscale image.</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a><span class="sd">        current_image: The current (deformed) 2D grayscale image.</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a><span class="sd">        reference_point: The point&#39;s fixed, known position, in</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="sd">            `reference_image`&#39;s pixel reference frame.</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a><span class="sd">        search_center: Where to center the search area, in</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a><span class="sd">            `current_image`&#39;s pixel reference frame — a guess of roughly</span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a><span class="sd">            where `reference_point` ended up, not the answer itself.</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="sd">        kernel_margin_width: Half the kernel&#39;s width, in pixels. Must</span>
 </span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="sd">            be &gt;= 1.</span>
-</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="sd">        search_margin_width: Half the search area&#39;s width, in pixels.</span>
-</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a><span class="sd">            Must be greater than `kernel_margin_width`.</span>
-</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a><span class="sd">        search_margin_height: Half the search area&#39;s height, in pixels.</span>
-</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="sd">            Must be greater than `kernel_margin_height`.</span>
-</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>
-</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a><span class="sd">    Returns:</span>
-</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a><span class="sd">        The point&#39;s location, in `current_image`&#39;s pixel reference frame.</span>
-</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>
-</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a><span class="sd">    Raises:</span>
-</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a><span class="sd">        ValueError: If `kernel_margin_width` or `kernel_margin_height` is</span>
-</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="sd">            less than 1, or either `search_margin_width`/</span>
-</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a><span class="sd">            `search_margin_height` is not greater than its kernel</span>
-</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a><span class="sd">            counterpart.</span>
-</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>    <span class="k">if</span> <span class="n">kernel_margin_width</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;kernel_margin_width </span><span class="si">{</span><span class="n">kernel_margin_width</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
-</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>    <span class="k">if</span> <span class="n">kernel_margin_height</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;kernel_margin_height </span><span class="si">{</span><span class="n">kernel_margin_height</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
-</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>    <span class="k">if</span> <span class="n">search_margin_width</span> <span class="o">&lt;=</span> <span class="n">kernel_margin_width</span><span class="p">:</span>
-</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>            <span class="sa">f</span><span class="s2">&quot;search_margin_width </span><span class="si">{</span><span class="n">search_margin_width</span><span class="si">}</span><span class="s2"> must be greater than &quot;</span>
-</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>            <span class="sa">f</span><span class="s2">&quot;kernel_margin_width </span><span class="si">{</span><span class="n">kernel_margin_width</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>        <span class="p">)</span>
-</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>    <span class="k">if</span> <span class="n">search_margin_height</span> <span class="o">&lt;=</span> <span class="n">kernel_margin_height</span><span class="p">:</span>
-</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>            <span class="sa">f</span><span class="s2">&quot;search_margin_height </span><span class="si">{</span><span class="n">search_margin_height</span><span class="si">}</span><span class="s2"> must be greater than &quot;</span>
-</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>            <span class="sa">f</span><span class="s2">&quot;kernel_margin_height </span><span class="si">{</span><span class="n">kernel_margin_height</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>        <span class="p">)</span>
-</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>
-</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>    <span class="n">kernel_width</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">kernel_margin_width</span>
-</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>    <span class="n">kernel_height</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">kernel_margin_height</span>
-</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>    <span class="n">search_width</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">search_margin_width</span>
-</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>    <span class="n">search_height</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">search_margin_height</span>
-</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>
-</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>    <span class="n">kernel_origin</span> <span class="o">=</span> <span class="n">PixelCoordinate</span><span class="p">(</span>
-</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>        <span class="n">x</span><span class="o">=</span><span class="n">reference_point</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">kernel_margin_width</span><span class="p">,</span>
-</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>        <span class="n">y</span><span class="o">=</span><span class="n">reference_point</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">kernel_margin_height</span><span class="p">,</span>
-</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>    <span class="p">)</span>
-</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>    <span class="n">kernel</span> <span class="o">=</span> <span class="n">subimage</span><span class="p">(</span>
-</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>        <span class="n">image</span><span class="o">=</span><span class="n">reference_image</span><span class="p">,</span>
-</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>        <span class="n">origin</span><span class="o">=</span><span class="n">kernel_origin</span><span class="p">,</span>
-</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>        <span class="n">width</span><span class="o">=</span><span class="n">kernel_width</span><span class="p">,</span>
-</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>        <span class="n">height</span><span class="o">=</span><span class="n">kernel_height</span><span class="p">,</span>
-</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>    <span class="p">)</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="sd">        kernel_margin_height: Half the kernel&#39;s height, in pixels. Must</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a><span class="sd">            be &gt;= 1.</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a><span class="sd">        search_margin_width: Half the search area&#39;s width, in pixels.</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="sd">            Must be greater than `kernel_margin_width`.</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a><span class="sd">        search_margin_height: Half the search area&#39;s height, in pixels.</span>
+</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a><span class="sd">            Must be greater than `kernel_margin_height`.</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a><span class="sd">        windowing: If given, both the kernel and search area are passed</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a><span class="sd">            through [`dictk.correlation.window`](./correlation.html#window)</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a><span class="sd">            with this method -- tapering their edges toward zero to</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a><span class="sd">            reduce spectral leakage -- before padding/FFT, the same</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="sd">            `windowing` parameter</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a><span class="sd">            [`dictk.correlation.phase_correlation`](./correlation.html#phase_correlation)</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a><span class="sd">            exposes for the surface this function doesn&#39;t return. Default</span>
+</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a><span class="sd">            `None` applies no windowing, matching this function&#39;s</span>
+</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a><span class="sd">            original behavior exactly.</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>
+</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a><span class="sd">    Returns:</span>
+</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a><span class="sd">        The point&#39;s location, in `current_image`&#39;s pixel reference frame.</span>
+</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>
+</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a><span class="sd">    Raises:</span>
+</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a><span class="sd">        ValueError: If `kernel_margin_width` or `kernel_margin_height` is</span>
+</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a><span class="sd">            less than 1, or either `search_margin_width`/</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a><span class="sd">            `search_margin_height` is not greater than its kernel</span>
+</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a><span class="sd">            counterpart.</span>
+</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>    <span class="k">if</span> <span class="n">kernel_margin_width</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;kernel_margin_width </span><span class="si">{</span><span class="n">kernel_margin_width</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>    <span class="k">if</span> <span class="n">kernel_margin_height</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;kernel_margin_height </span><span class="si">{</span><span class="n">kernel_margin_height</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
+</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>    <span class="k">if</span> <span class="n">search_margin_width</span> <span class="o">&lt;=</span> <span class="n">kernel_margin_width</span><span class="p">:</span>
+</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>            <span class="sa">f</span><span class="s2">&quot;search_margin_width </span><span class="si">{</span><span class="n">search_margin_width</span><span class="si">}</span><span class="s2"> must be greater than &quot;</span>
+</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>            <span class="sa">f</span><span class="s2">&quot;kernel_margin_width </span><span class="si">{</span><span class="n">kernel_margin_width</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>        <span class="p">)</span>
+</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>    <span class="k">if</span> <span class="n">search_margin_height</span> <span class="o">&lt;=</span> <span class="n">kernel_margin_height</span><span class="p">:</span>
+</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>            <span class="sa">f</span><span class="s2">&quot;search_margin_height </span><span class="si">{</span><span class="n">search_margin_height</span><span class="si">}</span><span class="s2"> must be greater than &quot;</span>
+</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>            <span class="sa">f</span><span class="s2">&quot;kernel_margin_height </span><span class="si">{</span><span class="n">kernel_margin_height</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>        <span class="p">)</span>
+</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>    <span class="n">kernel_width</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">kernel_margin_width</span>
+</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>    <span class="n">kernel_height</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">kernel_margin_height</span>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>    <span class="n">search_width</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">search_margin_width</span>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>    <span class="n">search_height</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">search_margin_height</span>
 </span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>
-</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>    <span class="n">search_origin</span> <span class="o">=</span> <span class="n">PixelCoordinate</span><span class="p">(</span>
-</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>        <span class="n">x</span><span class="o">=</span><span class="n">search_center</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">search_margin_width</span><span class="p">,</span>
-</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>        <span class="n">y</span><span class="o">=</span><span class="n">search_center</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">search_margin_height</span><span class="p">,</span>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>    <span class="n">kernel_origin</span> <span class="o">=</span> <span class="n">PixelCoordinate</span><span class="p">(</span>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>        <span class="n">x</span><span class="o">=</span><span class="n">reference_point</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">kernel_margin_width</span><span class="p">,</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>        <span class="n">y</span><span class="o">=</span><span class="n">reference_point</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">kernel_margin_height</span><span class="p">,</span>
 </span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>    <span class="p">)</span>
-</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>    <span class="n">search</span> <span class="o">=</span> <span class="n">subimage</span><span class="p">(</span>
-</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>        <span class="n">image</span><span class="o">=</span><span class="n">current_image</span><span class="p">,</span>
-</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>        <span class="n">origin</span><span class="o">=</span><span class="n">search_origin</span><span class="p">,</span>
-</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>        <span class="n">width</span><span class="o">=</span><span class="n">search_width</span><span class="p">,</span>
-</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>        <span class="n">height</span><span class="o">=</span><span class="n">search_height</span><span class="p">,</span>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>    <span class="n">kernel</span> <span class="o">=</span> <span class="n">subimage</span><span class="p">(</span>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>        <span class="n">image</span><span class="o">=</span><span class="n">reference_image</span><span class="p">,</span>
+</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>        <span class="n">origin</span><span class="o">=</span><span class="n">kernel_origin</span><span class="p">,</span>
+</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>        <span class="n">width</span><span class="o">=</span><span class="n">kernel_width</span><span class="p">,</span>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>        <span class="n">height</span><span class="o">=</span><span class="n">kernel_height</span><span class="p">,</span>
 </span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>    <span class="p">)</span>
 </span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>
-</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>    <span class="c1"># phase_cross_correlation requires both images the same shape; only</span>
-</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>    <span class="c1"># the kernel needs padding, since the search area is always larger.</span>
-</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>    <span class="n">pad_width</span> <span class="o">=</span> <span class="n">search_width</span> <span class="o">-</span> <span class="n">kernel_width</span>
-</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>    <span class="n">pad_height</span> <span class="o">=</span> <span class="n">search_height</span> <span class="o">-</span> <span class="n">kernel_height</span>
-</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>    <span class="n">kernel_padded</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">kernel</span><span class="p">,</span> <span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">pad_height</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">pad_width</span><span class="p">)))</span>
-</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>
-</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>    <span class="c1"># search=reference_image, kernel_padded=moving_image, not the other</span>
-</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>    <span class="c1"># way around: skimage docs define `shift` as &quot;the shift required to</span>
-</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>    <span class="c1"># register moving_image with reference_image&quot;, and what we actually</span>
-</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>    <span class="c1"># want is where the kernel&#39;s content sits within the (larger) search</span>
-</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>    <span class="c1"># area, so search must be reference_image and kernel_padded must be</span>
-</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>    <span class="c1"># moving_image. Swapping them negates the result and returns the</span>
-</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>    <span class="c1"># wrong location -- verified empirically, not just by this reasoning.</span>
-</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>    <span class="c1">#</span>
-</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>    <span class="c1"># normalization=&quot;phase&quot; (skimage&#39;s own default) is used here</span>
-</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>    <span class="c1"># deliberately -- we do NOT follow hdic&#39;s registration.py, which uses</span>
-</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>    <span class="c1"># normalization=None. hdic&#39;s None came from its own pipeline running</span>
-</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>    <span class="c1"># a separate ZNCC-style preprocess() step before calling</span>
-</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>    <span class="c1"># phase_cross_correlation, specifically to avoid double-normalizing</span>
-</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>    <span class="c1"># on top of that. locate() has no such preprocessing step, so that</span>
-</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>    <span class="c1"># reasoning doesn&#39;t carry over here -- and empirically, sweeping</span>
-</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>    <span class="c1"># kernel/search margin ratios against a known displacement,</span>
-</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>    <span class="c1"># normalization=&quot;phase&quot; matched or outperformed normalization=None,</span>
-</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>    <span class="c1"># not the other way around.</span>
-</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>    <span class="c1">#</span>
-</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>    <span class="c1"># What normalization actually does: the core computation is a</span>
-</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>    <span class="c1"># cross-power spectrum, image_product = FFT(reference) *</span>
-</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>    <span class="c1"># conj(FFT(moving)). normalization=&quot;phase&quot; divides this by its own</span>
-</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>    <span class="c1"># magnitude at every frequency, discarding contrast/energy</span>
-</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>    <span class="c1"># information and keeping only phase -- the classic Kuglin-Hines</span>
-</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>    <span class="c1"># phase correlation, giving a sharp peak and robustness to</span>
-</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a>    <span class="c1"># illumination differences between the two images.</span>
-</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>    <span class="c1"># normalization=None skips that division (plain unnormalized</span>
-</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a>    <span class="c1"># cross-correlation), which skimage&#39;s own docs describe as less</span>
-</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>    <span class="c1"># robust to noise but sometimes preferable in high-noise scenarios.</span>
-</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>    <span class="c1"># Which is better is genuinely content-dependent, not a settled</span>
-</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a>    <span class="c1"># default-is-always-better situation.</span>
-</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>    <span class="n">shift</span><span class="p">,</span> <span class="n">_error</span><span class="p">,</span> <span class="n">_phasediff</span> <span class="o">=</span> <span class="n">phase_cross_correlation</span><span class="p">(</span>
-</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>        <span class="n">reference_image</span><span class="o">=</span><span class="n">search</span><span class="p">,</span> <span class="n">moving_image</span><span class="o">=</span><span class="n">kernel_padded</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;phase&quot;</span>
-</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a>    <span class="p">)</span>
-</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a>
-</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a>    <span class="k">return</span> <span class="n">PixelCoordinate</span><span class="p">(</span>
-</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a>        <span class="n">x</span><span class="o">=</span><span class="n">search_origin</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">shift</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">kernel_margin_width</span><span class="p">,</span>
-</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a>        <span class="n">y</span><span class="o">=</span><span class="n">search_origin</span><span class="o">.</span><span class="n">y</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">shift</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">kernel_margin_height</span><span class="p">,</span>
-</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>    <span class="p">)</span>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>    <span class="n">search_origin</span> <span class="o">=</span> <span class="n">PixelCoordinate</span><span class="p">(</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>        <span class="n">x</span><span class="o">=</span><span class="n">search_center</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">search_margin_width</span><span class="p">,</span>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>        <span class="n">y</span><span class="o">=</span><span class="n">search_center</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">search_margin_height</span><span class="p">,</span>
+</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>    <span class="p">)</span>
+</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>    <span class="n">search</span> <span class="o">=</span> <span class="n">subimage</span><span class="p">(</span>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>        <span class="n">image</span><span class="o">=</span><span class="n">current_image</span><span class="p">,</span>
+</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>        <span class="n">origin</span><span class="o">=</span><span class="n">search_origin</span><span class="p">,</span>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>        <span class="n">width</span><span class="o">=</span><span class="n">search_width</span><span class="p">,</span>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>        <span class="n">height</span><span class="o">=</span><span class="n">search_height</span><span class="p">,</span>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>    <span class="p">)</span>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>
+</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>    <span class="c1"># phase_cross_correlation requires both images the same shape; only</span>
+</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>    <span class="c1"># the kernel needs padding, since the search area is always larger.</span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>    <span class="c1"># _window_and_pad optionally tapers both (kernel first, then padded)</span>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>    <span class="c1"># before that -- the same shared step `phase_correlation` uses.</span>
+</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>    <span class="n">kernel_padded</span><span class="p">,</span> <span class="n">search</span> <span class="o">=</span> <span class="n">_window_and_pad</span><span class="p">(</span>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>        <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> <span class="n">search</span><span class="o">=</span><span class="n">search</span><span class="p">,</span> <span class="n">windowing</span><span class="o">=</span><span class="n">windowing</span>
+</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>    <span class="p">)</span>
+</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>
+</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>    <span class="c1"># search=reference_image, kernel_padded=moving_image, not the other</span>
+</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>    <span class="c1"># way around: skimage docs define `shift` as &quot;the shift required to</span>
+</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>    <span class="c1"># register moving_image with reference_image&quot;, and what we actually</span>
+</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>    <span class="c1"># want is where the kernel&#39;s content sits within the (larger) search</span>
+</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>    <span class="c1"># area, so search must be reference_image and kernel_padded must be</span>
+</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>    <span class="c1"># moving_image. Swapping them negates the result and returns the</span>
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>    <span class="c1"># wrong location -- verified empirically, not just by this reasoning.</span>
+</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>    <span class="c1">#</span>
+</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>    <span class="c1"># normalization=&quot;phase&quot; (skimage&#39;s own default) is used here</span>
+</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>    <span class="c1"># deliberately -- we do NOT follow hdic&#39;s registration.py, which uses</span>
+</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>    <span class="c1"># normalization=None. hdic&#39;s None came from its own pipeline running</span>
+</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>    <span class="c1"># a separate ZNCC-style preprocess() step before calling</span>
+</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a>    <span class="c1"># phase_cross_correlation, specifically to avoid double-normalizing</span>
+</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>    <span class="c1"># on top of that. locate() has no such preprocessing step, so that</span>
+</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a>    <span class="c1"># reasoning doesn&#39;t carry over here -- and empirically, sweeping</span>
+</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>    <span class="c1"># kernel/search margin ratios against a known displacement,</span>
+</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>    <span class="c1"># normalization=&quot;phase&quot; matched or outperformed normalization=None,</span>
+</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a>    <span class="c1"># not the other way around.</span>
+</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>    <span class="c1">#</span>
+</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>    <span class="c1"># What normalization actually does: the core computation is a</span>
+</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a>    <span class="c1"># cross-power spectrum, image_product = FFT(reference) *</span>
+</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a>    <span class="c1"># conj(FFT(moving)). normalization=&quot;phase&quot; divides this by its own</span>
+</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a>    <span class="c1"># magnitude at every frequency, discarding contrast/energy</span>
+</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a>    <span class="c1"># information and keeping only phase -- the classic Kuglin-Hines</span>
+</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a>    <span class="c1"># phase correlation, giving a sharp peak and robustness to</span>
+</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>    <span class="c1"># illumination differences between the two images.</span>
+</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>    <span class="c1"># normalization=None skips that division (plain unnormalized</span>
+</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a>    <span class="c1"># cross-correlation), which skimage&#39;s own docs describe as less</span>
+</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a>    <span class="c1"># robust to noise but sometimes preferable in high-noise scenarios.</span>
+</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a>    <span class="c1"># Which is better is genuinely content-dependent, not a settled</span>
+</span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a>    <span class="c1"># default-is-always-better situation.</span>
+</span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a>    <span class="n">shift</span><span class="p">,</span> <span class="n">_error</span><span class="p">,</span> <span class="n">_phasediff</span> <span class="o">=</span> <span class="n">phase_cross_correlation</span><span class="p">(</span>
+</span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a>        <span class="n">reference_image</span><span class="o">=</span><span class="n">search</span><span class="p">,</span> <span class="n">moving_image</span><span class="o">=</span><span class="n">kernel_padded</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;phase&quot;</span>
+</span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a>    <span class="p">)</span>
+</span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a>
+</span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a>    <span class="k">return</span> <span class="n">PixelCoordinate</span><span class="p">(</span>
+</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a>        <span class="n">x</span><span class="o">=</span><span class="n">search_origin</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">shift</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">kernel_margin_width</span><span class="p">,</span>
+</span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a>        <span class="n">y</span><span class="o">=</span><span class="n">search_origin</span><span class="o">.</span><span class="n">y</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">shift</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">kernel_margin_height</span><span class="p">,</span>
+</span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a>    <span class="p">)</span>
 </span></pre></div>
 
 
@@ -223,162 +236,174 @@
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">locate</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="o">*</span>,</span><span class="param">	<span class="n">reference_image</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">current_image</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">reference_point</span><span class="p">:</span> <span class="n"><a href="image.html#PixelCoordinate">dictk.image.PixelCoordinate</a></span>,</span><span class="param">	<span class="n">search_center</span><span class="p">:</span> <span class="n"><a href="image.html#PixelCoordinate">dictk.image.PixelCoordinate</a></span>,</span><span class="param">	<span class="n">kernel_margin_width</span><span class="p">:</span> <span class="nb">int</span>,</span><span class="param">	<span class="n">kernel_margin_height</span><span class="p">:</span> <span class="nb">int</span>,</span><span class="param">	<span class="n">search_margin_width</span><span class="p">:</span> <span class="nb">int</span>,</span><span class="param">	<span class="n">search_margin_height</span><span class="p">:</span> <span class="nb">int</span></span><span class="return-annotation">) -> <span class="n"><a href="image.html#PixelCoordinate">dictk.image.PixelCoordinate</a></span>:</span></span>
+        <span class="name">locate</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="o">*</span>,</span><span class="param">	<span class="n">reference_image</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">current_image</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">reference_point</span><span class="p">:</span> <span class="n"><a href="image.html#PixelCoordinate">dictk.image.PixelCoordinate</a></span>,</span><span class="param">	<span class="n">search_center</span><span class="p">:</span> <span class="n"><a href="image.html#PixelCoordinate">dictk.image.PixelCoordinate</a></span>,</span><span class="param">	<span class="n">kernel_margin_width</span><span class="p">:</span> <span class="nb">int</span>,</span><span class="param">	<span class="n">kernel_margin_height</span><span class="p">:</span> <span class="nb">int</span>,</span><span class="param">	<span class="n">search_margin_width</span><span class="p">:</span> <span class="nb">int</span>,</span><span class="param">	<span class="n">search_margin_height</span><span class="p">:</span> <span class="nb">int</span>,</span><span class="param">	<span class="n">windowing</span><span class="p">:</span> <span class="n"><a href="correlation.html#WindowingMethod">dictk.correlation.WindowingMethod</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></span><span class="return-annotation">) -> <span class="n"><a href="image.html#PixelCoordinate">dictk.image.PixelCoordinate</a></span>:</span></span>
 
                 <label class="view-source-button" for="locate-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#locate"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="locate-10"><a href="#locate-10"><span class="linenos"> 10</span></a><span class="k">def</span><span class="w"> </span><span class="nf">locate</span><span class="p">(</span>
-</span><span id="locate-11"><a href="#locate-11"><span class="linenos"> 11</span></a>    <span class="o">*</span><span class="p">,</span>
-</span><span id="locate-12"><a href="#locate-12"><span class="linenos"> 12</span></a>    <span class="n">reference_image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-</span><span id="locate-13"><a href="#locate-13"><span class="linenos"> 13</span></a>    <span class="n">current_image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-</span><span id="locate-14"><a href="#locate-14"><span class="linenos"> 14</span></a>    <span class="n">reference_point</span><span class="p">:</span> <span class="n">PixelCoordinate</span><span class="p">,</span>
-</span><span id="locate-15"><a href="#locate-15"><span class="linenos"> 15</span></a>    <span class="n">search_center</span><span class="p">:</span> <span class="n">PixelCoordinate</span><span class="p">,</span>
-</span><span id="locate-16"><a href="#locate-16"><span class="linenos"> 16</span></a>    <span class="n">kernel_margin_width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-</span><span id="locate-17"><a href="#locate-17"><span class="linenos"> 17</span></a>    <span class="n">kernel_margin_height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-</span><span id="locate-18"><a href="#locate-18"><span class="linenos"> 18</span></a>    <span class="n">search_margin_width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-</span><span id="locate-19"><a href="#locate-19"><span class="linenos"> 19</span></a>    <span class="n">search_margin_height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-</span><span id="locate-20"><a href="#locate-20"><span class="linenos"> 20</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PixelCoordinate</span><span class="p">:</span>
-</span><span id="locate-21"><a href="#locate-21"><span class="linenos"> 21</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Given a `reference_point` expressed in the `reference_image`</span>
-</span><span id="locate-22"><a href="#locate-22"><span class="linenos"> 22</span></a><span class="sd">    frame, find its position expressed in the `current_image` frame.</span>
-</span><span id="locate-23"><a href="#locate-23"><span class="linenos"> 23</span></a>
-</span><span id="locate-24"><a href="#locate-24"><span class="linenos"> 24</span></a><span class="sd">    `reference_point` is a fixed, already-known point in `reference_image`.</span>
-</span><span id="locate-25"><a href="#locate-25"><span class="linenos"> 25</span></a><span class="sd">    Where that same physical point ends up in `current_image` is exactly</span>
-</span><span id="locate-26"><a href="#locate-26"><span class="linenos"> 26</span></a><span class="sd">    what this function finds — it is *not* an input, it&#39;s the return</span>
-</span><span id="locate-27"><a href="#locate-27"><span class="linenos"> 27</span></a><span class="sd">    value. `search_center` is a different thing: just where to center the</span>
-</span><span id="locate-28"><a href="#locate-28"><span class="linenos"> 28</span></a><span class="sd">    search area in `current_image`, i.e., a guess of roughly where to</span>
-</span><span id="locate-29"><a href="#locate-29"><span class="linenos"> 29</span></a><span class="sd">    look. It doesn&#39;t need to be exact — only close enough that the true</span>
-</span><span id="locate-30"><a href="#locate-30"><span class="linenos"> 30</span></a><span class="sd">    (unknown) position falls within the search area — and if no better</span>
-</span><span id="locate-31"><a href="#locate-31"><span class="linenos"> 31</span></a><span class="sd">    guess is available, passing `reference_point` again is a reasonable</span>
-</span><span id="locate-32"><a href="#locate-32"><span class="linenos"> 32</span></a><span class="sd">    default.</span>
-</span><span id="locate-33"><a href="#locate-33"><span class="linenos"> 33</span></a>
-</span><span id="locate-34"><a href="#locate-34"><span class="linenos"> 34</span></a><span class="sd">    Concretely: extracts a rectangular kernel (also called a subset,</span>
-</span><span id="locate-35"><a href="#locate-35"><span class="linenos"> 35</span></a><span class="sd">    filter, or convolution matrix; `2 * kernel_margin_width` wide,</span>
-</span><span id="locate-36"><a href="#locate-36"><span class="linenos"> 36</span></a><span class="sd">    `2 * kernel_margin_height` tall) from `reference_image` centered at</span>
-</span><span id="locate-37"><a href="#locate-37"><span class="linenos"> 37</span></a><span class="sd">    `reference_point`, and a rectangular search area (also called a</span>
-</span><span id="locate-38"><a href="#locate-38"><span class="linenos"> 38</span></a><span class="sd">    search window, scanning zone, or area of interest (AOI);</span>
-</span><span id="locate-39"><a href="#locate-39"><span class="linenos"> 39</span></a><span class="sd">    `2 * search_margin_width` wide, `2 * search_margin_height` tall)</span>
-</span><span id="locate-40"><a href="#locate-40"><span class="linenos"> 40</span></a><span class="sd">    from `current_image` centered at `search_center`, then locates the</span>
-</span><span id="locate-41"><a href="#locate-41"><span class="linenos"> 41</span></a><span class="sd">    kernel within the search area via FFT-based phase cross-correlation</span>
-</span><span id="locate-42"><a href="#locate-42"><span class="linenos"> 42</span></a><span class="sd">    (`skimage.registration.phase_cross_correlation`). The kernel always</span>
-</span><span id="locate-43"><a href="#locate-43"><span class="linenos"> 43</span></a><span class="sd">    comes from `reference_image`; the search area always comes from</span>
-</span><span id="locate-44"><a href="#locate-44"><span class="linenos"> 44</span></a><span class="sd">    `current_image`. Integer-pixel precision only; subpixel refinement is</span>
-</span><span id="locate-45"><a href="#locate-45"><span class="linenos"> 45</span></a><span class="sd">    out of scope for now.</span>
-</span><span id="locate-46"><a href="#locate-46"><span class="linenos"> 46</span></a>
-</span><span id="locate-47"><a href="#locate-47"><span class="linenos"> 47</span></a><span class="sd">    Args:</span>
-</span><span id="locate-48"><a href="#locate-48"><span class="linenos"> 48</span></a><span class="sd">        reference_image: The reference (undeformed) 2D grayscale image.</span>
-</span><span id="locate-49"><a href="#locate-49"><span class="linenos"> 49</span></a><span class="sd">        current_image: The current (deformed) 2D grayscale image.</span>
-</span><span id="locate-50"><a href="#locate-50"><span class="linenos"> 50</span></a><span class="sd">        reference_point: The point&#39;s fixed, known position, in</span>
-</span><span id="locate-51"><a href="#locate-51"><span class="linenos"> 51</span></a><span class="sd">            `reference_image`&#39;s pixel reference frame.</span>
-</span><span id="locate-52"><a href="#locate-52"><span class="linenos"> 52</span></a><span class="sd">        search_center: Where to center the search area, in</span>
-</span><span id="locate-53"><a href="#locate-53"><span class="linenos"> 53</span></a><span class="sd">            `current_image`&#39;s pixel reference frame — a guess of roughly</span>
-</span><span id="locate-54"><a href="#locate-54"><span class="linenos"> 54</span></a><span class="sd">            where `reference_point` ended up, not the answer itself.</span>
-</span><span id="locate-55"><a href="#locate-55"><span class="linenos"> 55</span></a><span class="sd">        kernel_margin_width: Half the kernel&#39;s width, in pixels. Must</span>
-</span><span id="locate-56"><a href="#locate-56"><span class="linenos"> 56</span></a><span class="sd">            be &gt;= 1.</span>
-</span><span id="locate-57"><a href="#locate-57"><span class="linenos"> 57</span></a><span class="sd">        kernel_margin_height: Half the kernel&#39;s height, in pixels. Must</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="locate-11"><a href="#locate-11"><span class="linenos"> 11</span></a><span class="k">def</span><span class="w"> </span><span class="nf">locate</span><span class="p">(</span>
+</span><span id="locate-12"><a href="#locate-12"><span class="linenos"> 12</span></a>    <span class="o">*</span><span class="p">,</span>
+</span><span id="locate-13"><a href="#locate-13"><span class="linenos"> 13</span></a>    <span class="n">reference_image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+</span><span id="locate-14"><a href="#locate-14"><span class="linenos"> 14</span></a>    <span class="n">current_image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+</span><span id="locate-15"><a href="#locate-15"><span class="linenos"> 15</span></a>    <span class="n">reference_point</span><span class="p">:</span> <span class="n">PixelCoordinate</span><span class="p">,</span>
+</span><span id="locate-16"><a href="#locate-16"><span class="linenos"> 16</span></a>    <span class="n">search_center</span><span class="p">:</span> <span class="n">PixelCoordinate</span><span class="p">,</span>
+</span><span id="locate-17"><a href="#locate-17"><span class="linenos"> 17</span></a>    <span class="n">kernel_margin_width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="locate-18"><a href="#locate-18"><span class="linenos"> 18</span></a>    <span class="n">kernel_margin_height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="locate-19"><a href="#locate-19"><span class="linenos"> 19</span></a>    <span class="n">search_margin_width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="locate-20"><a href="#locate-20"><span class="linenos"> 20</span></a>    <span class="n">search_margin_height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="locate-21"><a href="#locate-21"><span class="linenos"> 21</span></a>    <span class="n">windowing</span><span class="p">:</span> <span class="n">WindowingMethod</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="locate-22"><a href="#locate-22"><span class="linenos"> 22</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PixelCoordinate</span><span class="p">:</span>
+</span><span id="locate-23"><a href="#locate-23"><span class="linenos"> 23</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Given a `reference_point` expressed in the `reference_image`</span>
+</span><span id="locate-24"><a href="#locate-24"><span class="linenos"> 24</span></a><span class="sd">    frame, find its position expressed in the `current_image` frame.</span>
+</span><span id="locate-25"><a href="#locate-25"><span class="linenos"> 25</span></a>
+</span><span id="locate-26"><a href="#locate-26"><span class="linenos"> 26</span></a><span class="sd">    `reference_point` is a fixed, already-known point in `reference_image`.</span>
+</span><span id="locate-27"><a href="#locate-27"><span class="linenos"> 27</span></a><span class="sd">    Where that same physical point ends up in `current_image` is exactly</span>
+</span><span id="locate-28"><a href="#locate-28"><span class="linenos"> 28</span></a><span class="sd">    what this function finds — it is *not* an input, it&#39;s the return</span>
+</span><span id="locate-29"><a href="#locate-29"><span class="linenos"> 29</span></a><span class="sd">    value. `search_center` is a different thing: just where to center the</span>
+</span><span id="locate-30"><a href="#locate-30"><span class="linenos"> 30</span></a><span class="sd">    search area in `current_image`, i.e., a guess of roughly where to</span>
+</span><span id="locate-31"><a href="#locate-31"><span class="linenos"> 31</span></a><span class="sd">    look. It doesn&#39;t need to be exact — only close enough that the true</span>
+</span><span id="locate-32"><a href="#locate-32"><span class="linenos"> 32</span></a><span class="sd">    (unknown) position falls within the search area — and if no better</span>
+</span><span id="locate-33"><a href="#locate-33"><span class="linenos"> 33</span></a><span class="sd">    guess is available, passing `reference_point` again is a reasonable</span>
+</span><span id="locate-34"><a href="#locate-34"><span class="linenos"> 34</span></a><span class="sd">    default.</span>
+</span><span id="locate-35"><a href="#locate-35"><span class="linenos"> 35</span></a>
+</span><span id="locate-36"><a href="#locate-36"><span class="linenos"> 36</span></a><span class="sd">    Concretely: extracts a rectangular kernel (also called a subset,</span>
+</span><span id="locate-37"><a href="#locate-37"><span class="linenos"> 37</span></a><span class="sd">    filter, or convolution matrix; `2 * kernel_margin_width` wide,</span>
+</span><span id="locate-38"><a href="#locate-38"><span class="linenos"> 38</span></a><span class="sd">    `2 * kernel_margin_height` tall) from `reference_image` centered at</span>
+</span><span id="locate-39"><a href="#locate-39"><span class="linenos"> 39</span></a><span class="sd">    `reference_point`, and a rectangular search area (also called a</span>
+</span><span id="locate-40"><a href="#locate-40"><span class="linenos"> 40</span></a><span class="sd">    search window, scanning zone, or area of interest (AOI);</span>
+</span><span id="locate-41"><a href="#locate-41"><span class="linenos"> 41</span></a><span class="sd">    `2 * search_margin_width` wide, `2 * search_margin_height` tall)</span>
+</span><span id="locate-42"><a href="#locate-42"><span class="linenos"> 42</span></a><span class="sd">    from `current_image` centered at `search_center`, then locates the</span>
+</span><span id="locate-43"><a href="#locate-43"><span class="linenos"> 43</span></a><span class="sd">    kernel within the search area via FFT-based phase cross-correlation</span>
+</span><span id="locate-44"><a href="#locate-44"><span class="linenos"> 44</span></a><span class="sd">    (`skimage.registration.phase_cross_correlation`). The kernel always</span>
+</span><span id="locate-45"><a href="#locate-45"><span class="linenos"> 45</span></a><span class="sd">    comes from `reference_image`; the search area always comes from</span>
+</span><span id="locate-46"><a href="#locate-46"><span class="linenos"> 46</span></a><span class="sd">    `current_image`. Integer-pixel precision only; subpixel refinement is</span>
+</span><span id="locate-47"><a href="#locate-47"><span class="linenos"> 47</span></a><span class="sd">    out of scope for now.</span>
+</span><span id="locate-48"><a href="#locate-48"><span class="linenos"> 48</span></a>
+</span><span id="locate-49"><a href="#locate-49"><span class="linenos"> 49</span></a><span class="sd">    Args:</span>
+</span><span id="locate-50"><a href="#locate-50"><span class="linenos"> 50</span></a><span class="sd">        reference_image: The reference (undeformed) 2D grayscale image.</span>
+</span><span id="locate-51"><a href="#locate-51"><span class="linenos"> 51</span></a><span class="sd">        current_image: The current (deformed) 2D grayscale image.</span>
+</span><span id="locate-52"><a href="#locate-52"><span class="linenos"> 52</span></a><span class="sd">        reference_point: The point&#39;s fixed, known position, in</span>
+</span><span id="locate-53"><a href="#locate-53"><span class="linenos"> 53</span></a><span class="sd">            `reference_image`&#39;s pixel reference frame.</span>
+</span><span id="locate-54"><a href="#locate-54"><span class="linenos"> 54</span></a><span class="sd">        search_center: Where to center the search area, in</span>
+</span><span id="locate-55"><a href="#locate-55"><span class="linenos"> 55</span></a><span class="sd">            `current_image`&#39;s pixel reference frame — a guess of roughly</span>
+</span><span id="locate-56"><a href="#locate-56"><span class="linenos"> 56</span></a><span class="sd">            where `reference_point` ended up, not the answer itself.</span>
+</span><span id="locate-57"><a href="#locate-57"><span class="linenos"> 57</span></a><span class="sd">        kernel_margin_width: Half the kernel&#39;s width, in pixels. Must</span>
 </span><span id="locate-58"><a href="#locate-58"><span class="linenos"> 58</span></a><span class="sd">            be &gt;= 1.</span>
-</span><span id="locate-59"><a href="#locate-59"><span class="linenos"> 59</span></a><span class="sd">        search_margin_width: Half the search area&#39;s width, in pixels.</span>
-</span><span id="locate-60"><a href="#locate-60"><span class="linenos"> 60</span></a><span class="sd">            Must be greater than `kernel_margin_width`.</span>
-</span><span id="locate-61"><a href="#locate-61"><span class="linenos"> 61</span></a><span class="sd">        search_margin_height: Half the search area&#39;s height, in pixels.</span>
-</span><span id="locate-62"><a href="#locate-62"><span class="linenos"> 62</span></a><span class="sd">            Must be greater than `kernel_margin_height`.</span>
-</span><span id="locate-63"><a href="#locate-63"><span class="linenos"> 63</span></a>
-</span><span id="locate-64"><a href="#locate-64"><span class="linenos"> 64</span></a><span class="sd">    Returns:</span>
-</span><span id="locate-65"><a href="#locate-65"><span class="linenos"> 65</span></a><span class="sd">        The point&#39;s location, in `current_image`&#39;s pixel reference frame.</span>
-</span><span id="locate-66"><a href="#locate-66"><span class="linenos"> 66</span></a>
-</span><span id="locate-67"><a href="#locate-67"><span class="linenos"> 67</span></a><span class="sd">    Raises:</span>
-</span><span id="locate-68"><a href="#locate-68"><span class="linenos"> 68</span></a><span class="sd">        ValueError: If `kernel_margin_width` or `kernel_margin_height` is</span>
-</span><span id="locate-69"><a href="#locate-69"><span class="linenos"> 69</span></a><span class="sd">            less than 1, or either `search_margin_width`/</span>
-</span><span id="locate-70"><a href="#locate-70"><span class="linenos"> 70</span></a><span class="sd">            `search_margin_height` is not greater than its kernel</span>
-</span><span id="locate-71"><a href="#locate-71"><span class="linenos"> 71</span></a><span class="sd">            counterpart.</span>
-</span><span id="locate-72"><a href="#locate-72"><span class="linenos"> 72</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="locate-73"><a href="#locate-73"><span class="linenos"> 73</span></a>    <span class="k">if</span> <span class="n">kernel_margin_width</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-</span><span id="locate-74"><a href="#locate-74"><span class="linenos"> 74</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;kernel_margin_width </span><span class="si">{</span><span class="n">kernel_margin_width</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
-</span><span id="locate-75"><a href="#locate-75"><span class="linenos"> 75</span></a>    <span class="k">if</span> <span class="n">kernel_margin_height</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-</span><span id="locate-76"><a href="#locate-76"><span class="linenos"> 76</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;kernel_margin_height </span><span class="si">{</span><span class="n">kernel_margin_height</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
-</span><span id="locate-77"><a href="#locate-77"><span class="linenos"> 77</span></a>    <span class="k">if</span> <span class="n">search_margin_width</span> <span class="o">&lt;=</span> <span class="n">kernel_margin_width</span><span class="p">:</span>
-</span><span id="locate-78"><a href="#locate-78"><span class="linenos"> 78</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span id="locate-79"><a href="#locate-79"><span class="linenos"> 79</span></a>            <span class="sa">f</span><span class="s2">&quot;search_margin_width </span><span class="si">{</span><span class="n">search_margin_width</span><span class="si">}</span><span class="s2"> must be greater than &quot;</span>
-</span><span id="locate-80"><a href="#locate-80"><span class="linenos"> 80</span></a>            <span class="sa">f</span><span class="s2">&quot;kernel_margin_width </span><span class="si">{</span><span class="n">kernel_margin_width</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="locate-81"><a href="#locate-81"><span class="linenos"> 81</span></a>        <span class="p">)</span>
-</span><span id="locate-82"><a href="#locate-82"><span class="linenos"> 82</span></a>    <span class="k">if</span> <span class="n">search_margin_height</span> <span class="o">&lt;=</span> <span class="n">kernel_margin_height</span><span class="p">:</span>
-</span><span id="locate-83"><a href="#locate-83"><span class="linenos"> 83</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-</span><span id="locate-84"><a href="#locate-84"><span class="linenos"> 84</span></a>            <span class="sa">f</span><span class="s2">&quot;search_margin_height </span><span class="si">{</span><span class="n">search_margin_height</span><span class="si">}</span><span class="s2"> must be greater than &quot;</span>
-</span><span id="locate-85"><a href="#locate-85"><span class="linenos"> 85</span></a>            <span class="sa">f</span><span class="s2">&quot;kernel_margin_height </span><span class="si">{</span><span class="n">kernel_margin_height</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="locate-86"><a href="#locate-86"><span class="linenos"> 86</span></a>        <span class="p">)</span>
-</span><span id="locate-87"><a href="#locate-87"><span class="linenos"> 87</span></a>
-</span><span id="locate-88"><a href="#locate-88"><span class="linenos"> 88</span></a>    <span class="n">kernel_width</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">kernel_margin_width</span>
-</span><span id="locate-89"><a href="#locate-89"><span class="linenos"> 89</span></a>    <span class="n">kernel_height</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">kernel_margin_height</span>
-</span><span id="locate-90"><a href="#locate-90"><span class="linenos"> 90</span></a>    <span class="n">search_width</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">search_margin_width</span>
-</span><span id="locate-91"><a href="#locate-91"><span class="linenos"> 91</span></a>    <span class="n">search_height</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">search_margin_height</span>
-</span><span id="locate-92"><a href="#locate-92"><span class="linenos"> 92</span></a>
-</span><span id="locate-93"><a href="#locate-93"><span class="linenos"> 93</span></a>    <span class="n">kernel_origin</span> <span class="o">=</span> <span class="n">PixelCoordinate</span><span class="p">(</span>
-</span><span id="locate-94"><a href="#locate-94"><span class="linenos"> 94</span></a>        <span class="n">x</span><span class="o">=</span><span class="n">reference_point</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">kernel_margin_width</span><span class="p">,</span>
-</span><span id="locate-95"><a href="#locate-95"><span class="linenos"> 95</span></a>        <span class="n">y</span><span class="o">=</span><span class="n">reference_point</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">kernel_margin_height</span><span class="p">,</span>
-</span><span id="locate-96"><a href="#locate-96"><span class="linenos"> 96</span></a>    <span class="p">)</span>
-</span><span id="locate-97"><a href="#locate-97"><span class="linenos"> 97</span></a>    <span class="n">kernel</span> <span class="o">=</span> <span class="n">subimage</span><span class="p">(</span>
-</span><span id="locate-98"><a href="#locate-98"><span class="linenos"> 98</span></a>        <span class="n">image</span><span class="o">=</span><span class="n">reference_image</span><span class="p">,</span>
-</span><span id="locate-99"><a href="#locate-99"><span class="linenos"> 99</span></a>        <span class="n">origin</span><span class="o">=</span><span class="n">kernel_origin</span><span class="p">,</span>
-</span><span id="locate-100"><a href="#locate-100"><span class="linenos">100</span></a>        <span class="n">width</span><span class="o">=</span><span class="n">kernel_width</span><span class="p">,</span>
-</span><span id="locate-101"><a href="#locate-101"><span class="linenos">101</span></a>        <span class="n">height</span><span class="o">=</span><span class="n">kernel_height</span><span class="p">,</span>
-</span><span id="locate-102"><a href="#locate-102"><span class="linenos">102</span></a>    <span class="p">)</span>
+</span><span id="locate-59"><a href="#locate-59"><span class="linenos"> 59</span></a><span class="sd">        kernel_margin_height: Half the kernel&#39;s height, in pixels. Must</span>
+</span><span id="locate-60"><a href="#locate-60"><span class="linenos"> 60</span></a><span class="sd">            be &gt;= 1.</span>
+</span><span id="locate-61"><a href="#locate-61"><span class="linenos"> 61</span></a><span class="sd">        search_margin_width: Half the search area&#39;s width, in pixels.</span>
+</span><span id="locate-62"><a href="#locate-62"><span class="linenos"> 62</span></a><span class="sd">            Must be greater than `kernel_margin_width`.</span>
+</span><span id="locate-63"><a href="#locate-63"><span class="linenos"> 63</span></a><span class="sd">        search_margin_height: Half the search area&#39;s height, in pixels.</span>
+</span><span id="locate-64"><a href="#locate-64"><span class="linenos"> 64</span></a><span class="sd">            Must be greater than `kernel_margin_height`.</span>
+</span><span id="locate-65"><a href="#locate-65"><span class="linenos"> 65</span></a><span class="sd">        windowing: If given, both the kernel and search area are passed</span>
+</span><span id="locate-66"><a href="#locate-66"><span class="linenos"> 66</span></a><span class="sd">            through [`dictk.correlation.window`](./correlation.html#window)</span>
+</span><span id="locate-67"><a href="#locate-67"><span class="linenos"> 67</span></a><span class="sd">            with this method -- tapering their edges toward zero to</span>
+</span><span id="locate-68"><a href="#locate-68"><span class="linenos"> 68</span></a><span class="sd">            reduce spectral leakage -- before padding/FFT, the same</span>
+</span><span id="locate-69"><a href="#locate-69"><span class="linenos"> 69</span></a><span class="sd">            `windowing` parameter</span>
+</span><span id="locate-70"><a href="#locate-70"><span class="linenos"> 70</span></a><span class="sd">            [`dictk.correlation.phase_correlation`](./correlation.html#phase_correlation)</span>
+</span><span id="locate-71"><a href="#locate-71"><span class="linenos"> 71</span></a><span class="sd">            exposes for the surface this function doesn&#39;t return. Default</span>
+</span><span id="locate-72"><a href="#locate-72"><span class="linenos"> 72</span></a><span class="sd">            `None` applies no windowing, matching this function&#39;s</span>
+</span><span id="locate-73"><a href="#locate-73"><span class="linenos"> 73</span></a><span class="sd">            original behavior exactly.</span>
+</span><span id="locate-74"><a href="#locate-74"><span class="linenos"> 74</span></a>
+</span><span id="locate-75"><a href="#locate-75"><span class="linenos"> 75</span></a><span class="sd">    Returns:</span>
+</span><span id="locate-76"><a href="#locate-76"><span class="linenos"> 76</span></a><span class="sd">        The point&#39;s location, in `current_image`&#39;s pixel reference frame.</span>
+</span><span id="locate-77"><a href="#locate-77"><span class="linenos"> 77</span></a>
+</span><span id="locate-78"><a href="#locate-78"><span class="linenos"> 78</span></a><span class="sd">    Raises:</span>
+</span><span id="locate-79"><a href="#locate-79"><span class="linenos"> 79</span></a><span class="sd">        ValueError: If `kernel_margin_width` or `kernel_margin_height` is</span>
+</span><span id="locate-80"><a href="#locate-80"><span class="linenos"> 80</span></a><span class="sd">            less than 1, or either `search_margin_width`/</span>
+</span><span id="locate-81"><a href="#locate-81"><span class="linenos"> 81</span></a><span class="sd">            `search_margin_height` is not greater than its kernel</span>
+</span><span id="locate-82"><a href="#locate-82"><span class="linenos"> 82</span></a><span class="sd">            counterpart.</span>
+</span><span id="locate-83"><a href="#locate-83"><span class="linenos"> 83</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="locate-84"><a href="#locate-84"><span class="linenos"> 84</span></a>    <span class="k">if</span> <span class="n">kernel_margin_width</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="locate-85"><a href="#locate-85"><span class="linenos"> 85</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;kernel_margin_width </span><span class="si">{</span><span class="n">kernel_margin_width</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
+</span><span id="locate-86"><a href="#locate-86"><span class="linenos"> 86</span></a>    <span class="k">if</span> <span class="n">kernel_margin_height</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="locate-87"><a href="#locate-87"><span class="linenos"> 87</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;kernel_margin_height </span><span class="si">{</span><span class="n">kernel_margin_height</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
+</span><span id="locate-88"><a href="#locate-88"><span class="linenos"> 88</span></a>    <span class="k">if</span> <span class="n">search_margin_width</span> <span class="o">&lt;=</span> <span class="n">kernel_margin_width</span><span class="p">:</span>
+</span><span id="locate-89"><a href="#locate-89"><span class="linenos"> 89</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="locate-90"><a href="#locate-90"><span class="linenos"> 90</span></a>            <span class="sa">f</span><span class="s2">&quot;search_margin_width </span><span class="si">{</span><span class="n">search_margin_width</span><span class="si">}</span><span class="s2"> must be greater than &quot;</span>
+</span><span id="locate-91"><a href="#locate-91"><span class="linenos"> 91</span></a>            <span class="sa">f</span><span class="s2">&quot;kernel_margin_width </span><span class="si">{</span><span class="n">kernel_margin_width</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="locate-92"><a href="#locate-92"><span class="linenos"> 92</span></a>        <span class="p">)</span>
+</span><span id="locate-93"><a href="#locate-93"><span class="linenos"> 93</span></a>    <span class="k">if</span> <span class="n">search_margin_height</span> <span class="o">&lt;=</span> <span class="n">kernel_margin_height</span><span class="p">:</span>
+</span><span id="locate-94"><a href="#locate-94"><span class="linenos"> 94</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="locate-95"><a href="#locate-95"><span class="linenos"> 95</span></a>            <span class="sa">f</span><span class="s2">&quot;search_margin_height </span><span class="si">{</span><span class="n">search_margin_height</span><span class="si">}</span><span class="s2"> must be greater than &quot;</span>
+</span><span id="locate-96"><a href="#locate-96"><span class="linenos"> 96</span></a>            <span class="sa">f</span><span class="s2">&quot;kernel_margin_height </span><span class="si">{</span><span class="n">kernel_margin_height</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="locate-97"><a href="#locate-97"><span class="linenos"> 97</span></a>        <span class="p">)</span>
+</span><span id="locate-98"><a href="#locate-98"><span class="linenos"> 98</span></a>
+</span><span id="locate-99"><a href="#locate-99"><span class="linenos"> 99</span></a>    <span class="n">kernel_width</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">kernel_margin_width</span>
+</span><span id="locate-100"><a href="#locate-100"><span class="linenos">100</span></a>    <span class="n">kernel_height</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">kernel_margin_height</span>
+</span><span id="locate-101"><a href="#locate-101"><span class="linenos">101</span></a>    <span class="n">search_width</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">search_margin_width</span>
+</span><span id="locate-102"><a href="#locate-102"><span class="linenos">102</span></a>    <span class="n">search_height</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">search_margin_height</span>
 </span><span id="locate-103"><a href="#locate-103"><span class="linenos">103</span></a>
-</span><span id="locate-104"><a href="#locate-104"><span class="linenos">104</span></a>    <span class="n">search_origin</span> <span class="o">=</span> <span class="n">PixelCoordinate</span><span class="p">(</span>
-</span><span id="locate-105"><a href="#locate-105"><span class="linenos">105</span></a>        <span class="n">x</span><span class="o">=</span><span class="n">search_center</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">search_margin_width</span><span class="p">,</span>
-</span><span id="locate-106"><a href="#locate-106"><span class="linenos">106</span></a>        <span class="n">y</span><span class="o">=</span><span class="n">search_center</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">search_margin_height</span><span class="p">,</span>
+</span><span id="locate-104"><a href="#locate-104"><span class="linenos">104</span></a>    <span class="n">kernel_origin</span> <span class="o">=</span> <span class="n">PixelCoordinate</span><span class="p">(</span>
+</span><span id="locate-105"><a href="#locate-105"><span class="linenos">105</span></a>        <span class="n">x</span><span class="o">=</span><span class="n">reference_point</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">kernel_margin_width</span><span class="p">,</span>
+</span><span id="locate-106"><a href="#locate-106"><span class="linenos">106</span></a>        <span class="n">y</span><span class="o">=</span><span class="n">reference_point</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">kernel_margin_height</span><span class="p">,</span>
 </span><span id="locate-107"><a href="#locate-107"><span class="linenos">107</span></a>    <span class="p">)</span>
-</span><span id="locate-108"><a href="#locate-108"><span class="linenos">108</span></a>    <span class="n">search</span> <span class="o">=</span> <span class="n">subimage</span><span class="p">(</span>
-</span><span id="locate-109"><a href="#locate-109"><span class="linenos">109</span></a>        <span class="n">image</span><span class="o">=</span><span class="n">current_image</span><span class="p">,</span>
-</span><span id="locate-110"><a href="#locate-110"><span class="linenos">110</span></a>        <span class="n">origin</span><span class="o">=</span><span class="n">search_origin</span><span class="p">,</span>
-</span><span id="locate-111"><a href="#locate-111"><span class="linenos">111</span></a>        <span class="n">width</span><span class="o">=</span><span class="n">search_width</span><span class="p">,</span>
-</span><span id="locate-112"><a href="#locate-112"><span class="linenos">112</span></a>        <span class="n">height</span><span class="o">=</span><span class="n">search_height</span><span class="p">,</span>
+</span><span id="locate-108"><a href="#locate-108"><span class="linenos">108</span></a>    <span class="n">kernel</span> <span class="o">=</span> <span class="n">subimage</span><span class="p">(</span>
+</span><span id="locate-109"><a href="#locate-109"><span class="linenos">109</span></a>        <span class="n">image</span><span class="o">=</span><span class="n">reference_image</span><span class="p">,</span>
+</span><span id="locate-110"><a href="#locate-110"><span class="linenos">110</span></a>        <span class="n">origin</span><span class="o">=</span><span class="n">kernel_origin</span><span class="p">,</span>
+</span><span id="locate-111"><a href="#locate-111"><span class="linenos">111</span></a>        <span class="n">width</span><span class="o">=</span><span class="n">kernel_width</span><span class="p">,</span>
+</span><span id="locate-112"><a href="#locate-112"><span class="linenos">112</span></a>        <span class="n">height</span><span class="o">=</span><span class="n">kernel_height</span><span class="p">,</span>
 </span><span id="locate-113"><a href="#locate-113"><span class="linenos">113</span></a>    <span class="p">)</span>
 </span><span id="locate-114"><a href="#locate-114"><span class="linenos">114</span></a>
-</span><span id="locate-115"><a href="#locate-115"><span class="linenos">115</span></a>    <span class="c1"># phase_cross_correlation requires both images the same shape; only</span>
-</span><span id="locate-116"><a href="#locate-116"><span class="linenos">116</span></a>    <span class="c1"># the kernel needs padding, since the search area is always larger.</span>
-</span><span id="locate-117"><a href="#locate-117"><span class="linenos">117</span></a>    <span class="n">pad_width</span> <span class="o">=</span> <span class="n">search_width</span> <span class="o">-</span> <span class="n">kernel_width</span>
-</span><span id="locate-118"><a href="#locate-118"><span class="linenos">118</span></a>    <span class="n">pad_height</span> <span class="o">=</span> <span class="n">search_height</span> <span class="o">-</span> <span class="n">kernel_height</span>
-</span><span id="locate-119"><a href="#locate-119"><span class="linenos">119</span></a>    <span class="n">kernel_padded</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">kernel</span><span class="p">,</span> <span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">pad_height</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">pad_width</span><span class="p">)))</span>
-</span><span id="locate-120"><a href="#locate-120"><span class="linenos">120</span></a>
-</span><span id="locate-121"><a href="#locate-121"><span class="linenos">121</span></a>    <span class="c1"># search=reference_image, kernel_padded=moving_image, not the other</span>
-</span><span id="locate-122"><a href="#locate-122"><span class="linenos">122</span></a>    <span class="c1"># way around: skimage docs define `shift` as &quot;the shift required to</span>
-</span><span id="locate-123"><a href="#locate-123"><span class="linenos">123</span></a>    <span class="c1"># register moving_image with reference_image&quot;, and what we actually</span>
-</span><span id="locate-124"><a href="#locate-124"><span class="linenos">124</span></a>    <span class="c1"># want is where the kernel&#39;s content sits within the (larger) search</span>
-</span><span id="locate-125"><a href="#locate-125"><span class="linenos">125</span></a>    <span class="c1"># area, so search must be reference_image and kernel_padded must be</span>
-</span><span id="locate-126"><a href="#locate-126"><span class="linenos">126</span></a>    <span class="c1"># moving_image. Swapping them negates the result and returns the</span>
-</span><span id="locate-127"><a href="#locate-127"><span class="linenos">127</span></a>    <span class="c1"># wrong location -- verified empirically, not just by this reasoning.</span>
-</span><span id="locate-128"><a href="#locate-128"><span class="linenos">128</span></a>    <span class="c1">#</span>
-</span><span id="locate-129"><a href="#locate-129"><span class="linenos">129</span></a>    <span class="c1"># normalization=&quot;phase&quot; (skimage&#39;s own default) is used here</span>
-</span><span id="locate-130"><a href="#locate-130"><span class="linenos">130</span></a>    <span class="c1"># deliberately -- we do NOT follow hdic&#39;s registration.py, which uses</span>
-</span><span id="locate-131"><a href="#locate-131"><span class="linenos">131</span></a>    <span class="c1"># normalization=None. hdic&#39;s None came from its own pipeline running</span>
-</span><span id="locate-132"><a href="#locate-132"><span class="linenos">132</span></a>    <span class="c1"># a separate ZNCC-style preprocess() step before calling</span>
-</span><span id="locate-133"><a href="#locate-133"><span class="linenos">133</span></a>    <span class="c1"># phase_cross_correlation, specifically to avoid double-normalizing</span>
-</span><span id="locate-134"><a href="#locate-134"><span class="linenos">134</span></a>    <span class="c1"># on top of that. locate() has no such preprocessing step, so that</span>
-</span><span id="locate-135"><a href="#locate-135"><span class="linenos">135</span></a>    <span class="c1"># reasoning doesn&#39;t carry over here -- and empirically, sweeping</span>
-</span><span id="locate-136"><a href="#locate-136"><span class="linenos">136</span></a>    <span class="c1"># kernel/search margin ratios against a known displacement,</span>
-</span><span id="locate-137"><a href="#locate-137"><span class="linenos">137</span></a>    <span class="c1"># normalization=&quot;phase&quot; matched or outperformed normalization=None,</span>
-</span><span id="locate-138"><a href="#locate-138"><span class="linenos">138</span></a>    <span class="c1"># not the other way around.</span>
-</span><span id="locate-139"><a href="#locate-139"><span class="linenos">139</span></a>    <span class="c1">#</span>
-</span><span id="locate-140"><a href="#locate-140"><span class="linenos">140</span></a>    <span class="c1"># What normalization actually does: the core computation is a</span>
-</span><span id="locate-141"><a href="#locate-141"><span class="linenos">141</span></a>    <span class="c1"># cross-power spectrum, image_product = FFT(reference) *</span>
-</span><span id="locate-142"><a href="#locate-142"><span class="linenos">142</span></a>    <span class="c1"># conj(FFT(moving)). normalization=&quot;phase&quot; divides this by its own</span>
-</span><span id="locate-143"><a href="#locate-143"><span class="linenos">143</span></a>    <span class="c1"># magnitude at every frequency, discarding contrast/energy</span>
-</span><span id="locate-144"><a href="#locate-144"><span class="linenos">144</span></a>    <span class="c1"># information and keeping only phase -- the classic Kuglin-Hines</span>
-</span><span id="locate-145"><a href="#locate-145"><span class="linenos">145</span></a>    <span class="c1"># phase correlation, giving a sharp peak and robustness to</span>
-</span><span id="locate-146"><a href="#locate-146"><span class="linenos">146</span></a>    <span class="c1"># illumination differences between the two images.</span>
-</span><span id="locate-147"><a href="#locate-147"><span class="linenos">147</span></a>    <span class="c1"># normalization=None skips that division (plain unnormalized</span>
-</span><span id="locate-148"><a href="#locate-148"><span class="linenos">148</span></a>    <span class="c1"># cross-correlation), which skimage&#39;s own docs describe as less</span>
-</span><span id="locate-149"><a href="#locate-149"><span class="linenos">149</span></a>    <span class="c1"># robust to noise but sometimes preferable in high-noise scenarios.</span>
-</span><span id="locate-150"><a href="#locate-150"><span class="linenos">150</span></a>    <span class="c1"># Which is better is genuinely content-dependent, not a settled</span>
-</span><span id="locate-151"><a href="#locate-151"><span class="linenos">151</span></a>    <span class="c1"># default-is-always-better situation.</span>
-</span><span id="locate-152"><a href="#locate-152"><span class="linenos">152</span></a>    <span class="n">shift</span><span class="p">,</span> <span class="n">_error</span><span class="p">,</span> <span class="n">_phasediff</span> <span class="o">=</span> <span class="n">phase_cross_correlation</span><span class="p">(</span>
-</span><span id="locate-153"><a href="#locate-153"><span class="linenos">153</span></a>        <span class="n">reference_image</span><span class="o">=</span><span class="n">search</span><span class="p">,</span> <span class="n">moving_image</span><span class="o">=</span><span class="n">kernel_padded</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;phase&quot;</span>
-</span><span id="locate-154"><a href="#locate-154"><span class="linenos">154</span></a>    <span class="p">)</span>
-</span><span id="locate-155"><a href="#locate-155"><span class="linenos">155</span></a>
-</span><span id="locate-156"><a href="#locate-156"><span class="linenos">156</span></a>    <span class="k">return</span> <span class="n">PixelCoordinate</span><span class="p">(</span>
-</span><span id="locate-157"><a href="#locate-157"><span class="linenos">157</span></a>        <span class="n">x</span><span class="o">=</span><span class="n">search_origin</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">shift</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">kernel_margin_width</span><span class="p">,</span>
-</span><span id="locate-158"><a href="#locate-158"><span class="linenos">158</span></a>        <span class="n">y</span><span class="o">=</span><span class="n">search_origin</span><span class="o">.</span><span class="n">y</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">shift</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">kernel_margin_height</span><span class="p">,</span>
-</span><span id="locate-159"><a href="#locate-159"><span class="linenos">159</span></a>    <span class="p">)</span>
+</span><span id="locate-115"><a href="#locate-115"><span class="linenos">115</span></a>    <span class="n">search_origin</span> <span class="o">=</span> <span class="n">PixelCoordinate</span><span class="p">(</span>
+</span><span id="locate-116"><a href="#locate-116"><span class="linenos">116</span></a>        <span class="n">x</span><span class="o">=</span><span class="n">search_center</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">search_margin_width</span><span class="p">,</span>
+</span><span id="locate-117"><a href="#locate-117"><span class="linenos">117</span></a>        <span class="n">y</span><span class="o">=</span><span class="n">search_center</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">search_margin_height</span><span class="p">,</span>
+</span><span id="locate-118"><a href="#locate-118"><span class="linenos">118</span></a>    <span class="p">)</span>
+</span><span id="locate-119"><a href="#locate-119"><span class="linenos">119</span></a>    <span class="n">search</span> <span class="o">=</span> <span class="n">subimage</span><span class="p">(</span>
+</span><span id="locate-120"><a href="#locate-120"><span class="linenos">120</span></a>        <span class="n">image</span><span class="o">=</span><span class="n">current_image</span><span class="p">,</span>
+</span><span id="locate-121"><a href="#locate-121"><span class="linenos">121</span></a>        <span class="n">origin</span><span class="o">=</span><span class="n">search_origin</span><span class="p">,</span>
+</span><span id="locate-122"><a href="#locate-122"><span class="linenos">122</span></a>        <span class="n">width</span><span class="o">=</span><span class="n">search_width</span><span class="p">,</span>
+</span><span id="locate-123"><a href="#locate-123"><span class="linenos">123</span></a>        <span class="n">height</span><span class="o">=</span><span class="n">search_height</span><span class="p">,</span>
+</span><span id="locate-124"><a href="#locate-124"><span class="linenos">124</span></a>    <span class="p">)</span>
+</span><span id="locate-125"><a href="#locate-125"><span class="linenos">125</span></a>
+</span><span id="locate-126"><a href="#locate-126"><span class="linenos">126</span></a>    <span class="c1"># phase_cross_correlation requires both images the same shape; only</span>
+</span><span id="locate-127"><a href="#locate-127"><span class="linenos">127</span></a>    <span class="c1"># the kernel needs padding, since the search area is always larger.</span>
+</span><span id="locate-128"><a href="#locate-128"><span class="linenos">128</span></a>    <span class="c1"># _window_and_pad optionally tapers both (kernel first, then padded)</span>
+</span><span id="locate-129"><a href="#locate-129"><span class="linenos">129</span></a>    <span class="c1"># before that -- the same shared step `phase_correlation` uses.</span>
+</span><span id="locate-130"><a href="#locate-130"><span class="linenos">130</span></a>    <span class="n">kernel_padded</span><span class="p">,</span> <span class="n">search</span> <span class="o">=</span> <span class="n">_window_and_pad</span><span class="p">(</span>
+</span><span id="locate-131"><a href="#locate-131"><span class="linenos">131</span></a>        <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> <span class="n">search</span><span class="o">=</span><span class="n">search</span><span class="p">,</span> <span class="n">windowing</span><span class="o">=</span><span class="n">windowing</span>
+</span><span id="locate-132"><a href="#locate-132"><span class="linenos">132</span></a>    <span class="p">)</span>
+</span><span id="locate-133"><a href="#locate-133"><span class="linenos">133</span></a>
+</span><span id="locate-134"><a href="#locate-134"><span class="linenos">134</span></a>    <span class="c1"># search=reference_image, kernel_padded=moving_image, not the other</span>
+</span><span id="locate-135"><a href="#locate-135"><span class="linenos">135</span></a>    <span class="c1"># way around: skimage docs define `shift` as &quot;the shift required to</span>
+</span><span id="locate-136"><a href="#locate-136"><span class="linenos">136</span></a>    <span class="c1"># register moving_image with reference_image&quot;, and what we actually</span>
+</span><span id="locate-137"><a href="#locate-137"><span class="linenos">137</span></a>    <span class="c1"># want is where the kernel&#39;s content sits within the (larger) search</span>
+</span><span id="locate-138"><a href="#locate-138"><span class="linenos">138</span></a>    <span class="c1"># area, so search must be reference_image and kernel_padded must be</span>
+</span><span id="locate-139"><a href="#locate-139"><span class="linenos">139</span></a>    <span class="c1"># moving_image. Swapping them negates the result and returns the</span>
+</span><span id="locate-140"><a href="#locate-140"><span class="linenos">140</span></a>    <span class="c1"># wrong location -- verified empirically, not just by this reasoning.</span>
+</span><span id="locate-141"><a href="#locate-141"><span class="linenos">141</span></a>    <span class="c1">#</span>
+</span><span id="locate-142"><a href="#locate-142"><span class="linenos">142</span></a>    <span class="c1"># normalization=&quot;phase&quot; (skimage&#39;s own default) is used here</span>
+</span><span id="locate-143"><a href="#locate-143"><span class="linenos">143</span></a>    <span class="c1"># deliberately -- we do NOT follow hdic&#39;s registration.py, which uses</span>
+</span><span id="locate-144"><a href="#locate-144"><span class="linenos">144</span></a>    <span class="c1"># normalization=None. hdic&#39;s None came from its own pipeline running</span>
+</span><span id="locate-145"><a href="#locate-145"><span class="linenos">145</span></a>    <span class="c1"># a separate ZNCC-style preprocess() step before calling</span>
+</span><span id="locate-146"><a href="#locate-146"><span class="linenos">146</span></a>    <span class="c1"># phase_cross_correlation, specifically to avoid double-normalizing</span>
+</span><span id="locate-147"><a href="#locate-147"><span class="linenos">147</span></a>    <span class="c1"># on top of that. locate() has no such preprocessing step, so that</span>
+</span><span id="locate-148"><a href="#locate-148"><span class="linenos">148</span></a>    <span class="c1"># reasoning doesn&#39;t carry over here -- and empirically, sweeping</span>
+</span><span id="locate-149"><a href="#locate-149"><span class="linenos">149</span></a>    <span class="c1"># kernel/search margin ratios against a known displacement,</span>
+</span><span id="locate-150"><a href="#locate-150"><span class="linenos">150</span></a>    <span class="c1"># normalization=&quot;phase&quot; matched or outperformed normalization=None,</span>
+</span><span id="locate-151"><a href="#locate-151"><span class="linenos">151</span></a>    <span class="c1"># not the other way around.</span>
+</span><span id="locate-152"><a href="#locate-152"><span class="linenos">152</span></a>    <span class="c1">#</span>
+</span><span id="locate-153"><a href="#locate-153"><span class="linenos">153</span></a>    <span class="c1"># What normalization actually does: the core computation is a</span>
+</span><span id="locate-154"><a href="#locate-154"><span class="linenos">154</span></a>    <span class="c1"># cross-power spectrum, image_product = FFT(reference) *</span>
+</span><span id="locate-155"><a href="#locate-155"><span class="linenos">155</span></a>    <span class="c1"># conj(FFT(moving)). normalization=&quot;phase&quot; divides this by its own</span>
+</span><span id="locate-156"><a href="#locate-156"><span class="linenos">156</span></a>    <span class="c1"># magnitude at every frequency, discarding contrast/energy</span>
+</span><span id="locate-157"><a href="#locate-157"><span class="linenos">157</span></a>    <span class="c1"># information and keeping only phase -- the classic Kuglin-Hines</span>
+</span><span id="locate-158"><a href="#locate-158"><span class="linenos">158</span></a>    <span class="c1"># phase correlation, giving a sharp peak and robustness to</span>
+</span><span id="locate-159"><a href="#locate-159"><span class="linenos">159</span></a>    <span class="c1"># illumination differences between the two images.</span>
+</span><span id="locate-160"><a href="#locate-160"><span class="linenos">160</span></a>    <span class="c1"># normalization=None skips that division (plain unnormalized</span>
+</span><span id="locate-161"><a href="#locate-161"><span class="linenos">161</span></a>    <span class="c1"># cross-correlation), which skimage&#39;s own docs describe as less</span>
+</span><span id="locate-162"><a href="#locate-162"><span class="linenos">162</span></a>    <span class="c1"># robust to noise but sometimes preferable in high-noise scenarios.</span>
+</span><span id="locate-163"><a href="#locate-163"><span class="linenos">163</span></a>    <span class="c1"># Which is better is genuinely content-dependent, not a settled</span>
+</span><span id="locate-164"><a href="#locate-164"><span class="linenos">164</span></a>    <span class="c1"># default-is-always-better situation.</span>
+</span><span id="locate-165"><a href="#locate-165"><span class="linenos">165</span></a>    <span class="n">shift</span><span class="p">,</span> <span class="n">_error</span><span class="p">,</span> <span class="n">_phasediff</span> <span class="o">=</span> <span class="n">phase_cross_correlation</span><span class="p">(</span>
+</span><span id="locate-166"><a href="#locate-166"><span class="linenos">166</span></a>        <span class="n">reference_image</span><span class="o">=</span><span class="n">search</span><span class="p">,</span> <span class="n">moving_image</span><span class="o">=</span><span class="n">kernel_padded</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;phase&quot;</span>
+</span><span id="locate-167"><a href="#locate-167"><span class="linenos">167</span></a>    <span class="p">)</span>
+</span><span id="locate-168"><a href="#locate-168"><span class="linenos">168</span></a>
+</span><span id="locate-169"><a href="#locate-169"><span class="linenos">169</span></a>    <span class="k">return</span> <span class="n">PixelCoordinate</span><span class="p">(</span>
+</span><span id="locate-170"><a href="#locate-170"><span class="linenos">170</span></a>        <span class="n">x</span><span class="o">=</span><span class="n">search_origin</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">shift</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">kernel_margin_width</span><span class="p">,</span>
+</span><span id="locate-171"><a href="#locate-171"><span class="linenos">171</span></a>        <span class="n">y</span><span class="o">=</span><span class="n">search_origin</span><span class="o">.</span><span class="n">y</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">shift</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">kernel_margin_height</span><span class="p">,</span>
+</span><span id="locate-172"><a href="#locate-172"><span class="linenos">172</span></a>    <span class="p">)</span>
 </span></pre></div>
 
 
@@ -423,7 +448,16 @@ out of scope for now.</p>
     search_margin_width: Half the search area's width, in pixels.
         Must be greater than <code>kernel_margin_width</code>.
     search_margin_height: Half the search area's height, in pixels.
-        Must be greater than <code>kernel_margin_height</code>.</p>
+        Must be greater than <code>kernel_margin_height</code>.
+    windowing: If given, both the kernel and search area are passed
+        through <a href="./correlation.html#window"><code><a href="correlation.html#window">dictk.correlation.window</a></code></a>
+        with this method -- tapering their edges toward zero to
+        reduce spectral leakage -- before padding/FFT, the same
+        <code>windowing</code> parameter
+        <a href="./correlation.html#phase_correlation"><code><a href="correlation.html#phase_correlation">dictk.correlation.phase_correlation</a></code></a>
+        exposes for the surface this function doesn't return. Default
+        <code>None</code> applies no windowing, matching this function's
+        original behavior exactly.</p>
 
 <p>Returns:
     The point's location, in <code>current_image</code>'s pixel reference frame.</p>

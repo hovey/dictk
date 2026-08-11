@@ -29,6 +29,7 @@
         <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../docs/userguide/theme/custom.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -236,7 +237,7 @@ point_plot(
 <p>For this page, the current image <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8095em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">i</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is generated with
 <a href="../api/dictk/image.html#translate"><code>dictk.image.translate</code></a> (see <a href="./transformation.html#pure-translation-rigid-body-motion">Image
 Transformation</a>): every pixel of
-<code>reference_image</code> shifts by the same <code>(dx, dy)</code>, a <strong>rigid body
+<code>reference_image</code> shifts by the same <code>(dx, dy)</code>, a <strong>rigid-body
 translation</strong>.  Because the whole
 image moves together, point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span>'s new location follows directly:</p>
 <pre><code class="language-python">from dictk.image import translate
