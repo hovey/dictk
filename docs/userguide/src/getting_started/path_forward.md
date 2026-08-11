@@ -67,3 +67,21 @@ the mesh doesn't need to conform to the crack. The DIC-side analogue —
 enriching the correlation itself to detect and locate a discontinuity,
 not just generating test images that contain one — is worth exploring.
 Not scoped yet.
+
+### Postponed
+
+Noted, not being pursued right now:
+
+* **Heaviside DIC and XFEM** — enriching the correlation itself to
+  detect and locate a discontinuity, not just generating test images
+  that contain one (see above).
+* **Subpixel accuracy (upsampling).** Every worked example in this book
+  is deliberately built around a known, exact-integer-pixel ground
+  truth (see [Single Point
+  Motion](./single_point_motion.md#current-configuration-and-displacement)),
+  so `dictk`'s correlation results have never needed anything past
+  whole-pixel accuracy. `skimage.registration.phase_cross_correlation`
+  already supports an `upsample_factor` parameter for sub-pixel
+  registration; `dictk` doesn't expose it yet. Real, non-synthetic
+  displacements won't land on exact pixels, so this becomes necessary
+  once the book moves past known-integer test cases.
