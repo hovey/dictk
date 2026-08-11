@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from dictk.correlation import WindowingMethod
-from dictk.grid import generate, locate
+from dictk.grid import Executor, generate, locate
 from dictk.image import PixelCoordinate, translate
 from dictk.rosta import rosta
 
@@ -219,3 +219,69 @@ def test_locate_windowing_still_recovers_known_translation(method):
     )
     for p0, p1 in zip(points, found):
         assert (p1.x - p0.x, p1.y - p0.y) == (-6, 8)
+
+
+def test_locate_max_workers_none_matches_default():
+    """max_workers=None is identical to omitting the argument entirely."""
+    ref, cur = _reference_and_current(dx=-6, dy=8)
+    points = generate(
+        origin=PixelCoordinate(x=40, y=40),
+        count_x=3,
+        count_y=3,
+        spacing_x=20,
+        spacing_y=20,
+    )
+    kwargs = dict(
+        reference_image=ref,
+        current_image=cur,
+        reference_points=points,
+        kernel_margin_width=15,
+        kernel_margin_height=15,
+        search_margin_width=30,
+        search_margin_height=30,
+    )
+    assert locate(**kwargs) == locate(**kwargs, max_workers=None)
+
+
+@pytest.mark.parametrize("executor", [Executor.THREAD, Executor.PROCESS])
+@pytest.mark.parametrize("max_workers", [1, 2, 4])
+def test_locate_max_workers_matches_sequential(max_workers, executor):
+    """Concurrent results match the sequential path exactly, same order,
+    same values -- for both pool types, and even at max_workers=1."""
+    ref, cur = _reference_and_current(dx=-6, dy=8)
+    points = generate(
+        origin=PixelCoordinate(x=40, y=40),
+        count_x=3,
+        count_y=3,
+        spacing_x=20,
+        spacing_y=20,
+    )
+    kwargs = dict(
+        reference_image=ref,
+        current_image=cur,
+        reference_points=points,
+        kernel_margin_width=15,
+        kernel_margin_height=15,
+        search_margin_width=30,
+        search_margin_height=30,
+    )
+    sequential = locate(**kwargs)
+    concurrent = locate(**kwargs, max_workers=max_workers, executor=executor)
+    assert concurrent == sequential
+
+
+@pytest.mark.parametrize("max_workers", [0, -1])
+def test_locate_max_workers_invalid_raises(max_workers):
+    arr = np.zeros((50, 50), dtype=np.uint8)
+    points = [PixelCoordinate(x=25, y=25)]
+    with pytest.raises(ValueError):
+        locate(
+            reference_image=arr,
+            current_image=arr,
+            reference_points=points,
+            kernel_margin_width=10,
+            kernel_margin_height=10,
+            search_margin_width=20,
+            search_margin_height=20,
+            max_workers=max_workers,
+        )

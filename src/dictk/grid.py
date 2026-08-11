@@ -1,12 +1,65 @@
 """A rectangular collection of points, and batch point tracking across it."""
 
 from collections.abc import Sequence
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from enum import Enum
+from functools import partial
 
 import numpy as np
 
 from dictk import translation
 from dictk.correlation import WindowingMethod
 from dictk.image import PixelCoordinate
+
+
+class Executor(Enum):
+    """Pool type `locate`'s `max_workers` parameter runs on.
+
+    - THREAD: shares memory with the caller, no pickling. Pays a small
+      scheduling cost on every task, which does not shrink as task count
+      grows.
+    - PROCESS: separate memory per worker, needs pickling. Pays a large
+      fixed cost once, spawning workers and importing dependencies in
+      each -- which then amortizes as task count grows.
+
+    See [Parallelization](../getting_started/parallelization.html) for
+    measured trade-offs between the two.
+    """
+
+    THREAD = "thread"
+    PROCESS = "process"
+
+
+def _locate_worker(
+    args: tuple[PixelCoordinate, PixelCoordinate],
+    *,
+    reference_image: np.ndarray,
+    current_image: np.ndarray,
+    kernel_margin_width: int,
+    kernel_margin_height: int,
+    search_margin_width: int,
+    search_margin_height: int,
+    windowing: WindowingMethod | None,
+) -> PixelCoordinate:
+    """One point's worth of `translation.locate`, as a single positional
+    argument -- `Executor.map` (thread or process) always calls its
+    target positionally, one item per iterable, so a keyword-only
+    signature is not an option for the function being mapped over.
+    Module-level on purpose: `ProcessPoolExecutor` needs a real,
+    importable function to hand to spawned workers, not a closure.
+    """
+    reference_point, search_center = args
+    return translation.locate(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_point=reference_point,
+        search_center=search_center,
+        kernel_margin_width=kernel_margin_width,
+        kernel_margin_height=kernel_margin_height,
+        search_margin_width=search_margin_width,
+        search_margin_height=search_margin_height,
+        windowing=windowing,
+    )
 
 
 def generate(
@@ -66,6 +119,8 @@ def locate(
     search_margin_width: int,
     search_margin_height: int,
     windowing: WindowingMethod | None = None,
+    max_workers: int | None = None,
+    executor: Executor = Executor.THREAD,
 ) -> list[PixelCoordinate]:
     """Batch version of `dictk.translation.locate`: track many points at once.
 
@@ -101,6 +156,20 @@ def locate(
             -- see its own `windowing` parameter. Default `None` applies
             no windowing to any point, matching this function's original
             behavior exactly.
+        max_workers: If given, points are tracked concurrently across
+            this many workers instead of one at a time. Default `None`
+            stays sequential -- a plain loop, no pool, no overhead --
+            matching this function's original behavior exactly. See
+            [Parallelization](../getting_started/parallelization.html)
+            before setting this: at this book's own teaching scale
+            (small kernels and search areas), sequential outperforms
+            both pool types at any point count up to 1,000,000, measured.
+            Concurrency only pays for itself once each point's own
+            correlation is large enough, or point count is large enough
+            to amortize `Executor.PROCESS`'s fixed startup cost -- see
+            that page for the measured trade-offs.
+        executor: Which pool type `max_workers` runs on. Ignored if
+            `max_workers` is `None`. Default `Executor.THREAD`.
 
     Returns:
         Each point's location, in `current_image`'s pixel reference
@@ -108,8 +177,9 @@ def locate(
 
     Raises:
         ValueError: If `search_centers` is given and its length doesn't
-            match `reference_points`, or (from the underlying per-point
-            call) if the margin arguments are invalid.
+            match `reference_points`, `max_workers` is given and less
+            than 1, or (from the underlying per-point call) if the
+            margin arguments are invalid.
     """
     if search_centers is None:
         search_centers = reference_points
@@ -118,18 +188,37 @@ def locate(
             f"search_centers length ({len(search_centers)}) must match "
             f"reference_points length ({len(reference_points)})"
         )
+    if max_workers is not None and max_workers < 1:
+        raise ValueError(f"max_workers {max_workers} must be >= 1")
 
-    return [
-        translation.locate(
-            reference_image=reference_image,
-            current_image=current_image,
-            reference_point=reference_point,
-            search_center=search_center,
-            kernel_margin_width=kernel_margin_width,
-            kernel_margin_height=kernel_margin_height,
-            search_margin_width=search_margin_width,
-            search_margin_height=search_margin_height,
-            windowing=windowing,
-        )
-        for reference_point, search_center in zip(reference_points, search_centers)
-    ]
+    if max_workers is None:
+        return [
+            translation.locate(
+                reference_image=reference_image,
+                current_image=current_image,
+                reference_point=reference_point,
+                search_center=search_center,
+                kernel_margin_width=kernel_margin_width,
+                kernel_margin_height=kernel_margin_height,
+                search_margin_width=search_margin_width,
+                search_margin_height=search_margin_height,
+                windowing=windowing,
+            )
+            for reference_point, search_center in zip(reference_points, search_centers)
+        ]
+
+    worker = partial(
+        _locate_worker,
+        reference_image=reference_image,
+        current_image=current_image,
+        kernel_margin_width=kernel_margin_width,
+        kernel_margin_height=kernel_margin_height,
+        search_margin_width=search_margin_width,
+        search_margin_height=search_margin_height,
+        windowing=windowing,
+    )
+    executor_cls = (
+        ThreadPoolExecutor if executor is Executor.THREAD else ProcessPoolExecutor
+    )
+    with executor_cls(max_workers=max_workers) as pool:
+        return list(pool.map(worker, zip(reference_points, search_centers)))
