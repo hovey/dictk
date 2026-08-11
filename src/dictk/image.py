@@ -1430,6 +1430,32 @@ def histogram_save(*, arr: np.ndarray, path: Path, dpi: int = 300) -> None:
     plt.close()
 
 
+def _correlation_surface_ticks(size: int) -> list[int]:
+    """Fixed Correlation Surface tick marks for an axis of length `size`.
+
+    Correlation Visualization shows this panel seven times: CC/NCC/ZCC/
+    ZNCC's 51x51 "valid" surfaces, and phase correlation's three
+    same-shape-as-`search` 100x100 ones (no windowing/Hann/Hamming).
+    Rather than matplotlib's own per-panel default (which lands on
+    different steps for the two sizes, and doesn't always reach the
+    axis's own upper bound), each size gets one fixed, round-number tick
+    list spanning its own full extent -- so every 51x51 panel matches
+    every other 51x51 panel, and every 100x100 one matches every other
+    100x100 one, when read side by side.
+
+    Args:
+        size: The axis's length in pixels (a Correlation Surface panel's
+            own height or width).
+
+    Returns:
+        `[0, 10, 20, 30, 40, 50]` for the 51-wide "valid" surfaces,
+        `[0, 20, 40, 60, 80, 100]` for the 100-wide full-search ones.
+    """
+    if size > 60:
+        return [0, 20, 40, 60, 80, 100]
+    return [0, 10, 20, 30, 40, 50]
+
+
 def _correlation_quadrant_plot(
     *,
     kernel: np.ndarray,
@@ -1544,6 +1570,11 @@ def _correlation_quadrant_plot(
         ax3.set_title("Correlation Surface")
         ax3.set_xlabel(r"$\Delta x$ offset (pixels)")
         ax3.set_ylabel(r"$\Delta y$ offset (pixels)")
+        # Fixed ticks, not matplotlib's own auto-choice -- see
+        # _correlation_surface_ticks() for why.
+        surface_height, surface_width = correlation_surface.shape
+        ax3.set_xticks(_correlation_surface_ticks(surface_width))
+        ax3.set_yticks(_correlation_surface_ticks(surface_height))
 
         im4 = ax4.imshow(correlation_surface, cmap="viridis", origin="upper")
         plt.colorbar(im4, ax=ax4, shrink=0.8)
