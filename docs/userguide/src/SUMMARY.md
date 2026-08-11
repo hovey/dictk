@@ -18,4 +18,5 @@
 - [Multi-Point Motion](./getting_started/multi_point_motion.md)
   - [Simple Stretch](./getting_started/simple_stretch.md)
   - [Parallelization](./getting_started/parallelization.md)
+- [Path Forward](./getting_started/path_forward.md)
 - [Contributing](./contributing.md)
