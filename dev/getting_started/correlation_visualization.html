@@ -447,72 +447,11 @@ even applied. That sharpness, not just brightness/contrast invariance, is
 a second, independent reason <code>dictk.translation.locate</code> is built on phase
 correlation rather than a spatial-domain criterion: a sharper peak is
 easier to locate with confidence and precision, and harder to confuse
-with a nearby runner-up. <code>locate</code> itself doesn't yet accept a <code>windowing</code>
-parameter (see <a href="./windowing.html">Windowing</a>), so every worked example in
-this book that calls <code>locate</code> runs the no-windowing case today —
-windowing's further prominence gain above is real, but not yet available
-through <code>locate</code>.</p>
-<h2 id="todo-windowing-for-phase-correlation"><a class="header" href="#todo-windowing-for-phase-correlation">TODO: windowing for phase correlation</a></h2>
-<p>The "spatial vs. Fourier domain" question this section used to scope is
-resolved and shipped: <code>dictk.correlation.phase_correlation()</code> and
-<a href="#phase-correlation"><code>phase_correlation_quadrant_plot</code></a> above are both
-implemented. That resolution took a different shape than originally
-sketched here, worth recording:</p>
-<ul>
-<li><strong>The domain-selector design decision</strong> (an enum belongs in the
-parameter list of the function that <em>computes</em> the surface, decided by
-the caller, never inside the plotting function itself) held up exactly
-as reasoned — but rather than one generic <code>correlation_surface(method, domain, ...)</code> dispatcher, it became two separate, plainly-named public
-functions,
-<a href="../api/dictk/image.html#spatial_correlation_quadrant_plot"><code>spatial_correlation_quadrant_plot</code></a>
-and
-<a href="../api/dictk/image.html#phase_correlation_quadrant_plot"><code>phase_correlation_quadrant_plot</code></a>,
-each with their own complete docstring rather than one shared,
-parameterized entry point.</li>
-<li><strong>"CC via Fourier domain," as originally scoped, was never built.</strong>
-<code>phase_correlation()</code> reproduces the exact computation
-<code>dictk.translation.locate()</code> already runs in production instead — a
-different (and better) technique than raw unnormalized CC-via-FFT,
-landing in the same "robust to both brightness and contrast" tier as
-ZNCC (see <a href="./correlation_criteria.html#invariance-and-robustness">Correlation
-Criteria</a>) and, as shown
-above, with a dramatically sharper peak than any spatial-domain
-criterion, ZNCC included.</li>
-<li><strong>"NCC/ZCC/ZNCC via Fourier domain," the genuinely hard piece, is now
-moot.</strong> That work only existed to give the Fourier domain the same
-four-way choice the spatial domain has. Adopting phase correlation as
-the <em>one</em> Fourier-domain flavor sidesteps it entirely — no per-method
-local-sum-of-squares algorithm (Lewis's Fast Normalized
-Cross-Correlation) is needed, since there's no per-method choice to
-support.</li>
-</ul>
-<p><strong>What's still open:</strong> windowing. <a href="./correlation_criteria.html#windowing">Correlation
-Criteria</a> describes Hann/Hamming
-windowing conceptually — tapering <code>kernel</code>/
-<code>search</code>'s edges toward zero before the FFT, to reduce spectral leakage
-from content that doesn't tile seamlessly — but doesn't implement it.
-<code>dictk</code> has no <code>window()</code>-style function yet, and <code>phase_correlation()</code>
-applies none today.</p>
-<p><strong>Illustrative sketch only</strong> (not implemented, not wired up — matches the
-same "sketch, don't build yet" pattern
-<a href="./parallelization.html">Parallelization</a> uses for its own
-<code>ProcessPoolExecutor</code> example) of where a future <code>windowing</code> parameter
-would land:</p>
-<pre><code class="language-python">from enum import Enum
-
-class WindowingMethod(Enum):
-    HANN = "hann"
-    HAMMING = "hamming"
-
-def phase_correlation(
-    *,
-    kernel: np.ndarray,
-    search: np.ndarray,
-    windowing: WindowingMethod | None = None,
-) -&gt; np.ndarray:
-    ...  # unchanged behavior when windowing=None; new when set
-</code></pre>
-<p>Not scheduled work — don't start on this without Chad raising it again.</p>
+with a nearby runner-up. <code>locate</code> accepts the same <code>windowing</code> parameter
+too (see <a href="./windowing.html">Windowing</a>) — the prominence gain above isn't
+unique to the surface <code>phase_correlation()</code> exposes for visualization;
+it applies wherever the same FFT-based comparison runs, <code>locate</code>
+included.</p>
 
                     </main>
 
