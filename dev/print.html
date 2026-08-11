@@ -2705,6 +2705,59 @@ above backs off from that ceiling on purpose: <code>kernel_margin_width=20</code
 15-pixel gap in <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>, comfortably inside the no-overlap ceiling in both
 directions, so every kernel's own boundary reads as visibly separate from
 its neighbors', not merely non-overlapping.</p>
+<p>The two numbers side by side make the relationship exact, not just
+described:</p>
+<pre><code class="language-python">import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from dictk.image import PixelCoordinate
+
+p0, p1, p2 = PixelCoordinate(x=50, y=50), PixelCoordinate(x=100, y=50), PixelCoordinate(x=150, y=50)
+kernel_margin = 20
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+fig, ax = plt.subplots(figsize=(7, 3.2), constrained_layout=True)
+
+for p, label in [(p0, "00"), (p1, "01"), (p2, "02")]:
+    ax.plot(p.x, p.y, "o", color="black", markersize=4)
+    ax.annotate(label, (p.x, p.y), textcoords="offset points", xytext=(6, 6), fontsize=8)
+
+for p in (p0, p1):
+    ax.add_patch(patches.Rectangle(
+        (p.x - kernel_margin, p.y - kernel_margin),
+        2 * kernel_margin, 2 * kernel_margin,
+        edgecolor="green", facecolor="none", linewidth=1.5,
+    ))
+
+# 50-pixel point spacing
+dim_y = 95
+for p in (p0, p1):
+    ax.plot([p.x, p.x], [p0.y + kernel_margin, dim_y], color="gray", linestyle="--", linewidth=0.8)
+ax.annotate("", xy=(p0.x, dim_y), xytext=(p1.x, dim_y), arrowprops=dict(arrowstyle="&lt;-&gt;", color="black"))
+ax.text((p0.x + p1.x) / 2, dim_y + 4, "50 px", ha="center", va="bottom", fontsize=9)
+
+# 40-pixel kernel width
+top_y = p0.y - kernel_margin - 8
+ax.annotate("", xy=(p0.x - kernel_margin, top_y), xytext=(p0.x + kernel_margin, top_y), arrowprops=dict(arrowstyle="&lt;-&gt;", color="green"))
+ax.text(p0.x, top_y - 4, "40 px", ha="center", va="bottom", fontsize=8, color="green")
+
+# 10-pixel gap between the two kernels' facing edges
+gap_y = p0.y + 12
+ax.annotate("", xy=(p0.x + kernel_margin, gap_y), xytext=(p1.x - kernel_margin, gap_y), arrowprops=dict(arrowstyle="&lt;-&gt;", color="tab:red"))
+ax.text(p0.x + kernel_margin + (p1.x - kernel_margin - (p0.x + kernel_margin)) / 2, gap_y + 10, "10 px", ha="center", va="bottom", fontsize=7, color="tab:red")
+
+ax.set_xlim(15, 175)
+ax.set_ylim(105, 5)
+ax.set_xlabel("x (pixels)")
+ax.set_ylabel("y (pixels)")
+ax.set_aspect("equal")
+fig.savefig("multi_point_motion_spacing.png", dpi=300)
+</code></pre>
+<pre><code class="language-text">Saved: multi_point_motion_spacing.png
+</code></pre>
+<figure>
+    <img src="getting_started/multi_point_motion_spacing.png" alt="two green 40x40 pixel kernel boxes centered on points 00 and 01, 50 pixels apart, with a third point 02 shown for context; dimension arrows show 40 px across each kernel, 50 px between point centers, and 10 px in the gap between the two kernels' facing edges" />
+    <figcaption>Points 00 and 01, 50 pixels apart, each with its own 40x40 kernel (green). The 10-pixel gap between the two boxes is exactly <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">50</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">40</span></span></span></span> — the point spacing minus the kernel's own full side length, with nothing left over to round away.</figcaption>
+</figure>
 <p>Nothing requires the kernel to be isotropic — <code>dictk</code> supports an
 independent margin per axis just as easily. The equal <code>20</code>/<code>20</code> above is
 a deliberate choice to illustrate that <code>dictk</code> supports both isotropic and
@@ -3419,7 +3472,8 @@ unless the note says so.</p>
 at least a billion correlations. Realistically, tens of billions. The
 working assumption is that this stays under a trillion — that's the
 ceiling to design for, not a target to reach.</p>
-<p><strong>Two avenues toward that</strong>, in the order we'll likely explore them:</p>
+<p><strong>Four directions worth exploring</strong>, in the order we'll likely take
+them:</p>
 <ol>
 <li><strong>GPU implementations.</strong> <a href="getting_started/./parallelization.html">Parallelization</a>
 only covers CPU-bound threads and processes so far. GPU work is
@@ -3435,6 +3489,24 @@ it needs to be — sized from a prior displacement estimate rather
 than a fixed worst-case margin — shrinks that per-correlation cost
 directly, for every point in a mesh, not just the parallelizable
 part of the problem.</li>
+<li><strong>Pure rotation.</strong> <a href="getting_started/./rigid_body_motion.html">Rigid Body Motion</a> and
+the polar decomposition (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">F</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.00421em;">R</span></span></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.11424em;">U</span></span></span></span></span></span>,
+see <a href="getting_started/./continuum_mechanics.html#polar-decomposition">Continuum Mechanics</a>)
+already separate rotation from stretch: a pure rotation carries zero
+strain by construction. Two things worth testing empirically, not
+just assuming from the closed-form math: how large a rigid-body
+rotation angle <code>dictk</code>'s own correlation-based tracking can actually
+recover before it breaks down — a large enough rotation distorts a
+kernel's own content beyond what a translation-only search can still
+match — and confirming a correctly-tracked pure rotation reports
+zero strain end to end, not just in theory.</li>
+<li><strong>Synthetic dataset comparison to XCorrel and VIC-2D.</strong> Run the same
+synthetic datasets this book already uses through both tools, and
+compare their reported displacements and strain against <code>dictk</code>'s
+own. A synthetic dataset has a known, exact ground truth — the same
+trick every worked example in this book already relies on — so this
+is a direct, numeric check against established DIC software, not
+just a qualitative one.</li>
 </ol>
 <p><strong>A practical constraint to design around</strong>: real DIC data typically
 uses kernel sizes from about 35x35 pixels on the small end up to about
