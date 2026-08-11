@@ -2574,26 +2574,26 @@ included.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="multi-point-motion"><a class="header" href="#multi-point-motion">Multi-Point Motion</a></h1>
 <p><a href="getting_started/./single_point_motion.html">Single Point Motion</a> tracked exactly one point,
-<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span>, between a reference and current image. Real digital image correlation
-work needs to track <em>many</em> points at once — a whole collection of tracked
-points is exactly what a <strong>finite element mesh</strong>'s nodes are built from.
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span>, between a reference and current image. Digital image correlation was
+illustrated in context of that single point.  Now, we turn to consider
+<em>many</em> points at once.
+A collection of tracked
+points will serve as the <strong>nodes</strong> of a finite element mesh.
 This page shows how to track many points simultaneously, and motivates the
 connection to the <strong>Finite Element Method (FEM)</strong>.</p>
 <h2 id="point-grid"><a class="header" href="#point-grid">Point Grid</a></h2>
-<p>A grid of points spans some number of points along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>,
+<p>A <strong>grid</strong> is an ordered, sequential collection of points, arranged in a rectalinear
+pattern.
+The function <a href="getting_started/../api/dictk/grid.html#generate"><code>dictk.grid.generate</code></a> creates
+a grid that span some number of points along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>,
 with some spacing between adjacent points along each axis.
-<a href="getting_started/../api/dictk/grid.html#generate"><code>dictk.grid.generate</code></a> builds one: the
-count of points along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> need not be equal, and the
-spacing along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> need not be equal either — this is a
+The count of points along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> need not be equal, and the
+spacing along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> need not be equal either. The grid is a
 general rectangular collection of points, not necessarily a square or
-uniformly-spaced one. <code>spacing_x</code> and <code>spacing_y</code> are in pixels, the same
-units as every other coordinate in this guide.</p>
-<p>This page reuses <code>astronaut0</code>, the speckle pattern combined with the
+uniformly-spaced one. <code>spacing_x</code> and <code>spacing_y</code> are in pixels.</p>
+<p>This page uses <code>astronaut0</code>, the speckle pattern combined with the
 astronaut photograph introduced in <a href="getting_started/./image_generation.html#speckle--astronaut">Image
-Generation</a> — the same kind of
-reference image <a href="getting_started/./single_point_motion.html">Single Point Motion</a> used
-<code>checkerboard0</code> for, just a different one, to keep some visual variety
-across this guide:</p>
+Generation</a>.</p>
 <pre><code class="language-python">from dictk.image import read, PixelCoordinate, point_grid_plot
 from dictk.grid import generate
 
@@ -2620,6 +2620,22 @@ point_grid_plot(
     <img src="getting_started/multi_point_motion_grid.png" alt="reference image astronaut0 with a 3x4 grid of 12 numbered points overlaid in orange, labeled 00 through 11 in row-major order" />
     <figcaption>Reference image <code>astronaut0</code> with a 3x4 grid of 12 points (<code>count_x=3</code>, <code>count_y=4</code>), spaced 50 pixels apart along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and 55 pixels apart along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> (<code>spacing_x=50</code>, <code>spacing_y=55</code>), labeled 00-11 in row-major order (top-left to bottom-right).</figcaption>
 </figure>
+<p>The pixel coordinates of each point follow:</p>
+<div class="table-wrapper"><table><thead><tr><th>Point</th><th>x (pixels)</th><th>y (pixels)</th></tr></thead><tbody>
+<tr><td>00</td><td>50</td><td>50</td></tr>
+<tr><td>01</td><td>100</td><td>50</td></tr>
+<tr><td>02</td><td>150</td><td>50</td></tr>
+<tr><td>03</td><td>50</td><td>105</td></tr>
+<tr><td>04</td><td>100</td><td>105</td></tr>
+<tr><td>05</td><td>150</td><td>105</td></tr>
+<tr><td>06</td><td>50</td><td>160</td></tr>
+<tr><td>07</td><td>100</td><td>160</td></tr>
+<tr><td>08</td><td>150</td><td>160</td></tr>
+<tr><td>09</td><td>50</td><td>215</td></tr>
+<tr><td>10</td><td>100</td><td>215</td></tr>
+<tr><td>11</td><td>150</td><td>215</td></tr>
+</tbody></table>
+</div>
 <p>Every point will need a <strong>kernel</strong> (the patch of <code>reference_image</code> used to
 identify it) and a <strong>search area</strong> (the region of <code>current_image</code> searched
 for a match). Before tracking the grid, it helps to see both relative to
@@ -2628,7 +2644,7 @@ the point spacing.
 draws one box type per call, so kernel and search area each get their own
 figure — each point's own box gets its own color and its own legend
 entry (<code>kernel 00</code>, <code>kernel 01</code>, ..., <code>kernel 11</code>), cycling through a
-12-color palette drawn from matplotlib's Tableau colormap:</p>
+12-color palette (using matplotlib's Tableau colormap):</p>
 <pre><code class="language-python">from dictk.image import point_grid_boxes_plot
 
 point_grid_boxes_plot(
@@ -2663,44 +2679,27 @@ point_grid_boxes_plot(
     <img src="getting_started/multi_point_motion_search.png" alt="reference image astronaut0 with each of the 12 points' search-area boxes overlaid, each in its own color, labeled search area 00 through search area 11" />
     <figcaption>Every point's search area, each in its own color (<code>margin_width=48</code>, <code>margin_height=52</code>).</figcaption>
 </figure>
-<p><a href="getting_started/multi_point_motion.html#tracking-the-grid">Tracking the Grid</a> explains what these are actually
-used for, and why these particular sizes were chosen.</p>
-<p>Each point's pixel coordinates, in the same row-major order as its label
-above:</p>
-<div class="table-wrapper"><table><thead><tr><th>Point</th><th>x (pixels)</th><th>y (pixels)</th></tr></thead><tbody>
-<tr><td>00</td><td>50</td><td>50</td></tr>
-<tr><td>01</td><td>100</td><td>50</td></tr>
-<tr><td>02</td><td>150</td><td>50</td></tr>
-<tr><td>03</td><td>50</td><td>105</td></tr>
-<tr><td>04</td><td>100</td><td>105</td></tr>
-<tr><td>05</td><td>150</td><td>105</td></tr>
-<tr><td>06</td><td>50</td><td>160</td></tr>
-<tr><td>07</td><td>100</td><td>160</td></tr>
-<tr><td>08</td><td>150</td><td>160</td></tr>
-<tr><td>09</td><td>50</td><td>215</td></tr>
-<tr><td>10</td><td>100</td><td>215</td></tr>
-<tr><td>11</td><td>150</td><td>215</td></tr>
-</tbody></table>
-</div>
 <h2 id="tracking-the-grid"><a class="header" href="#tracking-the-grid">Tracking the Grid</a></h2>
 <p>Choosing a kernel size relative to point spacing is a tradeoff: a kernel
 needs to be large enough to contain enough distinctive texture to locate
 reliably, but small enough that neighboring kernels don't just duplicate
-each other's content. A common rule of thumb (with no hard requirement
+each other's content.</p>
+<p>A common rule of thumb (with no hard requirement
 behind it) is to space points roughly half a kernel's side length apart.
 A kernel's full side length is twice its margin, so <code>kernel_margin_width</code>
 and <code>kernel_margin_height</code> are themselves already exactly half that side
-length — meaning the rule of thumb reduces to a simple comparison: each
-margin should be close to the spacing itself, without exceeding it (past
+length — meaning the <strong>rule of thumb</strong> reduces to a simple comparison: <strong>each
+margin should be close to the point spacing itself</strong>, without exceeding it (past
 that point, neighboring kernels start overlapping).</p>
 <p>The point spacing above is 50 pixels in <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and 55 pixels in <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>
 (<code>spacing_x=50</code>, <code>spacing_y=55</code>). Keeping the kernel isotropic (a single
 margin for both axes, <code>kernel_margin_width=kernel_margin_height</code>) means
 the <em>smaller</em> of the two spacings is the binding constraint: a margin
-above 25 would overlap its <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span>-neighbor, since <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">25</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">50</span></span></span></span> is
-already the full spacing in <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span>. 25 is therefore the largest isotropic
+of greater than 25 pixels would overlap its <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span>-neighbor, since <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">25</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">50</span></span></span></span> is
+already the full spacing in <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span>. The 25 value, therefore, is the largest isotropic
 margin with zero overlap — but right at that ceiling, adjacent kernels
-touch exactly, sharing a boundary with no gap at all. The kernel figure
+touch exactly, sharing a boundary with no gap at all.</p>
+<p>The kernel figure
 above backs off from that ceiling on purpose: <code>kernel_margin_width=20</code>,
 <code>kernel_margin_height=20</code>, leaving a clear 10-pixel gap in <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and a
 15-pixel gap in <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>, comfortably inside the no-overlap ceiling in both
@@ -2715,22 +2714,21 @@ being unequal forcing one shape or the other.</p>
 non-isotropic shape: <code>search_margin_width=48</code>, <code>search_margin_height=52</code>
 — just under the point spacing itself, comfortably containing the known
 <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">−</span><span class="mord">6</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">8</span><span class="mclose">)</span></span></span></span>-pixel displacement with plenty of room to spare, while staying
-just shy of <code>spacing_x</code>/<code>spacing_y</code> rather than matching them outright.
-That much slack still means search areas overlap their neighbors heavily
+just shy of <code>spacing_x</code>/<code>spacing_y</code> rather than matching them outright.</p>
+<p>That much slack still means search areas overlap their neighbors heavily
 and run off the image at the edges, which is harmless:
 <a href="getting_started/../api/dictk/image.html#subimage"><code>subimage</code></a> zero-pads whatever falls
-outside <code>current_image</code>. Unlike kernels, overlapping search areas cost
-nothing but some redundant computation — there's no accuracy downside to
-searching the same region from two different points.</p>
-<p>One more practical detail worth knowing: <code>phase_cross_correlation</code>
-requires the kernel and search area to be exactly the same shape, so
+outside <code>current_image</code>. Unlike kernels, search areas that overlap cost
+nothing aside from redundant computation; there's no accuracy downside to
+searching the same region for two different points.</p>
+<p>One important practical detail: <code>phase_cross_correlation</code>
+requires the kernel and search area to be exactly the same shape. So
 <a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> doesn't
-crop the search area down — it pads the kernel up to match it, here a
-40x40 kernel zero-padded up to the search area's 96x104. In practice,
-that means kernel size has little effect on FFT runtime once a search
-area is chosen: the transform itself is sized by the larger of the two,
-so shrinking an already-small kernel further doesn't make the correlation
-any faster.</p>
+crop the search area down to the kernel's size; rather, it zero-pads the kernel up to match the search area's size. Here a
+40x40 kernel is zero-padded up to the search area's 96x104 size.</p>
+<blockquote>
+<p><strong>Note:</strong> In practice, kernel size has little effect on FFT runtime once a search area size is chosen because the transform zero-pads the kernel size up to match the size of the search area. So shrinking an already-small kernel further doesn't make the correlation any faster.</p>
+</blockquote>
 <p><a href="getting_started/./single_point_motion.html#current-configuration-and-displacement">Single Point Motion</a>
 gave <code>checkerboard0</code> a known rigid-body displacement of <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03785em;">δ</span><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">−</span><span class="mord">6</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">8</span><span class="mclose">)</span></span></span></span> pixels via
 <a href="getting_started/../api/dictk/image.html#translate"><code>dictk.image.translate</code></a>, and confirmed
@@ -2767,18 +2765,18 @@ found = locate(
 )
 </code></pre>
 <pre><code class="language-text">Point  found        expected     match
-00       44,58       44,58     True
-01       94,58       94,58     True
-02      144,58      144,58     True
-03       44,113      44,113    True
-04       94,113      94,113    True
-05      144,113     144,113    True
-06       44,168      44,168    True
-07       94,168      94,168    True
-08      144,168     144,168    True
-09       44,223      44,223    True
-10       94,223      94,223    True
-11      144,223     144,223    True
+00      44,58       44,58       True
+01      94,58       94,58       True
+02     144,58      144,58       True
+03      44,113      44,113      True
+04      94,113      94,113      True
+05     144,113     144,113      True
+06      44,168      44,168      True
+07      94,168      94,168      True
+08     144,168     144,168      True
+09      44,223      44,223      True
+10      94,223      94,223      True
+11     144,223     144,223      True
 </code></pre>
 <p>Every one of the 12 found positions matches <code>reference_points[i] + (dx, dy)</code> exactly — not approximately, the same exact-integer-pixel guarantee
 <a href="getting_started/./single_point_motion.html">Single Point Motion</a> established for one point,
@@ -2809,118 +2807,9 @@ more aggressively undersized kernel would likely still have worked here
 too; it's on real, noisier imagery, or content with repetitive texture,
 that a larger kernel's extra context resolves an ambiguity a smaller one
 can't.</p>
-<p>Twelve calls into an FFT-based correlation engine, each entirely
-independent of the other eleven, are a small example of a much bigger
-pattern: <a href="getting_started/./parallelization.html">Parallelization</a> picks up from here.</p>
-<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="parallelization"><a class="header" href="#parallelization">Parallelization</a></h1>
-<p><a href="getting_started/./multi_point_motion.html#tracking-the-grid">Multi-Point Motion</a> just ran 12
-independent calls to
-<a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> — one
-per point, each doing its own FFT-based phase correlation — to verify
-every point's displacement. We anticipate the need to process a very
-large number of point-to-point correspondences to support large-scale
-DIC work — a real finite element mesh (see <a href="getting_started/./finite_element_method.html">Finite Element
-Method</a>) can easily have thousands-to-millions
-of nodes, not the 12 points in the simple grid above. Each point
-correspondence is independent of every other: locating point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> never
-reads or writes anything locating point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.854em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span></span></span></span> touches. That independence
-isn't just a convenient property to point out —
-<a href="getting_started/../api/dictk/grid.html#locate"><code>dictk.grid.locate</code></a> is already written to
-exploit it. Its entire body is a single map over <code>reference_points</code>, one
-call to <a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a>
-per point, accumulating no shared state between iterations:</p>
-<pre><code class="language-python">return [
-    translation.locate(
-        reference_image=reference_image,
-        current_image=current_image,
-        reference_point=reference_point,
-        search_center=search_center,
-        kernel_margin_width=kernel_margin_width,
-        kernel_margin_height=kernel_margin_height,
-        search_margin_width=search_margin_width,
-        search_margin_height=search_margin_height,
-    )
-    for reference_point, search_center in zip(reference_points, search_centers)
-]
-</code></pre>
-<p>Because every iteration is already independent, parallelizing it is a
-matter of swapping this list comprehension for a parallel map over the same
-per-point calls — not a redesign. The standard library's
-<code>concurrent.futures.ProcessPoolExecutor</code> can drive that map today, calling
-only <code>dictk</code>'s existing public API:</p>
-<pre><code class="language-python">from concurrent.futures import ProcessPoolExecutor
-from functools import partial
-
-def _locate_one(
-    args, *, reference_image, current_image,
-    kernel_margin_width, kernel_margin_height,
-    search_margin_width, search_margin_height,
-):
-    reference_point, search_center = args
-    return translation.locate(
-        reference_image=reference_image,
-        current_image=current_image,
-        reference_point=reference_point,
-        search_center=search_center,
-        kernel_margin_width=kernel_margin_width,
-        kernel_margin_height=kernel_margin_height,
-        search_margin_width=search_margin_width,
-        search_margin_height=search_margin_height,
-    )
-
-def locate_grid_parallel(
-    *,
-    reference_image,
-    current_image,
-    reference_points,
-    search_centers,
-    kernel_margin_width,
-    kernel_margin_height,
-    search_margin_width,
-    search_margin_height,
-):
-    worker = partial(
-        _locate_one,
-        reference_image=reference_image,
-        current_image=current_image,
-        kernel_margin_width=kernel_margin_width,
-        kernel_margin_height=kernel_margin_height,
-        search_margin_width=search_margin_width,
-        search_margin_height=search_margin_height,
-    )
-    with ProcessPoolExecutor() as executor:
-        return list(executor.map(worker, zip(reference_points, search_centers)))
-</code></pre>
-<p><code>_locate_one</code> takes its point pair as a single positional argument, not
-<code>dictk</code>'s usual keyword-only style: <code>ProcessPoolExecutor.map</code> (like the
-built-in <code>map</code>) always calls its target positionally, one item per
-iterable, so a keyword-only signature isn't an option for the function
-being mapped over. This actual snippet runs correctly against <code>astronaut0</code>
-and recovers the same displacements as the sequential version <a href="getting_started/./multi_point_motion.html#tracking-the-grid">Multi-Point
-Motion</a> already ran — it just
-isn't wired up as a real <code>dictk.grid</code> function, and can't be run live on
-this page as a <code>cmdrun</code> figure the way the others are: <code>ProcessPoolExecutor</code>
-spawns worker processes that each re-import the target callable by module
-path, which rules out a worker function defined inline in a one-off
-script.</p>
-<p>Two practical caveats before reaching for this:</p>
-<ul>
-<li><strong>Threads won't help.</strong> The obvious first instinct is a
-<code>ThreadPoolExecutor</code> instead, since it avoids process-spawn and
-pickling overhead entirely — but <code>translation.locate</code>'s search-area
-correlation is dominated by NumPy/SciPy array operations that mostly
-hold the GIL for the small kernel and search-area sizes this guide uses,
-so threads mostly just add scheduling overhead without real concurrency.
-A process pool sidesteps the GIL entirely, at the cost of that
-spawn/pickling overhead per task.</li>
-<li><strong>Overhead has to be worth it.</strong> Spawning a worker pool and pickling
-image arrays across process boundaries isn't free, and for a handful of
-points (like the 12-point grid above), that overhead can easily exceed
-the time saved. It starts paying off once the point count is large
-enough. But what is <em>large enough</em>?  That question will be answered in turn
-in the analysis that follows.</li>
-</ul>
+<p>This page tracked rigid-body translation. Every point moved by the same
+amount. <a href="getting_started/./simple_stretch.html">Simple Stretch</a> is next. It tracks a real
+deformation instead, where each point moves by a different amount.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="simple-stretch"><a class="header" href="#simple-stretch">Simple Stretch</a></h1>
 <p><a href="getting_started/./multi_point_motion.html">Multi-Point Motion</a> tracked a grid of points under
@@ -2998,11 +2887,527 @@ percentages that survive both checks, <strong>2% is the smallest</strong> — th
 aggressive stretch that still keeps every point's ground-truth position an
 exact pixel, with <code>factor_x = 1.02</code> giving new <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> values of 51, 102, and
 153.</p>
-<p><em>(remaining sections — applying the stretch to <code>astronaut0</code>, and verifying
-<code>dictk.grid.locate</code> recovers these exact positions — coming soon)</em></p>
+<h2 id="applying-the-stretch"><a class="header" href="#applying-the-stretch">Applying the Stretch</a></h2>
+<p>Reuse <code>points</code> and <code>reference_image</code> from <a href="getting_started/./multi_point_motion.html#point-grid">Point
+Grid</a>.
+<a href="getting_started/../api/dictk/image.html#stretch"><code>dictk.image.stretch</code></a> builds <code>current_image</code>:</p>
+<pre><code class="language-python">from dictk.image import read, stretch, PixelCoordinate
+
+reference_image = read(path="astronaut0.png")
+factor_x = 1.02
+current_image = stretch(arr=reference_image, factor_x=factor_x)
+</code></pre>
+<p><code>factor_y</code> defaults to <code>1.0</code>. Every point's <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> stays fixed. Only <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span>
+changes, and by a different amount for each point:</p>
+<pre><code class="language-python">expected = [
+    PixelCoordinate(x=int(point.x * factor_x), y=point.y)
+    for point in points
+]
+</code></pre>
+<pre><code class="language-text">| Point | expected x | expected y |
+|---|---|---|
+| 00 | 51 | 50 |
+| 01 | 102 | 50 |
+| 02 | 153 | 50 |
+| 03 | 51 | 105 |
+| 04 | 102 | 105 |
+| 05 | 153 | 105 |
+| 06 | 51 | 160 |
+| 07 | 102 | 160 |
+| 08 | 153 | 160 |
+| 09 | 51 | 215 |
+| 10 | 102 | 215 |
+| 11 | 153 | 215 |
+</code></pre>
+<p>This is a real deformation, not a rigid shift. <a href="getting_started/./multi_point_motion.html">Multi-Point
+Motion</a> moved every point by the same <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03785em;">δ</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">δy</span><span class="mclose">)</span></span></span></span>. A stretch moves each point by a different amount. A point at
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">50</span></span></span></span> moves 1 pixel. A point at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">150</span></span></span></span> moves 3 pixels. The grid
+spreads apart under the stretch. It does not translate as one block.</p>
+<h2 id="locating-the-stretched-grid"><a class="header" href="#locating-the-stretched-grid">Locating the Stretched Grid</a></h2>
+<p><a href="getting_started/../api/dictk/grid.html#locate"><code>dictk.grid.locate</code></a> tracks the stretched
+grid the same way it tracked the translated one in <a href="getting_started/./multi_point_motion.html#tracking-the-grid">Tracking the
+Grid</a>. Reuse the same kernel
+and search-area margins:</p>
+<pre><code class="language-python">from dictk.grid import locate
+
+found = locate(
+    reference_image=reference_image,
+    current_image=current_image,
+    reference_points=points,
+    kernel_margin_width=20,
+    kernel_margin_height=20,
+    search_margin_width=48,
+    search_margin_height=52,
+)
+</code></pre>
+<pre><code class="language-text">Point  found        expected     match
+00       51,50       51,50     True
+01      102,50      102,50     True
+02      153,50      153,50     True
+03       51,105      51,105    True
+04      102,105     102,105    True
+05      153,105     153,105    True
+06       51,160      51,160    True
+07      102,160     102,160    True
+08      153,160     153,160    True
+09       51,215      51,215    True
+10      102,215     102,215    True
+11      153,215     153,215    True
+</code></pre>
+<pre><code class="language-python">from dictk.image import point_grid_plot
+
+point_grid_plot(
+    image=current_image,
+    points=found,
+    color="orange",
+    figsize=(6.4, 4.8),
+    path="simple_stretch_current.png",
+)
+</code></pre>
+<pre><code class="language-text">Saved: simple_stretch_current.png
+</code></pre>
+<figure>
+    <img src="getting_started/simple_stretch_current.png" alt="stretched current image astronaut0 with the 12 found points overlaid in orange, still labeled 00 through 11" />
+    <figcaption>The stretched current image, with all 12 found positions marked. Every found position matches its expected stretched position exactly.</figcaption>
+</figure>
+<p>Every found position matches the expected stretched position exactly.
+The stretch introduces no sub-pixel error at these 12 points. <a href="getting_started/./multi_point_motion.html">Multi-Point
+Motion</a> established this exact-integer guarantee
+for rigid translation. This page confirms it holds under a real
+deformation too.</p>
+<p>Twelve points, twelve independent correlations, whether the underlying
+motion is a rigid shift or a stretch:
+<a href="getting_started/./parallelization.html">Parallelization</a> picks up from here.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="image-processing"><a class="header" href="#image-processing">Image Processing</a></h1>
-<p><em>(placeholder — coming soon)</em></p>
+<h1 id="parallelization"><a class="header" href="#parallelization">Parallelization</a></h1>
+<p><a href="getting_started/./multi_point_motion.html#tracking-the-grid">Multi-Point Motion</a> just ran 12
+independent calls to
+<a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> — one
+per point, each doing its own FFT-based phase correlation — to verify
+every point's displacement. We anticipate the need to process a very
+large number of point-to-point correspondences to support large-scale
+DIC work — a real finite element mesh (see <a href="getting_started/./finite_element_method.html">Finite Element
+Method</a>) can easily have thousands-to-millions
+of nodes, not the 12 points in the simple grid above. Each point
+correspondence is independent of every other: locating point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> never
+reads or writes anything locating point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.854em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span></span></span></span> touches. That independence
+isn't just a convenient property to point out —
+<a href="getting_started/../api/dictk/grid.html#locate"><code>dictk.grid.locate</code></a> is already written to
+exploit it. Its entire body is a single map over <code>reference_points</code>, one
+call to <a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a>
+per point, accumulating no shared state between iterations:</p>
+<pre><code class="language-python">return [
+    translation.locate(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_point=reference_point,
+        search_center=search_center,
+        kernel_margin_width=kernel_margin_width,
+        kernel_margin_height=kernel_margin_height,
+        search_margin_width=search_margin_width,
+        search_margin_height=search_margin_height,
+    )
+    for reference_point, search_center in zip(reference_points, search_centers)
+]
+</code></pre>
+<p>Because every iteration is already independent, parallelizing it is a
+matter of swapping this list comprehension for a parallel map over the
+same per-point calls. It is not a redesign.
+<a href="getting_started/../api/dictk/grid.html#locate"><code>dictk.grid.locate</code></a> does exactly that
+today, behind two extra keyword-only parameters: <code>max_workers</code> and
+<code>executor</code>. Default <code>max_workers=None</code> stays sequential, the loop above,
+byte-identical to <code>locate</code>'s original behavior. A positive integer
+switches to a worker pool instead.</p>
+<p>Which pool, though, is not obvious. It needs its own explanation first.</p>
+<h2 id="threads-processes-and-the-gil"><a class="header" href="#threads-processes-and-the-gil">Threads, Processes, and the GIL</a></h2>
+<p>CPython has a <strong>Global Interpreter Lock (GIL)</strong>: only one thread can
+execute Python bytecode at a time, even on a machine with many cores. A
+plain Python <code>for</code> loop split across threads would not run any faster.
+Each thread would still wait its turn for the same lock.</p>
+<p>C extensions can release the GIL during their own C-level computation,
+though. NumPy and SciPy both do this for many operations. The FFT
+<code>dictk.translation.locate</code> actually runs is one of them —
+<code>skimage.registration.phase_cross_correlation</code> calls <code>scipy.fft.fftn</code>
+and <code>scipy.fft.ifftn</code> internally, not the Python-level fallback, and
+<code>scipy.fft</code> releases the GIL for the duration of its own C computation.
+So threads <em>can</em> run FFT correlations in true parallel. The GIL is not
+held the whole time.</p>
+<p>Whether that helps depends on scale. A tiny FFT finishes almost
+instantly. Most of the wall-clock time around it is Python-level
+overhead: function calls, object construction, array slicing. Releasing
+the GIL for a few microseconds does not buy much when the thread
+scheduling and GIL reacquisition around it cost microseconds too. A
+large FFT is different. Once the C computation itself dominates the
+call, the GIL-released fraction of wall-clock time dominates too, and
+threads start to pay off.</p>
+<h2 id="threads-vs-processes-two-different-costs"><a class="header" href="#threads-vs-processes-two-different-costs">Threads vs. Processes: Two Different Costs</a></h2>
+<p>A <code>ThreadPoolExecutor</code> shares the caller's own memory. No pickling, no
+process spawn. Cheap to start. But every task still pays a GIL
+scheduling cost, and that cost does not shrink as task count grows. Run
+one task or a million, each one pays it individually.</p>
+<p>A <code>ProcessPoolExecutor</code> is different. Each worker is a separate OS
+process, with its own interpreter and its own GIL. It gets true
+parallelism regardless of whether the target function releases the GIL
+at all. The cost moves elsewhere: data has to be pickled across the
+process boundary, and on macOS (which spawns fresh interpreters rather
+than forking) each worker re-imports NumPy, SciPy, and scikit-image
+from scratch before it can do any work. That cost is mostly fixed and
+paid once, when the pool starts.</p>
+<p>That is the real asymmetry: <strong>processes pay once, threads pay every
+time.</strong> More tasks amortize a process pool's fixed startup cost. More
+tasks do not shrink a thread pool's per-task cost. Which one wins
+depends on both how big each task is and how many tasks there are —
+not on either alone.</p>
+<h2 id="measuring-the-trade-space"><a class="header" href="#measuring-the-trade-space">Measuring the Trade Space</a></h2>
+<p>Rather than guess, measure.
+<a href="getting_started/parallelization.html#parallelization_benchpy"><code>parallelization_bench.py</code></a> (full source
+below) times sequential, threaded, and process-pool execution of
+<code>phase_cross_correlation</code> across three scenarios. Correlation size and
+point count are not independent in a real DIC problem — a
+million-point mesh only makes sense with a small subset per point — so
+this is three targeted scenarios, not one brute-force grid:</p>
+<ul>
+<li><strong><code>book_scale</code></strong>: this book's own kernel/search size (40 pixels),
+point count climbing from 100 to 1,000,000. Does point count alone
+ever create a crossover, at a size this small?</li>
+<li><strong><code>large_subset</code></strong>: only 16 points, correlation size climbing from
+200 to 2,000 pixels. Where does the threads crossover sit, as a
+function of size alone?</li>
+<li><strong><code>realistic_mesh</code></strong>: a closer match to an actual finite element
+mesh — moderate correlation size (100 or 200 pixels), point count
+climbing from 1,000 to 100,000.</li>
+</ul>
+<p>This sweep takes several minutes to run (the <code>book_scale</code> scenario's
+1,000,000-point case alone runs over a minute) — far too slow to
+re-run on every build the way this book's other figures do. Its results
+are measured once and committed alongside the script that produced
+them, not regenerated live. The table below still reads live from that
+committed data, so it always matches the file on disk:</p>
+<div class="table-wrapper"><table><thead><tr><th>Scenario</th><th>Size</th><th>Points</th><th>Sequential (s)</th><th>Threads (s)</th><th>Threads speedup</th><th>Processes (s)</th><th>Processes speedup</th></tr></thead><tbody>
+<tr><td>book_scale</td><td>40</td><td>100</td><td>0.00752</td><td>0.02057</td><td>0.366x</td><td>0.77663</td><td>0.01x</td></tr>
+<tr><td>book_scale</td><td>40</td><td>1000</td><td>0.07277</td><td>0.18621</td><td>0.391x</td><td>0.99653</td><td>0.073x</td></tr>
+<tr><td>book_scale</td><td>40</td><td>10000</td><td>0.70866</td><td>1.83165</td><td>0.387x</td><td>2.06538</td><td>0.343x</td></tr>
+<tr><td>book_scale</td><td>40</td><td>100000</td><td>7.16526</td><td>18.32857</td><td>0.391x</td><td>14.26206</td><td>0.502x</td></tr>
+<tr><td>book_scale</td><td>40</td><td>1000000</td><td>71.65412</td><td>169.90165</td><td>0.422x</td><td>116.62403</td><td>0.614x</td></tr>
+<tr><td>large_subset</td><td>200</td><td>16</td><td>0.01608</td><td>0.0087</td><td>1.847x</td><td>0.83688</td><td>0.019x</td></tr>
+<tr><td>large_subset</td><td>500</td><td>16</td><td>0.10876</td><td>0.02691</td><td>4.041x</td><td>0.82919</td><td>0.131x</td></tr>
+<tr><td>large_subset</td><td>1000</td><td>16</td><td>0.46973</td><td>0.10719</td><td>4.382x</td><td>0.99717</td><td>0.471x</td></tr>
+<tr><td>large_subset</td><td>2000</td><td>16</td><td>2.2572</td><td>0.50896</td><td>4.435x</td><td>2.85197</td><td>0.791x</td></tr>
+<tr><td>realistic_mesh</td><td>100</td><td>1000</td><td>0.26763</td><td>0.24035</td><td>1.114x</td><td>0.8058</td><td>0.332x</td></tr>
+<tr><td>realistic_mesh</td><td>100</td><td>10000</td><td>2.6885</td><td>2.45357</td><td>1.096x</td><td>2.13847</td><td>1.257x</td></tr>
+<tr><td>realistic_mesh</td><td>100</td><td>100000</td><td>26.81134</td><td>24.32667</td><td>1.102x</td><td>15.24042</td><td>1.759x</td></tr>
+<tr><td>realistic_mesh</td><td>200</td><td>1000</td><td>0.95522</td><td>0.34662</td><td>2.756x</td><td>1.02504</td><td>0.932x</td></tr>
+<tr><td>realistic_mesh</td><td>200</td><td>10000</td><td>9.59174</td><td>3.43856</td><td>2.789x</td><td>4.41874</td><td>2.171x</td></tr>
+<tr><td>realistic_mesh</td><td>200</td><td>100000</td><td>98.60379</td><td>31.72111</td><td>3.108x</td><td>36.23009</td><td>2.722x</td></tr>
+</tbody></table>
+</div><figure>
+    <img src="getting_started/parallelization_bench.png" alt="three panels: book_scale shows sequential always fastest from 100 to 1,000,000 points; large_subset shows threads reaching over 4x speedup as correlation size grows while processes never beat sequential at only 16 points; realistic_mesh shows both threads and processes beating sequential, with processes catching up to threads as point count grows" />
+    <figcaption>Speedup vs. sequential, measured once on a 10-core machine (macOS, <code>spawn</code> start method). Left: at this book's own 40-pixel scale, sequential wins at every point count tested, up to 1,000,000. Middle: at only 16 points, threads win decisively once correlations are large enough; processes never recover their fixed startup cost. Right: with enough points, both help, and processes close the gap on threads as point count grows.</figcaption>
+</figure>
+<p>Three findings, read directly off that data:</p>
+<ol>
+<li><strong>At this book's own scale, sequential always wins.</strong> 1,000,000
+points at 40 pixels still favors sequential (71.7s) over both
+threads (169.9s) and processes (116.6s). Point count alone never
+creates a crossover at this size — not at 100 points, not at a
+million.</li>
+<li><strong>Few points, large correlations: threads win, processes cannot
+recover.</strong> At 2,000 pixels with only 16 points, threads reach
+4.4x. Processes reach only 0.79x — still slower than sequential.
+Sixteen tasks is not enough to amortize a process pool's fixed
+startup cost, no matter how large each individual task is.</li>
+<li><strong>Many points, moderate correlations: processes catch up, and can
+pass threads.</strong> At 100 pixels, processes start behind threads
+(0.33x vs. 1.11x at 1,000 points) but overtake them by 100,000
+points (1.76x vs. 1.10x). More tasks keep amortizing a process
+pool's fixed cost long after a thread pool's per-task cost has
+stopped improving.</li>
+</ol>
+<h2 id="using-max_workers"><a class="header" href="#using-max_workers">Using <code>max_workers</code></a></h2>
+<p><code>dictk.grid.locate</code> accepts <code>max_workers</code> and <code>executor</code> directly now,
+no sketch required. Run it against the same 12-point grid <a href="getting_started/./multi_point_motion.html#tracking-the-grid">Multi-Point
+Motion</a> already tracked,
+sequential and concurrent side by side:</p>
+<pre><code class="language-python">from dictk.grid import Executor, locate
+
+sequential = locate(
+    reference_image=reference_image,
+    current_image=current_image,
+    reference_points=points,
+    kernel_margin_width=20,
+    kernel_margin_height=20,
+    search_margin_width=48,
+    search_margin_height=52,
+)
+threaded = locate(
+    reference_image=reference_image,
+    current_image=current_image,
+    reference_points=points,
+    kernel_margin_width=20,
+    kernel_margin_height=20,
+    search_margin_width=48,
+    search_margin_height=52,
+    max_workers=4,
+    executor=Executor.THREAD,
+)
+print(f"results match: {sequential == threaded}")
+</code></pre>
+<pre><code class="language-text">results match: True
+</code></pre>
+<p>The results match, as they must — <code>max_workers</code> changes how the 12
+points are tracked, not what answer each one finds. It does not change
+the runtime in any way worth showing here, either. Twelve points at 40
+pixels is deep in the <code>book_scale</code> regime above: sequential wins.
+Demonstrating correctness at this scale, not speed, is the honest thing
+to show.</p>
+<h2 id="choosing-an-executor"><a class="header" href="#choosing-an-executor">Choosing an Executor</a></h2>
+<p>Given the measured trade space, not a guess:</p>
+<ul>
+<li><strong>This book's own examples (small kernels, small search areas):
+don't parallelize at all.</strong> Leave <code>max_workers=None</code>. Sequential
+wins here regardless of point count.</li>
+<li><strong>Few points, each with a large correlation</strong>: <code>Executor.THREAD</code>.
+Processes cannot recover their fixed cost across only a handful of
+tasks, no matter how large each one is.</li>
+<li><strong>Many points, each with a moderate-to-large correlation</strong> (the
+closest match to a real finite element mesh): either pool helps;
+<code>Executor.PROCESS</code> closes the gap on threads as point count grows,
+and can pass it.</li>
+<li><strong>Unsure which regime a problem falls in?</strong> <code>Executor.THREAD</code> is
+<code>locate</code>'s default for exactly this reason. It is never
+catastrophically worse than sequential, unlike a process pool at low
+point counts, even though it is not always the fastest option
+available.</li>
+</ul>
+<h3 id="parallelization_benchpy"><a class="header" href="#parallelization_benchpy"><code>parallelization_bench.py</code></a></h3>
+<pre><code class="language-python">"""Benchmark: sequential vs. threads vs. processes for
+skimage.registration.phase_cross_correlation, at varying correlation
+sizes and call counts.
+
+Not part of the dictk package -- a standalone, one-time measurement
+script, matching the convention simple_shear.py already sets. Its
+output (parallelization_bench.csv, parallelization_bench.png) is
+committed alongside it rather than regenerated on every book build: the
+full sweep takes several minutes (the 1,000,000-call case alone runs
+over a minute), far too slow for the live cmdrun re-execution every
+other figure in this book uses. Parallelization.md prints this script's
+full source inline (see its own "parallelization_bench.py" section) so
+the numbers stay checkable even though they are not live.
+
+Must be a real module, not `python3 -c` -- ProcessPoolExecutor needs a
+real, importable, top-level function to hand to spawned workers, the
+same constraint dictk.grid._locate_worker exists for.
+
+Re-run with: python3 parallelization_bench.py
+"""
+
+import csv
+import os
+import time
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+
+import matplotlib.pyplot as plt
+import numpy as np
+from skimage.registration import phase_cross_correlation
+
+WORKERS = os.cpu_count()
+
+CSV_PATH = "parallelization_bench.csv"
+FIGURE_PATH = "parallelization_bench.png"
+
+# Point count and correlation size are not independent in a real DIC
+# problem -- a million-point mesh only makes sense with small subsets
+# per point. Three scenarios instead of one brute-force grid, each
+# answering a different question:
+SCENARIOS = {
+    # This book's own teaching scale (kernel/search sizes throughout
+    # Single/Multi-Point Motion). Does point count alone ever create a
+    # crossover, at a size this small?
+    "book_scale": [(40, n) for n in [100, 1_000, 10_000, 100_000, 1_000_000]],
+    # Few points, growing correlation size. Where does the threads
+    # crossover actually sit, as a function of size alone?
+    "large_subset": [(size, 16) for size in [200, 500, 1000, 2000]],
+    # A more realistic finite element mesh: moderate subset size,
+    # climbing point count. Does the processes-vs-threads balance shift
+    # as point count grows?
+    "realistic_mesh": [(100, n) for n in [1_000, 10_000, 100_000]]
+    + [(200, n) for n in [1_000, 10_000, 100_000]],
+}
+
+
+def one(args: tuple[np.ndarray, np.ndarray]):
+    """One correlation. Module-level and single-positional-argument on
+    purpose -- see the module docstring."""
+    kernel, search = args
+    return phase_cross_correlation(kernel, search, normalization="phase")
+
+
+def make_args(size: int, n_calls: int, seed: int = 42):
+    """`n_calls` copies of the same random kernel/search pair at `size`.
+
+    The same pair repeated, not `n_calls` distinct random pairs: this
+    benchmark measures call overhead, not correlation accuracy, so
+    identical inputs keep every call's own work identical too."""
+    rng = np.random.default_rng(seed)
+    kernel = rng.random((size, size))
+    search = rng.random((size, size))
+    return [(kernel, search)] * n_calls
+
+
+def time_sequential(args) -&gt; float:
+    t0 = time.perf_counter()
+    for x in args:
+        one(x)
+    return time.perf_counter() - t0
+
+
+def time_threads(args) -&gt; float:
+    t0 = time.perf_counter()
+    with ThreadPoolExecutor(max_workers=WORKERS) as pool:
+        list(pool.map(one, args))
+    return time.perf_counter() - t0
+
+
+def time_processes(args) -&gt; float:
+    t0 = time.perf_counter()
+    with ProcessPoolExecutor(max_workers=WORKERS) as pool:
+        list(pool.map(one, args))
+    return time.perf_counter() - t0
+
+
+def run_case(scenario: str, size: int, n_calls: int, writer: csv.DictWriter) -&gt; None:
+    args = make_args(size, n_calls)
+
+    sequential_s = time_sequential(args)
+    threads_s = time_threads(args)
+    processes_s = time_processes(args)
+
+    writer.writerow(
+        {
+            "scenario": scenario,
+            "size": size,
+            "n_calls": n_calls,
+            "workers": WORKERS,
+            "sequential_s": round(sequential_s, 5),
+            "threads_s": round(threads_s, 5),
+            "processes_s": round(processes_s, 5),
+            "threads_speedup": round(sequential_s / threads_s, 3),
+            "processes_speedup": round(sequential_s / processes_s, 3),
+        }
+    )
+    print(
+        f"[{scenario}] size={size:5d} n={n_calls:8d}  "
+        f"sequential={sequential_s:8.3f}s  "
+        f"threads={threads_s:8.3f}s (x{sequential_s / threads_s:5.2f})  "
+        f"processes={processes_s:8.3f}s (x{sequential_s / processes_s:5.2f})",
+        flush=True,
+    )
+
+
+def run_sweep() -&gt; None:
+    fieldnames = [
+        "scenario",
+        "size",
+        "n_calls",
+        "workers",
+        "sequential_s",
+        "threads_s",
+        "processes_s",
+        "threads_speedup",
+        "processes_speedup",
+    ]
+    with open(CSV_PATH, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        for scenario, cases in SCENARIOS.items():
+            for size, n_calls in cases:
+                run_case(scenario, size, n_calls, writer)
+                f.flush()
+    print(f"\nWrote {CSV_PATH}")
+
+
+def plot_summary() -&gt; None:
+    with open(CSV_PATH) as f:
+        rows = list(csv.DictReader(f))
+
+    with plt.rc_context({"font.family": "serif", "mathtext.fontset": "cm"}):
+        fig, axes = plt.subplots(1, 3, figsize=(15, 4.5), constrained_layout=True)
+
+        panels = [
+            (axes[0], "book_scale", "n_calls", "point count (size=40 fixed)", "log"),
+            (
+                axes[1],
+                "large_subset",
+                "size",
+                "correlation size (n=16 fixed)",
+                "linear",
+            ),
+            (
+                axes[2],
+                "realistic_mesh",
+                "n_calls",
+                "point count (size=100 or 200)",
+                "log",
+            ),
+        ]
+        for ax, scenario, xkey, xlabel, xscale in panels:
+            data = [r for r in rows if r["scenario"] == scenario]
+            if scenario == "realistic_mesh":
+                for size, marker in [("100", "o"), ("200", "s")]:
+                    sub = [r for r in data if r["size"] == size]
+                    xs = [int(r[xkey]) for r in sub]
+                    ax.plot(
+                        xs,
+                        [float(r["threads_speedup"]) for r in sub],
+                        marker=marker,
+                        color="tab:blue",
+                        label=f"threads (size={size})",
+                    )
+                    ax.plot(
+                        xs,
+                        [float(r["processes_speedup"]) for r in sub],
+                        marker=marker,
+                        color="tab:orange",
+                        label=f"processes (size={size})",
+                    )
+            else:
+                xs = [int(r[xkey]) for r in data]
+                ax.plot(
+                    xs,
+                    [float(r["threads_speedup"]) for r in data],
+                    marker="o",
+                    color="tab:blue",
+                    label="threads",
+                )
+                ax.plot(
+                    xs,
+                    [float(r["processes_speedup"]) for r in data],
+                    marker="o",
+                    color="tab:orange",
+                    label="processes",
+                )
+            ax.axhline(
+                1.0,
+                color="black",
+                linestyle="--",
+                linewidth=1,
+                label="sequential (baseline)",
+            )
+            ax.set_xscale(xscale)
+            ax.set_xlabel(xlabel)
+            ax.set_ylabel("speedup vs sequential")
+            ax.set_title(scenario)
+            ax.legend(fontsize=7)
+
+        fig.savefig(FIGURE_PATH, dpi=300)
+        plt.close(fig)
+    print(f"Wrote {FIGURE_PATH}")
+
+
+if __name__ == "__main__":
+    run_sweep()
+    plot_summary()
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="contributing-to-dictk"><a class="header" href="#contributing-to-dictk">Contributing to <code>dictk</code></a></h1>
 <p><code>dictk</code> is developed on <a href="https://github.com/hovey/dictk">GitHub</a> using

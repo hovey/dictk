@@ -212,92 +212,413 @@ per point, accumulating no shared state between iterations:</p>
 ]
 </code></pre>
 <p>Because every iteration is already independent, parallelizing it is a
-matter of swapping this list comprehension for a parallel map over the same
-per-point calls — not a redesign. The standard library's
-<code>concurrent.futures.ProcessPoolExecutor</code> can drive that map today, calling
-only <code>dictk</code>'s existing public API:</p>
-<pre><code class="language-python">from concurrent.futures import ProcessPoolExecutor
-from functools import partial
-
-def _locate_one(
-    args, *, reference_image, current_image,
-    kernel_margin_width, kernel_margin_height,
-    search_margin_width, search_margin_height,
-):
-    reference_point, search_center = args
-    return translation.locate(
-        reference_image=reference_image,
-        current_image=current_image,
-        reference_point=reference_point,
-        search_center=search_center,
-        kernel_margin_width=kernel_margin_width,
-        kernel_margin_height=kernel_margin_height,
-        search_margin_width=search_margin_width,
-        search_margin_height=search_margin_height,
-    )
-
-def locate_grid_parallel(
-    *,
-    reference_image,
-    current_image,
-    reference_points,
-    search_centers,
-    kernel_margin_width,
-    kernel_margin_height,
-    search_margin_width,
-    search_margin_height,
-):
-    worker = partial(
-        _locate_one,
-        reference_image=reference_image,
-        current_image=current_image,
-        kernel_margin_width=kernel_margin_width,
-        kernel_margin_height=kernel_margin_height,
-        search_margin_width=search_margin_width,
-        search_margin_height=search_margin_height,
-    )
-    with ProcessPoolExecutor() as executor:
-        return list(executor.map(worker, zip(reference_points, search_centers)))
-</code></pre>
-<p><code>_locate_one</code> takes its point pair as a single positional argument, not
-<code>dictk</code>'s usual keyword-only style: <code>ProcessPoolExecutor.map</code> (like the
-built-in <code>map</code>) always calls its target positionally, one item per
-iterable, so a keyword-only signature isn't an option for the function
-being mapped over. This actual snippet runs correctly against <code>astronaut0</code>
-and recovers the same displacements as the sequential version <a href="./multi_point_motion.html#tracking-the-grid">Multi-Point
-Motion</a> already ran — it just
-isn't wired up as a real <code>dictk.grid</code> function, and can't be run live on
-this page as a <code>cmdrun</code> figure the way the others are: <code>ProcessPoolExecutor</code>
-spawns worker processes that each re-import the target callable by module
-path, which rules out a worker function defined inline in a one-off
-script.</p>
-<p>Two practical caveats before reaching for this:</p>
+matter of swapping this list comprehension for a parallel map over the
+same per-point calls. It is not a redesign.
+<a href="../api/dictk/grid.html#locate"><code>dictk.grid.locate</code></a> does exactly that
+today, behind two extra keyword-only parameters: <code>max_workers</code> and
+<code>executor</code>. Default <code>max_workers=None</code> stays sequential, the loop above,
+byte-identical to <code>locate</code>'s original behavior. A positive integer
+switches to a worker pool instead.</p>
+<p>Which pool, though, is not obvious. It needs its own explanation first.</p>
+<h2 id="threads-processes-and-the-gil"><a class="header" href="#threads-processes-and-the-gil">Threads, Processes, and the GIL</a></h2>
+<p>CPython has a <strong>Global Interpreter Lock (GIL)</strong>: only one thread can
+execute Python bytecode at a time, even on a machine with many cores. A
+plain Python <code>for</code> loop split across threads would not run any faster.
+Each thread would still wait its turn for the same lock.</p>
+<p>C extensions can release the GIL during their own C-level computation,
+though. NumPy and SciPy both do this for many operations. The FFT
+<code>dictk.translation.locate</code> actually runs is one of them —
+<code>skimage.registration.phase_cross_correlation</code> calls <code>scipy.fft.fftn</code>
+and <code>scipy.fft.ifftn</code> internally, not the Python-level fallback, and
+<code>scipy.fft</code> releases the GIL for the duration of its own C computation.
+So threads <em>can</em> run FFT correlations in true parallel. The GIL is not
+held the whole time.</p>
+<p>Whether that helps depends on scale. A tiny FFT finishes almost
+instantly. Most of the wall-clock time around it is Python-level
+overhead: function calls, object construction, array slicing. Releasing
+the GIL for a few microseconds does not buy much when the thread
+scheduling and GIL reacquisition around it cost microseconds too. A
+large FFT is different. Once the C computation itself dominates the
+call, the GIL-released fraction of wall-clock time dominates too, and
+threads start to pay off.</p>
+<h2 id="threads-vs-processes-two-different-costs"><a class="header" href="#threads-vs-processes-two-different-costs">Threads vs. Processes: Two Different Costs</a></h2>
+<p>A <code>ThreadPoolExecutor</code> shares the caller's own memory. No pickling, no
+process spawn. Cheap to start. But every task still pays a GIL
+scheduling cost, and that cost does not shrink as task count grows. Run
+one task or a million, each one pays it individually.</p>
+<p>A <code>ProcessPoolExecutor</code> is different. Each worker is a separate OS
+process, with its own interpreter and its own GIL. It gets true
+parallelism regardless of whether the target function releases the GIL
+at all. The cost moves elsewhere: data has to be pickled across the
+process boundary, and on macOS (which spawns fresh interpreters rather
+than forking) each worker re-imports NumPy, SciPy, and scikit-image
+from scratch before it can do any work. That cost is mostly fixed and
+paid once, when the pool starts.</p>
+<p>That is the real asymmetry: <strong>processes pay once, threads pay every
+time.</strong> More tasks amortize a process pool's fixed startup cost. More
+tasks do not shrink a thread pool's per-task cost. Which one wins
+depends on both how big each task is and how many tasks there are —
+not on either alone.</p>
+<h2 id="measuring-the-trade-space"><a class="header" href="#measuring-the-trade-space">Measuring the Trade Space</a></h2>
+<p>Rather than guess, measure.
+<a href="#parallelization_benchpy"><code>parallelization_bench.py</code></a> (full source
+below) times sequential, threaded, and process-pool execution of
+<code>phase_cross_correlation</code> across three scenarios. Correlation size and
+point count are not independent in a real DIC problem — a
+million-point mesh only makes sense with a small subset per point — so
+this is three targeted scenarios, not one brute-force grid:</p>
 <ul>
-<li><strong>Threads won't help.</strong> The obvious first instinct is a
-<code>ThreadPoolExecutor</code> instead, since it avoids process-spawn and
-pickling overhead entirely — but <code>translation.locate</code>'s search-area
-correlation is dominated by NumPy/SciPy array operations that mostly
-hold the GIL for the small kernel and search-area sizes this guide uses,
-so threads mostly just add scheduling overhead without real concurrency.
-A process pool sidesteps the GIL entirely, at the cost of that
-spawn/pickling overhead per task.</li>
-<li><strong>Overhead has to be worth it.</strong> Spawning a worker pool and pickling
-image arrays across process boundaries isn't free, and for a handful of
-points (like the 12-point grid above), that overhead can easily exceed
-the time saved. It starts paying off once the point count is large
-enough. But what is <em>large enough</em>?  That question will be answered in turn
-in the analysis that follows.</li>
+<li><strong><code>book_scale</code></strong>: this book's own kernel/search size (40 pixels),
+point count climbing from 100 to 1,000,000. Does point count alone
+ever create a crossover, at a size this small?</li>
+<li><strong><code>large_subset</code></strong>: only 16 points, correlation size climbing from
+200 to 2,000 pixels. Where does the threads crossover sit, as a
+function of size alone?</li>
+<li><strong><code>realistic_mesh</code></strong>: a closer match to an actual finite element
+mesh — moderate correlation size (100 or 200 pixels), point count
+climbing from 1,000 to 100,000.</li>
 </ul>
+<p>This sweep takes several minutes to run (the <code>book_scale</code> scenario's
+1,000,000-point case alone runs over a minute) — far too slow to
+re-run on every build the way this book's other figures do. Its results
+are measured once and committed alongside the script that produced
+them, not regenerated live. The table below still reads live from that
+committed data, so it always matches the file on disk:</p>
+<div class="table-wrapper"><table><thead><tr><th>Scenario</th><th>Size</th><th>Points</th><th>Sequential (s)</th><th>Threads (s)</th><th>Threads speedup</th><th>Processes (s)</th><th>Processes speedup</th></tr></thead><tbody>
+<tr><td>book_scale</td><td>40</td><td>100</td><td>0.00752</td><td>0.02057</td><td>0.366x</td><td>0.77663</td><td>0.01x</td></tr>
+<tr><td>book_scale</td><td>40</td><td>1000</td><td>0.07277</td><td>0.18621</td><td>0.391x</td><td>0.99653</td><td>0.073x</td></tr>
+<tr><td>book_scale</td><td>40</td><td>10000</td><td>0.70866</td><td>1.83165</td><td>0.387x</td><td>2.06538</td><td>0.343x</td></tr>
+<tr><td>book_scale</td><td>40</td><td>100000</td><td>7.16526</td><td>18.32857</td><td>0.391x</td><td>14.26206</td><td>0.502x</td></tr>
+<tr><td>book_scale</td><td>40</td><td>1000000</td><td>71.65412</td><td>169.90165</td><td>0.422x</td><td>116.62403</td><td>0.614x</td></tr>
+<tr><td>large_subset</td><td>200</td><td>16</td><td>0.01608</td><td>0.0087</td><td>1.847x</td><td>0.83688</td><td>0.019x</td></tr>
+<tr><td>large_subset</td><td>500</td><td>16</td><td>0.10876</td><td>0.02691</td><td>4.041x</td><td>0.82919</td><td>0.131x</td></tr>
+<tr><td>large_subset</td><td>1000</td><td>16</td><td>0.46973</td><td>0.10719</td><td>4.382x</td><td>0.99717</td><td>0.471x</td></tr>
+<tr><td>large_subset</td><td>2000</td><td>16</td><td>2.2572</td><td>0.50896</td><td>4.435x</td><td>2.85197</td><td>0.791x</td></tr>
+<tr><td>realistic_mesh</td><td>100</td><td>1000</td><td>0.26763</td><td>0.24035</td><td>1.114x</td><td>0.8058</td><td>0.332x</td></tr>
+<tr><td>realistic_mesh</td><td>100</td><td>10000</td><td>2.6885</td><td>2.45357</td><td>1.096x</td><td>2.13847</td><td>1.257x</td></tr>
+<tr><td>realistic_mesh</td><td>100</td><td>100000</td><td>26.81134</td><td>24.32667</td><td>1.102x</td><td>15.24042</td><td>1.759x</td></tr>
+<tr><td>realistic_mesh</td><td>200</td><td>1000</td><td>0.95522</td><td>0.34662</td><td>2.756x</td><td>1.02504</td><td>0.932x</td></tr>
+<tr><td>realistic_mesh</td><td>200</td><td>10000</td><td>9.59174</td><td>3.43856</td><td>2.789x</td><td>4.41874</td><td>2.171x</td></tr>
+<tr><td>realistic_mesh</td><td>200</td><td>100000</td><td>98.60379</td><td>31.72111</td><td>3.108x</td><td>36.23009</td><td>2.722x</td></tr>
+</tbody></table>
+</div><figure>
+    <img src="parallelization_bench.png" alt="three panels: book_scale shows sequential always fastest from 100 to 1,000,000 points; large_subset shows threads reaching over 4x speedup as correlation size grows while processes never beat sequential at only 16 points; realistic_mesh shows both threads and processes beating sequential, with processes catching up to threads as point count grows" />
+    <figcaption>Speedup vs. sequential, measured once on a 10-core machine (macOS, <code>spawn</code> start method). Left: at this book's own 40-pixel scale, sequential wins at every point count tested, up to 1,000,000. Middle: at only 16 points, threads win decisively once correlations are large enough; processes never recover their fixed startup cost. Right: with enough points, both help, and processes close the gap on threads as point count grows.</figcaption>
+</figure>
+<p>Three findings, read directly off that data:</p>
+<ol>
+<li><strong>At this book's own scale, sequential always wins.</strong> 1,000,000
+points at 40 pixels still favors sequential (71.7s) over both
+threads (169.9s) and processes (116.6s). Point count alone never
+creates a crossover at this size — not at 100 points, not at a
+million.</li>
+<li><strong>Few points, large correlations: threads win, processes cannot
+recover.</strong> At 2,000 pixels with only 16 points, threads reach
+4.4x. Processes reach only 0.79x — still slower than sequential.
+Sixteen tasks is not enough to amortize a process pool's fixed
+startup cost, no matter how large each individual task is.</li>
+<li><strong>Many points, moderate correlations: processes catch up, and can
+pass threads.</strong> At 100 pixels, processes start behind threads
+(0.33x vs. 1.11x at 1,000 points) but overtake them by 100,000
+points (1.76x vs. 1.10x). More tasks keep amortizing a process
+pool's fixed cost long after a thread pool's per-task cost has
+stopped improving.</li>
+</ol>
+<h2 id="using-max_workers"><a class="header" href="#using-max_workers">Using <code>max_workers</code></a></h2>
+<p><code>dictk.grid.locate</code> accepts <code>max_workers</code> and <code>executor</code> directly now,
+no sketch required. Run it against the same 12-point grid <a href="./multi_point_motion.html#tracking-the-grid">Multi-Point
+Motion</a> already tracked,
+sequential and concurrent side by side:</p>
+<pre><code class="language-python">from dictk.grid import Executor, locate
+
+sequential = locate(
+    reference_image=reference_image,
+    current_image=current_image,
+    reference_points=points,
+    kernel_margin_width=20,
+    kernel_margin_height=20,
+    search_margin_width=48,
+    search_margin_height=52,
+)
+threaded = locate(
+    reference_image=reference_image,
+    current_image=current_image,
+    reference_points=points,
+    kernel_margin_width=20,
+    kernel_margin_height=20,
+    search_margin_width=48,
+    search_margin_height=52,
+    max_workers=4,
+    executor=Executor.THREAD,
+)
+print(f"results match: {sequential == threaded}")
+</code></pre>
+<pre><code class="language-text">results match: True
+</code></pre>
+<p>The results match, as they must — <code>max_workers</code> changes how the 12
+points are tracked, not what answer each one finds. It does not change
+the runtime in any way worth showing here, either. Twelve points at 40
+pixels is deep in the <code>book_scale</code> regime above: sequential wins.
+Demonstrating correctness at this scale, not speed, is the honest thing
+to show.</p>
+<h2 id="choosing-an-executor"><a class="header" href="#choosing-an-executor">Choosing an Executor</a></h2>
+<p>Given the measured trade space, not a guess:</p>
+<ul>
+<li><strong>This book's own examples (small kernels, small search areas):
+don't parallelize at all.</strong> Leave <code>max_workers=None</code>. Sequential
+wins here regardless of point count.</li>
+<li><strong>Few points, each with a large correlation</strong>: <code>Executor.THREAD</code>.
+Processes cannot recover their fixed cost across only a handful of
+tasks, no matter how large each one is.</li>
+<li><strong>Many points, each with a moderate-to-large correlation</strong> (the
+closest match to a real finite element mesh): either pool helps;
+<code>Executor.PROCESS</code> closes the gap on threads as point count grows,
+and can pass it.</li>
+<li><strong>Unsure which regime a problem falls in?</strong> <code>Executor.THREAD</code> is
+<code>locate</code>'s default for exactly this reason. It is never
+catastrophically worse than sequential, unlike a process pool at low
+point counts, even though it is not always the fastest option
+available.</li>
+</ul>
+<h3 id="parallelization_benchpy"><a class="header" href="#parallelization_benchpy"><code>parallelization_bench.py</code></a></h3>
+<pre><code class="language-python">"""Benchmark: sequential vs. threads vs. processes for
+skimage.registration.phase_cross_correlation, at varying correlation
+sizes and call counts.
+
+Not part of the dictk package -- a standalone, one-time measurement
+script, matching the convention simple_shear.py already sets. Its
+output (parallelization_bench.csv, parallelization_bench.png) is
+committed alongside it rather than regenerated on every book build: the
+full sweep takes several minutes (the 1,000,000-call case alone runs
+over a minute), far too slow for the live cmdrun re-execution every
+other figure in this book uses. Parallelization.md prints this script's
+full source inline (see its own "parallelization_bench.py" section) so
+the numbers stay checkable even though they are not live.
+
+Must be a real module, not `python3 -c` -- ProcessPoolExecutor needs a
+real, importable, top-level function to hand to spawned workers, the
+same constraint dictk.grid._locate_worker exists for.
+
+Re-run with: python3 parallelization_bench.py
+"""
+
+import csv
+import os
+import time
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+
+import matplotlib.pyplot as plt
+import numpy as np
+from skimage.registration import phase_cross_correlation
+
+WORKERS = os.cpu_count()
+
+CSV_PATH = "parallelization_bench.csv"
+FIGURE_PATH = "parallelization_bench.png"
+
+# Point count and correlation size are not independent in a real DIC
+# problem -- a million-point mesh only makes sense with small subsets
+# per point. Three scenarios instead of one brute-force grid, each
+# answering a different question:
+SCENARIOS = {
+    # This book's own teaching scale (kernel/search sizes throughout
+    # Single/Multi-Point Motion). Does point count alone ever create a
+    # crossover, at a size this small?
+    "book_scale": [(40, n) for n in [100, 1_000, 10_000, 100_000, 1_000_000]],
+    # Few points, growing correlation size. Where does the threads
+    # crossover actually sit, as a function of size alone?
+    "large_subset": [(size, 16) for size in [200, 500, 1000, 2000]],
+    # A more realistic finite element mesh: moderate subset size,
+    # climbing point count. Does the processes-vs-threads balance shift
+    # as point count grows?
+    "realistic_mesh": [(100, n) for n in [1_000, 10_000, 100_000]]
+    + [(200, n) for n in [1_000, 10_000, 100_000]],
+}
+
+
+def one(args: tuple[np.ndarray, np.ndarray]):
+    """One correlation. Module-level and single-positional-argument on
+    purpose -- see the module docstring."""
+    kernel, search = args
+    return phase_cross_correlation(kernel, search, normalization="phase")
+
+
+def make_args(size: int, n_calls: int, seed: int = 42):
+    """`n_calls` copies of the same random kernel/search pair at `size`.
+
+    The same pair repeated, not `n_calls` distinct random pairs: this
+    benchmark measures call overhead, not correlation accuracy, so
+    identical inputs keep every call's own work identical too."""
+    rng = np.random.default_rng(seed)
+    kernel = rng.random((size, size))
+    search = rng.random((size, size))
+    return [(kernel, search)] * n_calls
+
+
+def time_sequential(args) -&gt; float:
+    t0 = time.perf_counter()
+    for x in args:
+        one(x)
+    return time.perf_counter() - t0
+
+
+def time_threads(args) -&gt; float:
+    t0 = time.perf_counter()
+    with ThreadPoolExecutor(max_workers=WORKERS) as pool:
+        list(pool.map(one, args))
+    return time.perf_counter() - t0
+
+
+def time_processes(args) -&gt; float:
+    t0 = time.perf_counter()
+    with ProcessPoolExecutor(max_workers=WORKERS) as pool:
+        list(pool.map(one, args))
+    return time.perf_counter() - t0
+
+
+def run_case(scenario: str, size: int, n_calls: int, writer: csv.DictWriter) -&gt; None:
+    args = make_args(size, n_calls)
+
+    sequential_s = time_sequential(args)
+    threads_s = time_threads(args)
+    processes_s = time_processes(args)
+
+    writer.writerow(
+        {
+            "scenario": scenario,
+            "size": size,
+            "n_calls": n_calls,
+            "workers": WORKERS,
+            "sequential_s": round(sequential_s, 5),
+            "threads_s": round(threads_s, 5),
+            "processes_s": round(processes_s, 5),
+            "threads_speedup": round(sequential_s / threads_s, 3),
+            "processes_speedup": round(sequential_s / processes_s, 3),
+        }
+    )
+    print(
+        f"[{scenario}] size={size:5d} n={n_calls:8d}  "
+        f"sequential={sequential_s:8.3f}s  "
+        f"threads={threads_s:8.3f}s (x{sequential_s / threads_s:5.2f})  "
+        f"processes={processes_s:8.3f}s (x{sequential_s / processes_s:5.2f})",
+        flush=True,
+    )
+
+
+def run_sweep() -&gt; None:
+    fieldnames = [
+        "scenario",
+        "size",
+        "n_calls",
+        "workers",
+        "sequential_s",
+        "threads_s",
+        "processes_s",
+        "threads_speedup",
+        "processes_speedup",
+    ]
+    with open(CSV_PATH, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        for scenario, cases in SCENARIOS.items():
+            for size, n_calls in cases:
+                run_case(scenario, size, n_calls, writer)
+                f.flush()
+    print(f"\nWrote {CSV_PATH}")
+
+
+def plot_summary() -&gt; None:
+    with open(CSV_PATH) as f:
+        rows = list(csv.DictReader(f))
+
+    with plt.rc_context({"font.family": "serif", "mathtext.fontset": "cm"}):
+        fig, axes = plt.subplots(1, 3, figsize=(15, 4.5), constrained_layout=True)
+
+        panels = [
+            (axes[0], "book_scale", "n_calls", "point count (size=40 fixed)", "log"),
+            (
+                axes[1],
+                "large_subset",
+                "size",
+                "correlation size (n=16 fixed)",
+                "linear",
+            ),
+            (
+                axes[2],
+                "realistic_mesh",
+                "n_calls",
+                "point count (size=100 or 200)",
+                "log",
+            ),
+        ]
+        for ax, scenario, xkey, xlabel, xscale in panels:
+            data = [r for r in rows if r["scenario"] == scenario]
+            if scenario == "realistic_mesh":
+                for size, marker in [("100", "o"), ("200", "s")]:
+                    sub = [r for r in data if r["size"] == size]
+                    xs = [int(r[xkey]) for r in sub]
+                    ax.plot(
+                        xs,
+                        [float(r["threads_speedup"]) for r in sub],
+                        marker=marker,
+                        color="tab:blue",
+                        label=f"threads (size={size})",
+                    )
+                    ax.plot(
+                        xs,
+                        [float(r["processes_speedup"]) for r in sub],
+                        marker=marker,
+                        color="tab:orange",
+                        label=f"processes (size={size})",
+                    )
+            else:
+                xs = [int(r[xkey]) for r in data]
+                ax.plot(
+                    xs,
+                    [float(r["threads_speedup"]) for r in data],
+                    marker="o",
+                    color="tab:blue",
+                    label="threads",
+                )
+                ax.plot(
+                    xs,
+                    [float(r["processes_speedup"]) for r in data],
+                    marker="o",
+                    color="tab:orange",
+                    label="processes",
+                )
+            ax.axhline(
+                1.0,
+                color="black",
+                linestyle="--",
+                linewidth=1,
+                label="sequential (baseline)",
+            )
+            ax.set_xscale(xscale)
+            ax.set_xlabel(xlabel)
+            ax.set_ylabel("speedup vs sequential")
+            ax.set_title(scenario)
+            ax.legend(fontsize=7)
+
+        fig.savefig(FIGURE_PATH, dpi=300)
+        plt.close(fig)
+    print(f"Wrote {FIGURE_PATH}")
+
+
+if __name__ == "__main__":
+    run_sweep()
+    plot_summary()
+</code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../getting_started/multi_point_motion.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../getting_started/simple_stretch.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../getting_started/simple_stretch.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../contributing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -307,11 +628,11 @@ in the analysis that follows.</li>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../getting_started/multi_point_motion.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../getting_started/simple_stretch.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../getting_started/simple_stretch.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../contributing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

@@ -256,18 +256,107 @@ percentages that survive both checks, <strong>2% is the smallest</strong> — th
 aggressive stretch that still keeps every point's ground-truth position an
 exact pixel, with <code>factor_x = 1.02</code> giving new <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> values of 51, 102, and
 153.</p>
-<p><em>(remaining sections — applying the stretch to <code>astronaut0</code>, and verifying
-<code>dictk.grid.locate</code> recovers these exact positions — coming soon)</em></p>
+<h2 id="applying-the-stretch"><a class="header" href="#applying-the-stretch">Applying the Stretch</a></h2>
+<p>Reuse <code>points</code> and <code>reference_image</code> from <a href="./multi_point_motion.html#point-grid">Point
+Grid</a>.
+<a href="../api/dictk/image.html#stretch"><code>dictk.image.stretch</code></a> builds <code>current_image</code>:</p>
+<pre><code class="language-python">from dictk.image import read, stretch, PixelCoordinate
+
+reference_image = read(path="astronaut0.png")
+factor_x = 1.02
+current_image = stretch(arr=reference_image, factor_x=factor_x)
+</code></pre>
+<p><code>factor_y</code> defaults to <code>1.0</code>. Every point's <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> stays fixed. Only <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span>
+changes, and by a different amount for each point:</p>
+<pre><code class="language-python">expected = [
+    PixelCoordinate(x=int(point.x * factor_x), y=point.y)
+    for point in points
+]
+</code></pre>
+<pre><code class="language-text">| Point | expected x | expected y |
+|---|---|---|
+| 00 | 51 | 50 |
+| 01 | 102 | 50 |
+| 02 | 153 | 50 |
+| 03 | 51 | 105 |
+| 04 | 102 | 105 |
+| 05 | 153 | 105 |
+| 06 | 51 | 160 |
+| 07 | 102 | 160 |
+| 08 | 153 | 160 |
+| 09 | 51 | 215 |
+| 10 | 102 | 215 |
+| 11 | 153 | 215 |
+</code></pre>
+<p>This is a real deformation, not a rigid shift. <a href="./multi_point_motion.html">Multi-Point
+Motion</a> moved every point by the same <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03785em;">δ</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">δy</span><span class="mclose">)</span></span></span></span>. A stretch moves each point by a different amount. A point at
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">50</span></span></span></span> moves 1 pixel. A point at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">150</span></span></span></span> moves 3 pixels. The grid
+spreads apart under the stretch. It does not translate as one block.</p>
+<h2 id="locating-the-stretched-grid"><a class="header" href="#locating-the-stretched-grid">Locating the Stretched Grid</a></h2>
+<p><a href="../api/dictk/grid.html#locate"><code>dictk.grid.locate</code></a> tracks the stretched
+grid the same way it tracked the translated one in <a href="./multi_point_motion.html#tracking-the-grid">Tracking the
+Grid</a>. Reuse the same kernel
+and search-area margins:</p>
+<pre><code class="language-python">from dictk.grid import locate
+
+found = locate(
+    reference_image=reference_image,
+    current_image=current_image,
+    reference_points=points,
+    kernel_margin_width=20,
+    kernel_margin_height=20,
+    search_margin_width=48,
+    search_margin_height=52,
+)
+</code></pre>
+<pre><code class="language-text">Point  found        expected     match
+00       51,50       51,50     True
+01      102,50      102,50     True
+02      153,50      153,50     True
+03       51,105      51,105    True
+04      102,105     102,105    True
+05      153,105     153,105    True
+06       51,160      51,160    True
+07      102,160     102,160    True
+08      153,160     153,160    True
+09       51,215      51,215    True
+10      102,215     102,215    True
+11      153,215     153,215    True
+</code></pre>
+<pre><code class="language-python">from dictk.image import point_grid_plot
+
+point_grid_plot(
+    image=current_image,
+    points=found,
+    color="orange",
+    figsize=(6.4, 4.8),
+    path="simple_stretch_current.png",
+)
+</code></pre>
+<pre><code class="language-text">Saved: simple_stretch_current.png
+</code></pre>
+<figure>
+    <img src="simple_stretch_current.png" alt="stretched current image astronaut0 with the 12 found points overlaid in orange, still labeled 00 through 11" />
+    <figcaption>The stretched current image, with all 12 found positions marked. Every found position matches its expected stretched position exactly.</figcaption>
+</figure>
+<p>Every found position matches the expected stretched position exactly.
+The stretch introduces no sub-pixel error at these 12 points. <a href="./multi_point_motion.html">Multi-Point
+Motion</a> established this exact-integer guarantee
+for rigid translation. This page confirms it holds under a real
+deformation too.</p>
+<p>Twelve points, twelve independent correlations, whether the underlying
+motion is a rigid shift or a stretch:
+<a href="./parallelization.html">Parallelization</a> picks up from here.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../getting_started/parallelization.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../getting_started/multi_point_motion.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../getting_started/processing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../getting_started/parallelization.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -277,11 +366,11 @@ exact pixel, with <code>factor_x = 1.02</code> giving new <span class="katex"><s
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../getting_started/parallelization.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../getting_started/multi_point_motion.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../getting_started/processing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../getting_started/parallelization.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
