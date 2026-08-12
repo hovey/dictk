@@ -351,7 +351,33 @@ deformation instead, where each point moves by a different amount.
 
 ## Data Download
 
-Every image this page used is downloadable below as a TIFF.
+Every image this page used is downloadable below, as a TIFF. Download
+files individually, or all at once: one compressed zip file bundles
+every full image (reference and current), every kernel, and every
+search area.
+
+```python
+import zipfile
+import imageio.v3 as iio
+
+images = {"astronaut0.tiff": reference_image, "astronaut1.tiff": current_image}
+for i, point in enumerate(points):
+    origin = PixelCoordinate(x=point.x - kernel_margin, y=point.y - kernel_margin)
+    images[f"kernel_{i:02d}.tiff"] = subimage(
+        image=reference_image, origin=origin, width=2 * kernel_margin, height=2 * kernel_margin
+    )
+for i, point in enumerate(points):
+    origin = PixelCoordinate(x=point.x - search_margin_width, y=point.y - search_margin_height)
+    images[f"search_area_{i:02d}.tiff"] = subimage(
+        image=current_image, origin=origin, width=2 * search_margin_width, height=2 * search_margin_height
+    )
+
+with zipfile.ZipFile("multi_point_motion_data.zip", "w", zipfile.ZIP_DEFLATED) as zf:
+    for name, arr in images.items():
+        zf.writestr(name, iio.imwrite("<bytes>", arr, extension=".tiff"))
+```
+
+<!-- cmdrun python3 -c "import zipfile, os; import imageio.v3 as iio; from dictk.image import read, translate, PixelCoordinate, subimage; from dictk.grid import generate; reference_image = read(path='astronaut0.png'); dx, dy = -6, 8; current_image = translate(arr=reference_image, dx=dx, dy=dy); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); kernel_margin = 20; search_margin_width, search_margin_height = 48, 52; images = {'astronaut0.tiff': reference_image, 'astronaut1.tiff': current_image}; [images.__setitem__(f'kernel_{i:02d}.tiff', subimage(image=reference_image, origin=PixelCoordinate(x=p.x - kernel_margin, y=p.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin)) for i, p in enumerate(points)]; [images.__setitem__(f'search_area_{i:02d}.tiff', subimage(image=current_image, origin=PixelCoordinate(x=p.x - search_margin_width, y=p.y - search_margin_height), width=2 * search_margin_width, height=2 * search_margin_height)) for i, p in enumerate(points)]; zf = zipfile.ZipFile('multi_point_motion_data.zip', 'w', zipfile.ZIP_DEFLATED); [zf.writestr(name, iio.imwrite('<bytes>', arr, extension='.tiff')) for name, arr in images.items()]; zf.close(); size_kb = os.path.getsize('multi_point_motion_data.zip') / 1024; print(f'**Download all**: [multi_point_motion_data.zip](multi_point_motion_data.zip) ({len(images)} files, {size_kb:.0f} KB)')" -->
 
 ### Full Images
 
