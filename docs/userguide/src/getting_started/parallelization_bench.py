@@ -178,7 +178,15 @@ def _add_trend(ax, ns, seq_times, other_times, color):
     xs, speedups, marks = _trend_line(ns, seq_times, other_times, EXTRAPOLATION_TARGETS)
     ax.plot(xs, speedups, linestyle="--", color=color, linewidth=1.2)
     mark_speedups = speedups[-len(marks) :] if marks else []
-    ax.plot(marks, mark_speedups, linestyle="none", marker="x", color=color, markersize=7, markeredgewidth=1.5)
+    ax.plot(
+        marks,
+        mark_speedups,
+        linestyle="none",
+        marker="x",
+        color=color,
+        markersize=7,
+        markeredgewidth=1.5,
+    )
     for n, s in zip(marks, mark_speedups):
         ax.annotate(
             f"{s:.2f}x",
@@ -198,7 +206,14 @@ def plot_summary() -> None:
         fig, axes = plt.subplots(3, 1, figsize=(7, 15), constrained_layout=True)
 
         panels = [
-            (axes[0], "book_scale", "n_calls", "point count (size=40 fixed)", "log", True),
+            (
+                axes[0],
+                "book_scale",
+                "n_calls",
+                "point count (size=40 fixed)",
+                "log",
+                True,
+            ),
             (
                 axes[1],
                 "large_subset",
@@ -284,8 +299,22 @@ def plot_summary() -> None:
                 from matplotlib.lines import Line2D
 
                 handles += [
-                    Line2D([0], [0], color="gray", marker="o", linestyle="-", label="measured"),
-                    Line2D([0], [0], color="gray", marker="x", linestyle="--", label="trend (extrapolated)"),
+                    Line2D(
+                        [0],
+                        [0],
+                        color="gray",
+                        marker="o",
+                        linestyle="-",
+                        label="measured",
+                    ),
+                    Line2D(
+                        [0],
+                        [0],
+                        color="gray",
+                        marker="x",
+                        linestyle="--",
+                        label="trend (extrapolated)",
+                    ),
                 ]
             ax.legend(handles=handles, fontsize=7)
 
