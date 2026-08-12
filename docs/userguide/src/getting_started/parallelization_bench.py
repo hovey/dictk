@@ -144,21 +144,68 @@ def run_sweep() -> None:
     print(f"\nWrote {CSV_PATH}")
 
 
+# Point counts to extrapolate speedup trends out to, tying directly to
+# the "north star" scale in Path Forward (billions of correlations,
+# staying under a trillion by design). Only scenarios whose x-axis is
+# point count (book_scale, realistic_mesh) get this treatment --
+# large_subset's x-axis is correlation *size*, and extrapolating a
+# subset's side length out to a billion pixels isn't physical.
+EXTRAPOLATION_TARGETS = [1_000_000, 1_000_000_000, 1_000_000_000_000]
+
+
+def _trend_line(ns, seq_times, other_times, targets):
+    """Fit a linear time-vs-n trend (time = a*n + b) to `seq_times` and
+    `other_times` independently, then extrapolate the *speedup ratio*
+    (their fitted-time ratio) out to every target beyond the last real
+    data point.
+
+    Returns `(xs, speedups, marks)`: `xs`/`speedups` start at the last
+    *measured* point (so a plotted dashed line picks up exactly where
+    the solid measured line ends, no visual gap) and run through every
+    target; `marks` is just the subset of targets genuinely beyond the
+    measured range, for placing "predicted value" markers.
+    """
+    a_seq, b_seq = np.polyfit(ns, seq_times, 1)
+    a_other, b_other = np.polyfit(ns, other_times, 1)
+    last_n = ns[-1]
+    marks = [t for t in targets if t > last_n]
+    xs = [last_n] + marks
+    speedups = [(a_seq * n + b_seq) / (a_other * n + b_other) for n in xs]
+    return xs, speedups, marks
+
+
+def _add_trend(ax, ns, seq_times, other_times, color):
+    xs, speedups, marks = _trend_line(ns, seq_times, other_times, EXTRAPOLATION_TARGETS)
+    ax.plot(xs, speedups, linestyle="--", color=color, linewidth=1.2)
+    mark_speedups = speedups[-len(marks) :] if marks else []
+    ax.plot(marks, mark_speedups, linestyle="none", marker="x", color=color, markersize=7, markeredgewidth=1.5)
+    for n, s in zip(marks, mark_speedups):
+        ax.annotate(
+            f"{s:.2f}x",
+            (n, s),
+            textcoords="offset points",
+            xytext=(4, 4),
+            fontsize=7,
+            color=color,
+        )
+
+
 def plot_summary() -> None:
     with open(CSV_PATH) as f:
         rows = list(csv.DictReader(f))
 
     with plt.rc_context({"font.family": "serif", "mathtext.fontset": "cm"}):
-        fig, axes = plt.subplots(1, 3, figsize=(15, 4.5), constrained_layout=True)
+        fig, axes = plt.subplots(3, 1, figsize=(7, 15), constrained_layout=True)
 
         panels = [
-            (axes[0], "book_scale", "n_calls", "point count (size=40 fixed)", "log"),
+            (axes[0], "book_scale", "n_calls", "point count (size=40 fixed)", "log", True),
             (
                 axes[1],
                 "large_subset",
                 "size",
                 "correlation size (n=16 fixed)",
                 "linear",
+                False,
             ),
             (
                 axes[2],
@@ -166,9 +213,10 @@ def plot_summary() -> None:
                 "n_calls",
                 "point count (size=100 or 200)",
                 "log",
+                True,
             ),
         ]
-        for ax, scenario, xkey, xlabel, xscale in panels:
+        for ax, scenario, xkey, xlabel, xscale, extrapolate in panels:
             data = [r for r in rows if r["scenario"] == scenario]
             if scenario == "realistic_mesh":
                 for size, marker in [("100", "o"), ("200", "s")]:
@@ -188,6 +236,12 @@ def plot_summary() -> None:
                         color="tab:orange",
                         label=f"processes (size={size})",
                     )
+                    if extrapolate:
+                        seq = [float(r["sequential_s"]) for r in sub]
+                        thr = [float(r["threads_s"]) for r in sub]
+                        proc = [float(r["processes_s"]) for r in sub]
+                        _add_trend(ax, xs, seq, thr, "tab:blue")
+                        _add_trend(ax, xs, seq, proc, "tab:orange")
             else:
                 xs = [int(r[xkey]) for r in data]
                 ax.plot(
@@ -204,6 +258,12 @@ def plot_summary() -> None:
                     color="tab:orange",
                     label="processes",
                 )
+                if extrapolate:
+                    seq = [float(r["sequential_s"]) for r in data]
+                    thr = [float(r["threads_s"]) for r in data]
+                    proc = [float(r["processes_s"]) for r in data]
+                    _add_trend(ax, xs, seq, thr, "tab:blue")
+                    _add_trend(ax, xs, seq, proc, "tab:orange")
             ax.axhline(
                 1.0,
                 color="black",
@@ -212,10 +272,22 @@ def plot_summary() -> None:
                 label="sequential (baseline)",
             )
             ax.set_xscale(xscale)
+            if extrapolate:
+                # Headroom so the rightmost "N.NNx" annotation (at the
+                # 10^12 target) doesn't clip against the panel edge.
+                ax.set_xlim(right=ax.get_xlim()[1] * 3)
             ax.set_xlabel(xlabel)
             ax.set_ylabel("speedup vs sequential")
             ax.set_title(scenario)
-            ax.legend(fontsize=7)
+            handles, labels = ax.get_legend_handles_labels()
+            if extrapolate:
+                from matplotlib.lines import Line2D
+
+                handles += [
+                    Line2D([0], [0], color="gray", marker="o", linestyle="-", label="measured"),
+                    Line2D([0], [0], color="gray", marker="x", linestyle="--", label="trend (extrapolated)"),
+                ]
+            ax.legend(handles=handles, fontsize=7)
 
         fig.savefig(FIGURE_PATH, dpi=300)
         plt.close(fig)
