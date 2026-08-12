@@ -507,7 +507,30 @@ can't.</p>
 amount. <a href="./simple_stretch.html">Simple Stretch</a> is next. It tracks a real
 deformation instead, where each point moves by a different amount.</p>
 <h2 id="data-download"><a class="header" href="#data-download">Data Download</a></h2>
-<p>Every image this page used is downloadable below as a TIFF.</p>
+<p>Every image this page used is downloadable below, as a TIFF. Download
+files individually, or all at once: one compressed zip file bundles
+every full image (reference and current), every kernel, and every
+search area.</p>
+<pre><code class="language-python">import zipfile
+import imageio.v3 as iio
+
+images = {"astronaut0.tiff": reference_image, "astronaut1.tiff": current_image}
+for i, point in enumerate(points):
+    origin = PixelCoordinate(x=point.x - kernel_margin, y=point.y - kernel_margin)
+    images[f"kernel_{i:02d}.tiff"] = subimage(
+        image=reference_image, origin=origin, width=2 * kernel_margin, height=2 * kernel_margin
+    )
+for i, point in enumerate(points):
+    origin = PixelCoordinate(x=point.x - search_margin_width, y=point.y - search_margin_height)
+    images[f"search_area_{i:02d}.tiff"] = subimage(
+        image=current_image, origin=origin, width=2 * search_margin_width, height=2 * search_margin_height
+    )
+
+with zipfile.ZipFile("multi_point_motion_data.zip", "w", zipfile.ZIP_DEFLATED) as zf:
+    for name, arr in images.items():
+        zf.writestr(name, iio.imwrite("&lt;bytes&gt;", arr, extension=".tiff"))
+</code></pre>
+<p><strong>Download all</strong>: <a href="multi_point_motion_data.zip">multi_point_motion_data.zip</a> (26 files, 291 KB)</p>
 <h3 id="full-images"><a class="header" href="#full-images">Full Images</a></h3>
 <ul>
 <li><code>astronaut0.tiff</code> is <code>reference_image</code>.</li>

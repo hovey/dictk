@@ -211,7 +211,52 @@ pairs that are mapped to nodes of a finite element mesh (i.e., <em>nodes</em>).<
 <li>Use the mesh (nodal) deformation to calculate a discrete strain field at Gauss points.</li>
 </ul>
 <p>The following sections explicate this workflow in detail.</p>
-
+<h2 id="literature-overview"><a class="header" href="#literature-overview">Literature Overview</a></h2>
+<p>The development of modern Digital Image Correlation (DIC) spans from specialized hardware acquisition to advanced mathematical frameworks and open-source implementations. For high-resolution SEM imaging, Lenthe et al. describe advanced detector signal acquisition and scanning methods,<sup class="footnote-reference" id="fr-Lenthe_2018-1"><a href="#footnote-Lenthe_2018">1</a></sup> while Black et al. demonstrate high-throughput measurements using multi-beam SEM imaging.<sup class="footnote-reference" id="fr-Black_2023-1"><a href="#footnote-Black_2023">2</a></sup> When dealing with plastic localization, the Heaviside-DIC approach offers a robust method for capturing discontinuities.<sup class="footnote-reference" id="fr-Bourdin_2018-1"><a href="#footnote-Bourdin_2018">3</a></sup></p>
+<p>Mathematical foundations for the DICe engine are established through the work of Turner, covering gradient-based local formulations,<sup class="footnote-reference" id="fr-Turner_2016-1"><a href="#footnote-Turner_2016">4</a></sup> stereo correlation and triangulation,<sup class="footnote-reference" id="fr-Turner_2017-1"><a href="#footnote-Turner_2017">5</a></sup> and the implementation of virtual strain gauges.<sup class="footnote-reference" id="fr-Turner_2018-1"><a href="#footnote-Turner_2018">6</a></sup> Alternatively, the Augmented Lagrangian DIC (ALDIC) framework provides a global approach to displacement fields, available as both a theoretical framework<sup class="footnote-reference" id="fr-Yang_2019-1"><a href="#footnote-Yang_2019">7</a></sup> and a MATLAB implementation.<sup class="footnote-reference" id="fr-Yang_2018-1"><a href="#footnote-Yang_2018">8</a></sup> For complex geometries and large deformations, the SpatioTemporally Adaptive Quadtree (STAQ) mesh offers significant improvements in resolution.<sup class="footnote-reference" id="fr-Yang_2022-1"><a href="#footnote-Yang_2022">9</a></sup></p>
+<p>Software accessibility is primarily supported by the µDIC toolkit, an open-source Python library for DIC tasks.<sup class="footnote-reference" id="fr-Olufsen_2020-1"><a href="#footnote-Olufsen_2020">10</a></sup> The project's evolution is tracked through specific version forks,<sup class="footnote-reference" id="fr-Olufsen_2020b-1"><a href="#footnote-Olufsen_2020b">11</a></sup> comprehensive online documentation, and its primary repository.<sup class="footnote-reference" id="fr-Olufsen_2025-1"><a href="#footnote-Olufsen_2025">12</a></sup> Finally, looking toward performance optimization, the Rust GPU project provides the infrastructure for hardware-accelerated computations that could benefit future DIC processing pipelines.<sup class="footnote-reference" id="fr-Rust_2025-1"><a href="#footnote-Rust_2025">13</a></sup></p>
+<h2 id="references"><a class="header" href="#references">References</a></h2>
+<hr>
+<ol class="footnote-definition"><li id="footnote-Lenthe_2018">
+<p>Lenthe WC, Stinville JC, Echlin MP, Chen Z, Daly S, Pollock TM. Advanced detector signal acquisition and electron beam scanning for high resolution SEM imaging. Ultramicroscopy. 2018 Dec 1;195:93-100. <a href="https://doi.org/10.1016/j.ultramic.2018.08.025">link</a> <a href="#fr-Lenthe_2018-1">↩</a></p>
+</li>
+<li id="footnote-Black_2023">
+<p>Black RL, Garbowski T, Bean C, Eberle AL, Nickell S, Texier D, Valle V, Stinville JC. High-throughput high-resolution digital image correlation measurements by multi-beam SEM imaging. Experimental Mechanics. 2023 Jun;63(5):939-53. <a href="https://doi.org/10.1007/s11340-023-00961-y">link</a> <a href="#fr-Black_2023-1">↩</a></p>
+</li>
+<li id="footnote-Bourdin_2018">
+<p>Bourdin F, Stinville JC, Echlin MP, Callahan PG, Lenthe WC, Torbet CJ, Texier D, Bridier F, Cormier J, Villechaise P, Pollock TM. Measurements of plastic localization by heaviside-digital image correlation. Acta Materialia. 2018 Sep 15;157:307-25. <a href="https://doi.org/10.1016/j.actamat.2018.07.013">link</a> <a href="#fr-Bourdin_2018-1">↩</a></p>
+</li>
+<li id="footnote-Turner_2016">
+<p>Turner DZ. An overview of the gradient-based local DIC formulation for motion estimation in DICe. 2016 Aug 19. SAND2016-7360R. <a href="https://github.com/dicengine/dice/blob/5ebcdfafad1d0ac4ed120ebc1a3fe04138216d5b/doc/reports/LocalGradientAlgorithm.pdf">link</a> <a href="#fr-Turner_2016-1">↩</a></p>
+</li>
+<li id="footnote-Turner_2017">
+<p>Turner DZ. An overview of the stereo correlation and triangulation formulations used in DICe. 2017 Mar 10. SAND2017-1876R. <a href="https://github.com/dicengine/dice/blob/5ebcdfafad1d0ac4ed120ebc1a3fe04138216d5b/doc/reports/Triangulation.pdf">link</a> <a href="#fr-Turner_2017-1">↩</a></p>
+</li>
+<li id="footnote-Turner_2018">
+<p>Turner DZ. An overview of the virtual strain gauge formulation in DICe. 2018 May 21. SAND2018-5463R. <a href="https://github.com/dicengine/dice/blob/5ebcdfafad1d0ac4ed120ebc1a3fe04138216d5b/doc/reports/VirtualStrainGauge.pdf">link</a> <a href="#fr-Turner_2018-1">↩</a></p>
+</li>
+<li id="footnote-Yang_2019">
+<p>Yang J, Bhattacharya K. Augmented Lagrangian digital image correlation. Experimental Mechanics. 2019 Feb 15;59:187-205. <a href="https://link.springer.com/content/pdf/10.1007/s11340-018-00457-0.pdf">link</a> <a href="#fr-Yang_2019-1">↩</a></p>
+</li>
+<li id="footnote-Yang_2018">
+<p>Augmented Lagrangian Digital Image Correlation (2D_ALDIC) MATLAB code. <a href="https://www.mathworks.com/matlabcentral/fileexchange/70499-augmented-lagrangian-digital-image-correlation-and-tracking">link</a> <a href="#fr-Yang_2018-1">↩</a></p>
+</li>
+<li id="footnote-Yang_2022">
+<p>Yang J, Rubino V, Ma Z, Tao J, Yin Y, McGhee A, Pan W, Franck C. SpatioTemporally adaptive quadtree mesh (STAQ) digital image correlation for resolving large deformations around complex geometries and discontinuities. Experimental Mechanics. 2022 Sep;62(7):1191-215. <a href="https://link.springer.com/content/pdf/10.1007/s11340-022-00872-4.pdf">link</a> <a href="#fr-Yang_2022-1">↩</a></p>
+</li>
+<li id="footnote-Olufsen_2020">
+<p>Olufsen SN, Andersen ME, Fagerholt E. μDIC: An open-source toolkit for digital image correlation. SoftwareX. 2020 Jan 1;11:100391. <a href="https://www.sciencedirect.com/science/article/pii/S2352711019301967">link</a> <a href="#fr-Olufsen_2020-1">↩</a></p>
+</li>
+<li id="footnote-Olufsen_2020b">
+<p>Olufsen SN. Fork: µDIC: A Python toolkit for Digital Image Correlation (DIC), GitHub: https://github.com/ElsevierSoftwareX/SOFTX_2019_193 <a href="https://github.com/ElsevierSoftwareX/SOFTX_2019_193">link</a> fork of https://github.com/PolymerGuy/muDIC for the 2020 paper. <a href="#fr-Olufsen_2020b-1">↩</a></p>
+</li>
+<li id="footnote-Olufsen_2025">
+<p>Olufsen SN. docs for µDIC: A toolkit for digital image correlation, <a href="https://mudic.readthedocs.io/en/latest/">docs</a> and <a href="https://github.com/PolymerGuy/muDIC">repo</a> <a href="#fr-Olufsen_2025-1">↩</a></p>
+</li>
+<li id="footnote-Rust_2025">
+<p>Rust GPU https://rust-gpu.github.io/ and https://github.com/rust-gpu/rust-gpu <a href="#fr-Rust_2025-1">↩</a></p>
+</li>
+</ol>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

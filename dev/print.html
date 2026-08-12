@@ -212,7 +212,52 @@ pairs that are mapped to nodes of a finite element mesh (i.e., <em>nodes</em>).<
 <li>Use the mesh (nodal) deformation to calculate a discrete strain field at Gauss points.</li>
 </ul>
 <p>The following sections explicate this workflow in detail.</p>
-<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h2 id="literature-overview"><a class="header" href="#literature-overview">Literature Overview</a></h2>
+<p>The development of modern Digital Image Correlation (DIC) spans from specialized hardware acquisition to advanced mathematical frameworks and open-source implementations. For high-resolution SEM imaging, Lenthe et al. describe advanced detector signal acquisition and scanning methods,<sup class="footnote-reference" id="fr-Lenthe_2018-1"><a href="#footnote-Lenthe_2018">1</a></sup> while Black et al. demonstrate high-throughput measurements using multi-beam SEM imaging.<sup class="footnote-reference" id="fr-Black_2023-1"><a href="#footnote-Black_2023">2</a></sup> When dealing with plastic localization, the Heaviside-DIC approach offers a robust method for capturing discontinuities.<sup class="footnote-reference" id="fr-Bourdin_2018-1"><a href="#footnote-Bourdin_2018">3</a></sup></p>
+<p>Mathematical foundations for the DICe engine are established through the work of Turner, covering gradient-based local formulations,<sup class="footnote-reference" id="fr-Turner_2016-1"><a href="#footnote-Turner_2016">4</a></sup> stereo correlation and triangulation,<sup class="footnote-reference" id="fr-Turner_2017-1"><a href="#footnote-Turner_2017">5</a></sup> and the implementation of virtual strain gauges.<sup class="footnote-reference" id="fr-Turner_2018-1"><a href="#footnote-Turner_2018">6</a></sup> Alternatively, the Augmented Lagrangian DIC (ALDIC) framework provides a global approach to displacement fields, available as both a theoretical framework<sup class="footnote-reference" id="fr-Yang_2019-1"><a href="#footnote-Yang_2019">7</a></sup> and a MATLAB implementation.<sup class="footnote-reference" id="fr-Yang_2018-1"><a href="#footnote-Yang_2018">8</a></sup> For complex geometries and large deformations, the SpatioTemporally Adaptive Quadtree (STAQ) mesh offers significant improvements in resolution.<sup class="footnote-reference" id="fr-Yang_2022-1"><a href="#footnote-Yang_2022">9</a></sup></p>
+<p>Software accessibility is primarily supported by the µDIC toolkit, an open-source Python library for DIC tasks.<sup class="footnote-reference" id="fr-Olufsen_2020-1"><a href="#footnote-Olufsen_2020">10</a></sup> The project's evolution is tracked through specific version forks,<sup class="footnote-reference" id="fr-Olufsen_2020b-1"><a href="#footnote-Olufsen_2020b">11</a></sup> comprehensive online documentation, and its primary repository.<sup class="footnote-reference" id="fr-Olufsen_2025-1"><a href="#footnote-Olufsen_2025">12</a></sup> Finally, looking toward performance optimization, the Rust GPU project provides the infrastructure for hardware-accelerated computations that could benefit future DIC processing pipelines.<sup class="footnote-reference" id="fr-Rust_2025-1"><a href="#footnote-Rust_2025">13</a></sup></p>
+<h2 id="references"><a class="header" href="#references">References</a></h2>
+<hr>
+<ol class="footnote-definition"><li id="footnote-Lenthe_2018">
+<p>Lenthe WC, Stinville JC, Echlin MP, Chen Z, Daly S, Pollock TM. Advanced detector signal acquisition and electron beam scanning for high resolution SEM imaging. Ultramicroscopy. 2018 Dec 1;195:93-100. <a href="https://doi.org/10.1016/j.ultramic.2018.08.025">link</a> <a href="#fr-Lenthe_2018-1">↩</a></p>
+</li>
+<li id="footnote-Black_2023">
+<p>Black RL, Garbowski T, Bean C, Eberle AL, Nickell S, Texier D, Valle V, Stinville JC. High-throughput high-resolution digital image correlation measurements by multi-beam SEM imaging. Experimental Mechanics. 2023 Jun;63(5):939-53. <a href="https://doi.org/10.1007/s11340-023-00961-y">link</a> <a href="#fr-Black_2023-1">↩</a></p>
+</li>
+<li id="footnote-Bourdin_2018">
+<p>Bourdin F, Stinville JC, Echlin MP, Callahan PG, Lenthe WC, Torbet CJ, Texier D, Bridier F, Cormier J, Villechaise P, Pollock TM. Measurements of plastic localization by heaviside-digital image correlation. Acta Materialia. 2018 Sep 15;157:307-25. <a href="https://doi.org/10.1016/j.actamat.2018.07.013">link</a> <a href="#fr-Bourdin_2018-1">↩</a></p>
+</li>
+<li id="footnote-Turner_2016">
+<p>Turner DZ. An overview of the gradient-based local DIC formulation for motion estimation in DICe. 2016 Aug 19. SAND2016-7360R. <a href="https://github.com/dicengine/dice/blob/5ebcdfafad1d0ac4ed120ebc1a3fe04138216d5b/doc/reports/LocalGradientAlgorithm.pdf">link</a> <a href="#fr-Turner_2016-1">↩</a></p>
+</li>
+<li id="footnote-Turner_2017">
+<p>Turner DZ. An overview of the stereo correlation and triangulation formulations used in DICe. 2017 Mar 10. SAND2017-1876R. <a href="https://github.com/dicengine/dice/blob/5ebcdfafad1d0ac4ed120ebc1a3fe04138216d5b/doc/reports/Triangulation.pdf">link</a> <a href="#fr-Turner_2017-1">↩</a></p>
+</li>
+<li id="footnote-Turner_2018">
+<p>Turner DZ. An overview of the virtual strain gauge formulation in DICe. 2018 May 21. SAND2018-5463R. <a href="https://github.com/dicengine/dice/blob/5ebcdfafad1d0ac4ed120ebc1a3fe04138216d5b/doc/reports/VirtualStrainGauge.pdf">link</a> <a href="#fr-Turner_2018-1">↩</a></p>
+</li>
+<li id="footnote-Yang_2019">
+<p>Yang J, Bhattacharya K. Augmented Lagrangian digital image correlation. Experimental Mechanics. 2019 Feb 15;59:187-205. <a href="https://link.springer.com/content/pdf/10.1007/s11340-018-00457-0.pdf">link</a> <a href="#fr-Yang_2019-1">↩</a></p>
+</li>
+<li id="footnote-Yang_2018">
+<p>Augmented Lagrangian Digital Image Correlation (2D_ALDIC) MATLAB code. <a href="https://www.mathworks.com/matlabcentral/fileexchange/70499-augmented-lagrangian-digital-image-correlation-and-tracking">link</a> <a href="#fr-Yang_2018-1">↩</a></p>
+</li>
+<li id="footnote-Yang_2022">
+<p>Yang J, Rubino V, Ma Z, Tao J, Yin Y, McGhee A, Pan W, Franck C. SpatioTemporally adaptive quadtree mesh (STAQ) digital image correlation for resolving large deformations around complex geometries and discontinuities. Experimental Mechanics. 2022 Sep;62(7):1191-215. <a href="https://link.springer.com/content/pdf/10.1007/s11340-022-00872-4.pdf">link</a> <a href="#fr-Yang_2022-1">↩</a></p>
+</li>
+<li id="footnote-Olufsen_2020">
+<p>Olufsen SN, Andersen ME, Fagerholt E. μDIC: An open-source toolkit for digital image correlation. SoftwareX. 2020 Jan 1;11:100391. <a href="https://www.sciencedirect.com/science/article/pii/S2352711019301967">link</a> <a href="#fr-Olufsen_2020-1">↩</a></p>
+</li>
+<li id="footnote-Olufsen_2020b">
+<p>Olufsen SN. Fork: µDIC: A Python toolkit for Digital Image Correlation (DIC), GitHub: https://github.com/ElsevierSoftwareX/SOFTX_2019_193 <a href="https://github.com/ElsevierSoftwareX/SOFTX_2019_193">link</a> fork of https://github.com/PolymerGuy/muDIC for the 2020 paper. <a href="#fr-Olufsen_2020b-1">↩</a></p>
+</li>
+<li id="footnote-Olufsen_2025">
+<p>Olufsen SN. docs for µDIC: A toolkit for digital image correlation, <a href="https://mudic.readthedocs.io/en/latest/">docs</a> and <a href="https://github.com/PolymerGuy/muDIC">repo</a> <a href="#fr-Olufsen_2025-1">↩</a></p>
+</li>
+<li id="footnote-Rust_2025">
+<p>Rust GPU https://rust-gpu.github.io/ and https://github.com/rust-gpu/rust-gpu <a href="#fr-Rust_2025-1">↩</a></p>
+</li>
+</ol><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="continuum-mechanics"><a class="header" href="#continuum-mechanics">Continuum Mechanics</a></h1>
 <p>This section summarizes the kinematics of general (finite) motion,
 the motion map, the deformation gradient and its
@@ -820,7 +865,7 @@ if SAVE:
     print(f"Saving figure as {figure_name}.pdf")
     fig.savefig(figure_name + ".pdf", bbox_inches="tight")
 </code></pre>
-<h2 id="references"><a class="header" href="#references">References</a></h2>
+<h2 id="references-1"><a class="header" href="#references-1">References</a></h2>
 <hr>
 <ol class="footnote-definition"><li id="footnote-Destrade_2012">
 <p>Destrade M, Murphy JG, Saccomandi G. Simple shear is not so simple. International Journal of Non-Linear Mechanics. 2012 Mar 1;47(2):210-4. <a href="https://doi.org/10.1016/j.ijnonlinmec.2011.05.008">download</a> <a href="#fr-Destrade_2012-1">↩</a></p>
@@ -930,7 +975,7 @@ See <a href="getting_started/./continuum_mechanics.html#deformation-gradient">De
 at the nodes.  Rather, we quantify strain at specific <em>integration points</em> (also known as <strong>Gauss points</strong>) where mathematical precision is the highest.</p>
 <p>For a 2D quadrilateral element, we typically use a <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2</span></span></span></span> Gauss rule.  The integration points are located in the local coordinate system <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.04601em;">ξ</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">η</span><span class="mclose">)</span></span></span></span> at</p>
 <p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.04601em;">ξ</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">η</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">{</span></span><span class="mord">±</span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.2028em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9072em;"><span class="svg-align" style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord" style="padding-left:0.833em;"><span class="mord">3</span></span></span><span style="top:-2.8672em;"><span class="pstrut" style="height:3em;"></span><span class="hide-tail" style="min-width:0.853em;height:1.08em;"><svg xmlns="http://www.w3.org/2000/svg" width='400em' height='1.08em' viewBox='0 0 400000 1080' preserveAspectRatio='xMinYMin slice'><path d='M95,702 c-2.7,0,-7.17,-2.7,-13.5,-8c-5.8,-5.3,-9.5,-10,-9.5,-14 c0,-2,0.3,-3.3,1,-4c1.3,-2.7,23.83,-20.7,67.5,-54 c44.2,-33.3,65.8,-50.3,66.5,-51c1.3,-1.3,3,-2,5,-2c4.7,0,8.7,3.3,12,10 s173,378,173,378c0.7,0,35.3,-71,104,-213c68.7,-142,137.5,-285,206.5,-429 c69,-144,104.5,-217.7,106.5,-221 l0 -0 c5.3,-9.3,12,-14,20,-14 H400000v40H845.2724 s-225.272,467,-225.272,467s-235,486,-235,486c-2.7,4.7,-9,7,-19,7 c-6,0,-10,-1,-12,-3s-194,-422,-194,-422s-65,47,-65,47z M834 80h400000v40h-400000z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1328em;"><span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.93em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">}</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">±</span><span class="mord">0.57735</span></span></span></span></span></p>
-<h2 id="references-1"><a class="header" href="#references-1">References</a></h2>
+<h2 id="references-2"><a class="header" href="#references-2">References</a></h2>
 <hr>
 <ol class="footnote-definition"><li id="footnote-James_2012">
 <p>James KA, Lee E, Martins JR. Stress-based topology optimization using an isoparametric level set method. Finite Elements in Analysis and Design. 2012 Oct 1;58:20-30. <a href="https://doi.org/10.1016/j.finel.2012.03.012">link</a> <a href="#fr-James_2012-1">↩</a></p>
@@ -1708,7 +1753,7 @@ write(arr=cracked_plain, path="astronaut_crack_plain_dislocation.png")
 <tr><td>offset=4 pixels</td><td><img src="getting_started/astronaut_crack_plain_dislocation.png" alt="crack dislocation" /></td></tr>
 </tbody></table>
 </div>
-<h2 id="references-2"><a class="header" href="#references-2">References</a></h2>
+<h2 id="references-3"><a class="header" href="#references-3">References</a></h2>
 <hr>
 <ol class="footnote-definition"><li id="footnote-Szeliski_2022">
 <p>Szeliski R. Computer vision: algorithms and applications, 2nd Edition, Springer Nature; 2022 Jan 3. <a href="https://1drv.ms/b/c/3cc1bee5e2795295/IQBSP0s8pYRBRJArjzAAx3PbAcZ0PUh149lv7Z85uiBp-ms?e=FUynzc">download</a> (43 MB) <a href="#fr-Szeliski_2022-1">↩</a></p>
@@ -2899,7 +2944,30 @@ can't.</p>
 amount. <a href="getting_started/./simple_stretch.html">Simple Stretch</a> is next. It tracks a real
 deformation instead, where each point moves by a different amount.</p>
 <h2 id="data-download"><a class="header" href="#data-download">Data Download</a></h2>
-<p>Every image this page used is downloadable below as a TIFF.</p>
+<p>Every image this page used is downloadable below, as a TIFF. Download
+files individually, or all at once: one compressed zip file bundles
+every full image (reference and current), every kernel, and every
+search area.</p>
+<pre><code class="language-python">import zipfile
+import imageio.v3 as iio
+
+images = {"astronaut0.tiff": reference_image, "astronaut1.tiff": current_image}
+for i, point in enumerate(points):
+    origin = PixelCoordinate(x=point.x - kernel_margin, y=point.y - kernel_margin)
+    images[f"kernel_{i:02d}.tiff"] = subimage(
+        image=reference_image, origin=origin, width=2 * kernel_margin, height=2 * kernel_margin
+    )
+for i, point in enumerate(points):
+    origin = PixelCoordinate(x=point.x - search_margin_width, y=point.y - search_margin_height)
+    images[f"search_area_{i:02d}.tiff"] = subimage(
+        image=current_image, origin=origin, width=2 * search_margin_width, height=2 * search_margin_height
+    )
+
+with zipfile.ZipFile("multi_point_motion_data.zip", "w", zipfile.ZIP_DEFLATED) as zf:
+    for name, arr in images.items():
+        zf.writestr(name, iio.imwrite("&lt;bytes&gt;", arr, extension=".tiff"))
+</code></pre>
+<p><strong>Download all</strong>: <a href="getting_started/multi_point_motion_data.zip">multi_point_motion_data.zip</a> (26 files, 291 KB)</p>
 <h3 id="full-images"><a class="header" href="#full-images">Full Images</a></h3>
 <ul>
 <li><code>astronaut0.tiff</code> is <code>reference_image</code>.</li>
