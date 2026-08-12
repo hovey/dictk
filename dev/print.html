@@ -3210,9 +3210,30 @@ deformation too.</p>
 motion is a rigid shift or a stretch:
 <a href="getting_started/./parallelization.html">Parallelization</a> picks up from here.</p>
 <h2 id="data-download-1"><a class="header" href="#data-download-1">Data Download</a></h2>
-<p>Every image this page used is downloadable below, as a TIFF — see
-<a href="getting_started/./multi_point_motion.html#data-download">Multi-Point Motion's Data Download</a>
-for why, and for a note on the <code>.tif</code>/<code>.tiff</code> naming.</p>
+<p>Every image this page used is downloadable below, as a TIFF. Download
+files individually, or all at once: one compressed zip file bundles
+every full image (reference and current), every kernel, and every
+search area.</p>
+<pre><code class="language-python">import zipfile
+import imageio.v3 as iio
+
+images = {"astronaut0.tiff": reference_image, "astronaut2.tiff": current_image}
+for i, point in enumerate(points):
+    origin = PixelCoordinate(x=point.x - kernel_margin, y=point.y - kernel_margin)
+    images[f"kernel_{i:02d}.tiff"] = subimage(
+        image=reference_image, origin=origin, width=2 * kernel_margin, height=2 * kernel_margin
+    )
+for i, point in enumerate(points):
+    origin = PixelCoordinate(x=point.x - search_margin_width, y=point.y - search_margin_height)
+    images[f"search_area_stretch_{i:02d}.tiff"] = subimage(
+        image=current_image, origin=origin, width=2 * search_margin_width, height=2 * search_margin_height
+    )
+
+with zipfile.ZipFile("simple_stretch_data.zip", "w", zipfile.ZIP_DEFLATED) as zf:
+    for name, arr in images.items():
+        zf.writestr(name, iio.imwrite("&lt;bytes&gt;", arr, extension=".tiff"))
+</code></pre>
+<p><strong>Download all</strong>: <a href="getting_started/simple_stretch_data.zip">simple_stretch_data.zip</a> (26 files, 299 KB)</p>
 <h3 id="full-images-1"><a class="header" href="#full-images-1">Full Images</a></h3>
 <p><code>astronaut0.tiff</code> is <code>reference_image</code> — identical to <a href="getting_started/./multi_point_motion.html#full-images">Multi-Point
 Motion's</a> copy, since both pages
@@ -3407,10 +3428,10 @@ committed data, so it always matches the file on disk:</p>
 <tr><td>realistic_mesh</td><td>200</td><td>100000</td><td>98.60379</td><td>31.72111</td><td>3.108x</td><td>36.23009</td><td>2.722x</td></tr>
 </tbody></table>
 </div><figure>
-    <img src="getting_started/parallelization_bench.png" alt="three panels: book_scale shows sequential always fastest from 100 to 1,000,000 points; large_subset shows threads reaching over 4x speedup as correlation size grows while processes never beat sequential at only 16 points; realistic_mesh shows both threads and processes beating sequential, with processes catching up to threads as point count grows" />
-    <figcaption>Speedup vs. sequential, measured once on a 10-core machine (macOS, <code>spawn</code> start method). Left: at this book's own 40-pixel scale, sequential wins at every point count tested, up to 1,000,000. Middle: at only 16 points, threads win decisively once correlations are large enough; processes never recover their fixed startup cost. Right: with enough points, both help, and processes close the gap on threads as point count grows.</figcaption>
+    <img src="getting_started/parallelization_bench.png" alt="three stacked panels: book_scale shows sequential always fastest from 100 to 1,000,000 points, with a dashed trend line predicting that holds out to a trillion points; large_subset shows threads reaching over 4x speedup as correlation size grows while processes never beat sequential at only 16 points, not extrapolated; realistic_mesh shows both threads and processes beating sequential, with processes catching up to threads as point count grows, and dashed trend lines predicting each pair levels off close to its last measured value" />
+    <figcaption>Speedup vs. sequential, measured once on a 10-core machine (macOS, <code>spawn</code> start method). Solid lines are measured data. Dashed lines are trend extrapolations — a straight-line time-vs-point-count fit, projected out to 10<sup>6</sup>, 10<sup>9</sup>, and 10<sup>12</sup> points. Top: at this book's own 40-pixel scale, sequential wins at every point count tested, up to 1,000,000, and the trend predicts it keeps winning — processes plateau near 0.62x, threads near 0.42x, even out to a trillion points. Middle: at only 16 points, threads win decisively once correlations are large enough; processes never recover their fixed startup cost. Not extrapolated: this panel's x-axis is correlation size, not point count, and a subset a billion pixels wide isn't physical. Bottom: with enough points, both help, and processes close the gap on threads as point count grows; the trend predicts each pair levels off close to its last measured value.</figcaption>
 </figure>
-<p>Three findings, read directly off that data:</p>
+<p>Four findings, read directly off that data:</p>
 <ol>
 <li><strong>At this book's own scale, sequential always wins.</strong> 1,000,000
 points at 40 pixels still favors sequential (71.7s) over both
@@ -3428,6 +3449,18 @@ pass threads.</strong> At 100 pixels, processes start behind threads
 points (1.76x vs. 1.10x). More tasks keep amortizing a process
 pool's fixed cost long after a thread pool's per-task cost has
 stopped improving.</li>
+<li><strong>The trend, extrapolated to Path Forward's north-star scale,
+predicts a plateau, not a crossover.</strong> Fitting a straight line to
+each method's measured time-vs-point-count and reading off the
+resulting speedup ratio at 10<sup>6</sup>, 10<sup>9</sup>, and
+10<sup>12</sup> points: <code>book_scale</code>'s ordering never flips
+(processes settle near 0.62x, threads near 0.42x, both still
+slower than sequential); <code>realistic_mesh</code>'s pairs settle close to
+their last measured value (size=100: threads 1.10x, processes
+1.84x; size=200: threads 3.13x, processes 2.78x). This is a linear
+extrapolation from a handful of measured points, not a new
+measurement — a hypothesis worth testing at real scale, not a
+settled result.</li>
 </ol>
 <h2 id="using-max_workers"><a class="header" href="#using-max_workers">Using <code>max_workers</code></a></h2>
 <p><code>dictk.grid.locate</code> accepts <code>max_workers</code> and <code>executor</code> directly now,
@@ -3632,21 +3665,83 @@ def run_sweep() -&gt; None:
     print(f"\nWrote {CSV_PATH}")
 
 
+# Point counts to extrapolate speedup trends out to, tying directly to
+# the "north star" scale in Path Forward (billions of correlations,
+# staying under a trillion by design). Only scenarios whose x-axis is
+# point count (book_scale, realistic_mesh) get this treatment --
+# large_subset's x-axis is correlation *size*, and extrapolating a
+# subset's side length out to a billion pixels isn't physical.
+EXTRAPOLATION_TARGETS = [1_000_000, 1_000_000_000, 1_000_000_000_000]
+
+
+def _trend_line(ns, seq_times, other_times, targets):
+    """Fit a linear time-vs-n trend (time = a*n + b) to `seq_times` and
+    `other_times` independently, then extrapolate the *speedup ratio*
+    (their fitted-time ratio) out to every target beyond the last real
+    data point.
+
+    Returns `(xs, speedups, marks)`: `xs`/`speedups` start at the last
+    *measured* point (so a plotted dashed line picks up exactly where
+    the solid measured line ends, no visual gap) and run through every
+    target; `marks` is just the subset of targets genuinely beyond the
+    measured range, for placing "predicted value" markers.
+    """
+    a_seq, b_seq = np.polyfit(ns, seq_times, 1)
+    a_other, b_other = np.polyfit(ns, other_times, 1)
+    last_n = ns[-1]
+    marks = [t for t in targets if t &gt; last_n]
+    xs = [last_n] + marks
+    speedups = [(a_seq * n + b_seq) / (a_other * n + b_other) for n in xs]
+    return xs, speedups, marks
+
+
+def _add_trend(ax, ns, seq_times, other_times, color):
+    xs, speedups, marks = _trend_line(ns, seq_times, other_times, EXTRAPOLATION_TARGETS)
+    ax.plot(xs, speedups, linestyle="--", color=color, linewidth=1.2)
+    mark_speedups = speedups[-len(marks) :] if marks else []
+    ax.plot(
+        marks,
+        mark_speedups,
+        linestyle="none",
+        marker="x",
+        color=color,
+        markersize=7,
+        markeredgewidth=1.5,
+    )
+    for n, s in zip(marks, mark_speedups):
+        ax.annotate(
+            f"{s:.2f}x",
+            (n, s),
+            textcoords="offset points",
+            xytext=(4, 4),
+            fontsize=7,
+            color=color,
+        )
+
+
 def plot_summary() -&gt; None:
     with open(CSV_PATH) as f:
         rows = list(csv.DictReader(f))
 
     with plt.rc_context({"font.family": "serif", "mathtext.fontset": "cm"}):
-        fig, axes = plt.subplots(1, 3, figsize=(15, 4.5), constrained_layout=True)
+        fig, axes = plt.subplots(3, 1, figsize=(7, 15), constrained_layout=True)
 
         panels = [
-            (axes[0], "book_scale", "n_calls", "point count (size=40 fixed)", "log"),
+            (
+                axes[0],
+                "book_scale",
+                "n_calls",
+                "point count (size=40 fixed)",
+                "log",
+                True,
+            ),
             (
                 axes[1],
                 "large_subset",
                 "size",
                 "correlation size (n=16 fixed)",
                 "linear",
+                False,
             ),
             (
                 axes[2],
@@ -3654,9 +3749,10 @@ def plot_summary() -&gt; None:
                 "n_calls",
                 "point count (size=100 or 200)",
                 "log",
+                True,
             ),
         ]
-        for ax, scenario, xkey, xlabel, xscale in panels:
+        for ax, scenario, xkey, xlabel, xscale, extrapolate in panels:
             data = [r for r in rows if r["scenario"] == scenario]
             if scenario == "realistic_mesh":
                 for size, marker in [("100", "o"), ("200", "s")]:
@@ -3676,6 +3772,12 @@ def plot_summary() -&gt; None:
                         color="tab:orange",
                         label=f"processes (size={size})",
                     )
+                    if extrapolate:
+                        seq = [float(r["sequential_s"]) for r in sub]
+                        thr = [float(r["threads_s"]) for r in sub]
+                        proc = [float(r["processes_s"]) for r in sub]
+                        _add_trend(ax, xs, seq, thr, "tab:blue")
+                        _add_trend(ax, xs, seq, proc, "tab:orange")
             else:
                 xs = [int(r[xkey]) for r in data]
                 ax.plot(
@@ -3692,6 +3794,12 @@ def plot_summary() -&gt; None:
                     color="tab:orange",
                     label="processes",
                 )
+                if extrapolate:
+                    seq = [float(r["sequential_s"]) for r in data]
+                    thr = [float(r["threads_s"]) for r in data]
+                    proc = [float(r["processes_s"]) for r in data]
+                    _add_trend(ax, xs, seq, thr, "tab:blue")
+                    _add_trend(ax, xs, seq, proc, "tab:orange")
             ax.axhline(
                 1.0,
                 color="black",
@@ -3700,10 +3808,36 @@ def plot_summary() -&gt; None:
                 label="sequential (baseline)",
             )
             ax.set_xscale(xscale)
+            if extrapolate:
+                # Headroom so the rightmost "N.NNx" annotation (at the
+                # 10^12 target) doesn't clip against the panel edge.
+                ax.set_xlim(right=ax.get_xlim()[1] * 3)
             ax.set_xlabel(xlabel)
             ax.set_ylabel("speedup vs sequential")
             ax.set_title(scenario)
-            ax.legend(fontsize=7)
+            handles, labels = ax.get_legend_handles_labels()
+            if extrapolate:
+                from matplotlib.lines import Line2D
+
+                handles += [
+                    Line2D(
+                        [0],
+                        [0],
+                        color="gray",
+                        marker="o",
+                        linestyle="-",
+                        label="measured",
+                    ),
+                    Line2D(
+                        [0],
+                        [0],
+                        color="gray",
+                        marker="x",
+                        linestyle="--",
+                        label="trend (extrapolated)",
+                    ),
+                ]
+            ax.legend(handles=handles, fontsize=7)
 
         fig.savefig(FIGURE_PATH, dpi=300)
         plt.close(fig)
