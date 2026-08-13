@@ -11,7 +11,29 @@
     <style>/*! theme.css */:root{--pdoc-background:#fff;}.pdoc{--text:#212529;--muted:#6c757d;--link:#3660a5;--link-hover:#1659c5;--code:#f8f8f8;--active:#fff598;--accent:#eee;--accent2:#c1c1c1;--nav-hover:rgba(255, 255, 255, 0.5);--name:#0066BB;--def:#008800;--annotation:#007020;}</style>
     <style>/*! layout.css */html, body{width:100%;height:100%;}html, main{scroll-behavior:smooth;}body{background-color:var(--pdoc-background);}@media (max-width:769px){#navtoggle{cursor:pointer;position:absolute;width:50px;height:40px;top:1rem;right:1rem;border-color:var(--text);color:var(--text);display:flex;opacity:0.8;z-index:999;}#navtoggle:hover{opacity:1;}#togglestate + div{display:none;}#togglestate:checked + div{display:inherit;}main, header{padding:2rem 3vw;}header + main{margin-top:-3rem;}.git-button{display:none !important;}nav input[type="search"]{max-width:77%;}nav input[type="search"]:first-child{margin-top:-6px;}nav input[type="search"]:valid ~ *{display:none !important;}}@media (min-width:770px){:root{--sidebar-width:clamp(12.5rem, 28vw, 22rem);}nav{position:fixed;overflow:auto;height:100vh;width:var(--sidebar-width);}main, header{padding:3rem 2rem 3rem calc(var(--sidebar-width) + 3rem);width:calc(54rem + var(--sidebar-width));max-width:100%;}header + main{margin-top:-4rem;}#navtoggle{display:none;}}#togglestate{position:absolute;height:0;opacity:0;}nav.pdoc{--pad:clamp(0.5rem, 2vw, 1.75rem);--indent:1.5rem;background-color:var(--accent);border-right:1px solid var(--accent2);box-shadow:0 0 20px rgba(50, 50, 50, .2) inset;padding:0 0 0 var(--pad);overflow-wrap:anywhere;scrollbar-width:thin; scrollbar-color:var(--accent2) transparent; z-index:1}nav.pdoc::-webkit-scrollbar{width:.4rem; }nav.pdoc::-webkit-scrollbar-thumb{background-color:var(--accent2); }nav.pdoc > div{padding:var(--pad) 0;}nav.pdoc .module-list-button{display:inline-flex;align-items:center;color:var(--text);border-color:var(--muted);margin-bottom:1rem;}nav.pdoc .module-list-button:hover{border-color:var(--text);}nav.pdoc input[type=search]{display:block;outline-offset:0;width:calc(100% - var(--pad));}nav.pdoc .logo{max-width:calc(100% - var(--pad));max-height:35vh;display:block;margin:0 auto 1rem;transform:translate(calc(-.5 * var(--pad)), 0);}nav.pdoc ul{list-style:none;padding-left:0;}nav.pdoc > div > ul{margin-left:calc(0px - var(--pad));}nav.pdoc li a{padding:.2rem 0 .2rem calc(var(--pad) + var(--indent));}nav.pdoc > div > ul > li > a{padding-left:var(--pad);}nav.pdoc li{transition:all 100ms;}nav.pdoc li:hover{background-color:var(--nav-hover);}nav.pdoc a, nav.pdoc a:hover{color:var(--text);}nav.pdoc a{display:block;}nav.pdoc > h2:first-of-type{margin-top:1.5rem;}nav.pdoc .class:before{content:"class ";color:var(--muted);}nav.pdoc .function:after{content:"()";color:var(--muted);}nav.pdoc footer:before{content:"";display:block;width:calc(100% - var(--pad));border-top:solid var(--accent2) 1px;margin-top:1.5rem;padding-top:.5rem;}nav.pdoc footer{font-size:small;}</style>
     <style>/*! content.css */.pdoc{color:var(--text);box-sizing:border-box;line-height:1.5;background:none;}.pdoc .pdoc-button{cursor:pointer;display:inline-block;border:solid black 1px;border-radius:2px;font-size:.75rem;padding:calc(0.5em - 1px) 1em;transition:100ms all;}.pdoc .alert{padding:1rem 1rem 1rem calc(1.5rem + 24px);border:1px solid transparent;border-radius:.25rem;background-repeat:no-repeat;background-position:.75rem center;margin-bottom:1rem;}.pdoc .alert > em{display:none;}.pdoc .alert > *:last-child{margin-bottom:0;}.pdoc .alert.note{color:#084298;background-color:#cfe2ff;border-color:#b6d4fe;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23084298%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%2016A8%208%200%201%200%208%200a8%208%200%200%200%200%2016zm.93-9.412-1%204.705c-.07.34.029.533.304.533.194%200%20.487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703%200-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381%202.29-.287zM8%205.5a1%201%200%201%201%200-2%201%201%200%200%201%200%202z%22/%3E%3C/svg%3E");}.pdoc .alert.tip{color:#0a3622;background-color:#d1e7dd;border-color:#a3cfbb;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%230a3622%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M2%206a6%206%200%201%201%2010.174%204.31c-.203.196-.359.4-.453.619l-.762%201.769A.5.5%200%200%201%2010.5%2013a.5.5%200%200%201%200%201%20.5.5%200%200%201%200%201l-.224.447a1%201%200%200%201-.894.553H6.618a1%201%200%200%201-.894-.553L5.5%2015a.5.5%200%200%201%200-1%20.5.5%200%200%201%200-1%20.5.5%200%200%201-.46-.302l-.761-1.77a2%202%200%200%200-.453-.618A5.98%205.98%200%200%201%202%206m6-5a5%205%200%200%200-3.479%208.592c.263.254.514.564.676.941L5.83%2012h4.342l.632-1.467c.162-.377.413-.687.676-.941A5%205%200%200%200%208%201%22/%3E%3C/svg%3E");}.pdoc .alert.important{color:#055160;background-color:#cff4fc;border-color:#9eeaf9;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23055160%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M2%200a2%202%200%200%200-2%202v12a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V2a2%202%200%200%200-2-2zm6%204c.535%200%20.954.462.9.995l-.35%203.507a.552.552%200%200%201-1.1%200L7.1%204.995A.905.905%200%200%201%208%204m.002%206a1%201%200%201%201%200%202%201%201%200%200%201%200-2%22/%3E%3C/svg%3E");}.pdoc .alert.warning{color:#664d03;background-color:#fff3cd;border-color:#ffecb5;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23664d03%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8.982%201.566a1.13%201.13%200%200%200-1.96%200L.165%2013.233c-.457.778.091%201.767.98%201.767h13.713c.889%200%201.438-.99.98-1.767L8.982%201.566zM8%205c.535%200%20.954.462.9.995l-.35%203.507a.552.552%200%200%201-1.1%200L7.1%205.995A.905.905%200%200%201%208%205zm.002%206a1%201%200%201%201%200%202%201%201%200%200%201%200-2z%22/%3E%3C/svg%3E");}.pdoc .alert.caution{color:#842029;background-color:#f8d7da;border-color:#f5c2c7;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23842029%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M11.46.146A.5.5%200%200%200%2011.107%200H4.893a.5.5%200%200%200-.353.146L.146%204.54A.5.5%200%200%200%200%204.893v6.214a.5.5%200%200%200%20.146.353l4.394%204.394a.5.5%200%200%200%20.353.146h6.214a.5.5%200%200%200%20.353-.146l4.394-4.394a.5.5%200%200%200%20.146-.353V4.893a.5.5%200%200%200-.146-.353zM8%204c.535%200%20.954.462.9.995l-.35%203.507a.552.552%200%200%201-1.1%200L7.1%204.995A.905.905%200%200%201%208%204m.002%206a1%201%200%201%201%200%202%201%201%200%200%201%200-2%22/%3E%3C/svg%3E");}.pdoc .alert.danger{color:#842029;background-color:#f8d7da;border-color:#f5c2c7;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23842029%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M5.52.359A.5.5%200%200%201%206%200h4a.5.5%200%200%201%20.474.658L8.694%206H12.5a.5.5%200%200%201%20.395.807l-7%209a.5.5%200%200%201-.873-.454L6.823%209.5H3.5a.5.5%200%200%201-.48-.641l2.5-8.5z%22/%3E%3C/svg%3E");}.pdoc .visually-hidden{position:absolute !important;width:1px !important;height:1px !important;padding:0 !important;margin:-1px !important;overflow:hidden !important;clip:rect(0, 0, 0, 0) !important;white-space:nowrap !important;border:0 !important;}.pdoc h1, .pdoc h2, .pdoc h3{font-weight:300;margin:.3em 0;padding:.2em 0;}.pdoc > section:not(.module-info) h1{font-size:1.5rem;font-weight:500;}.pdoc > section:not(.module-info) h2{font-size:1.4rem;font-weight:500;}.pdoc > section:not(.module-info) h3{font-size:1.3rem;font-weight:500;}.pdoc > section:not(.module-info) h4{font-size:1.2rem;}.pdoc > section:not(.module-info) h5{font-size:1.1rem;}.pdoc a{text-decoration:none;color:var(--link);}.pdoc a:hover{color:var(--link-hover);}.pdoc blockquote{margin-left:2rem;}.pdoc pre{border-top:1px solid var(--accent2);border-bottom:1px solid var(--accent2);margin-top:0;margin-bottom:1em;padding:.5rem 0 .5rem .5rem;overflow-x:auto;background-color:var(--code);}.pdoc code{color:var(--text);padding:.2em .4em;margin:0;font-size:85%;background-color:var(--accent);border-radius:6px;}.pdoc a > code{color:inherit;}.pdoc pre > code{display:inline-block;font-size:inherit;background:none;border:none;padding:0;}.pdoc > section:not(.module-info){margin-bottom:1.5rem;}.pdoc .modulename{margin-top:0;font-weight:bold;}.pdoc .modulename a{color:var(--link);transition:100ms all;}.pdoc .git-button{float:right;border:solid var(--link) 1px;}.pdoc .git-button:hover{background-color:var(--link);color:var(--pdoc-background);}.view-source-toggle-state,.view-source-toggle-state ~ .pdoc-code{display:none;}.view-source-toggle-state:checked ~ .pdoc-code{display:block;}.view-source-button{display:inline-block;float:right;font-size:.75rem;line-height:1.5rem;color:var(--muted);padding:0 .4rem 0 1.3rem;cursor:pointer;text-indent:-2px;}.view-source-button > span{visibility:hidden;}.module-info .view-source-button{float:none;display:flex;justify-content:flex-end;margin:-1.2rem .4rem -.2rem 0;}.view-source-button::before{position:absolute;content:"View Source";display:list-item;list-style-type:disclosure-closed;}.view-source-toggle-state:checked ~ .attr .view-source-button::before,.view-source-toggle-state:checked ~ .view-source-button::before{list-style-type:disclosure-open;}.pdoc .docstring{margin-bottom:1.5rem;}.pdoc section:not(.module-info) .docstring{margin-left:clamp(0rem, 5vw - 2rem, 1rem);}.pdoc .docstring .pdoc-code{margin-left:1em;margin-right:1em;}.pdoc h1:target,.pdoc h2:target,.pdoc h3:target,.pdoc h4:target,.pdoc h5:target,.pdoc h6:target,.pdoc .pdoc-code > pre > span:target{background-color:var(--active);box-shadow:-1rem 0 0 0 var(--active);}.pdoc .pdoc-code > pre > span:target{display:block;}.pdoc div:target > .attr,.pdoc section:target > .attr,.pdoc dd:target > a{background-color:var(--active);}.pdoc *{scroll-margin:2rem;}.pdoc .pdoc-code .linenos{user-select:none;}.pdoc .attr:hover{filter:contrast(0.95);}.pdoc section, .pdoc .classattr{position:relative;}.pdoc .headerlink{--width:clamp(1rem, 3vw, 2rem);position:absolute;top:0;left:calc(0rem - var(--width));transition:all 100ms ease-in-out;opacity:0;}.pdoc .headerlink::before{content:"#";display:block;text-align:center;width:var(--width);height:2.3rem;line-height:2.3rem;font-size:1.5rem;}.pdoc .attr:hover ~ .headerlink,.pdoc *:target > .headerlink,.pdoc .headerlink:hover{opacity:1;}.pdoc .attr{display:block;margin:.5rem 0 .5rem;padding:.4rem .4rem .4rem 1rem;background-color:var(--accent);overflow-x:auto;}.pdoc .classattr{margin-left:2rem;}.pdoc .decorator-deprecated{color:#842029;}.pdoc .decorator-deprecated ~ span{filter:grayscale(1) opacity(0.8);}.pdoc .name{color:var(--name);font-weight:bold;}.pdoc .def{color:var(--def);font-weight:bold;}.pdoc .signature{background-color:transparent;}.pdoc .param, .pdoc .return-annotation{white-space:pre;}.pdoc .signature.multiline .param{display:block;}.pdoc .signature.condensed .param{display:inline-block;}.pdoc .annotation{color:var(--annotation);}.pdoc .view-value-toggle-state,.pdoc .view-value-toggle-state ~ .default_value{display:none;}.pdoc .view-value-toggle-state:checked ~ .default_value{display:inherit;}.pdoc .view-value-button{font-size:.5rem;vertical-align:middle;border-style:dashed;margin-top:-0.1rem;}.pdoc .view-value-button:hover{background:white;}.pdoc .view-value-button::before{content:"show";text-align:center;width:2.2em;display:inline-block;}.pdoc .view-value-toggle-state:checked ~ .view-value-button::before{content:"hide";}.pdoc .inherited{margin-left:2rem;}.pdoc .inherited dt{font-weight:700;}.pdoc .inherited dt, .pdoc .inherited dd{display:inline;margin-left:0;margin-bottom:.5rem;}.pdoc .inherited dd:not(:last-child):after{content:", ";}.pdoc .inherited .class:before{content:"class ";}.pdoc .inherited .function a:after{content:"()";}.pdoc .search-result .docstring{overflow:auto;max-height:25vh;}.pdoc .search-result.focused > .attr{background-color:var(--active);}.pdoc .attribution{margin-top:2rem;display:block;opacity:0.5;transition:all 200ms;filter:grayscale(100%);}.pdoc .attribution:hover{opacity:1;filter:grayscale(0%);}.pdoc .attribution img{margin-left:5px;height:27px;vertical-align:bottom;width:50px;transition:all 200ms;}.pdoc table{display:block;width:max-content;max-width:100%;overflow:auto;margin-bottom:1rem;}.pdoc table th{font-weight:600;}.pdoc table th, .pdoc table td{padding:6px 13px;border:1px solid var(--accent2);}</style>
-    <style>/*! custom.css */</style></head>
+    <style>/*! custom.css */</style><script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']]
+        }
+    };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script>
+    /* Re-invoke MathJax when DOM content changes, for example during search. */
+    document.addEventListener("DOMContentLoaded", () => {
+        new MutationObserver(() => MathJax.typeset()).observe(
+            document.querySelector("main.pdoc").parentNode,
+            {childList: true}
+        );
+    })
+</script>
+<style>
+    mjx-container {
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+</style></head>
 <body>
     <nav class="pdoc">
         <label id="navtoggle" for="togglestate" class="pdoc-button"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><path stroke-linecap='round' stroke="currentColor" stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/></svg></label>
@@ -2283,9 +2305,12 @@
 
             <div class="docstring"><p>A pixel location in an image's reference frame.</p>
 
-<p>Attributes:
-    x: Horizontal pixel coordinate, increasing left to right.
-    y: Vertical pixel coordinate, increasing top to bottom.</p>
+<h6 id="attributes">Attributes:</h6>
+
+<ul>
+<li><strong>x:</strong>  Horizontal pixel coordinate, increasing left to right.</li>
+<li><strong>y:</strong>  Vertical pixel coordinate, increasing top to bottom.</li>
+</ul>
 </div>
 
 
@@ -2405,18 +2430,27 @@ top-left corner is <code>(0, 0)</code>) and may lie partially or entirely outsid
 raising an error — so a subimage straddling an edge, or lying
 completely outside <code>image</code>, is always a valid, well-shaped result.</p>
 
-<p>Args:
-    image: Source 2D grayscale image array.
-    origin: Top-left corner of the region to extract, in <code>image</code>'s
-        pixel reference frame.
-    width: Width of the extracted region in pixels. Must be &gt;= 1.
-    height: Height of the extracted region in pixels. Must be &gt;= 1.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    A 2D array of shape (height, width), same dtype as <code>image</code>.</p>
+<ul>
+<li><strong>image:</strong>  Source 2D grayscale image array.</li>
+<li><strong>origin:</strong>  Top-left corner of the region to extract, in <code>image</code>'s
+pixel reference frame.</li>
+<li><strong>width:</strong>  Width of the extracted region in pixels. Must be &gt;= 1.</li>
+<li><strong>height:</strong>  Height of the extracted region in pixels. Must be &gt;= 1.</li>
+</ul>
 
-<p>Raises:
-    ValueError: If <code>image</code> is not 2D, or width or height is less than 1.</p>
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>A 2D array of shape (height, width), same dtype as <code>image</code>.</p>
+</blockquote>
+
+<h6 id="raises">Raises:</h6>
+
+<ul>
+<li><strong>ValueError:</strong>  If <code>image</code> is not 2D, or width or height is less than 1.</li>
+</ul>
 </div>
 
 
@@ -2539,19 +2573,25 @@ is also drawn at each rectangle's own origin: blue at <code>(0, 0)</code> for
 <code>image</code>, red at <code>origin</code> for the subimage — both in <code>image</code>'s pixel
 reference frame.</p>
 
-<p>Args:
-    image: Source 2D grayscale image array.
-    origin: Top-left corner of the region, in <code>image</code>'s pixel
-        reference frame; see <code><a href="#subimage">subimage()</a></code>.
-    width: Width of the region in pixels. Must be &gt;= 1.
-    height: Height of the region in pixels. Must be &gt;= 1.
-    path: Output file path for the figure; format is inferred from
-        the extension by matplotlib's savefig (e.g. .png), not
-        dictk's own write/write_svg.
-    dpi: Resolution of the saved figure.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Raises:
-    ValueError: If width or height is less than 1.</p>
+<ul>
+<li><strong>image:</strong>  Source 2D grayscale image array.</li>
+<li><strong>origin:</strong>  Top-left corner of the region, in <code>image</code>'s pixel
+reference frame; see <code><a href="#subimage">subimage()</a></code>.</li>
+<li><strong>width:</strong>  Width of the region in pixels. Must be &gt;= 1.</li>
+<li><strong>height:</strong>  Height of the region in pixels. Must be &gt;= 1.</li>
+<li><strong>path:</strong>  Output file path for the figure; format is inferred from
+the extension by matplotlib's savefig (e.g. .png), not
+dictk's own write/write_svg.</li>
+<li><strong>dpi:</strong>  Resolution of the saved figure.</li>
+</ul>
+
+<h6 id="raises">Raises:</h6>
+
+<ul>
+<li><strong>ValueError:</strong>  If width or height is less than 1.</li>
+</ul>
 </div>
 
 
@@ -2654,19 +2694,25 @@ to <code>image</code>, this shows what the extracted result actually looks like,
 including any zero (black) padding from parts of the region that fell
 outside <code>image</code>.</p>
 
-<p>Args:
-    image: Source 2D grayscale image array.
-    origin: Top-left corner of the region, in <code>image</code>'s pixel
-        reference frame; see <code><a href="#subimage">subimage()</a></code>.
-    width: Width of the region in pixels. Must be &gt;= 1.
-    height: Height of the region in pixels. Must be &gt;= 1.
-    path: Output file path for the figure; format is inferred from
-        the extension by matplotlib's savefig (e.g. .png), not
-        dictk's own write/write_svg.
-    dpi: Resolution of the saved figure.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Raises:
-    ValueError: If width or height is less than 1.</p>
+<ul>
+<li><strong>image:</strong>  Source 2D grayscale image array.</li>
+<li><strong>origin:</strong>  Top-left corner of the region, in <code>image</code>'s pixel
+reference frame; see <code><a href="#subimage">subimage()</a></code>.</li>
+<li><strong>width:</strong>  Width of the region in pixels. Must be &gt;= 1.</li>
+<li><strong>height:</strong>  Height of the region in pixels. Must be &gt;= 1.</li>
+<li><strong>path:</strong>  Output file path for the figure; format is inferred from
+the extension by matplotlib's savefig (e.g. .png), not
+dictk's own write/write_svg.</li>
+<li><strong>dpi:</strong>  Resolution of the saved figure.</li>
+</ul>
+
+<h6 id="raises">Raises:</h6>
+
+<ul>
+<li><strong>ValueError:</strong>  If width or height is less than 1.</li>
+</ul>
 </div>
 
 
@@ -2931,48 +2977,54 @@ construction — same data units per pixel in both panels — rather than
 approximating it by sizing each panel's figure independently around
 its own content.</p>
 
-<p>Args:
-    image: Source 2D grayscale image array.
-    origin: Top-left corner of the region, in <code>image</code>'s pixel
-        reference frame; see <code><a href="#subimage">subimage()</a></code>.
-    width: Width of the region in pixels. Must be &gt;= 1.
-    height: Height of the region in pixels. Must be &gt;= 1.
-    path: Output file path for the figure; format is inferred from
-        the extension by matplotlib's savefig (e.g. .png), not
-        dictk's own write/write_svg.
-    point: An optional point of interest, in <code>image</code>'s pixel reference
-        frame, marked with a <code>point_color</code> dot on both panels — at
-        <code>point</code> itself on the left, and at <code>point</code> translated into
-        the subimage's own local frame (<code>point</code> minus <code>origin</code>) on
-        the right, since that's the same physical point expressed in
-        each panel's own coordinates.
-    point_color: Matplotlib color name for <code>point</code>'s marker. Ignored
-        if <code>point</code> isn't given.
-    point_label: An optional short text label (e.g. <code>"P"</code>) drawn next
-        to <code>point</code>'s marker, on both panels. Ignored if <code>point</code> isn't
-        given.
-    subimage_label: An optional short label identifying what this
-        subimage represents (e.g. <code>"kernel"</code>), appended to the right
-        panel's "subimage" title as "subimage (label)". Left as-is
-        ("subimage") when not given.
-    color: Matplotlib color name for the subimage's bounding box and
-        origin marker, on both panels.
-    origin_label: An optional short text label (e.g. <code>"K"</code>) drawn
-        next to the subimage's own origin marker, on both panels.
-    source_origin_label: An optional short text label (e.g. <code>"O"</code>)
-        drawn next to <code>image</code>'s own origin marker (the blue dot),
-        on the left panel only -- the right panel has no equivalent
-        marker for it.
-    figsize: Optional (width, height) in inches for the saved figure
-        (both panels combined). By default the canvas is sized from
-        <code>image</code>/the subimage's own data extent (so a small subimage
-        yields a small figure); pass this to override with a fixed
-        size instead -- e.g. matplotlib's own default, <code>(6.4, 4.8)</code>,
-        where its default font sizes and line widths look as intended.
-    dpi: Resolution of the saved figure.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Raises:
-    ValueError: If width or height is less than 1.</p>
+<ul>
+<li><strong>image:</strong>  Source 2D grayscale image array.</li>
+<li><strong>origin:</strong>  Top-left corner of the region, in <code>image</code>'s pixel
+reference frame; see <code><a href="#subimage">subimage()</a></code>.</li>
+<li><strong>width:</strong>  Width of the region in pixels. Must be &gt;= 1.</li>
+<li><strong>height:</strong>  Height of the region in pixels. Must be &gt;= 1.</li>
+<li><strong>path:</strong>  Output file path for the figure; format is inferred from
+the extension by matplotlib's savefig (e.g. .png), not
+dictk's own write/write_svg.</li>
+<li><strong>point:</strong>  An optional point of interest, in <code>image</code>'s pixel reference
+frame, marked with a <code>point_color</code> dot on both panels — at
+<code>point</code> itself on the left, and at <code>point</code> translated into
+the subimage's own local frame (<code>point</code> minus <code>origin</code>) on
+the right, since that's the same physical point expressed in
+each panel's own coordinates.</li>
+<li><strong>point_color:</strong>  Matplotlib color name for <code>point</code>'s marker. Ignored
+if <code>point</code> isn't given.</li>
+<li><strong>point_label:</strong>  An optional short text label (e.g. <code>"P"</code>) drawn next
+to <code>point</code>'s marker, on both panels. Ignored if <code>point</code> isn't
+given.</li>
+<li><strong>subimage_label:</strong>  An optional short label identifying what this
+subimage represents (e.g. <code>"kernel"</code>), appended to the right
+panel's "subimage" title as "subimage (label)". Left as-is
+("subimage") when not given.</li>
+<li><strong>color:</strong>  Matplotlib color name for the subimage's bounding box and
+origin marker, on both panels.</li>
+<li><strong>origin_label:</strong>  An optional short text label (e.g. <code>"K"</code>) drawn
+next to the subimage's own origin marker, on both panels.</li>
+<li><strong>source_origin_label:</strong>  An optional short text label (e.g. <code>"O"</code>)
+drawn next to <code>image</code>'s own origin marker (the blue dot),
+on the left panel only -- the right panel has no equivalent
+marker for it.</li>
+<li><strong>figsize:</strong>  Optional (width, height) in inches for the saved figure
+(both panels combined). By default the canvas is sized from
+<code>image</code>/the subimage's own data extent (so a small subimage
+yields a small figure); pass this to override with a fixed
+size instead -- e.g. matplotlib's own default, <code>(6.4, 4.8)</code>,
+where its default font sizes and line widths look as intended.</li>
+<li><strong>dpi:</strong>  Resolution of the saved figure.</li>
+</ul>
+
+<h6 id="raises">Raises:</h6>
+
+<ul>
+<li><strong>ValueError:</strong>  If width or height is less than 1.</li>
+</ul>
 </div>
 
 
@@ -3007,11 +3059,14 @@ its own content.</p>
 
             <div class="docstring"><p>A labeled, colored arrow to overlay on an image, from <code><a href="#ArrowAnnotation.tail">tail</a></code> to <code><a href="#ArrowAnnotation.head">head</a></code>.</p>
 
-<p>Attributes:
-    tail: Arrow's starting point, in the image's pixel reference frame.
-    head: Arrow's ending point, in the image's pixel reference frame.
-    color: Matplotlib color name for the arrow and its legend entry.
-    label: Legend label for the arrow.</p>
+<h6 id="attributes">Attributes:</h6>
+
+<ul>
+<li><strong>tail:</strong>  Arrow's starting point, in the image's pixel reference frame.</li>
+<li><strong>head:</strong>  Arrow's ending point, in the image's pixel reference frame.</li>
+<li><strong>color:</strong>  Matplotlib color name for the arrow and its legend entry.</li>
+<li><strong>label:</strong>  Legend label for the arrow.</li>
+</ul>
 </div>
 
 
@@ -3116,14 +3171,17 @@ its own content.</p>
 
             <div class="docstring"><p>A labeled, colored rectangle (with an origin marker) to overlay on an image.</p>
 
-<p>Attributes:
-    origin: Top-left corner of the rectangle, in the image's pixel
-        reference frame; see <code><a href="#subimage">subimage()</a></code>.
-    width: Width of the rectangle in pixels.
-    height: Height of the rectangle in pixels.
-    color: Matplotlib color name for the rectangle, its origin
-        marker, and its legend entry.
-    label: Legend label for the rectangle.</p>
+<h6 id="attributes">Attributes:</h6>
+
+<ul>
+<li><strong>origin:</strong>  Top-left corner of the rectangle, in the image's pixel
+reference frame; see <code><a href="#subimage">subimage()</a></code>.</li>
+<li><strong>width:</strong>  Width of the rectangle in pixels.</li>
+<li><strong>height:</strong>  Height of the rectangle in pixels.</li>
+<li><strong>color:</strong>  Matplotlib color name for the rectangle, its origin
+marker, and its legend entry.</li>
+<li><strong>label:</strong>  Legend label for the rectangle.</li>
+</ul>
 </div>
 
 
@@ -3244,11 +3302,14 @@ its own content.</p>
 other way (e.g. an <code><a href="#ArrowAnnotation">ArrowAnnotation</a></code>'s head/tail, or a <code><a href="#BoxAnnotation">BoxAnnotation</a></code>'s
 origin) with a short symbol, like <code>"$P$"</code>.</p>
 
-<p>Attributes:
-    position: Location of the label, in the image's pixel reference frame.
-    label: Short text to draw (e.g. <code>"$P$"</code>); LaTeX math (<code>$...$</code>) is
-        rendered via matplotlib's built-in mathtext.
-    color: Matplotlib color name for the label text.</p>
+<h6 id="attributes">Attributes:</h6>
+
+<ul>
+<li><strong>position:</strong>  Location of the label, in the image's pixel reference frame.</li>
+<li><strong>label:</strong>  Short text to draw (e.g. <code>"$P$"</code>); LaTeX math (<code>$...$</code>) is
+rendered via matplotlib's built-in mathtext.</li>
+<li><strong>color:</strong>  Matplotlib color name for the label text.</li>
+</ul>
 </div>
 
 
@@ -3489,31 +3550,37 @@ about the arrows drawn on top of it. Each <code><a href="#PointAnnotation">Point
 short text label (with a thin white outline, so it stays legible
 against the image) next to a point already marked some other way.</p>
 
-<p>Args:
-    image: Source 2D grayscale image array.
-    arrows: One or more arrows to overlay, each with its own color and
-        legend label.
-    boxes: Zero or more rectangles to overlay underneath the arrows,
-        each with its own color and legend label.
-    points: Zero or more short text labels to draw, each next to a
-        point already marked by an arrow or box elsewhere in the
-        figure.
-    legend: Whether to draw the arrow/box legend. Set to False when
-        the arrow/box labels are already explained elsewhere (e.g. a
-        figure caption) and would just clutter the figure.
-    figsize: Optional (width, height) in inches for the saved figure.
-        By default the canvas is sized from the annotations' own
-        data extent (so a small image yields a small figure); pass
-        this to override with a fixed size instead -- e.g.
-        matplotlib's own default, <code>(6.4, 4.8)</code>, where its default
-        font sizes and line widths look as intended.
-    path: Output file path for the figure; format is inferred from the
-        extension by matplotlib's savefig (e.g. .png), not dictk's own
-        write/write_svg.
-    dpi: Resolution of the saved figure.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Raises:
-    ValueError: If <code>arrows</code> is empty.</p>
+<ul>
+<li><strong>image:</strong>  Source 2D grayscale image array.</li>
+<li><strong>arrows:</strong>  One or more arrows to overlay, each with its own color and
+legend label.</li>
+<li><strong>boxes:</strong>  Zero or more rectangles to overlay underneath the arrows,
+each with its own color and legend label.</li>
+<li><strong>points:</strong>  Zero or more short text labels to draw, each next to a
+point already marked by an arrow or box elsewhere in the
+figure.</li>
+<li><strong>legend:</strong>  Whether to draw the arrow/box legend. Set to False when
+the arrow/box labels are already explained elsewhere (e.g. a
+figure caption) and would just clutter the figure.</li>
+<li><strong>figsize:</strong>  Optional (width, height) in inches for the saved figure.
+By default the canvas is sized from the annotations' own
+data extent (so a small image yields a small figure); pass
+this to override with a fixed size instead -- e.g.
+matplotlib's own default, <code>(6.4, 4.8)</code>, where its default
+font sizes and line widths look as intended.</li>
+<li><strong>path:</strong>  Output file path for the figure; format is inferred from the
+extension by matplotlib's savefig (e.g. .png), not dictk's own
+write/write_svg.</li>
+<li><strong>dpi:</strong>  Resolution of the saved figure.</li>
+</ul>
+
+<h6 id="raises">Raises:</h6>
+
+<ul>
+<li><strong>ValueError:</strong>  If <code>arrows</code> is empty.</li>
+</ul>
 </div>
 
 
@@ -3675,12 +3742,15 @@ origin marker. The "x"/"y" axis labels sit in the margin outside the
 blue frame, rather than on top of it, so they don't overlap its
 border.</p>
 
-<p>Args:
-    image: Source 2D grayscale image array.
-    path: Output file path for the figure; format is inferred from
-        the extension by matplotlib's savefig (e.g. .png), not
-        dictk's own write/write_svg.
-    dpi: Resolution of the saved figure.</p>
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>image:</strong>  Source 2D grayscale image array.</li>
+<li><strong>path:</strong>  Output file path for the figure; format is inferred from
+the extension by matplotlib's savefig (e.g. .png), not
+dictk's own write/write_svg.</li>
+<li><strong>dpi:</strong>  Resolution of the saved figure.</li>
+</ul>
 </div>
 
 
@@ -3741,17 +3811,26 @@ the rectangles they divide the image into, not "squares": unequal
 counts (or a width/height ratio that doesn't match count_x/count_y)
 produce rectangular cells, not square ones.</p>
 
-<p>Args:
-    width: Image width in pixels.
-    height: Image height in pixels.
-    count_x: Number of rectangles along the width. Must be &gt;= 1.
-    count_y: Number of rectangles along the height. Must be &gt;= 1.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    A 2D uint8 array of shape (height, width) with values 0 or 255.</p>
+<ul>
+<li><strong>width:</strong>  Image width in pixels.</li>
+<li><strong>height:</strong>  Image height in pixels.</li>
+<li><strong>count_x:</strong>  Number of rectangles along the width. Must be &gt;= 1.</li>
+<li><strong>count_y:</strong>  Number of rectangles along the height. Must be &gt;= 1.</li>
+</ul>
 
-<p>Raises:
-    ValueError: If count_x or count_y is less than 1.</p>
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>A 2D uint8 array of shape (height, width) with values 0 or 255.</p>
+</blockquote>
+
+<h6 id="raises">Raises:</h6>
+
+<ul>
+<li><strong>ValueError:</strong>  If count_x or count_y is less than 1.</li>
+</ul>
 </div>
 
 
@@ -3826,15 +3905,24 @@ procedurally generated, so <code>width</code>/<code>height</code> other than the
 512x512 resize the source image (via <code>scipy.ndimage.zoom</code>) rather than
 computing a fresh pattern at that size.</p>
 
-<p>Args:
-    width: Image width in pixels. Must be &gt;= 1.
-    height: Image height in pixels. Must be &gt;= 1.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    A 2D uint8 array of shape (height, width).</p>
+<ul>
+<li><strong>width:</strong>  Image width in pixels. Must be &gt;= 1.</li>
+<li><strong>height:</strong>  Image height in pixels. Must be &gt;= 1.</li>
+</ul>
 
-<p>Raises:
-    ValueError: If width or height is less than 1.</p>
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>A 2D uint8 array of shape (height, width).</p>
+</blockquote>
+
+<h6 id="raises">Raises:</h6>
+
+<ul>
+<li><strong>ValueError:</strong>  If width or height is less than 1.</li>
+</ul>
 </div>
 
 
@@ -3865,11 +3953,17 @@ computing a fresh pattern at that size.</p>
 
             <div class="docstring"><p>Check whether an image array is in RGB or RGBA format.</p>
 
-<p>Args:
-    arr: Input image array.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    True if the array is 3D with 3 or 4 channels, False otherwise.</p>
+<ul>
+<li><strong>arr:</strong>  Input image array.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>True if the array is 3D with 3 or 4 channels, False otherwise.</p>
+</blockquote>
 </div>
 
 
@@ -3912,15 +4006,24 @@ computing a fresh pattern at that size.</p>
 
             <div class="docstring"><p>Convert an RGB(A) image to grayscale by averaging the RGB channels.</p>
 
-<p>Args:
-    arr: Input image array, either 2D (grayscale) or 3D (color).</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    A 2D grayscale image array. If the input is already 2D, it is
-    returned unchanged.</p>
+<ul>
+<li><strong>arr:</strong>  Input image array, either 2D (grayscale) or 3D (color).</li>
+</ul>
 
-<p>Raises:
-    ValueError: If the array is neither 2D nor a 3-or-4-channel 3D array.</p>
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>A 2D grayscale image array. If the input is already 2D, it is
+  returned unchanged.</p>
+</blockquote>
+
+<h6 id="raises">Raises:</h6>
+
+<ul>
+<li><strong>ValueError:</strong>  If the array is neither 2D nor a 3-or-4-channel 3D array.</li>
+</ul>
 </div>
 
 
@@ -3964,15 +4067,24 @@ computing a fresh pattern at that size.</p>
 
             <div class="docstring"><p>Combine two images by averaging their pixel values.</p>
 
-<p>Args:
-    a: First image, 2D grayscale or 3D color.
-    b: Second image, same shape as <code>a</code> once converted to grayscale.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    A 2D uint8 array, normalized to the range [0, 255].</p>
+<ul>
+<li><strong>a:</strong>  First image, 2D grayscale or 3D color.</li>
+<li><strong>b:</strong>  Second image, same shape as <code>a</code> once converted to grayscale.</li>
+</ul>
 
-<p>Raises:
-    ValueError: If the grayscale-converted images don't share a shape.</p>
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>A 2D uint8 array, normalized to the range [0, 255].</p>
+</blockquote>
+
+<h6 id="raises">Raises:</h6>
+
+<ul>
+<li><strong>ValueError:</strong>  If the grayscale-converted images don't share a shape.</li>
+</ul>
 </div>
 
 
@@ -4020,13 +4132,19 @@ bright ones (unlike a multiplicative scale, where a black pixel would
 stay exactly black). factor=1.0 leaves the image unchanged; factor=1.5
 shifts every pixel by +127.5*0.5 = +63.75, factor=2.0 by +127.5.</p>
 
-<p>Args:
-    arr: A 2D grayscale image array.
-    factor: Brightness factor. 1.0 is unchanged; &gt; 1.0 brightens
-        (shifts toward white); &lt; 1.0 darkens (shifts toward black).</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    A 2D uint8 array, same shape as <code>arr</code>.</p>
+<ul>
+<li><strong>arr:</strong>  A 2D grayscale image array.</li>
+<li><strong>factor:</strong>  Brightness factor. 1.0 is unchanged; &gt; 1.0 brightens
+(shifts toward white); &lt; 1.0 darkens (shifts toward black).</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>A 2D uint8 array, same shape as <code>arr</code>.</p>
+</blockquote>
 </div>
 
 
@@ -4073,13 +4191,19 @@ values spread further from it. factor=1.0 leaves the image unchanged;
 factor=0.0 collapses every pixel to the mean (a flat gray image);
 factor &gt; 1.0 pushes values further toward 0 and 255.</p>
 
-<p>Args:
-    arr: A 2D grayscale image array.
-    factor: Contrast factor. 1.0 is unchanged; &gt; 1.0 increases
-        contrast; between 0.0 and 1.0 decreases it.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    A 2D uint8 array, same shape as <code>arr</code>.</p>
+<ul>
+<li><strong>arr:</strong>  A 2D grayscale image array.</li>
+<li><strong>factor:</strong>  Contrast factor. 1.0 is unchanged; &gt; 1.0 increases
+contrast; between 0.0 and 1.0 decreases it.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>A 2D uint8 array, same shape as <code>arr</code>.</p>
+</blockquote>
 </div>
 
 
@@ -4153,16 +4277,25 @@ naively moving each source pixel forward. A factor &lt; 1.0 shrinks
 content toward the origin, leaving black (fill value 0) margins along
 the far (bottom/right) edges.</p>
 
-<p>Args:
-    arr: A 2D grayscale image array.
-    factor_x: Stretch factor along the x-axis. Must be &gt; 0.
-    factor_y: Stretch factor along the y-axis. Must be &gt; 0.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    A 2D uint8 array, same shape as <code>arr</code>.</p>
+<ul>
+<li><strong>arr:</strong>  A 2D grayscale image array.</li>
+<li><strong>factor_x:</strong>  Stretch factor along the x-axis. Must be &gt; 0.</li>
+<li><strong>factor_y:</strong>  Stretch factor along the y-axis. Must be &gt; 0.</li>
+</ul>
 
-<p>Raises:
-    ValueError: If factor_x or factor_y is &lt;= 0.</p>
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>A 2D uint8 array, same shape as <code>arr</code>.</p>
+</blockquote>
+
+<h6 id="raises">Raises:</h6>
+
+<ul>
+<li><strong>ValueError:</strong>  If factor_x or factor_y is &lt;= 0.</li>
+</ul>
 </div>
 
 
@@ -4216,15 +4349,21 @@ transformation category. Uses the same backward-mapping approach as
 interpolation rather than rounding. Content shifted in from outside
 the original bounds is filled with black (fill value 0).</p>
 
-<p>Args:
-    arr: A 2D grayscale image array.
-    dx: Displacement in pixels along the x-axis; positive moves
-        content right.
-    dy: Displacement in pixels along the y-axis; positive moves
-        content down.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    A 2D uint8 array, same shape as <code>arr</code>.</p>
+<ul>
+<li><strong>arr:</strong>  A 2D grayscale image array.</li>
+<li><strong>dx:</strong>  Displacement in pixels along the x-axis; positive moves
+content right.</li>
+<li><strong>dy:</strong>  Displacement in pixels along the y-axis; positive moves
+content down.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>A 2D uint8 array, same shape as <code>arr</code>.</p>
+</blockquote>
 </div>
 
 
@@ -4288,12 +4427,18 @@ a door on a hinge. Uses the same backward-mapping approach as
 bilinearly interpolated, and any pixel with no corresponding source
 coordinate within <code>arr</code>'s bounds is filled with black (fill value 0).</p>
 
-<p>Args:
-    arr: A 2D grayscale image array.
-    angle: Rotation angle in degrees; positive is counterclockwise.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    A 2D uint8 array, same shape as <code>arr</code>.</p>
+<ul>
+<li><strong>arr:</strong>  A 2D grayscale image array.</li>
+<li><strong>angle:</strong>  Rotation angle in degrees; positive is counterclockwise.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>A 2D uint8 array, same shape as <code>arr</code>.</p>
+</blockquote>
 </div>
 
 
@@ -4369,17 +4514,26 @@ are bilinearly interpolated, and any pixel with no corresponding
 source coordinate within <code>arr</code>'s bounds is filled with black (fill
 value 0).</p>
 
-<p>Args:
-    arr: A 2D grayscale image array.
-    shear_x: Horizontal shear factor.
-    shear_y: Vertical shear factor.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    A 2D uint8 array, same shape as <code>arr</code>.</p>
+<ul>
+<li><strong>arr:</strong>  A 2D grayscale image array.</li>
+<li><strong>shear_x:</strong>  Horizontal shear factor.</li>
+<li><strong>shear_y:</strong>  Vertical shear factor.</li>
+</ul>
 
-<p>Raises:
-    ValueError: If shear_x * shear_y == 1, which makes the
-        deformation gradient singular (non-invertible).</p>
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>A 2D uint8 array, same shape as <code>arr</code>.</p>
+</blockquote>
+
+<h6 id="raises">Raises:</h6>
+
+<ul>
+<li><strong>ValueError:</strong>  If shear_x * shear_y == 1, which makes the
+deformation gradient singular (non-invertible).</li>
+</ul>
 </div>
 
 
@@ -4469,20 +4623,29 @@ hardest case for correlation algorithms. Pivots on the image's
 top-left corner (0, 0), consistent with <code><a href="#stretch">stretch</a></code>, <code><a href="#translate">translate</a></code>,
 <code><a href="#rotate">rotate</a></code>, and <code><a href="#shear">shear</a></code>'s pivot choice in this codebase.</p>
 
-<p>Args:
-    arr: A 2D grayscale image array.
-    factor_x: Stretch factor along the x-axis, applied before the
-        rotation. Must be &gt; 0.
-    factor_y: Stretch factor along the y-axis, applied before the
-        rotation. Must be &gt; 0.
-    angle: Rotation angle in degrees, applied after the stretch;
-        positive is counterclockwise.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    A 2D uint8 array, same shape as <code>arr</code>.</p>
+<ul>
+<li><strong>arr:</strong>  A 2D grayscale image array.</li>
+<li><strong>factor_x:</strong>  Stretch factor along the x-axis, applied before the
+rotation. Must be &gt; 0.</li>
+<li><strong>factor_y:</strong>  Stretch factor along the y-axis, applied before the
+rotation. Must be &gt; 0.</li>
+<li><strong>angle:</strong>  Rotation angle in degrees, applied after the stretch;
+positive is counterclockwise.</li>
+</ul>
 
-<p>Raises:
-    ValueError: If factor_x or factor_y is &lt;= 0.</p>
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>A 2D uint8 array, same shape as <code>arr</code>.</p>
+</blockquote>
+
+<h6 id="raises">Raises:</h6>
+
+<ul>
+<li><strong>ValueError:</strong>  If factor_x or factor_y is &lt;= 0.</li>
+</ul>
 </div>
 
 
@@ -4551,13 +4714,19 @@ source coordinates are bilinearly interpolated, and any pixel with
 no corresponding source coordinate within <code>arr</code>'s bounds is filled
 with black (fill value 0).</p>
 
-<p>Args:
-    arr: A 2D grayscale image array.
-    offset: Displacement in pixels; the left half (x &lt; width / 2)
-        shifts down by this amount, the right half shifts up by it.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    A 2D uint8 array, same shape as <code>arr</code>.</p>
+<ul>
+<li><strong>arr:</strong>  A 2D grayscale image array.</li>
+<li><strong>offset:</strong>  Displacement in pixels; the left half (x &lt; width / 2)
+shifts down by this amount, the right half shifts up by it.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>A 2D uint8 array, same shape as <code>arr</code>.</p>
+</blockquote>
 </div>
 
 
@@ -4588,11 +4757,17 @@ with black (fill value 0).</p>
 
             <div class="docstring"><p>Read an image file into a NumPy array.</p>
 
-<p>Args:
-    path: Path to the image file.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    The image as a NumPy array.</p>
+<ul>
+<li><strong>path:</strong>  Path to the image file.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>The image as a NumPy array.</p>
+</blockquote>
 </div>
 
 
@@ -4644,9 +4819,12 @@ is PNG-encoded and embedded as a base64 data URI inside a minimal SVG
 wrapper (the standard way to carry raster data in SVG) rather than
 traced into vector shapes.</p>
 
-<p>Args:
-    arr: The image array to save.
-    path: The output file path.</p>
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>arr:</strong>  The image array to save.</li>
+<li><strong>path:</strong>  The output file path.</li>
+</ul>
 </div>
 
 
@@ -4687,9 +4865,12 @@ traced into vector shapes.</p>
 (embedding a raster PNG in an SVG wrapper); every other extension
 (<code>.tiff</code>, <code>.png</code>, <code>.jpg</code>, ...) is handled by imageio directly.</p>
 
-<p>Args:
-    arr: The image array to save.
-    path: The output file path.</p>
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>arr:</strong>  The image array to save.</li>
+<li><strong>path:</strong>  The output file path.</li>
+</ul>
 </div>
 
 
@@ -4736,11 +4917,17 @@ traced into vector shapes.</p>
 
             <div class="docstring"><p>Format a description of an image array's type, shape, and color format.</p>
 
-<p>Args:
-    arr: The image array to describe.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    A multi-line description string.</p>
+<ul>
+<li><strong>arr:</strong>  The image array to describe.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>A multi-line description string.</p>
+</blockquote>
 </div>
 
 
@@ -4778,12 +4965,15 @@ traced into vector shapes.</p>
 
             <div class="docstring"><p>Save a histogram of pixel intensities [0, 255] for a grayscale image.</p>
 
-<p>Args:
-    arr: The 2D grayscale image array, expected type uint8, range [0, 255].
-    path: The output file path for the histogram image; format is
-        inferred from the extension by matplotlib's savefig (e.g.
-        .png), not dictk's own write/write_svg.
-    dpi: Resolution of the saved figure.</p>
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>arr:</strong>  The 2D grayscale image array, expected type uint8, range [0, 255].</li>
+<li><strong>path:</strong>  The output file path for the histogram image; format is
+inferred from the extension by matplotlib's savefig (e.g.
+.png), not dictk's own write/write_svg.</li>
+<li><strong>dpi:</strong>  Resolution of the saved figure.</li>
+</ul>
 </div>
 
 
@@ -4923,29 +5113,35 @@ exactly the circle's own bounding box.</p>
 without a system TeX install, scoped to this function alone via
 <code>rc_context</code> so it can't leak into any other figure.</p>
 
-<p>Args:
-    kernel: The extracted kernel subimage (2D grayscale array).
-    search: The extracted search-area subimage (2D grayscale array);
-        must be at least as large as <code>kernel</code> in both dimensions.
-    correlation_surface: One of <code><a href="correlation.html">dictk.correlation</a></code>'s <code>cc</code>/<code>ncc</code>/<code>zcc</code>/
-        <code>zncc</code> surfaces, computed from this same <code>kernel</code>/<code>search</code>
-        pair. Its own argmax is taken as the found position.
-    title: Figure-level title naming the correlation criterion shown,
-        e.g. <code>"Zero-mean Normalized Cross-Correlation (ZNCC)"</code> --
-        rendered as a <code>suptitle</code> spanning the full figure width rather
-        than the correlation-surface panel's own title, since panel
-        titles are too narrow to reliably fit the longer criterion
-        names without truncating or overlapping their colorbar.
-    path: Output file path for the figure; format is inferred from the
-        extension by matplotlib's savefig (e.g. .png).
-    figsize: (width, height) in inches for the saved figure.
-    dpi: Resolution of the saved figure.
-    vicinity_margin: Half-width/height, in pixels, of the Solution
-        Vicinity zoom window around the correlation surface's peak.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Raises:
-    ValueError: If <code>search</code> is smaller than <code>kernel</code> in either
-        dimension.</p>
+<ul>
+<li><strong>kernel:</strong>  The extracted kernel subimage (2D grayscale array).</li>
+<li><strong>search:</strong>  The extracted search-area subimage (2D grayscale array);
+must be at least as large as <code>kernel</code> in both dimensions.</li>
+<li><strong>correlation_surface:</strong>  One of <code><a href="correlation.html">dictk.correlation</a></code>'s <code>cc</code>/<code>ncc</code>/<code>zcc</code>/
+<code>zncc</code> surfaces, computed from this same <code>kernel</code>/<code>search</code>
+pair. Its own argmax is taken as the found position.</li>
+<li><strong>title:</strong>  Figure-level title naming the correlation criterion shown,
+e.g. <code>"Zero-mean Normalized Cross-Correlation (ZNCC)"</code> --
+rendered as a <code>suptitle</code> spanning the full figure width rather
+than the correlation-surface panel's own title, since panel
+titles are too narrow to reliably fit the longer criterion
+names without truncating or overlapping their colorbar.</li>
+<li><strong>path:</strong>  Output file path for the figure; format is inferred from the
+extension by matplotlib's savefig (e.g. .png).</li>
+<li><strong>figsize:</strong>  (width, height) in inches for the saved figure.</li>
+<li><strong>dpi:</strong>  Resolution of the saved figure.</li>
+<li><strong>vicinity_margin:</strong>  Half-width/height, in pixels, of the Solution
+Vicinity zoom window around the correlation surface's peak.</li>
+</ul>
+
+<h6 id="raises">Raises:</h6>
+
+<ul>
+<li><strong>ValueError:</strong>  If <code>search</code> is smaller than <code>kernel</code> in either
+dimension.</li>
+</ul>
 </div>
 
 
@@ -5095,34 +5291,40 @@ zoom window is exactly the circle's own bounding box.</p>
 without a system TeX install, scoped to this function alone via
 <code>rc_context</code> so it can't leak into any other figure.</p>
 
-<p>Args:
-    kernel: The extracted kernel subimage (2D grayscale array).
-    search: The extracted search-area subimage (2D grayscale array);
-        must be at least as large as <code>kernel</code> in both dimensions.
-    windowing: If given, passed straight through to
-        <a href="../correlation.html#phase_correlation"><code>phase_correlation</code></a> --
-        tapers <code>kernel</code>/<code>search</code> before computing the surface. The
-        same tapered <code>kernel</code>/<code>search</code> are what the Fixed Image and
-        Moving Image panels display too (windowed, <em>then</em> zero-padded
-        for the Moving Image panel, same order the surface itself is
-        computed in), so those panels always show what was actually
-        correlated -- not a stale, untapered view next to a surface
-        that no longer matches it. Default <code>None</code> applies no
-        windowing, and the panels look exactly as they always have.
-    title: Figure-level title, rendered as a <code>suptitle</code> spanning the
-        full figure width. Defaults to <code>"Phase Correlation"</code> since
-        there's only one flavor here -- override if different phrasing
-        is wanted.
-    path: Output file path for the figure; format is inferred from the
-        extension by matplotlib's savefig (e.g. .png).
-    figsize: (width, height) in inches for the saved figure.
-    dpi: Resolution of the saved figure.
-    vicinity_margin: Half-width/height, in pixels, of the Solution
-        Vicinity zoom window around the correlation surface's peak.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Raises:
-    ValueError: If <code>search</code> is smaller than <code>kernel</code> in either
-        dimension.</p>
+<ul>
+<li><strong>kernel:</strong>  The extracted kernel subimage (2D grayscale array).</li>
+<li><strong>search:</strong>  The extracted search-area subimage (2D grayscale array);
+must be at least as large as <code>kernel</code> in both dimensions.</li>
+<li><strong>windowing:</strong>  If given, passed straight through to
+<a href="../correlation.html#phase_correlation"><code>phase_correlation</code></a> --
+tapers <code>kernel</code>/<code>search</code> before computing the surface. The
+same tapered <code>kernel</code>/<code>search</code> are what the Fixed Image and
+Moving Image panels display too (windowed, <em>then</em> zero-padded
+for the Moving Image panel, same order the surface itself is
+computed in), so those panels always show what was actually
+correlated -- not a stale, untapered view next to a surface
+that no longer matches it. Default <code>None</code> applies no
+windowing, and the panels look exactly as they always have.</li>
+<li><strong>title:</strong>  Figure-level title, rendered as a <code>suptitle</code> spanning the
+full figure width. Defaults to <code>"Phase Correlation"</code> since
+there's only one flavor here -- override if different phrasing
+is wanted.</li>
+<li><strong>path:</strong>  Output file path for the figure; format is inferred from the
+extension by matplotlib's savefig (e.g. .png).</li>
+<li><strong>figsize:</strong>  (width, height) in inches for the saved figure.</li>
+<li><strong>dpi:</strong>  Resolution of the saved figure.</li>
+<li><strong>vicinity_margin:</strong>  Half-width/height, in pixels, of the Solution
+Vicinity zoom window around the correlation surface's peak.</li>
+</ul>
+
+<h6 id="raises">Raises:</h6>
+
+<ul>
+<li><strong>ValueError:</strong>  If <code>search</code> is smaller than <code>kernel</code> in either
+dimension.</li>
+</ul>
 </div>
 
 
@@ -5259,23 +5461,26 @@ labeled <code>"{label_prefix} 00"</code>, <code>points[19]</code> labeled <code>
 distinguishable and individually identifiable, not just grouped by box
 type.</p>
 
-<p>Args:
-    image: Source 2D grayscale image array.
-    points: The points to draw boxes around, in the image's own pixel
-        reference frame. May be empty (an unmarked copy of <code>image</code> is
-        saved).
-    margin_width: Half each box's width, in pixels.
-    margin_height: Half each box's height, in pixels.
-    label_prefix: Legend label prefix for the boxes, e.g. <code>"kernel"</code>
-        or <code>"search area"</code> -- each point's own zero-padded index is
-        appended to it.
-    figsize: Optional (width, height) in inches for the saved figure.
-        By default the canvas is sized from <code>image</code>/the boxes' own
-        data extent; pass this to override with a fixed size instead.
-    path: Output file path for the figure; format is inferred from the
-        extension by matplotlib's savefig (e.g. .png), not dictk's own
-        write/write_svg.
-    dpi: Resolution of the saved figure.</p>
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>image:</strong>  Source 2D grayscale image array.</li>
+<li><strong>points:</strong>  The points to draw boxes around, in the image's own pixel
+reference frame. May be empty (an unmarked copy of <code>image</code> is
+saved).</li>
+<li><strong>margin_width:</strong>  Half each box's width, in pixels.</li>
+<li><strong>margin_height:</strong>  Half each box's height, in pixels.</li>
+<li><strong>label_prefix:</strong>  Legend label prefix for the boxes, e.g. <code>"kernel"</code>
+or <code>"search area"</code> -- each point's own zero-padded index is
+appended to it.</li>
+<li><strong>figsize:</strong>  Optional (width, height) in inches for the saved figure.
+By default the canvas is sized from <code>image</code>/the boxes' own
+data extent; pass this to override with a fixed size instead.</li>
+<li><strong>path:</strong>  Output file path for the figure; format is inferred from the
+extension by matplotlib's savefig (e.g. .png), not dictk's own
+write/write_svg.</li>
+<li><strong>dpi:</strong>  Resolution of the saved figure.</li>
+</ul>
 </div>
 
 
@@ -5413,18 +5618,21 @@ row-major index, e.g. from
 label just up-right of the marker -- e.g. <code>points[0]</code> is labeled <code>"00"</code>,
 <code>points[19]</code> is labeled <code>"19"</code>, for a 20-point collection.</p>
 
-<p>Args:
-    image: Source 2D grayscale image array.
-    points: The points to mark, in the image's own pixel reference
-        frame. May be empty (an unmarked copy of <code>image</code> is saved).
-    color: Matplotlib color name for every marker and label.
-    figsize: Optional (width, height) in inches for the saved figure.
-        By default the canvas is sized from <code>image</code>/<code>points</code>' own data
-        extent; pass this to override with a fixed size instead.
-    path: Output file path for the figure; format is inferred from the
-        extension by matplotlib's savefig (e.g. .png), not dictk's own
-        write/write_svg.
-    dpi: Resolution of the saved figure.</p>
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>image:</strong>  Source 2D grayscale image array.</li>
+<li><strong>points:</strong>  The points to mark, in the image's own pixel reference
+frame. May be empty (an unmarked copy of <code>image</code> is saved).</li>
+<li><strong>color:</strong>  Matplotlib color name for every marker and label.</li>
+<li><strong>figsize:</strong>  Optional (width, height) in inches for the saved figure.
+By default the canvas is sized from <code>image</code>/<code>points</code>' own data
+extent; pass this to override with a fixed size instead.</li>
+<li><strong>path:</strong>  Output file path for the figure; format is inferred from the
+extension by matplotlib's savefig (e.g. .png), not dictk's own
+write/write_svg.</li>
+<li><strong>dpi:</strong>  Resolution of the saved figure.</li>
+</ul>
 </div>
 
 

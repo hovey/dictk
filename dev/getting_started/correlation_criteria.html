@@ -361,8 +361,8 @@ search = subimage(
     height=2 * search_margin,
 )
 </code></pre>
-<p><code>locate</code> pads <code>kernel</code> to <code>search</code>'s own shape before comparing them — the
-same padding used here:</p>
+<p><code>locate</code> pads <code>kernel</code> to <code>search</code>'s own shape before comparing them,
+though not quite with the padding used here — see the note below:</p>
 <pre><code class="language-python">import numpy as np
 
 pad_height = search.shape[0] - kernel.shape[0]
@@ -379,19 +379,28 @@ print(f"FFT-domain peak offset (dx, dy) = ({dx}, {dy})")
 </code></pre>
 <p>That peak, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">19</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">33</span><span class="mclose">)</span></span></span></span>, matches <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span></span></span></span> exactly —
 the same offset <a href="./correlation_visualization.html">Correlation Visualization</a>'s
-<code>cc()</code> surface and <code>locate</code> itself both find. That agreement is about the peak's
-<em>location</em> only, not the two surfaces' values: <code>fft_surface</code> here is the
-<strong>circular</strong> correlation over the full padded extent (<code>search</code>'s own
-shape, <code>100x100</code>), while <code>cc()</code> returns <strong>valid</strong> positions only (a smaller
-<code>51x51</code> array, no wraparound) — the two arrays don't share a shape and
-<code>np.allclose</code> between them wouldn't be meaningful. <code>locate</code> differs a
-second way too: it doesn't use this raw, unnormalized cross-power
-spectrum — it passes <code>normalization="phase"</code> to
-<code>phase_cross_correlation</code>, dividing that spectrum by its own magnitude at
-every frequency before inverting it (see the extensive comment in
-<a href="../api/dictk/translation.html#locate"><code>locate</code>'s source</a> for why). Both
-differences change the surface's numeric character; neither changes where
-its peak lands here.</p>
+<code>cc()</code> surface and <code>locate</code> itself both find. That agreement is about the
+peak's <em>location</em> only. <code>fft_surface</code> here and <code>locate</code>'s own computation
+differ in three ways, none of which change <em>where</em> the peak lands here,
+on this page's small, comfortably-within-bounds displacement:</p>
+<ol>
+<li><strong>Shape.</strong> <code>fft_surface</code> is the <strong>circular</strong> correlation over the full
+padded extent (<code>search</code>'s own shape, <code>100x100</code>). <code>cc()</code> returns
+<strong>valid</strong> positions only (a smaller <code>51x51</code> array, no wraparound). The
+two arrays don't share a shape, so <code>np.allclose</code> between them wouldn't
+be meaningful.</li>
+<li><strong>Normalization.</strong> <code>fft_surface</code> is a raw, unnormalized cross-power
+spectrum. <code>locate</code> instead passes <code>normalization="phase"</code> to
+<code>phase_cross_correlation</code>, dividing that spectrum by its own magnitude
+at every frequency before inverting it (see the extensive comment in
+<a href="../api/dictk/translation.html#locate"><code>locate</code>'s source</a> for why).</li>
+<li><strong>Padding anchor.</strong> <code>kernel_padded</code> above keeps <code>kernel</code>'s content
+anchored at the padded array's top-left corner (<code>np.pad</code>'s own
+default), matching <code>cc()</code>'s corner-offset convention above. <code>locate</code>
+centers it instead — a reason worth knowing once you've worked with
+<code>locate</code> a bit more: see <a href="./kernel_search_window_ratio.html">Recoverable Displacement
+Range</a>.</li>
+</ol>
 
                     </main>
 
