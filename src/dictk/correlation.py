@@ -35,9 +35,9 @@ def window(
     contributes far less energy. The 2D window is the outer product of a 1D
     window with itself along each axis:
 
-    $$w_{\rm Hann}(n) = 0.5 \left(1 - \cos\left(\frac{2\pi n}{N - 1}\right)\right)$$
+    $$w_{\mathrm{Hann}}(n) = 0.5 \left(1 - \cos\left(\frac{2\pi n}{N - 1}\right)\right)$$
 
-    $$w_{\rm Hamming}(n) = 0.54 - 0.46 \cos\left(\frac{2\pi n}{N - 1}\right)$$
+    $$w_{\mathrm{Hamming}}(n) = 0.54 - 0.46 \cos\left(\frac{2\pi n}{N - 1}\right)$$
 
     for $n = 0, \ldots, N-1$ across a window of length $N$.
 
@@ -138,14 +138,16 @@ def _windows(*, search: np.ndarray, kernel_shape: tuple[int, int]) -> np.ndarray
 def cc(*, kernel: np.ndarray, search: np.ndarray) -> np.ndarray:
     r"""Cross-correlation (CC) surface of `kernel` slid over `search`.
 
-    At every valid position, computes $C_{\rm CC} = \sum f_i g_i$, where
+    At every valid position, computes $C_{\mathrm{CC}} = \sum f_i g_i$, where
     $f$ is `kernel` and $g$ is the same-sized window of `search` at that
     position. Robust to neither brightness nor contrast differences between
     `kernel` and `search` — a uniform offset or scaling of either changes
     every value.
 
-    See Pan B, Xie H, Wang Z. "Equivalence of digital image correlation
-    criteria for pattern matching." Applied Optics 2010;49(28):5501-9.
+    See Pan B, Xie H, Wang Z. "[Equivalence of digital image correlation
+    criteria for pattern
+    matching](https://opg.optica.org/ao/viewmedia.cfm?uri=ao-49-28-5501)."
+    *Applied Optics* 2010;49(28):5501-9.
 
     Args:
         kernel: The fixed template subimage (`f`).
@@ -154,7 +156,7 @@ def cc(*, kernel: np.ndarray, search: np.ndarray) -> np.ndarray:
     Returns:
         A 2D float64 array of shape
         `(search.shape[0] - kernel.shape[0] + 1, search.shape[1] - kernel.shape[1] + 1)`.
-        Entry `[dy, dx]` is $C_{\rm CC}$ with `kernel`'s top-left corner at
+        Entry `[dy, dx]` is $C_{\mathrm{CC}}$ with `kernel`'s top-left corner at
         offset `(dx, dy)` in `search`'s local frame.
 
     Raises:
@@ -170,7 +172,7 @@ def ncc(*, kernel: np.ndarray, search: np.ndarray) -> np.ndarray:
     r"""Normalized cross-correlation (NCC) surface of `kernel` slid over `search`.
 
     At every valid position, computes
-    $C_{\rm NCC} = \sum f_i g_i \,/\, \sqrt{\sum f_i^2 \sum g_i^2}$, where
+    $C_{\mathrm{NCC}} = \sum f_i g_i \,/\, \sqrt{\sum f_i^2 \sum g_i^2}$, where
     $f$ is `kernel` and $g$ is the same-sized window of `search` at that
     position. Robust to a uniform contrast (multiplicative) difference
     between `kernel` and `search`, since scaling either side by a positive
@@ -179,8 +181,10 @@ def ncc(*, kernel: np.ndarray, search: np.ndarray) -> np.ndarray:
     flat, constant-valued region) contributes a value of 0 rather than
     raising a division-by-zero error.
 
-    See Pan B, Xie H, Wang Z. "Equivalence of digital image correlation
-    criteria for pattern matching." Applied Optics 2010;49(28):5501-9.
+    See Pan B, Xie H, Wang Z. "[Equivalence of digital image correlation
+    criteria for pattern
+    matching](https://opg.optica.org/ao/viewmedia.cfm?uri=ao-49-28-5501)."
+    *Applied Optics* 2010;49(28):5501-9.
 
     Args:
         kernel: The fixed template subimage (`f`).
@@ -189,7 +193,7 @@ def ncc(*, kernel: np.ndarray, search: np.ndarray) -> np.ndarray:
     Returns:
         A 2D float64 array of shape
         `(search.shape[0] - kernel.shape[0] + 1, search.shape[1] - kernel.shape[1] + 1)`.
-        Entry `[dy, dx]` is $C_{\rm NCC}$ with `kernel`'s top-left corner at
+        Entry `[dy, dx]` is $C_{\mathrm{NCC}}$ with `kernel`'s top-left corner at
         offset `(dx, dy)` in `search`'s local frame.
 
     Raises:
@@ -209,7 +213,7 @@ def zcc(*, kernel: np.ndarray, search: np.ndarray) -> np.ndarray:
     r"""Zero-mean cross-correlation (ZCC) surface of `kernel` slid over `search`.
 
     At every valid position, computes
-    $C_{\rm ZCC} = \sum (f_i - \bar{f})(g_i - \bar{g})$, where $f$ is
+    $C_{\mathrm{ZCC}} = \sum (f_i - \bar{f})(g_i - \bar{g})$, where $f$ is
     `kernel`, $g$ is the same-sized window of `search` at that position,
     $\bar{f}$ is `kernel`'s own mean (fixed across all positions, since the
     kernel never moves), and $\bar{g}$ is that window's own local mean
@@ -219,8 +223,10 @@ def zcc(*, kernel: np.ndarray, search: np.ndarray) -> np.ndarray:
     constant added to that side. Not robust to contrast (multiplicative)
     differences.
 
-    See Pan B, Xie H, Wang Z. "Equivalence of digital image correlation
-    criteria for pattern matching." Applied Optics 2010;49(28):5501-9.
+    See Pan B, Xie H, Wang Z. "[Equivalence of digital image correlation
+    criteria for pattern
+    matching](https://opg.optica.org/ao/viewmedia.cfm?uri=ao-49-28-5501)."
+    *Applied Optics* 2010;49(28):5501-9.
 
     Args:
         kernel: The fixed template subimage (`f`).
@@ -229,7 +235,7 @@ def zcc(*, kernel: np.ndarray, search: np.ndarray) -> np.ndarray:
     Returns:
         A 2D float64 array of shape
         `(search.shape[0] - kernel.shape[0] + 1, search.shape[1] - kernel.shape[1] + 1)`.
-        Entry `[dy, dx]` is $C_{\rm ZCC}$ with `kernel`'s top-left corner at
+        Entry `[dy, dx]` is $C_{\mathrm{ZCC}}$ with `kernel`'s top-left corner at
         offset `(dx, dy)` in `search`'s local frame.
 
     Raises:
@@ -247,7 +253,7 @@ def zncc(*, kernel: np.ndarray, search: np.ndarray) -> np.ndarray:
     r"""Zero-mean normalized cross-correlation (ZNCC) surface of `kernel` slid over `search`.
 
     At every valid position, computes
-    $C_{\rm ZNCC} = \sum \bar{f}_i \bar{g}_i \,/\, \sqrt{\sum \bar{f}_i^2 \sum \bar{g}_i^2}$,
+    $C_{\mathrm{ZNCC}} = \sum \bar{f}_i \bar{g}_i \,/\, \sqrt{\sum \bar{f}_i^2 \sum \bar{g}_i^2}$,
     where $\bar{f}_i = f_i - \bar{f}$ and $\bar{g}_i = g_i - \bar{g}$ ($f$ =
     `kernel`, $g$ = the same-sized window of `search` at that position,
     $\bar{f}$/$\bar{g}$ their respective means -- $\bar{f}$ fixed, $\bar{g}$
@@ -258,8 +264,10 @@ def zncc(*, kernel: np.ndarray, search: np.ndarray) -> np.ndarray:
     constant-valued region) contributes a value of 0 rather than raising a
     division-by-zero error.
 
-    See Pan B, Xie H, Wang Z. "Equivalence of digital image correlation
-    criteria for pattern matching." Applied Optics 2010;49(28):5501-9.
+    See Pan B, Xie H, Wang Z. "[Equivalence of digital image correlation
+    criteria for pattern
+    matching](https://opg.optica.org/ao/viewmedia.cfm?uri=ao-49-28-5501)."
+    *Applied Optics* 2010;49(28):5501-9.
 
     Args:
         kernel: The fixed template subimage (`f`).
@@ -268,7 +276,7 @@ def zncc(*, kernel: np.ndarray, search: np.ndarray) -> np.ndarray:
     Returns:
         A 2D float64 array of shape
         `(search.shape[0] - kernel.shape[0] + 1, search.shape[1] - kernel.shape[1] + 1)`.
-        Entry `[dy, dx]` is $C_{\rm ZNCC}$ with `kernel`'s top-left corner at
+        Entry `[dy, dx]` is $C_{\mathrm{ZNCC}}$ with `kernel`'s top-left corner at
         offset `(dx, dy)` in `search`'s local frame.
 
     Raises:
@@ -286,39 +294,95 @@ def zncc(*, kernel: np.ndarray, search: np.ndarray) -> np.ndarray:
     return _safe_divide(numerator=numerator, denominator=denominator)
 
 
-def _window_and_pad(
+def _window(
     *,
     kernel: np.ndarray,
     search: np.ndarray,
     windowing: WindowingMethod | None,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Optionally window, then zero-pad `kernel` up to `search`'s own shape.
+    """Optionally taper `kernel` and `search` toward zero at their own edges.
 
     Shared by `phase_correlation` and
     [`dictk.translation.locate`](../translation.html#locate) -- the two
-    functions that zero-pad `kernel` before comparing it against `search`
-    via an FFT-based technique -- so the "window, then pad" step (and its
-    ordering) lives in exactly one place.
+    functions that compare `kernel` against `search` via an FFT-based
+    technique, where windowing (if used at all) must happen before that
+    comparison, not after.
 
     Args:
-        kernel: The fixed template subimage, before padding.
+        kernel: The fixed template subimage.
         search: The larger subimage `kernel` is compared against.
         windowing: If given, both `kernel` and `search` are passed through
-            `window()` with this method before padding. `None` leaves
-            both untouched -- including their dtype, so a caller that
-            never windows sees no incidental cast either.
+            `window()` with this method. `None` leaves both untouched --
+            including their dtype, so a caller that never windows sees no
+            incidental cast either.
 
     Returns:
-        `(kernel_padded, search)` -- `kernel_padded` the same shape as
-        `search`, `search` itself unchanged except by windowing.
+        `(kernel, search)`, each windowed independently (or unchanged, if
+        `windowing` is `None`).
     """
     if windowing is not None:
         kernel = window(arr=kernel, method=windowing)
         search = window(arr=search, method=windowing)
-    pad_height = search.shape[0] - kernel.shape[0]
-    pad_width = search.shape[1] - kernel.shape[1]
-    kernel_padded = np.pad(kernel, ((0, pad_height), (0, pad_width)))
-    return kernel_padded, search
+    return kernel, search
+
+
+def _kernel_pad(
+    *,
+    kernel: np.ndarray,
+    shape: tuple[int, int],
+    centered: bool = False,
+) -> tuple[np.ndarray, int, int]:
+    """Zero-pad `kernel` up to `shape`.
+
+    Only ever needs `search`'s *shape*, not `search` itself -- unlike
+    `_window`, which needs the actual array to taper it, padding `kernel`
+    only ever reads how big to grow it. Called on `_window`'s own output,
+    when both are used together, so windowing always happens first: pad
+    then window would taper the zero-padding along with `kernel`'s real
+    content, not just the content itself.
+
+    Args:
+        kernel: The fixed template subimage, before padding.
+        shape: The `(height, width)` to pad `kernel` up to -- typically
+            `search.shape`.
+        centered: If `False` (default), all padding goes after `kernel`'s
+            own content, which stays anchored at the padded array's
+            top-left corner -- `phase_correlation` relies on this exact
+            placement for the surfaces it publishes throughout
+            Correlation Visualization, so changing this default would
+            silently shift every peak position already documented there.
+            If `True`, padding is split before/after instead (as evenly
+            as possible), centering `kernel`'s content within the padded
+            array -- what `translation.locate` needs so FFT phase
+            correlation recovers a displacement symmetrically in both
+            directions, not just up to `kernel_margin_width`/
+            `kernel_margin_height` past `search_center` in the positive
+            direction. See [Recoverable Displacement
+            Range](../getting_started/kernel_search_window_ratio.html)
+            for why.
+
+    Returns:
+        `(kernel_padded, pad_before_height, pad_before_width)` --
+        `kernel_padded` is `shape`-shaped, and the padding actually added
+        before `kernel`'s own content in each axis (always `(0, 0)` when
+        `centered=False`) -- a caller doing its own offset arithmetic on
+        `kernel_padded`'s content needs this to know where that content
+        actually sits.
+    """
+    pad_height = shape[0] - kernel.shape[0]
+    pad_width = shape[1] - kernel.shape[1]
+    if centered:
+        before_height, before_width = pad_height // 2, pad_width // 2
+    else:
+        before_height, before_width = 0, 0
+    kernel_padded = np.pad(
+        kernel,
+        (
+            (before_height, pad_height - before_height),
+            (before_width, pad_width - before_width),
+        ),
+    )
+    return kernel_padded, before_height, before_width
 
 
 def phase_correlation(
@@ -335,7 +399,7 @@ def phase_correlation(
     up to `search`'s own shape, then
 
     $$
-    C_{\rm phase} = \mathcal{F}^{-1}\!\left(\frac{\mathcal{F}(g)\,
+    C_{\mathrm{phase}} = \mathcal{F}^{-1}\left(\frac{\mathcal{F}(g)\,
     \overline{\mathcal{F}(f)}}{\left|\mathcal{F}(g)\,\overline{\mathcal{F}(f)}\right|}\right)
     $$
 
@@ -360,13 +424,18 @@ def phase_correlation(
     (`normalization="phase"`), reproduced here to expose the full surface
     for visualization -- `phase_cross_correlation` itself only returns the
     final shift, not the array it was computed from. The two aren't
-    directly comparable value-for-value, though: `locate` additionally
-    unwraps indices past the array's midpoint into negative shifts (since
-    this surface is circular/periodic), which this function does not --
-    its raw `argmax` is always in `[0, search.shape)`, matching the same
+    directly comparable value-for-value, though: `locate` centers `kernel`
+    within its own zero-padded copy before this same FFT step, while this
+    function -- for backward compatibility with every peak position
+    already published in Correlation Visualization -- leaves `kernel`'s
+    content anchored at the padded array's top-left corner instead. Its
+    raw `argmax` is always in `[0, search.shape)`, matching the same
     offset-within-`search` convention `cc`/`ncc`/`zcc`/`zncc` use. For the
     small, comfortably-within-bounds displacements this book's examples
-    use, the two agree without any unwrapping needed.
+    use, the two still agree once each is interpreted in its own
+    convention -- see [Recoverable Displacement
+    Range](../getting_started/kernel_search_window_ratio.html) for why the
+    conventions diverge once a displacement isn't small.
 
     See Kuglin CD, Hines DC. "The phase correlation image alignment
     method." Proceedings of IEEE International Conference on Cybernetics
@@ -386,7 +455,7 @@ def phase_correlation(
         A 2D float64 array the same shape as `search` (unlike
         `cc`/`ncc`/`zcc`/`zncc`'s smaller "valid" shape, since nothing
         here excludes any candidate offset). Entry `[dy, dx]` is
-        $C_{\rm phase}$ with `kernel`'s top-left corner at offset
+        $C_{\mathrm{phase}}$ with `kernel`'s top-left corner at offset
         `(dx, dy)` in `search`'s local frame.
 
     Raises:
@@ -394,8 +463,9 @@ def phase_correlation(
             `kernel` in either dimension.
     """
     kernel, search = _prepare(kernel=kernel, search=search)
-    kernel_padded, search = _window_and_pad(
-        kernel=kernel, search=search, windowing=windowing
+    kernel, search = _window(kernel=kernel, search=search, windowing=windowing)
+    kernel_padded, _pad_before_height, _pad_before_width = _kernel_pad(
+        kernel=kernel, shape=search.shape
     )
 
     search_freq = np.fft.fft2(search)

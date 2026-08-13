@@ -23,22 +23,22 @@ particular offset — summed pixelwise over index $i$:
 
 * **Cross-Correlation (CC)**
 
-  $$C_{\rm CC} = \sum f_i g_i$$
+  $$C_{\mathrm{CC}} = \sum f_i g_i$$
 
 * **Normalized Cross-Correlation (NCC)**
 
-  $$C_{\rm NCC} = \frac{\sum f_i g_i}{\sqrt{\sum f_i^2 \sum g_i^2}}$$
+  $$C_{\mathrm{NCC}} = \frac{\sum f_i g_i}{\sqrt{\sum f_i^2 \sum g_i^2}}$$
 
 * **Zero-mean Cross-Correlation (ZCC)**
 
-  $$C_{\rm ZCC} = \sum (f_i - \bar{f})(g_i - \bar{g})$$
+  $$C_{\mathrm{ZCC}} = \sum (f_i - \bar{f})(g_i - \bar{g})$$
 
   where $\bar{f} = \frac{1}{n}\sum_{i=0}^{n-1} f_i$ and $\bar{g}$ likewise
   for $g$.
 
 * **Zero-mean Normalized Cross-Correlation (ZNCC)**
 
-  $$C_{\rm ZNCC} = \frac{\sum \bar{f}_i \bar{g}_i}{\sqrt{\sum \bar{f}_i^2 \sum \bar{g}_i^2}}$$
+  $$C_{\mathrm{ZNCC}} = \frac{\sum \bar{f}_i \bar{g}_i}{\sqrt{\sum \bar{f}_i^2 \sum \bar{g}_i^2}}$$
 
   where $\bar{f}_i = f_i - \bar{f}$ and $\bar{g}_i = g_i - \bar{g}$.
 
@@ -200,8 +200,8 @@ search = subimage(
 )
 ```
 
-`locate` pads `kernel` to `search`'s own shape before comparing them — the
-same padding used here:
+`locate` pads `kernel` to `search`'s own shape before comparing them,
+though not quite with the padding used here — see the note below:
 
 ```python
 import numpy as np
@@ -223,16 +223,24 @@ print(f"FFT-domain peak offset (dx, dy) = ({dx}, {dy})")
 
 That peak, $(19, 33)$, matches $\boldsymbol{r}_{SK/\mathcal{S}}$ exactly —
 the same offset [Correlation Visualization](./correlation_visualization.md)'s
-`cc()` surface and `locate` itself both find. That agreement is about the peak's
-*location* only, not the two surfaces' values: `fft_surface` here is the
-**circular** correlation over the full padded extent (`search`'s own
-shape, `100x100`), while `cc()` returns **valid** positions only (a smaller
-`51x51` array, no wraparound) — the two arrays don't share a shape and
-`np.allclose` between them wouldn't be meaningful. `locate` differs a
-second way too: it doesn't use this raw, unnormalized cross-power
-spectrum — it passes `normalization="phase"` to
-`phase_cross_correlation`, dividing that spectrum by its own magnitude at
-every frequency before inverting it (see the extensive comment in
-[`locate`'s source](../api/dictk/translation.html#locate) for why). Both
-differences change the surface's numeric character; neither changes where
-its peak lands here.
+`cc()` surface and `locate` itself both find. That agreement is about the
+peak's *location* only. `fft_surface` here and `locate`'s own computation
+differ in three ways, none of which change *where* the peak lands here,
+on this page's small, comfortably-within-bounds displacement:
+
+1. **Shape.** `fft_surface` is the **circular** correlation over the full
+   padded extent (`search`'s own shape, `100x100`). `cc()` returns
+   **valid** positions only (a smaller `51x51` array, no wraparound). The
+   two arrays don't share a shape, so `np.allclose` between them wouldn't
+   be meaningful.
+2. **Normalization.** `fft_surface` is a raw, unnormalized cross-power
+   spectrum. `locate` instead passes `normalization="phase"` to
+   `phase_cross_correlation`, dividing that spectrum by its own magnitude
+   at every frequency before inverting it (see the extensive comment in
+   [`locate`'s source](../api/dictk/translation.html#locate) for why).
+3. **Padding anchor.** `kernel_padded` above keeps `kernel`'s content
+   anchored at the padded array's top-left corner (`np.pad`'s own
+   default), matching `cc()`'s corner-offset convention above. `locate`
+   centers it instead — a reason worth knowing once you've worked with
+   `locate` a bit more: see [Recoverable Displacement
+   Range](./kernel_search_window_ratio.md).

@@ -156,7 +156,8 @@ deformation too.
 
 Twelve points, twelve independent correlations, whether the underlying
 motion is a rigid shift or a stretch:
-[Parallelization](./parallelization.md) picks up from here.
+[Recoverable Displacement Range](./kernel_search_window_ratio.md) picks
+up from here.
 
 ## Data Download
 

@@ -154,15 +154,21 @@ jobs:
         run: uv run mdbook build
 
       - name: Build API docs
-        # dictk.image/translation/cli must be listed explicitly: pdoc's
-        # automatic submodule discovery respects a package's __all__, and
-        # only rosta is exported there — see
-        # CONTRIBUTING.md#building-the-api-docs. Forgetting a new submodule
-        # here doesn't fail the build, it just silently omits it from the
-        # published docs (as dictk.image and dictk.translation were until
-        # this comment), so double-check this list against src/dictk/*.py
-        # when adding a new top-level module.
-        run: uv run pdoc dictk dictk.image dictk.translation dictk.correlation dictk.grid dictk.cli -o docs/api
+        # Bare `pdoc dictk` discovers every submodule on its own -- see
+        # CONTRIBUTING.md#building-the-api-docs for why that depends on
+        # every top-level submodule being listed in dictk/__init__.py's
+        # own __all__, not on this command line. Forgetting a new
+        # submodule in __all__ doesn't fail the build, it just silently
+        # omits it from the published docs, so double-check that list
+        # against src/dictk/*.py when adding a new top-level module.
+        # --docformat google: pdoc defaults to restructuredtext, which
+        # doesn't parse this codebase's Google-style Args:/Returns:/Raises:
+        # docstring sections -- without it, Args renders as one flat
+        # paragraph instead of a bulleted list.
+        # --math: several dictk.correlation docstrings use $...$/$$...$$
+        # LaTeX -- without this flag no MathJax gets included, so the raw
+        # LaTeX source shows up literally instead of being rendered.
+        run: uv run pdoc dictk -o docs/api --docformat google --math
 
       - name: Generate status dashboard
         run: |

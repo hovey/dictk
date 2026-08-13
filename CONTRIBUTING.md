@@ -187,6 +187,16 @@ uv run ruff format --check  # verify formatting without changing files (CI runs 
 uv run ruff check           # lint
 ```
 
+`pyproject.toml` has no `[tool.ruff.lint]` section, so `ruff check` runs
+ruff's bare default rule selection — `E4`/`E7`/`E9` (pycodestyle basics)
+plus `F` (pyflakes). This is deliberate, not an oversight. `ruff check` is a
+hard CI gate; broader rule sets (`D` docstring-style, `ANN`
+type-annotation-completeness, `S` security, and the rest) risk fighting
+conventions already established elsewhere in this codebase (e.g. the
+Google-style docstrings `pdoc --docformat google` depends on), or simply
+duplicating ground [`pylint`](#running-pylint-informational) already
+covers informationally, without ruff's same all-or-nothing gating risk.
+
 ### Building the docs
 
 Documentation is an [mdBook](https://rust-lang.github.io/mdBook/) under
@@ -233,22 +243,38 @@ Python API reference docs (function signatures, docstrings) are generated
 from source with [pdoc](https://pdoc.dev/), a dev dependency:
 
 ```bash
-uv run pdoc dictk dictk.image dictk.translation dictk.correlation dictk.grid dictk.cli -o docs/api
+uv run pdoc dictk -o docs/api --docformat google --math   # build once, output in docs/api/
+uv run pdoc dictk --docformat google --math              # live preview, serves on localhost
 ```
 
-`dictk.rosta` doesn't need to be listed explicitly — pdoc's submodule
-discovery respects a package's `__all__`, and `rosta` is exported there (see
-below), so it's picked up automatically. The other submodules (`image`,
-`translation`, `correlation`, `grid`, `cli`) aren't in `__all__` —
-`dictk/__init__.py` only lists the individual functions it re-exports, not
-module names — so pdoc's automatic package walk skips them unless named
-explicitly on the command line, per
-[pdoc's `__all__` handling](https://pdoc.dev/docs/pdoc.html#what-objects-are-documented). If you add a new top-level submodule, add it to this
-command too, or it will silently go undocumented.
+`--docformat google` matters: pdoc defaults to `restructuredtext`, which
+doesn't recognize this codebase's Google-style `Args:`/`Returns:`/`Raises:`
+docstring sections — without it, an `Args:` section renders as one flat
+paragraph instead of a proper bulleted list.
 
-```bash
-uv run pdoc dictk dictk.image dictk.translation dictk.correlation dictk.grid dictk.cli   # live preview, serves on localhost
-```
+`--math` matters too: several docstrings (`dictk.correlation`'s CC/NCC/
+ZCC/ZNCC/phase-correlation formulas) use `$...$`/`$$...$$` LaTeX — without
+it, no MathJax gets included and the raw LaTeX source shows up literally
+instead of being rendered. A separate trap in the same area: pdoc treats
+a docstring as Markdown before MathJax ever sees it, and Markdown's own
+backslash-escape rule silently strips the backslash off LaTeX commands
+like `\!` (a backslash followed by ASCII punctuation). Avoid that pattern
+in docstring math, or double the backslash (`\\!`).
+
+No submodules need listing on the command line — bare `pdoc dictk`
+discovers all of them, and also builds the "Submodules" links on the
+`dictk.html` landing page, because every one of them
+(`image`/`translation`/`correlation`/`grid`/`cli`/`rosta`) is named
+directly in `dictk/__init__.py`'s own `__all__`, alongside the
+individual functions (`astronaut`, `checkerboard`, `rosta`,
+`__version__`) it re-exports:
+[pdoc's `__all__` handling](https://pdoc.dev/docs/pdoc.html#what-objects-are-documented)
+treats a name in `__all__` that isn't already a bound attribute as a
+submodule to import and document. Leaving a submodule out of `__all__`
+doesn't fail the build — it silently drops that module from both the
+generated docs and the landing page's own navigation — so if you add a
+new top-level submodule, add its name to `__all__` too, not to this
+command.
 
 Output goes to `docs/api/` (gitignored, regenerated on demand). CI builds
 this too and publishes it alongside the mdBook user guide — see
@@ -363,7 +389,7 @@ uv run ruff format --check
 uv run ruff check
 uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html
 uv run mdbook build
-uv run pdoc dictk dictk.image dictk.translation dictk.correlation dictk.grid dictk.cli -o docs/api
+uv run pdoc dictk -o docs/api --docformat google --math
 uv run genbadge coverage -i coverage.xml -o coverage-badge.svg
 uv run pylint src/dictk --output-format=text --reports=yes
 ```

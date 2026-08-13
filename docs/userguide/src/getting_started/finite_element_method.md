@@ -67,7 +67,7 @@ This mapping allows:
 
 The isoparametric coordinates $(\xi, \eta)$ range from $-1$ to $+1$ in both the $X$ and $Y$ directions. 
 
-The mapping between global coordinates $(X, Y)$ and local coordinates is introduced as a linear combination of local shape functions $N_{\rm node}(\boldsymbol{X})$:
+The mapping between global coordinates $(X, Y)$ and local coordinates is introduced as a linear combination of local shape functions $N_{\mathrm{node}}(\boldsymbol{X})$:
 
 $$
 \boldsymbol{X}(\boldsymbol{\xi}) = 

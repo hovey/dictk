@@ -64,6 +64,32 @@ def test_locate_search_center_as_imperfect_estimate():
     assert (p1.x - p0.x, p1.y - p0.y) == (-6, 8)
 
 
+def test_locate_recovers_displacement_beyond_kernel_margin_both_directions():
+    # Regression test for a real, silent bug: kernel_padded's content used
+    # to stay anchored at the padded array's top-left corner (rather than
+    # centered), which made the recoverable displacement asymmetric --
+    # unbounded (up to search_margin) in the negative direction, but
+    # capped at exactly kernel_margin in the positive direction, past
+    # which locate() returned a confidently wrong position (an FFT
+    # circular-correlation wraparound) instead of failing visibly. Both
+    # dx here exceed kernel_margin_width (15); both must still resolve
+    # correctly now that kernel_padded is centered instead.
+    p0 = PixelCoordinate(x=60, y=60)
+    for dx in (25, -25):
+        ref, cur = _reference_and_current(dx=dx, dy=0)
+        p1 = locate(
+            reference_image=ref,
+            current_image=cur,
+            reference_point=p0,
+            search_center=p0,
+            kernel_margin_width=15,
+            kernel_margin_height=15,
+            search_margin_width=40,
+            search_margin_height=40,
+        )
+        assert (p1.x - p0.x, p1.y - p0.y) == (dx, 0)
+
+
 def test_locate_point_near_edge_uses_zero_padding():
     # Near the top-left corner: kernel/search extraction goes out of
     # image bounds and relies on subimage()'s zero-padding rather than

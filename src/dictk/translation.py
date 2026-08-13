@@ -3,7 +3,7 @@
 import numpy as np
 from skimage.registration import phase_cross_correlation
 
-from dictk.correlation import WindowingMethod, _window_and_pad
+from dictk.correlation import WindowingMethod, _kernel_pad, _window
 from dictk.image import PixelCoordinate, subimage
 
 
@@ -44,6 +44,18 @@ def locate(
     comes from `reference_image`; the search area always comes from
     `current_image`. Integer-pixel precision only; subpixel refinement is
     out of scope for now.
+
+    The true position can be anywhere within `search_margin_width`/
+    `search_margin_height` of `search_center` in every direction and
+    still be found correctly -- the recoverable range is symmetric,
+    bounded only by the search margins themselves, not by
+    `kernel_margin_width`/`kernel_margin_height`. See [Recoverable
+    Displacement Range](../getting_started/kernel_search_window_ratio.html)
+    for why that's worth stating explicitly: an earlier version of this
+    function had a real, silent bug here -- it recovered a displacement
+    in the negative direction up to the full search margin, but capped
+    at exactly the kernel margin in the positive direction, past which it
+    returned a confidently wrong position instead of failing visibly.
 
     Args:
         reference_image: The reference (undeformed) 2D grayscale image.
@@ -124,10 +136,26 @@ def locate(
 
     # phase_cross_correlation requires both images the same shape; only
     # the kernel needs padding, since the search area is always larger.
-    # _window_and_pad optionally tapers both (kernel first, then padded)
-    # before that -- the same shared step `phase_correlation` uses.
-    kernel_padded, search = _window_and_pad(
-        kernel=kernel, search=search, windowing=windowing
+    # _window optionally tapers both first -- the same shared step
+    # `phase_correlation` uses -- then _kernel_pad grows kernel up to
+    # search's own shape.
+    #
+    # centered=True matters: phase_cross_correlation's FFT-based shift is
+    # only correct up to half the padded array's own size in each
+    # direction (it's circular/periodic) -- past that it wraps around to
+    # a confidently wrong answer instead of failing visibly. With the
+    # default centered=False (kernel's content anchored at the padded
+    # array's top-left corner), that safe range is asymmetric: unbounded
+    # in the negative direction, but capped at exactly kernel_margin_width/
+    # kernel_margin_height in the positive direction, no matter how large
+    # search_margin is set. Centering kernel's content in the padded array
+    # instead makes the safe range symmetric in both directions -- see
+    # [Recoverable Displacement
+    # Range](../getting_started/kernel_search_window_ratio.html) for the
+    # derivation and how this was found.
+    kernel, search = _window(kernel=kernel, search=search, windowing=windowing)
+    kernel_padded, pad_before_height, pad_before_width = _kernel_pad(
+        kernel=kernel, shape=search.shape, centered=True
     )
 
     # search=reference_image, kernel_padded=moving_image, not the other
@@ -166,6 +194,6 @@ def locate(
     )
 
     return PixelCoordinate(
-        x=search_origin.x + int(shift[1]) + kernel_margin_width,
-        y=search_origin.y + int(shift[0]) + kernel_margin_height,
+        x=search_origin.x + int(shift[1]) + kernel_margin_width + pad_before_width,
+        y=search_origin.y + int(shift[0]) + kernel_margin_height + pad_before_height,
     )
