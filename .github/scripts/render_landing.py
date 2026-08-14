@@ -65,7 +65,7 @@ PAGE_TEMPLATE = """<!doctype html>
           </div>
         </a>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-3 gap-4">
           <a href="main/api/dictk.html" class="hover-card p-4 bg-white rounded-xl shadow-sm
                                                 border border-slate-200 hover:border-blue-600">
             <span class="block text-xs font-bold text-slate-400 uppercase mb-2">API</span>
@@ -87,6 +87,11 @@ PAGE_TEMPLATE = """<!doctype html>
                                            border border-slate-200 hover:border-blue-600">
             <span class="block text-xs font-bold text-slate-400 uppercase mb-2">Test Coverage</span>
             <img src="main/badges/coverage.svg" alt="Coverage" class="h-5">
+          </a>
+          <a href="{github_repo_url}/actions/workflows/ci.yml?query=branch%3Amain" class="hover-card p-4 bg-white rounded-xl shadow-sm
+                                           border border-slate-200 hover:border-blue-600">
+            <span class="block text-xs font-bold text-slate-400 uppercase mb-2">Tests</span>
+            <img src="main/badges/tests.svg" alt="Tests" class="h-5">
           </a>
         </div>
       </div>
@@ -113,7 +118,7 @@ PAGE_TEMPLATE = """<!doctype html>
           </div>
         </a>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-3 gap-4">
           <a href="dev/api/dictk.html" class="hover-card p-4 bg-white rounded-xl shadow-sm
                                                border border-slate-200 hover:border-orange-500">
             <span class="block text-xs font-bold text-slate-400 uppercase mb-2">API</span>
@@ -135,6 +140,11 @@ PAGE_TEMPLATE = """<!doctype html>
                                           border border-slate-200 hover:border-orange-500">
             <span class="block text-xs font-bold text-slate-400 uppercase mb-2">Test Coverage</span>
             <img src="dev/badges/coverage.svg" alt="Coverage" class="h-5">
+          </a>
+          <a href="{github_repo_url}/actions/workflows/ci.yml?query=branch%3Adev" class="hover-card p-4 bg-white rounded-xl shadow-sm
+                                          border border-slate-200 hover:border-orange-500">
+            <span class="block text-xs font-bold text-slate-400 uppercase mb-2">Tests</span>
+            <img src="dev/badges/tests.svg" alt="Tests" class="h-5">
           </a>
         </div>
       </div>

@@ -22,8 +22,25 @@ except PackageNotFoundError:
     __version__ = "0.0.0+unknown"
 
 __all__ = [
+    # Top-level re-exports: the array-returning API functions this
+    # docstring describes above.
     "astronaut",
     "checkerboard",
     "rosta",
     "__version__",
+    # Submodule names, not re-exports: without these, `from dictk import
+    # *` only binds the four names above, and pdoc's own package walk
+    # (both what it documents and what it links under "Submodules" on
+    # the dictk.html landing page) only discovers dictk.rosta -- by
+    # coincidence, since "rosta" already appears above as a re-export
+    # and happens to share its module's name. Listing every submodule
+    # here explicitly, not by that accident, is what makes both
+    # `from dictk import *` and pdoc's discovery complete and uniform.
+    # Add any new top-level submodule here too, or it silently drops out
+    # of both.
+    "cli",
+    "correlation",
+    "grid",
+    "image",
+    "translation",
 ]

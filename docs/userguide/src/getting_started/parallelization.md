@@ -121,11 +121,11 @@ committed data, so it always matches the file on disk:
 <!-- cmdrun python3 -c "import csv; rows = list(csv.DictReader(open('parallelization_bench.csv'))); print('| Scenario | Size | Points | Sequential (s) | Threads (s) | Threads speedup | Processes (s) | Processes speedup |'); print('|---|---|---|---|---|---|---|---|'); [print(f\"| {r['scenario']} | {r['size']} | {r['n_calls']} | {r['sequential_s']} | {r['threads_s']} | {r['threads_speedup']}x | {r['processes_s']} | {r['processes_speedup']}x |\") for r in rows]" -->
 
 <figure>
-    <img src="parallelization_bench.png" alt="three panels: book_scale shows sequential always fastest from 100 to 1,000,000 points; large_subset shows threads reaching over 4x speedup as correlation size grows while processes never beat sequential at only 16 points; realistic_mesh shows both threads and processes beating sequential, with processes catching up to threads as point count grows" />
-    <figcaption>Speedup vs. sequential, measured once on a 10-core machine (macOS, <code>spawn</code> start method). Left: at this book's own 40-pixel scale, sequential wins at every point count tested, up to 1,000,000. Middle: at only 16 points, threads win decisively once correlations are large enough; processes never recover their fixed startup cost. Right: with enough points, both help, and processes close the gap on threads as point count grows.</figcaption>
+    <img src="parallelization_bench.png" alt="three stacked panels: book_scale shows sequential always fastest from 100 to 1,000,000 points, with a dashed trend line predicting that holds out to a trillion points; large_subset shows threads reaching over 4x speedup as correlation size grows while processes never beat sequential at only 16 points, not extrapolated; realistic_mesh shows both threads and processes beating sequential, with processes catching up to threads as point count grows, and dashed trend lines predicting each pair levels off close to its last measured value" />
+    <figcaption>Speedup vs. sequential, measured once on a 10-core machine (macOS, <code>spawn</code> start method). Solid lines are measured data. Dashed lines are trend extrapolations — a straight-line time-vs-point-count fit, projected out to 10<sup>6</sup>, 10<sup>9</sup>, and 10<sup>12</sup> points. Top: at this book's own 40-pixel scale, sequential wins at every point count tested, up to 1,000,000, and the trend predicts it keeps winning — processes plateau near 0.62x, threads near 0.42x, even out to a trillion points. Middle: at only 16 points, threads win decisively once correlations are large enough; processes never recover their fixed startup cost. Not extrapolated: this panel's x-axis is correlation size, not point count, and a subset a billion pixels wide isn't physical. Bottom: with enough points, both help, and processes close the gap on threads as point count grows; the trend predicts each pair levels off close to its last measured value.</figcaption>
 </figure>
 
-Three findings, read directly off that data:
+Four findings, read directly off that data:
 
 1. **At this book's own scale, sequential always wins.** 1,000,000
    points at 40 pixels still favors sequential (71.7s) over both
@@ -143,6 +143,18 @@ Three findings, read directly off that data:
    points (1.76x vs. 1.10x). More tasks keep amortizing a process
    pool's fixed cost long after a thread pool's per-task cost has
    stopped improving.
+4. **The trend, extrapolated to Path Forward's north-star scale,
+   predicts a plateau, not a crossover.** Fitting a straight line to
+   each method's measured time-vs-point-count and reading off the
+   resulting speedup ratio at 10<sup>6</sup>, 10<sup>9</sup>, and
+   10<sup>12</sup> points: `book_scale`'s ordering never flips
+   (processes settle near 0.62x, threads near 0.42x, both still
+   slower than sequential); `realistic_mesh`'s pairs settle close to
+   their last measured value (size=100: threads 1.10x, processes
+   1.84x; size=200: threads 3.13x, processes 2.78x). This is a linear
+   extrapolation from a handful of measured points, not a new
+   measurement — a hypothesis worth testing at real scale, not a
+   settled result.
 
 ## Using `max_workers`
 

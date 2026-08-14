@@ -15,9 +15,9 @@ seam contributes far less energy. Two standard 1D windows, applied to an
 image by taking the outer product of a window with itself along each
 axis:
 
-$$w_{\rm Hann}(n) = 0.5 \left(1 - \cos\left(\frac{2\pi n}{N - 1}\right)\right)$$
+$$w_{\mathrm{Hann}}(n) = 0.5 \left(1 - \cos\left(\frac{2\pi n}{N - 1}\right)\right)$$
 
-$$w_{\rm Hamming}(n) = 0.54 - 0.46 \cos\left(\frac{2\pi n}{N - 1}\right)$$
+$$w_{\mathrm{Hamming}}(n) = 0.54 - 0.46 \cos\left(\frac{2\pi n}{N - 1}\right)$$
 
 for $n = 0, \ldots, N-1$ across a window of length $N$. Hann tapers all the
 way to exactly zero at both ends; Hamming stops short (around $0.08$),

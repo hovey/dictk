@@ -38,15 +38,16 @@ jobs:
         run: uv run ruff check
 
       - name: Run pytest with coverage
-        run: uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html
+        run: uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html --junitxml=junit.xml
 
-      - name: Upload coverage artifact
+      - name: Upload test report artifact
         uses: actions/upload-artifact@v7
         with:
-          name: report-coverage
+          name: report-test
           path: |
             htmlcov/
             coverage.xml
+            junit.xml
 
   docs:
     name: Build and deploy docs (mdBook + pdoc)
@@ -80,14 +81,22 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
-      - name: Download coverage report from test job
+      - name: Download test report from test job
         uses: actions/download-artifact@v8
         with:
-          name: report-coverage
-          path: coverage-report
+          name: report-test
+          path: test-reports
 
       - name: Generate coverage badge
-        run: uv run genbadge coverage -i coverage-report/coverage.xml -o coverage-badge.svg
+        run: uv run genbadge coverage -i test-reports/coverage.xml -o coverage-badge.svg
+
+      - name: Generate tests badge
+        # See generate_tests_badge.py's own docstring for why this needs a
+        # real script (JUnit XML parsing) rather than the lint badge's
+        # inline grep/awk extraction.
+        run: |
+          uv run python .github/scripts/generate_tests_badge.py \
+            --input test-reports/junit.xml --output tests-badge.svg
 
       - name: Run pylint (informational) and generate lint badge/report
         # pylint is not a CI gate — ruff (format + lint) already gated this
@@ -154,15 +163,24 @@ jobs:
         run: uv run mdbook build
 
       - name: Build API docs
-        # dictk.image/translation/cli must be listed explicitly: pdoc's
-        # automatic submodule discovery respects a package's __all__, and
-        # only rosta is exported there — see
-        # CONTRIBUTING.md#building-the-api-docs. Forgetting a new submodule
-        # here doesn't fail the build, it just silently omits it from the
-        # published docs (as dictk.image and dictk.translation were until
-        # this comment), so double-check this list against src/dictk/*.py
-        # when adding a new top-level module.
-        run: uv run pdoc dictk dictk.image dictk.translation dictk.correlation dictk.grid dictk.cli -o docs/api
+        # Bare `pdoc dictk` discovers every submodule on its own -- see
+        # CONTRIBUTING.md#building-the-api-docs for why that depends on
+        # every top-level submodule being listed in dictk/__init__.py's
+        # own __all__, not on this command line. Forgetting a new
+        # submodule in __all__ doesn't fail the build, it just silently
+        # omits it from the published docs, so double-check that list
+        # against src/dictk/*.py when adding a new top-level module.
+        # --docformat google: pdoc defaults to restructuredtext, which
+        # doesn't parse this codebase's Google-style Args:/Returns:/Raises:
+        # docstring sections -- without it, Args renders as one flat
+        # paragraph instead of a bulleted list.
+        # --math: several dictk.correlation docstrings use $...$/$$...$$
+        # LaTeX -- without this flag no MathJax gets included, so the raw
+        # LaTeX source shows up literally instead of being rendered.
+        # -t docs/pdoc_templates: overrides pdoc's default theme colors
+        # via docs/pdoc_templates/custom.css (softened background/code/
+        # accent palette) -- see CONTRIBUTING.md#building-the-api-docs.
+        run: uv run pdoc dictk -o docs/api --docformat google --math -t docs/pdoc_templates
 
       - name: Generate status dashboard
         run: |
@@ -190,8 +208,9 @@ jobs:
           mkdir -p site/badges
           cp coverage-badge.svg site/badges/coverage.svg
           cp lint-badge.svg site/badges/lint.svg
+          cp tests-badge.svg site/badges/tests.svg
           mkdir -p site/coverage
-          cp -r coverage-report/htmlcov/. site/coverage/
+          cp -r test-reports/htmlcov/. site/coverage/
           mkdir -p site/reports/lint
           cp pylint-report.html site/reports/lint/index.html
           mkdir -p site/dashboard
