@@ -17,7 +17,7 @@
   - [Correlation Visualization](./getting_started/correlation_visualization.md)
 - [Multi-Point Motion](./getting_started/multi_point_motion.md)
   - [Simple Stretch](./getting_started/simple_stretch.md)
-  - [Recoverable Displacement Range](./getting_started/kernel_search_window_ratio.md)
+  - [Recoverable Displacement Range](./getting_started/recoverable_displacement_range.md)
   - [Search Center Predictions](./getting_started/search_center_predictions.md)
   - [Parallelization](./getting_started/parallelization.md)
 - [Path Forward](./getting_started/path_forward.md)

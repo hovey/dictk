@@ -1,11 +1,8 @@
 """Reproduces `dictk.translation.locate`'s behavior before the fix
 documented in Recoverable Displacement Range: kernel content anchored at
-the padded array's top-left corner, not centered. A `def`-based helper
-like this doesn't fit cleanly into a single-line `cmdrun` invocation (the
-convention every other live demo in this book uses), so it lives here
-instead -- matching parallelization_bench.py's precedent for logic too
-complex for a one-liner. Unlike that script, this one is cheap and runs
-live on every book build, not a committed one-time snapshot.
+the padded array's top-left corner, not centered.
+
+Runs live on every book build, not from a committed snapshot.
 """
 
 from dictk.correlation import _kernel_pad, _window
@@ -58,8 +55,8 @@ if __name__ == "__main__":
         180  # generous, fixed -- shouldn't matter, per the ratio result above
     )
 
-    print("| dx | kernel_margin offset | found | match |")
-    print("|---|---|---|---|")
+    print("| dx | kernel_margin offset | expected | found | match |")
+    print("|---|---|---|---|---|")
     for dx in [
         kernel_margin - 3,
         kernel_margin - 1,
@@ -73,5 +70,6 @@ if __name__ == "__main__":
             reference_image, current_image, p0, p0, kernel_margin, search_margin
         )
         print(
-            f"| {dx} | {dx - kernel_margin:+d} | ({found.x},{found.y}) | {found == expected} |"
+            f"| {dx} | {dx - kernel_margin:+d} | ({expected.x},{expected.y}) | "
+            f"({found.x},{found.y}) | {found == expected} |"
         )

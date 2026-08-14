@@ -358,7 +358,7 @@ def _kernel_pad(
             directions, not just up to `kernel_margin_width`/
             `kernel_margin_height` past `search_center` in the positive
             direction. See [Recoverable Displacement
-            Range](../getting_started/kernel_search_window_ratio.html)
+            Range](../getting_started/recoverable_displacement_range.html)
             for why.
 
     Returns:
@@ -434,7 +434,7 @@ def phase_correlation(
     small, comfortably-within-bounds displacements this book's examples
     use, the two still agree once each is interpreted in its own
     convention -- see [Recoverable Displacement
-    Range](../getting_started/kernel_search_window_ratio.html) for why the
+    Range](../getting_started/recoverable_displacement_range.html) for why the
     conventions diverge once a displacement isn't small.
 
     See Kuglin CD, Hines DC. "The phase correlation image alignment

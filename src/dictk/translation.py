@@ -50,7 +50,7 @@ def locate(
     still be found correctly -- the recoverable range is symmetric,
     bounded only by the search margins themselves, not by
     `kernel_margin_width`/`kernel_margin_height`. See [Recoverable
-    Displacement Range](../getting_started/kernel_search_window_ratio.html)
+    Displacement Range](../getting_started/recoverable_displacement_range.html)
     for why that's worth stating explicitly: an earlier version of this
     function had a real, silent bug here -- it recovered a displacement
     in the negative direction up to the full search margin, but capped
@@ -151,7 +151,7 @@ def locate(
     # search_margin is set. Centering kernel's content in the padded array
     # instead makes the safe range symmetric in both directions -- see
     # [Recoverable Displacement
-    # Range](../getting_started/kernel_search_window_ratio.html) for the
+    # Range](../getting_started/recoverable_displacement_range.html) for the
     # derivation and how this was found.
     kernel, search = _window(kernel=kernel, search=search, windowing=windowing)
     kernel_padded, pad_before_height, pad_before_width = _kernel_pad(
