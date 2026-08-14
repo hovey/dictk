@@ -244,6 +244,24 @@ the mesh doesn't need to conform to the crack. The DIC-side analogue —
 enriching the correlation itself to detect and locate a discontinuity,
 not just generating test images that contain one — is worth exploring.
 Not scoped yet.</p>
+<h2 id="2026-08-14"><a class="header" href="#2026-08-14">2026-08-14</a></h2>
+<p><strong>Re-running The First Sweep after the centered-padding fix: checked,
+not automatically fixed.</strong> <a href="./recoverable_displacement_range.html#the-first-sweep">Recoverable Displacement
+Range</a>'s own
+opening sweep sizes <code>search_margin_width</code> generously for every
+percentage tested — always larger than the true displacement — so it
+was never hitting the asymmetric-padding bug that page's fix
+addresses. Re-ran it against the fixed <code>locate()</code> to check directly,
+rather than assume: the collapse is identical to before the fix —
+12/12, 12/12, 10/12, 6/12, 1/12, 1/12, 0/12, 0/12 for
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8389em;vertical-align:-0.1944em;"></span><span class="mord">2</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">4</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">6</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">8</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">18</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">20</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">40</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">80</span></span></span></span>. The real cause is still <a href="./recoverable_displacement_range.html#an-interpolation-confound-set-aside">the
+interpolation confound that page already
+names</a>:
+<code>stretch</code>'s own bilinear interpolation subtly blurs kernel-surrounding
+texture even where a point's center pixel lands on an exact integer,
+producing near-miss failures — not the wraparound cliff the fix
+resolved. Confirms the Postponed subpixel-accuracy item below is still
+the right next step here, not something this fix already covered.</p>
 <h3 id="postponed"><a class="header" href="#postponed">Postponed</a></h3>
 <p>Noted, not being pursued right now:</p>
 <ul>
