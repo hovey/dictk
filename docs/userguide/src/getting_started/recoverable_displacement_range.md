@@ -288,7 +288,7 @@ We now have success right up to the `search_margin` on the right:
 Similarly, on the left side of the `search_margin`:
 
 * With `dx = -44`, `locate` successfully finds the correct $(106, 150)$ value.
-* With `dx = -45`, `locate` cycles forward $2\times$ the `search_margin`
+* With `dx = -45`, `locate` cycles forward $2\times$ the `search_margin`,
 $90$ px, predicting $(195, 150)$, not the expected $(105, 150)$.
 
 Look closely at `dx = 45` and `dx = -45`. One succeeds; the other fails.
