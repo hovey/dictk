@@ -14,6 +14,13 @@ with point-tracking (registration) under active development.
 
 <table>
 <tr>
+<td colspan="2" align="center">
+
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blueviolet?style=flat)](https://hovey.github.io/dictk/)
+
+</td>
+</tr>
+<tr>
 <th>🚀 main (released)</th>
 <th>🛠️ dev (in development)</th>
 </tr>
@@ -47,32 +54,10 @@ with point-tracking (registration) under active development.
 </tr>
 </table>
 
-[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blueviolet?style=flat)](https://hovey.github.io/dictk/)
-
 ## Installation
 
 ```bash
 pip install dictk
-```
-
-## Usage
-
-```python
-from dictk import checkerboard
-
-image = checkerboard(width=200, height=200, count_x=8, count_y=8)
-image.shape  # (200, 200)
-```
-
-## Development
-
-This project uses [uv](https://docs.astral.sh/uv/) for dependency management.
-
-```bash
-uv sync --all-extras --dev
-uv run pytest --cov=src/dictk
-uv run ruff format --check
-uv run ruff check
 ```
 
 ## Contributing
