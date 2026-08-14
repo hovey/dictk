@@ -130,7 +130,7 @@
 </span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a><span class="sd">    still be found correctly -- the recoverable range is symmetric,</span>
 </span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a><span class="sd">    bounded only by the search margins themselves, not by</span>
 </span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="sd">    `kernel_margin_width`/`kernel_margin_height`. See [Recoverable</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a><span class="sd">    Displacement Range](../getting_started/kernel_search_window_ratio.html)</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a><span class="sd">    Displacement Range](../getting_started/recoverable_displacement_range.html)</span>
 </span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a><span class="sd">    for why that&#39;s worth stating explicitly: an earlier version of this</span>
 </span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a><span class="sd">    function had a real, silent bug here -- it recovered a displacement</span>
 </span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="sd">    in the negative direction up to the full search margin, but capped</span>
@@ -231,7 +231,7 @@
 </span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>    <span class="c1"># search_margin is set. Centering kernel&#39;s content in the padded array</span>
 </span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>    <span class="c1"># instead makes the safe range symmetric in both directions -- see</span>
 </span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a>    <span class="c1"># [Recoverable Displacement</span>
-</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a>    <span class="c1"># Range](../getting_started/kernel_search_window_ratio.html) for the</span>
+</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a>    <span class="c1"># Range](../getting_started/recoverable_displacement_range.html) for the</span>
 </span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a>    <span class="c1"># derivation and how this was found.</span>
 </span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a>    <span class="n">kernel</span><span class="p">,</span> <span class="n">search</span> <span class="o">=</span> <span class="n">_window</span><span class="p">(</span><span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> <span class="n">search</span><span class="o">=</span><span class="n">search</span><span class="p">,</span> <span class="n">windowing</span><span class="o">=</span><span class="n">windowing</span><span class="p">)</span>
 </span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a>    <span class="n">kernel_padded</span><span class="p">,</span> <span class="n">pad_before_height</span><span class="p">,</span> <span class="n">pad_before_width</span> <span class="o">=</span> <span class="n">_kernel_pad</span><span class="p">(</span>
@@ -335,7 +335,7 @@
 </span><span id="locate-51"><a href="#locate-51"><span class="linenos"> 51</span></a><span class="sd">    still be found correctly -- the recoverable range is symmetric,</span>
 </span><span id="locate-52"><a href="#locate-52"><span class="linenos"> 52</span></a><span class="sd">    bounded only by the search margins themselves, not by</span>
 </span><span id="locate-53"><a href="#locate-53"><span class="linenos"> 53</span></a><span class="sd">    `kernel_margin_width`/`kernel_margin_height`. See [Recoverable</span>
-</span><span id="locate-54"><a href="#locate-54"><span class="linenos"> 54</span></a><span class="sd">    Displacement Range](../getting_started/kernel_search_window_ratio.html)</span>
+</span><span id="locate-54"><a href="#locate-54"><span class="linenos"> 54</span></a><span class="sd">    Displacement Range](../getting_started/recoverable_displacement_range.html)</span>
 </span><span id="locate-55"><a href="#locate-55"><span class="linenos"> 55</span></a><span class="sd">    for why that&#39;s worth stating explicitly: an earlier version of this</span>
 </span><span id="locate-56"><a href="#locate-56"><span class="linenos"> 56</span></a><span class="sd">    function had a real, silent bug here -- it recovered a displacement</span>
 </span><span id="locate-57"><a href="#locate-57"><span class="linenos"> 57</span></a><span class="sd">    in the negative direction up to the full search margin, but capped</span>
@@ -436,7 +436,7 @@
 </span><span id="locate-152"><a href="#locate-152"><span class="linenos">152</span></a>    <span class="c1"># search_margin is set. Centering kernel&#39;s content in the padded array</span>
 </span><span id="locate-153"><a href="#locate-153"><span class="linenos">153</span></a>    <span class="c1"># instead makes the safe range symmetric in both directions -- see</span>
 </span><span id="locate-154"><a href="#locate-154"><span class="linenos">154</span></a>    <span class="c1"># [Recoverable Displacement</span>
-</span><span id="locate-155"><a href="#locate-155"><span class="linenos">155</span></a>    <span class="c1"># Range](../getting_started/kernel_search_window_ratio.html) for the</span>
+</span><span id="locate-155"><a href="#locate-155"><span class="linenos">155</span></a>    <span class="c1"># Range](../getting_started/recoverable_displacement_range.html) for the</span>
 </span><span id="locate-156"><a href="#locate-156"><span class="linenos">156</span></a>    <span class="c1"># derivation and how this was found.</span>
 </span><span id="locate-157"><a href="#locate-157"><span class="linenos">157</span></a>    <span class="n">kernel</span><span class="p">,</span> <span class="n">search</span> <span class="o">=</span> <span class="n">_window</span><span class="p">(</span><span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> <span class="n">search</span><span class="o">=</span><span class="n">search</span><span class="p">,</span> <span class="n">windowing</span><span class="o">=</span><span class="n">windowing</span><span class="p">)</span>
 </span><span id="locate-158"><a href="#locate-158"><span class="linenos">158</span></a>    <span class="n">kernel_padded</span><span class="p">,</span> <span class="n">pad_before_height</span><span class="p">,</span> <span class="n">pad_before_width</span> <span class="o">=</span> <span class="n">_kernel_pad</span><span class="p">(</span>
@@ -515,7 +515,7 @@ out of scope for now.</p>
 <code>search_margin_height</code> of <code>search_center</code> in every direction and
 still be found correctly -- the recoverable range is symmetric,
 bounded only by the search margins themselves, not by
-<code>kernel_margin_width</code>/<code>kernel_margin_height</code>. See <a href="../getting_started/kernel_search_window_ratio.html">Recoverable
+<code>kernel_margin_width</code>/<code>kernel_margin_height</code>. See <a href="../getting_started/recoverable_displacement_range.html">Recoverable
 Displacement Range</a>
 for why that's worth stating explicitly: an earlier version of this
 function had a real, silent bug here -- it recovered a displacement
