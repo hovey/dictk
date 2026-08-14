@@ -354,8 +354,8 @@ uv run mdbook serve --open    # live preview at http://localhost:3000
 <h3 id="building-the-api-docs"><a class="header" href="#building-the-api-docs">Building the API docs</a></h3>
 <p>Python API reference docs (function signatures, docstrings) are generated
 from source with <a href="https://pdoc.dev/">pdoc</a>, a dev dependency:</p>
-<pre><code class="language-bash">uv run pdoc dictk -o docs/api --docformat google --math   # build once, output in docs/api/
-uv run pdoc dictk --docformat google --math              # live preview, serves on localhost
+<pre><code class="language-bash">uv run pdoc dictk -o docs/api --docformat google --math -t docs/pdoc_templates   # build once, output in docs/api/
+uv run pdoc dictk --docformat google --math -t docs/pdoc_templates              # live preview, serves on localhost
 </code></pre>
 <p><code>--docformat google</code> matters: pdoc defaults to <code>restructuredtext</code>, which
 doesn't recognize this codebase's Google-style <code>Args:</code>/<code>Returns:</code>/<code>Raises:</code>
@@ -386,6 +386,25 @@ command.</p>
 <p>Output goes to <code>docs/api/</code> (gitignored, regenerated on demand). CI builds
 this too and publishes it alongside the mdBook user guide — see
 <a href="#cicd-architecture">"CI/CD architecture"</a> below.</p>
+<p><strong>Development note:</strong> <code>-t docs/pdoc_templates</code> points pdoc at
+<code>docs/pdoc_templates/custom.css</code>, pdoc's own supported override point
+(<code>-t</code>/<code>--template-directory</code> — see
+<a href="https://pdoc.dev/docs/pdoc.html">pdoc's documentation</a>). It's included
+last, after <code>theme.css</code>/<code>layout.css</code>/<code>content.css</code>, so it always wins
+the cascade. This one softens pdoc's default theme: a pure white page
+background (<code>--pdoc-background: #fff</code>) with code-block/highlighted-box
+backgrounds only slightly darker (<code>--code: #f8f8f8</code>, <code>--accent: #eee</code>)
+reads as a stark white glare across the page as a whole. The override
+shifts all three together — <code>--pdoc-background: #efede7</code>,
+<code>--code: #e3dfd7</code>, <code>--accent: #d7d3c9</code> — rather than tinting the
+background alone, so the page &lt; code-block &lt; accent-box hierarchy
+pdoc's default theme establishes stays intact, just softer throughout.
+Tuned in two successive passes, each computed in HSL space (same hue/
+saturation per variable, lightness lowered by a measured delta) rather
+than picked by eye, so the gaps between the three tiers stay even
+instead of collapsing into each other. <code>--accent2</code> (the border/
+scrollbar gray, <code>#c1c1c1</code>) is untouched — already reads with plenty of
+contrast against every tone above.</p>
 <h3 id="building-the-coverage-badge"><a class="header" href="#building-the-coverage-badge">Building the coverage badge</a></h3>
 <p>The README's coverage badge is a real SVG generated from <code>coverage.xml</code> with
 <a href="https://smarie.github.io/python-genbadge/">genbadge</a>, a dev dependency —
@@ -472,7 +491,7 @@ the checks manually:</p>
 uv run ruff check
 uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html
 uv run mdbook build
-uv run pdoc dictk -o docs/api --docformat google --math
+uv run pdoc dictk -o docs/api --docformat google --math -t docs/pdoc_templates
 uv run genbadge coverage -i coverage.xml -o coverage-badge.svg
 uv run pylint src/dictk --output-format=text --reports=yes
 </code></pre>
