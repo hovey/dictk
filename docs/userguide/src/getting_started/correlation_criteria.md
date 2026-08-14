@@ -243,4 +243,4 @@ on this page's small, comfortably-within-bounds displacement:
    default), matching `cc()`'s corner-offset convention above. `locate`
    centers it instead — a reason worth knowing once you've worked with
    `locate` a bit more: see [Recoverable Displacement
-   Range](./kernel_search_window_ratio.md).
+   Range](./recoverable_displacement_range.md).

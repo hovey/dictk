@@ -156,7 +156,7 @@ deformation too.
 
 Twelve points, twelve independent correlations, whether the underlying
 motion is a rigid shift or a stretch:
-[Recoverable Displacement Range](./kernel_search_window_ratio.md) picks
+[Recoverable Displacement Range](./recoverable_displacement_range.md) picks
 up from here.
 
 ## Data Download

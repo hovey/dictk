@@ -7,7 +7,7 @@ displacement" guess. Every worked example in this book relies on that
 default. It works well here because every displacement used so far is
 small relative to the search margin chosen to contain it.
 
-[Recoverable Displacement Range](./kernel_search_window_ratio.md)
+[Recoverable Displacement Range](./recoverable_displacement_range.md)
 establishes that the searchable range is bounded by `search_margin`
 itself now, not by `kernel_margin`. That's good news — it's a real,
 symmetric bound to design around — but it doesn't remove the underlying

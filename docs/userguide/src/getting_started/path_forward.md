@@ -68,6 +68,26 @@ enriching the correlation itself to detect and locate a discontinuity,
 not just generating test images that contain one — is worth exploring.
 Not scoped yet.
 
+## 2026-08-14
+
+**Re-running The First Sweep after the centered-padding fix: checked,
+not automatically fixed.** [Recoverable Displacement
+Range](./recoverable_displacement_range.md#the-first-sweep)'s own
+opening sweep sizes `search_margin_width` generously for every
+percentage tested — always larger than the true displacement — so it
+was never hitting the asymmetric-padding bug that page's fix
+addresses. Re-ran it against the fixed `locate()` to check directly,
+rather than assume: the collapse is identical to before the fix —
+12/12, 12/12, 10/12, 6/12, 1/12, 1/12, 0/12, 0/12 for
+$p = 2, 4, 6, 8, 18, 20, 40, 80$. The real cause is still [the
+interpolation confound that page already
+names](./recoverable_displacement_range.md#an-interpolation-confound-set-aside):
+`stretch`'s own bilinear interpolation subtly blurs kernel-surrounding
+texture even where a point's center pixel lands on an exact integer,
+producing near-miss failures — not the wraparound cliff the fix
+resolved. Confirms the Postponed subpixel-accuracy item below is still
+the right next step here, not something this fix already covered.
+
 ### Postponed
 
 Noted, not being pursued right now:
