@@ -1,0 +1,601 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Recoverable Displacement Range - dictk User Guide</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Digital Image Correlation Toolkit">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../docs/userguide/theme/custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">dictk User Guide</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/hovey/dictk" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="recoverable-displacement-range"><a class="header" href="#recoverable-displacement-range">Recoverable Displacement Range</a></h1>
+<p><a href="./simple_stretch.html">Simple Stretch</a> raised a natural follow-up
+question: how far can <code>astronaut0</code> be stretched, or compressed, before
+<code>locate</code> stops finding the exact expected position? The investigation
+that followed didn't answer that question directly. It found something
+more fundamental first — a real, silent bug in <code>locate</code> itself, now
+fixed. This page chronicles how.</p>
+<h2 id="the-first-sweep"><a class="header" href="#the-first-sweep">The First Sweep</a></h2>
+<p>Reuse <a href="./multi_point_motion.html#point-grid">Point Grid</a>'s 12 points and
+sweep <code>factor_x</code> upward, sizing <code>search_margin_width</code> per factor so it
+always comfortably contains the largest point's displacement — wide
+enough that "the window was too small" can't explain a failure:</p>
+<pre><code class="language-python">from dictk.image import read, stretch, PixelCoordinate
+from dictk.grid import generate, locate
+
+reference_image = read(path="astronaut0.png")
+points = generate(
+    origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55
+)
+kernel_margin = 20
+
+for p in [2, 4, 6, 8, 18, 20, 40, 80]:
+    factor_x = 1 + p / 100
+    current_image = stretch(arr=reference_image, factor_x=factor_x)
+    max_disp = max(abs(pt.x * (factor_x - 1)) for pt in points)
+    search_margin_width = max(int(max_disp) + 15, kernel_margin + 10)
+    found = locate(
+        reference_image=reference_image, current_image=current_image, reference_points=points,
+        kernel_margin_width=kernel_margin, kernel_margin_height=kernel_margin,
+        search_margin_width=search_margin_width, search_margin_height=52,
+    )
+    expected = [PixelCoordinate(x=int(pt.x * factor_x), y=pt.y) for pt in points]
+    n_match = sum(1 for f, e in zip(found, expected) if f == e)
+    print(f"{p:3d}%  search_margin_width={search_margin_width:4d}  matched={n_match:2d}/12")
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>Stretch</th><th>factor_x</th><th>search_margin_width</th><th>Matched</th></tr></thead><tbody>
+<tr><td>2%</td><td>1.02</td><td>30</td><td>12/12</td></tr>
+<tr><td>4%</td><td>1.04</td><td>30</td><td>12/12</td></tr>
+<tr><td>6%</td><td>1.06</td><td>30</td><td>10/12</td></tr>
+<tr><td>8%</td><td>1.08</td><td>30</td><td>6/12</td></tr>
+<tr><td>18%</td><td>1.18</td><td>41</td><td>1/12</td></tr>
+<tr><td>20%</td><td>1.20</td><td>44</td><td>1/12</td></tr>
+<tr><td>40%</td><td>1.40</td><td>74</td><td>0/12</td></tr>
+<tr><td>80%</td><td>1.80</td><td>135</td><td>0/12</td></tr>
+</tbody></table>
+</div>
+<p>Matching collapses almost immediately — well before 20% stretch. That's
+surprising: at this book's own 40-pixel kernel scale, a real
+degradation-driven failure shouldn't set in this early.</p>
+<h2 id="two-hypotheses-both-ruled-out"><a class="header" href="#two-hypotheses-both-ruled-out">Two Hypotheses, Both Ruled Out</a></h2>
+<p>Two mechanisms seemed likely going in.</p>
+<h3 id="hypothesis-1-blur"><a class="header" href="#hypothesis-1-blur">Hypothesis 1: Blur</a></h3>
+<p><code>stretch</code> uses bilinear interpolation, sampling an increasingly small
+crop of the original image to fill the same canvas. Whole-image
+contrast does drop as <code>factor_x</code> grows — but only mildly, from a
+standard deviation of 63.8 at <code>factor_x=1.0</code> to 58.1 even at
+<code>factor_x=3.0</code>. Not a collapse.</p>
+<p>That claim is a whole-image statistic. Seeing it directly, side by
+side with the image it's measuring, makes it concrete rather than
+just asserted:</p>
+<pre><code class="language-python">import matplotlib.pyplot as plt
+from dictk.image import read, stretch
+
+reference_image = read(path="astronaut0.png")
+factors = [1.0, 1.5, 2.0, 3.0]
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+fig, axes = plt.subplots(2, len(factors), figsize=(11, 5.8), constrained_layout=True)
+for col, factor_x in enumerate(factors):
+    img = stretch(arr=reference_image, factor_x=factor_x)
+    mean, std = img.mean(), img.std()
+
+    axes[0, col].imshow(img, cmap="gray", vmin=0, vmax=255)
+    axes[0, col].set_title(f"factor_x={factor_x:.1f}\nstd={std:.1f}", fontsize=10)
+    axes[0, col].set_xticks([])
+    axes[0, col].set_yticks([])
+
+    ax_hist = axes[1, col]
+    counts, _, _ = ax_hist.hist(img.ravel(), bins=50, range=(0, 255), color="black", alpha=0.7)
+    y_bracket = counts.max() * 1.12
+    ax_hist.axvline(mean - std, color="tab:red", linestyle="--", linewidth=1)
+    ax_hist.axvline(mean + std, color="tab:red", linestyle="--", linewidth=1)
+    ax_hist.annotate(
+        "",
+        xy=(mean - std, y_bracket),
+        xytext=(mean + std, y_bracket),
+        arrowprops=dict(arrowstyle="&lt;-&gt;", color="tab:red"),
+    )
+    ax_hist.text(mean, y_bracket * 1.06, f"±1 std = {std:.1f}", ha="center", va="bottom", fontsize=8, color="tab:red")
+    ax_hist.set_ylim(0, y_bracket * 1.35)
+    ax_hist.set_xlim(0, 255)
+    ax_hist.set_xlabel("pixel value", fontsize=8)
+fig.savefig("kernel_search_window_ratio_blur.png", dpi=300)
+</code></pre>
+<p>Saved: kernel_search_window_ratio_blur.png</p>
+<figure>
+    <img src="kernel_search_window_ratio_blur.png" alt="astronaut0 stretched at factor_x 1.0, 1.5, 2.0, and 3.0, with each image's pixel-value histogram below it, each histogram marked with a red bracket showing the ±1 standard deviation span narrowing from 63.8 to 58.2" />
+    <figcaption>Top: <code>astronaut0</code> stretched at four factors. Bottom: each one's own pixel-value histogram, with a red bracket marking the ±1 standard deviation span. The images show <em>where</em> the blur comes from — horizontal streaking, since <code>stretch</code> only resamples along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> — but the bracket confirms it's mild: the span narrows only slightly as standard deviation drops from 63.8 to 58.2, nowhere near the collapse the first sweep showed at just 6-8%.</figcaption>
+</figure>
+<p>There's also a theoretical reason this mild blur shouldn't move the peak
+at all. <code>locate</code>'s <a href="./correlation_criteria.html#fourier-domain">phase normalization</a>
+divides out signal strength at every frequency and keeps only direction.
+Blurring changes strength, not direction — the same property that already
+makes <code>locate</code> insensitive to contrast. Only heavy blur eventually breaks
+that guarantee in practice, since real images pad and round at their
+edges instead of matching the idealized math exactly. <code>stretch</code> never
+reaches that regime at these factors.</p>
+<h3 id="hypothesis-2-canvas-exit"><a class="header" href="#hypothesis-2-canvas-exit">Hypothesis 2: Canvas Exit</a></h3>
+<p><code>stretch</code> pivots at the origin, so a point far enough from it can be
+pushed past the image's fixed 300-pixel edge. For <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">150</span></span></span></span> (this grid's
+maximum <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> dimension) that doesn't happen until <code>factor_x=2.0</code> — 100%
+stretch, long after the matching collapse above.</p>
+<p>Plotting that point's <em>expected</em> position directly on each stretched
+image makes the exit itself visible, not just computed:</p>
+<pre><code class="language-python">import matplotlib.pyplot as plt
+from dictk.image import read, stretch
+
+reference_image = read(path="astronaut0.png")
+height, width = reference_image.shape
+p_x, p_y = 150, 50  # the grid's farthest point from the origin
+factors = [1.0, 1.5, 2.0, 2.5]
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+fig, axes = plt.subplots(1, len(factors), figsize=(11, 3.4), constrained_layout=True)
+for ax, factor_x in zip(axes, factors):
+    img = stretch(arr=reference_image, factor_x=factor_x)
+    x_expected = p_x * factor_x
+    on_canvas = x_expected &lt; width
+
+    ax.imshow(img, cmap="gray", vmin=0, vmax=255, extent=[0, width, height, 0])
+    ax.axvline(width, color="tab:red", linestyle="--", linewidth=1)
+    ax.plot(x_expected, p_y, marker="+", color="tab:orange", markersize=10, markeredgewidth=2.5)
+    ax.set_xlim(-20, 400)
+    ax.set_ylim(height + 20, -20)
+    status = "on canvas" if on_canvas else "OFF CANVAS"
+    ax.set_title(f"factor_x={factor_x:.1f}\nx={x_expected:.0f}  ({status})", fontsize=10)
+    ax.set_xticks([])
+    ax.set_yticks([])
+fig.savefig("kernel_search_window_ratio_canvas_exit.png", dpi=300)
+</code></pre>
+<p>Saved: kernel_search_window_ratio_canvas_exit.png</p>
+<figure>
+    <img src="kernel_search_window_ratio_canvas_exit.png" alt="astronaut0 stretched at factor_x 1.0, 1.5, 2.0, and 2.5, with an orange marker showing where the x=150 point is expected to land; the marker moves right with each stretch, sits exactly on the canvas edge at factor_x=2.0, and floats clearly outside the image at factor_x=2.5" />
+    <figcaption>The <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">150</span></span></span></span> point's expected position (orange marker), plotted directly on each stretched image. The dashed red line marks the canvas's own right edge. The marker sits exactly on that edge at <code>factor_x=2.0</code> — the threshold the text above states — and floats clearly outside the image by <code>factor_x=2.5</code>. That threshold sits far past the collapse the first sweep showed at just 6-8%, ruling canvas exit out too.</figcaption>
+</figure>
+<p>Neither blur nor canvas exit explains a collapse at 6-8%. Something else
+is going on, and it isn't image degradation.</p>
+<h2 id="an-interpolation-confound-set-aside"><a class="header" href="#an-interpolation-confound-set-aside">An Interpolation Confound, Set Aside</a></h2>
+<p>Chasing the real cause directly through <code>stretch</code> turned out to be the
+wrong tool: even at a percentage chosen so a point's <em>center</em> pixel
+lands on an exact integer, bilinear interpolation still resamples
+every <em>other</em> pixel in that point's kernel from a fractional source
+coordinate. The center matches; the kernel's surrounding texture is
+subtly blurred anyway, in a way that grows with <code>factor_x</code>. That's a
+real phenomenon — related to <a href="./path_forward.html#2026-08-11">Path Forward's Postponed subpixel-accuracy
+item</a> — but a second, separate one from
+whatever is causing the sharp, early collapse above. Isolating the real
+cause means removing this confound entirely: pure integer-pixel
+<a href="../api/dictk/image.html#translate"><code>translate</code></a> instead of <code>stretch</code>,
+where every pixel maps from an exact integer source coordinate and
+bilinear interpolation never activates at all.</p>
+<h2 id="isolating-the-real-variable"><a class="header" href="#isolating-the-real-variable">Isolating the Real Variable</a></h2>
+<p>The first guess was the kernel-to-search-window size <em>ratio</em>. It's
+wrong — a small, fixed, well-within-bounds displacement succeeds at
+every ratio tested, from a comfortable 0.67 down to a razor-thin 0.10:</p>
+<pre><code class="language-python">from dictk.image import read, translate, PixelCoordinate
+from dictk.translation import locate
+
+reference_image = read(path="astronaut0.png")
+p0 = PixelCoordinate(x=150, y=150)
+dx = 10
+current_image = translate(arr=reference_image, dx=dx, dy=0)
+expected = PixelCoordinate(x=p0.x + dx, y=p0.y)
+
+for kernel_margin in [15, 20, 25, 30]:
+    for search_margin in [kernel_margin + 15, kernel_margin + 80]:
+        found = locate(
+            reference_image=reference_image, current_image=current_image,
+            reference_point=p0, search_center=p0,
+            kernel_margin_width=kernel_margin, kernel_margin_height=kernel_margin,
+            search_margin_width=search_margin, search_margin_height=search_margin,
+        )
+        ratio = kernel_margin / search_margin
+        print(f"kernel_margin={kernel_margin:2d}  search_margin={search_margin:3d}  ratio={ratio:.2f}  match={found == expected}")
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>kernel_margin</th><th>search_margin</th><th>ratio</th><th>match</th></tr></thead><tbody>
+<tr><td>15</td><td>30</td><td>0.50</td><td>True</td></tr>
+<tr><td>15</td><td>95</td><td>0.16</td><td>True</td></tr>
+<tr><td>20</td><td>35</td><td>0.57</td><td>True</td></tr>
+<tr><td>20</td><td>100</td><td>0.20</td><td>True</td></tr>
+<tr><td>25</td><td>40</td><td>0.62</td><td>True</td></tr>
+<tr><td>25</td><td>105</td><td>0.24</td><td>True</td></tr>
+<tr><td>30</td><td>45</td><td>0.67</td><td>True</td></tr>
+<tr><td>30</td><td>110</td><td>0.27</td><td>True</td></tr>
+</tbody></table>
+</div>
+<p>Ratio genuinely doesn't matter. What does: the <em>raw displacement</em>,
+compared against <code>kernel_margin</code> alone — not <code>search_margin</code>, no matter
+how generously it's sized. Demonstrating this needs <code>locate</code>'s <em>pre-fix</em>
+behavior explicitly (<code>centered=False</code>, the padding placement this page
+is about to change) — the real, shipped <code>locate</code> no longer reproduces
+the bug it's meant to illustrate. A <code>def</code>-based helper like this doesn't fit
+a single-line <code>cmdrun</code> invocation, so
+<a href="#kernel_search_window_ratio_uncentered_demopy"><code>kernel_search_window_ratio_uncentered_demo.py</code></a>
+(full source at the bottom of this page) holds it instead, matching
+<a href="./parallelization.html#parallelization_benchpy"><code>parallelization_bench.py</code></a>'s
+precedent for logic too complex for a one-liner — cheap enough here to
+still run live, though, not a committed snapshot:</p>
+<div class="table-wrapper"><table><thead><tr><th>dx</th><th>kernel_margin offset</th><th>found</th><th>match</th></tr></thead><tbody>
+<tr><td>27</td><td>-3</td><td>(177,150)</td><td>True</td></tr>
+<tr><td>29</td><td>-1</td><td>(179,150)</td><td>True</td></tr>
+<tr><td>30</td><td>+0</td><td>(180,150)</td><td>True</td></tr>
+<tr><td>31</td><td>+1</td><td>(-179,150)</td><td>False</td></tr>
+<tr><td>33</td><td>+3</td><td>(-177,150)</td><td>False</td></tr>
+</tbody></table>
+</div>
+<p>A sharp cliff, exactly at <code>dx == kernel_margin</code>. <code>search_margin=180</code> —
+six times larger than <code>kernel_margin</code> — makes no difference at all.</p>
+<h2 id="root-cause"><a class="header" href="#root-cause">Root Cause</a></h2>
+<p><a href="../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a>
+zero-pads the kernel up to the search area's own size before the FFT
+(see <a href="./correlation_criteria.html#fourier-domain">Correlation Criteria</a>).
+Until this page, that padding placed the kernel's real content at the
+padded array's top-left corner — everything else, zero. FFT-based phase
+correlation is circular: the shift it reports is only meaningful modulo
+the array's own size, wrapping silently past that. With the kernel
+anchored at the corner instead of centered, the <em>safe</em> half of that
+circle landed almost entirely on the negative side. The positive side
+had almost none of it to spare — capped at exactly <code>kernel_margin</code>,
+regardless of how large <code>search_margin</code> was set. Past that cap, <code>locate</code>
+didn't fail visibly. It returned a confidently wrong <code>PixelCoordinate</code>,
+offset from the true one by exactly the padded array's own width.</p>
+<h2 id="the-fix"><a class="header" href="#the-fix">The Fix</a></h2>
+<p>Center the kernel's content within the padded array instead — split the
+padding before/after rather than putting it all after. The recoverable
+range becomes symmetric, bounded by <code>search_margin</code> in <em>both</em>
+directions, exactly as the parameter's own name implies it always
+should have been:</p>
+<div class="table-wrapper"><table><thead><tr><th>dx</th><th>found</th><th>expected</th><th>match</th></tr></thead><tbody>
+<tr><td>30</td><td>(180,150)</td><td>(180,150)</td><td>True</td></tr>
+<tr><td>40</td><td>(190,150)</td><td>(190,150)</td><td>True</td></tr>
+<tr><td>44</td><td>(194,150)</td><td>(194,150)</td><td>True</td></tr>
+<tr><td>45</td><td>(195,150)</td><td>(195,150)</td><td>True</td></tr>
+<tr><td>-44</td><td>(106,150)</td><td>(106,150)</td><td>True</td></tr>
+<tr><td>-45</td><td>(195,150)</td><td>(105,150)</td><td>False</td></tr>
+</tbody></table>
+</div>
+<p><code>dx=45</code> (exactly <code>search_margin</code>) now succeeds in both directions —
+<code>dx=44</code> positive, <code>dx=-44</code> negative, both fine too, with <code>dx=45</code>/<code>-45</code>
+sitting at the single aliased boundary point every circular system has
+(where <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">+</span><span class="mord">45</span></span></span></span> and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">−</span><span class="mord">45</span></span></span></span> are indistinguishable modulo the array's own
+90-pixel width). That one-pixel edge case is an inherent property of
+representing a circle with discrete arithmetic, not a bug — a world away
+from the old, severely lopsided range this page started with.</p>
+<h2 id="scope-of-the-fix"><a class="header" href="#scope-of-the-fix">Scope of the Fix</a></h2>
+<p>The old, single <code>_window_and_pad</code> helper did two separable jobs at
+once: taper <code>kernel</code>/<code>search</code> toward zero (if <code>windowing</code> was given),
+then zero-pad <code>kernel</code> up to <code>search</code>'s own shape. Only the first job
+ever needed the full <code>search</code> array; the second only ever read its
+<em>shape</em>. Splitting them makes that honest: <code>_window</code> tapers both arrays
+(unchanged from before), and <code>_kernel_pad</code> grows <code>kernel</code> up to a given
+<code>(height, width)</code> — never <code>search</code> itself — gaining the <code>centered</code>
+parameter this page is about. <code>locate</code> calls <code>_kernel_pad</code> with
+<code>centered=True</code>.
+<a href="../api/dictk/correlation.html#phase_correlation"><code>phase_correlation</code></a> —
+the surface-visualization function behind every figure in <a href="./correlation_visualization.html">Correlation
+Visualization</a> — keeps the old,
+uncentered default. Every peak position already published there, all
+well within the old safe range regardless of which convention computed
+it, stays exactly as documented; nothing needed regenerating.
+<a href="./correlation_criteria.html#fourier-domain">Correlation Criteria</a> notes
+the difference where its own teaching example reimplements this same
+padding step.</p>
+<h2 id="what-this-means-in-practice"><a class="header" href="#what-this-means-in-practice">What This Means in Practice</a></h2>
+<p><code>search_margin</code> now means what it always should have: the full range a
+true displacement can fall within, safely, in every direction. That's
+progress, but it doesn't remove the underlying cost — a bigger unknown
+displacement still needs a bigger <code>search_margin</code>, and a bigger
+<code>search_margin</code> still means a bigger FFT at every point. <a href="./search_center_predictions.html">Search Center
+Predictions</a> picks up exactly here: a
+better initial guess than "zero displacement" shrinks how much
+<code>search_margin</code> has to cover in the first place.</p>
+<p>The original question — how far <code>astronaut0</code> can actually be stretched
+or compressed before <code>locate</code> breaks — is still open. This page didn't
+answer it; it found and fixed something that had to be fixed first. The
+interpolation confound flagged above is still there too. Both are
+follow-up work, not resolved here.</p>
+<h3 id="kernel_search_window_ratio_uncentered_demopy"><a class="header" href="#kernel_search_window_ratio_uncentered_demopy"><code>kernel_search_window_ratio_uncentered_demo.py</code></a></h3>
+<pre><code class="language-python">"""Reproduces `dictk.translation.locate`'s behavior before the fix
+documented in Recoverable Displacement Range: kernel content anchored at
+the padded array's top-left corner, not centered. A `def`-based helper
+like this doesn't fit cleanly into a single-line `cmdrun` invocation (the
+convention every other live demo in this book uses), so it lives here
+instead -- matching parallelization_bench.py's precedent for logic too
+complex for a one-liner. Unlike that script, this one is cheap and runs
+live on every book build, not a committed one-time snapshot.
+"""
+
+from dictk.correlation import _kernel_pad, _window
+from dictk.image import PixelCoordinate, read, subimage, translate
+from skimage.registration import phase_cross_correlation
+
+
+def locate_uncentered(
+    reference_image,
+    current_image,
+    reference_point,
+    search_center,
+    kernel_margin,
+    search_margin,
+):
+    kernel_origin = PixelCoordinate(
+        x=reference_point.x - kernel_margin, y=reference_point.y - kernel_margin
+    )
+    kernel = subimage(
+        image=reference_image,
+        origin=kernel_origin,
+        width=2 * kernel_margin,
+        height=2 * kernel_margin,
+    )
+    search_origin = PixelCoordinate(
+        x=search_center.x - search_margin, y=search_center.y - search_margin
+    )
+    search = subimage(
+        image=current_image,
+        origin=search_origin,
+        width=2 * search_margin,
+        height=2 * search_margin,
+    )
+    kernel, search = _window(kernel=kernel, search=search, windowing=None)
+    kernel_padded, _, _ = _kernel_pad(kernel=kernel, shape=search.shape, centered=False)
+    shift, _, _ = phase_cross_correlation(
+        reference_image=search, moving_image=kernel_padded, normalization="phase"
+    )
+    return PixelCoordinate(
+        x=search_origin.x + int(shift[1]) + kernel_margin,
+        y=search_origin.y + int(shift[0]) + kernel_margin,
+    )
+
+
+if __name__ == "__main__":
+    reference_image = read(path="astronaut0.png")
+    p0 = PixelCoordinate(x=150, y=150)
+    kernel_margin = 30
+    search_margin = (
+        180  # generous, fixed -- shouldn't matter, per the ratio result above
+    )
+
+    print("| dx | kernel_margin offset | found | match |")
+    print("|---|---|---|---|")
+    for dx in [
+        kernel_margin - 3,
+        kernel_margin - 1,
+        kernel_margin,
+        kernel_margin + 1,
+        kernel_margin + 3,
+    ]:
+        current_image = translate(arr=reference_image, dx=dx, dy=0)
+        expected = PixelCoordinate(x=p0.x + dx, y=p0.y)
+        found = locate_uncentered(
+            reference_image, current_image, p0, p0, kernel_margin, search_margin
+        )
+        print(
+            f"| {dx} | {dx - kernel_margin:+d} | ({found.x},{found.y}) | {found == expected} |"
+        )
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../getting_started/simple_stretch.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../getting_started/search_center_predictions.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../getting_started/simple_stretch.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../getting_started/search_center_predictions.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

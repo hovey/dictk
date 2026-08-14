@@ -311,6 +311,15 @@ pipeline green for everyone else.</p>
 uv run ruff format --check  # verify formatting without changing files (CI runs this)
 uv run ruff check           # lint
 </code></pre>
+<p><code>pyproject.toml</code> has no <code>[tool.ruff.lint]</code> section, so <code>ruff check</code> runs
+ruff's bare default rule selection — <code>E4</code>/<code>E7</code>/<code>E9</code> (pycodestyle basics)
+plus <code>F</code> (pyflakes). This is deliberate, not an oversight. <code>ruff check</code> is a
+hard CI gate; broader rule sets (<code>D</code> docstring-style, <code>ANN</code>
+type-annotation-completeness, <code>S</code> security, and the rest) risk fighting
+conventions already established elsewhere in this codebase (e.g. the
+Google-style docstrings <code>pdoc --docformat google</code> depends on), or simply
+duplicating ground <a href="#running-pylint-informational"><code>pylint</code></a> already
+covers informationally, without ruff's same all-or-nothing gating risk.</p>
 <h3 id="building-the-docs"><a class="header" href="#building-the-docs">Building the docs</a></h3>
 <p>Documentation is an <a href="https://rust-lang.github.io/mdBook/">mdBook</a> under
 <code>docs/userguide/</code>, with two preprocessors enabled:
@@ -345,22 +354,57 @@ uv run mdbook serve --open    # live preview at http://localhost:3000
 <h3 id="building-the-api-docs"><a class="header" href="#building-the-api-docs">Building the API docs</a></h3>
 <p>Python API reference docs (function signatures, docstrings) are generated
 from source with <a href="https://pdoc.dev/">pdoc</a>, a dev dependency:</p>
-<pre><code class="language-bash">uv run pdoc dictk dictk.image dictk.translation dictk.correlation dictk.grid dictk.cli -o docs/api
+<pre><code class="language-bash">uv run pdoc dictk -o docs/api --docformat google --math -t docs/pdoc_templates   # build once, output in docs/api/
+uv run pdoc dictk --docformat google --math -t docs/pdoc_templates              # live preview, serves on localhost
 </code></pre>
-<p><code>dictk.rosta</code> doesn't need to be listed explicitly — pdoc's submodule
-discovery respects a package's <code>__all__</code>, and <code>rosta</code> is exported there (see
-below), so it's picked up automatically. The other submodules (<code>image</code>,
-<code>translation</code>, <code>correlation</code>, <code>grid</code>, <code>cli</code>) aren't in <code>__all__</code> —
-<code>dictk/__init__.py</code> only lists the individual functions it re-exports, not
-module names — so pdoc's automatic package walk skips them unless named
-explicitly on the command line, per
-<a href="https://pdoc.dev/docs/pdoc.html#what-objects-are-documented">pdoc's <code>__all__</code> handling</a>. If you add a new top-level submodule, add it to this
-command too, or it will silently go undocumented.</p>
-<pre><code class="language-bash">uv run pdoc dictk dictk.image dictk.translation dictk.correlation dictk.grid dictk.cli   # live preview, serves on localhost
-</code></pre>
+<p><code>--docformat google</code> matters: pdoc defaults to <code>restructuredtext</code>, which
+doesn't recognize this codebase's Google-style <code>Args:</code>/<code>Returns:</code>/<code>Raises:</code>
+docstring sections — without it, an <code>Args:</code> section renders as one flat
+paragraph instead of a proper bulleted list.</p>
+<p><code>--math</code> matters too: several docstrings (<code>dictk.correlation</code>'s CC/NCC/
+ZCC/ZNCC/phase-correlation formulas) use <code>$...$</code>/<code>$$...$$</code> LaTeX — without
+it, no MathJax gets included and the raw LaTeX source shows up literally
+instead of being rendered. A separate trap in the same area: pdoc treats
+a docstring as Markdown before MathJax ever sees it, and Markdown's own
+backslash-escape rule silently strips the backslash off LaTeX commands
+like <code>\!</code> (a backslash followed by ASCII punctuation). Avoid that pattern
+in docstring math, or double the backslash (<code>\\!</code>).</p>
+<p>No submodules need listing on the command line — bare <code>pdoc dictk</code>
+discovers all of them, and also builds the "Submodules" links on the
+<code>dictk.html</code> landing page, because every one of them
+(<code>image</code>/<code>translation</code>/<code>correlation</code>/<code>grid</code>/<code>cli</code>/<code>rosta</code>) is named
+directly in <code>dictk/__init__.py</code>'s own <code>__all__</code>, alongside the
+individual functions (<code>astronaut</code>, <code>checkerboard</code>, <code>rosta</code>,
+<code>__version__</code>) it re-exports:
+<a href="https://pdoc.dev/docs/pdoc.html#what-objects-are-documented">pdoc's <code>__all__</code> handling</a>
+treats a name in <code>__all__</code> that isn't already a bound attribute as a
+submodule to import and document. Leaving a submodule out of <code>__all__</code>
+doesn't fail the build — it silently drops that module from both the
+generated docs and the landing page's own navigation — so if you add a
+new top-level submodule, add its name to <code>__all__</code> too, not to this
+command.</p>
 <p>Output goes to <code>docs/api/</code> (gitignored, regenerated on demand). CI builds
 this too and publishes it alongside the mdBook user guide — see
 <a href="#cicd-architecture">"CI/CD architecture"</a> below.</p>
+<p><strong>Development note:</strong> <code>-t docs/pdoc_templates</code> points pdoc at
+<code>docs/pdoc_templates/custom.css</code>, pdoc's own supported override point
+(<code>-t</code>/<code>--template-directory</code> — see
+<a href="https://pdoc.dev/docs/pdoc.html">pdoc's documentation</a>). It's included
+last, after <code>theme.css</code>/<code>layout.css</code>/<code>content.css</code>, so it always wins
+the cascade. This one softens pdoc's default theme: a pure white page
+background (<code>--pdoc-background: #fff</code>) with code-block/highlighted-box
+backgrounds only slightly darker (<code>--code: #f8f8f8</code>, <code>--accent: #eee</code>)
+reads as a stark white glare across the page as a whole. The override
+shifts all three together — <code>--pdoc-background: #efede7</code>,
+<code>--code: #e3dfd7</code>, <code>--accent: #d7d3c9</code> — rather than tinting the
+background alone, so the page &lt; code-block &lt; accent-box hierarchy
+pdoc's default theme establishes stays intact, just softer throughout.
+Tuned in two successive passes, each computed in HSL space (same hue/
+saturation per variable, lightness lowered by a measured delta) rather
+than picked by eye, so the gaps between the three tiers stay even
+instead of collapsing into each other. <code>--accent2</code> (the border/
+scrollbar gray, <code>#c1c1c1</code>) is untouched — already reads with plenty of
+contrast against every tone above.</p>
 <h3 id="building-the-coverage-badge"><a class="header" href="#building-the-coverage-badge">Building the coverage badge</a></h3>
 <p>The README's coverage badge is a real SVG generated from <code>coverage.xml</code> with
 <a href="https://smarie.github.io/python-genbadge/">genbadge</a>, a dev dependency —
@@ -369,12 +413,33 @@ not a static label:</p>
 uv run genbadge coverage -i coverage.xml -o coverage-badge.svg
 </code></pre>
 <p>In CI this runs in the <code>docs</code> job (not <code>test</code>) using the coverage.xml
-produced by the <code>test</code> job's <code>report-coverage</code> artifact, so the badge only
+produced by the <code>test</code> job's <code>report-test</code> artifact, so the badge only
 updates on pushes to <code>main</code> or <code>dev</code> — same cadence as the Docs and API
 badges, not per-PR. Both <code>coverage-badge.svg</code> and the full <code>htmlcov/</code> report
 are staged into the deployed site under that branch's subdirectory
 (<code>&lt;branch&gt;/badges/coverage.svg</code> and <code>&lt;branch&gt;/coverage/</code> respectively) — see
 <a href="#cicd-architecture">"CI/CD architecture"</a> below.</p>
+<h3 id="building-the-tests-badge"><a class="header" href="#building-the-tests-badge">Building the tests badge</a></h3>
+<p>The README's tests badge (<code>tests: N pass M fail</code>) is a real SVG built from
+pytest's own JUnit XML report, not a static label:</p>
+<pre><code class="language-bash">uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html --junitxml=junit.xml
+uv run python .github/scripts/generate_tests_badge.py --input junit.xml --output tests-badge.svg
+</code></pre>
+<p><code>--junitxml</code> is a builtin pytest flag — no extra plugin needed.
+<code>generate_tests_badge.py</code> parses that report's pass/fail/skip counts and
+requests a matching badge from shields.io directly (same service
+<a href="https://smarie.github.io/python-genbadge/">genbadge</a> uses for the coverage
+badge above, just called directly here rather than through that library,
+since genbadge's own test-badge format is <code>N/M</code>, not the <code>N pass M fail</code>
+wording this one matches) — green when nothing fails, red otherwise. Like
+the coverage badge, this runs in the <code>docs</code> job using the <code>test</code> job's
+<code>report-test</code> artifact, so it updates on pushes to <code>main</code>/<code>dev</code> only. Staged
+into the deployed site at <code>&lt;branch&gt;/badges/tests.svg</code>.</p>
+<p><strong>Development note:</strong> shields.io returns <code>403 Forbidden</code> for <code>urllib</code>'s
+default User-Agent string (<code>Python-urllib/x.y</code>) — presumably basic bot
+filtering, since <code>curl</code> (used by the lint badge below) isn't blocked.
+Fixed by setting an explicit <code>User-Agent</code> header on the request rather
+than shelling out to <code>curl</code> from a Python script for no other reason.</p>
 <h3 id="running-pylint-informational"><a class="header" href="#running-pylint-informational">Running pylint (informational)</a></h3>
 <p>ruff (<code>ruff format --check</code> and <code>ruff check</code>) is what actually gates CI —
 see <a href="#linting-and-formatting">"Linting and formatting"</a> above. <a href="https://pylint.readthedocs.io/">pylint</a>
@@ -422,8 +487,8 @@ deployed site at <code>&lt;branch&gt;/dashboard/</code>.</p>
 deploy to their own subdirectory (see <a href="#cicd-architecture">"CI/CD
 architecture"</a> below), so the root is a two-column
 dashboard (main "Released" in blue, dev "Development" in orange) linking to
-each branch's user guide, API reference, dashboard, coverage, and lint
-badges, styled with the Tailwind CDN build — modeled on
+each branch's user guide, API reference, dashboard, coverage, lint, and
+tests badges, styled with the Tailwind CDN build — modeled on
 <a href="https://sandialabs.github.io/rattlesnake-vibration-controller/">sandialabs/rattlesnake-vibration-controller's gh-pages
 dashboard</a>.
 It's generated by <code>.github/scripts/render_landing.py</code> and regenerated on
@@ -445,10 +510,11 @@ columns' links are static):</p>
 the checks manually:</p>
 <pre><code class="language-bash">uv run ruff format --check
 uv run ruff check
-uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html
+uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html --junitxml=junit.xml
 uv run mdbook build
-uv run pdoc dictk dictk.image dictk.translation dictk.correlation dictk.grid dictk.cli -o docs/api
+uv run pdoc dictk -o docs/api --docformat google --math -t docs/pdoc_templates
 uv run genbadge coverage -i coverage.xml -o coverage-badge.svg
+uv run python .github/scripts/generate_tests_badge.py --input junit.xml --output tests-badge.svg
 uv run pylint src/dictk --output-format=text --reports=yes
 </code></pre>
 <p>These are exactly the checks the <code>test</code> and <code>docs</code> jobs run in CI.</p>
@@ -462,8 +528,9 @@ invoke it as a reusable workflow:</p>
 <li>
 <p><strong><code>test</code></strong> — runs on every push, pull request, and when called from
 <code>release.yml</code>. Installs dependencies with <code>uv sync</code>, runs <code>uv build</code> as a
-build sanity check, <code>ruff format --check</code>, <code>ruff check</code>, and <code>pytest --cov</code>.
-Uploads the coverage report as a build artifact.</p>
+build sanity check, <code>ruff format --check</code>, <code>ruff check</code>, and <code>pytest --cov</code>
+(with <code>--junitxml</code> too). Uploads the coverage and JUnit XML reports as a
+build artifact (<code>report-test</code>).</p>
 </li>
 <li>
 <p><strong><code>docs</code></strong> — runs only on pushes to <code>main</code> or <code>dev</code>, after <code>test</code> passes
@@ -471,15 +538,19 @@ Uploads the coverage report as a build artifact.</p>
 <code>ci.yml</code> from a tag push, since the ref won't be <code>refs/heads/main</code> or
 <code>refs/heads/dev</code>). Installs the pinned <code>mdbook</code> 0.4.52, <code>mdbook-cmdrun</code>,
 and <code>mdbook-katex</code> (cached via <code>actions/cache</code>), downloads the <code>test</code>
-job's coverage artifact, builds the mdBook user guide with <code>dictk</code>'s own
-CLI on <code>PATH</code>, builds the pdoc API reference, generates a coverage badge from
-<code>coverage.xml</code> with <a href="https://smarie.github.io/python-genbadge/">genbadge</a>,
-runs pylint informationally to get a 0-10 score (fetched as a shields.io
+job's <code>report-test</code> artifact, builds the mdBook user guide with <code>dictk</code>'s
+own CLI on <code>PATH</code>, builds the pdoc API reference, generates a coverage
+badge from <code>coverage.xml</code> with
+<a href="https://smarie.github.io/python-genbadge/">genbadge</a> and a tests badge
+from <code>junit.xml</code> (<code>N pass M fail</code>, via <code>generate_tests_badge.py</code> — see
+<a href="#building-the-tests-badge">"Building the tests badge"</a> above), runs
+pylint informationally to get a 0-10 score (fetched as a shields.io
 badge) and a full findings report, renders a status dashboard linking all
 of the above, and stages all of it into one directory (user guide at the
-root, API reference under <code>api/</code>, badges under <code>badges/coverage.svg</code> and
-<code>badges/lint.svg</code>, full HTML coverage report under <code>coverage/</code>, full
-pylint report under <code>reports/lint/</code>, dashboard under <code>dashboard/</code>).</p>
+root, API reference under <code>api/</code>, badges under <code>badges/coverage.svg</code>,
+<code>badges/lint.svg</code>, and <code>badges/tests.svg</code>, full HTML coverage report
+under <code>coverage/</code>, full pylint report under <code>reports/lint/</code>, dashboard
+under <code>dashboard/</code>).</p>
 <p>That staged directory becomes the <em>whole subtree</em> for whichever branch
 triggered the run — deployed to <code>main/</code> or <code>dev/</code> on the <code>gh-pages</code>
 branch (published via GitHub Pages), alongside a regenerated root

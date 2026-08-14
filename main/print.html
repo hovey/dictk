@@ -2312,8 +2312,8 @@ search = subimage(
     height=2 * search_margin,
 )
 </code></pre>
-<p><code>locate</code> pads <code>kernel</code> to <code>search</code>'s own shape before comparing them — the
-same padding used here:</p>
+<p><code>locate</code> pads <code>kernel</code> to <code>search</code>'s own shape before comparing them,
+though not quite with the padding used here — see the note below:</p>
 <pre><code class="language-python">import numpy as np
 
 pad_height = search.shape[0] - kernel.shape[0]
@@ -2330,19 +2330,28 @@ print(f"FFT-domain peak offset (dx, dy) = ({dx}, {dy})")
 </code></pre>
 <p>That peak, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">19</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">33</span><span class="mclose">)</span></span></span></span>, matches <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span></span></span></span> exactly —
 the same offset <a href="getting_started/./correlation_visualization.html">Correlation Visualization</a>'s
-<code>cc()</code> surface and <code>locate</code> itself both find. That agreement is about the peak's
-<em>location</em> only, not the two surfaces' values: <code>fft_surface</code> here is the
-<strong>circular</strong> correlation over the full padded extent (<code>search</code>'s own
-shape, <code>100x100</code>), while <code>cc()</code> returns <strong>valid</strong> positions only (a smaller
-<code>51x51</code> array, no wraparound) — the two arrays don't share a shape and
-<code>np.allclose</code> between them wouldn't be meaningful. <code>locate</code> differs a
-second way too: it doesn't use this raw, unnormalized cross-power
-spectrum — it passes <code>normalization="phase"</code> to
-<code>phase_cross_correlation</code>, dividing that spectrum by its own magnitude at
-every frequency before inverting it (see the extensive comment in
-<a href="getting_started/../api/dictk/translation.html#locate"><code>locate</code>'s source</a> for why). Both
-differences change the surface's numeric character; neither changes where
-its peak lands here.</p>
+<code>cc()</code> surface and <code>locate</code> itself both find. That agreement is about the
+peak's <em>location</em> only. <code>fft_surface</code> here and <code>locate</code>'s own computation
+differ in three ways, none of which change <em>where</em> the peak lands here,
+on this page's small, comfortably-within-bounds displacement:</p>
+<ol>
+<li><strong>Shape.</strong> <code>fft_surface</code> is the <strong>circular</strong> correlation over the full
+padded extent (<code>search</code>'s own shape, <code>100x100</code>). <code>cc()</code> returns
+<strong>valid</strong> positions only (a smaller <code>51x51</code> array, no wraparound). The
+two arrays don't share a shape, so <code>np.allclose</code> between them wouldn't
+be meaningful.</li>
+<li><strong>Normalization.</strong> <code>fft_surface</code> is a raw, unnormalized cross-power
+spectrum. <code>locate</code> instead passes <code>normalization="phase"</code> to
+<code>phase_cross_correlation</code>, dividing that spectrum by its own magnitude
+at every frequency before inverting it (see the extensive comment in
+<a href="getting_started/../api/dictk/translation.html#locate"><code>locate</code>'s source</a> for why).</li>
+<li><strong>Padding anchor.</strong> <code>kernel_padded</code> above keeps <code>kernel</code>'s content
+anchored at the padded array's top-left corner (<code>np.pad</code>'s own
+default), matching <code>cc()</code>'s corner-offset convention above. <code>locate</code>
+centers it instead — a reason worth knowing once you've worked with
+<code>locate</code> a bit more: see <a href="getting_started/./kernel_search_window_ratio.html">Recoverable Displacement
+Range</a>.</li>
+</ol>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="correlation-visualization"><a class="header" href="#correlation-visualization">Correlation Visualization</a></h1>
 <p>This page visualizes each of the four spatial-domain correlation criteria
@@ -3208,11 +3217,33 @@ for rigid translation. This page confirms it holds under a real
 deformation too.</p>
 <p>Twelve points, twelve independent correlations, whether the underlying
 motion is a rigid shift or a stretch:
-<a href="getting_started/./parallelization.html">Parallelization</a> picks up from here.</p>
+<a href="getting_started/./kernel_search_window_ratio.html">Recoverable Displacement Range</a> picks
+up from here.</p>
 <h2 id="data-download-1"><a class="header" href="#data-download-1">Data Download</a></h2>
-<p>Every image this page used is downloadable below, as a TIFF — see
-<a href="getting_started/./multi_point_motion.html#data-download">Multi-Point Motion's Data Download</a>
-for why, and for a note on the <code>.tif</code>/<code>.tiff</code> naming.</p>
+<p>Every image this page used is downloadable below, as a TIFF. Download
+files individually, or all at once: one compressed zip file bundles
+every full image (reference and current), every kernel, and every
+search area.</p>
+<pre><code class="language-python">import zipfile
+import imageio.v3 as iio
+
+images = {"astronaut0.tiff": reference_image, "astronaut2.tiff": current_image}
+for i, point in enumerate(points):
+    origin = PixelCoordinate(x=point.x - kernel_margin, y=point.y - kernel_margin)
+    images[f"kernel_{i:02d}.tiff"] = subimage(
+        image=reference_image, origin=origin, width=2 * kernel_margin, height=2 * kernel_margin
+    )
+for i, point in enumerate(points):
+    origin = PixelCoordinate(x=point.x - search_margin_width, y=point.y - search_margin_height)
+    images[f"search_area_stretch_{i:02d}.tiff"] = subimage(
+        image=current_image, origin=origin, width=2 * search_margin_width, height=2 * search_margin_height
+    )
+
+with zipfile.ZipFile("simple_stretch_data.zip", "w", zipfile.ZIP_DEFLATED) as zf:
+    for name, arr in images.items():
+        zf.writestr(name, iio.imwrite("&lt;bytes&gt;", arr, extension=".tiff"))
+</code></pre>
+<p><strong>Download all</strong>: <a href="getting_started/simple_stretch_data.zip">simple_stretch_data.zip</a> (26 files, 299 KB)</p>
 <h3 id="full-images-1"><a class="header" href="#full-images-1">Full Images</a></h3>
 <p><code>astronaut0.tiff</code> is <code>reference_image</code> — identical to <a href="getting_started/./multi_point_motion.html#full-images">Multi-Point
 Motion's</a> copy, since both pages
@@ -3285,6 +3316,453 @@ for i, point in enumerate(points):
 <tr><td><a href="getting_started/search_area_stretch_11.tiff">search_area_stretch_11.tiff</a></td><td>11</td><td>(102, 163)</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="recoverable-displacement-range"><a class="header" href="#recoverable-displacement-range">Recoverable Displacement Range</a></h1>
+<p><a href="getting_started/./simple_stretch.html">Simple Stretch</a> raised a natural follow-up
+question: how far can <code>astronaut0</code> be stretched, or compressed, before
+<code>locate</code> stops finding the exact expected position? The investigation
+that followed didn't answer that question directly. It found something
+more fundamental first — a real, silent bug in <code>locate</code> itself, now
+fixed. This page chronicles how.</p>
+<h2 id="the-first-sweep"><a class="header" href="#the-first-sweep">The First Sweep</a></h2>
+<p>Reuse <a href="getting_started/./multi_point_motion.html#point-grid">Point Grid</a>'s 12 points and
+sweep <code>factor_x</code> upward, sizing <code>search_margin_width</code> per factor so it
+always comfortably contains the largest point's displacement — wide
+enough that "the window was too small" can't explain a failure:</p>
+<pre><code class="language-python">from dictk.image import read, stretch, PixelCoordinate
+from dictk.grid import generate, locate
+
+reference_image = read(path="astronaut0.png")
+points = generate(
+    origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55
+)
+kernel_margin = 20
+
+for p in [2, 4, 6, 8, 18, 20, 40, 80]:
+    factor_x = 1 + p / 100
+    current_image = stretch(arr=reference_image, factor_x=factor_x)
+    max_disp = max(abs(pt.x * (factor_x - 1)) for pt in points)
+    search_margin_width = max(int(max_disp) + 15, kernel_margin + 10)
+    found = locate(
+        reference_image=reference_image, current_image=current_image, reference_points=points,
+        kernel_margin_width=kernel_margin, kernel_margin_height=kernel_margin,
+        search_margin_width=search_margin_width, search_margin_height=52,
+    )
+    expected = [PixelCoordinate(x=int(pt.x * factor_x), y=pt.y) for pt in points]
+    n_match = sum(1 for f, e in zip(found, expected) if f == e)
+    print(f"{p:3d}%  search_margin_width={search_margin_width:4d}  matched={n_match:2d}/12")
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>Stretch</th><th>factor_x</th><th>search_margin_width</th><th>Matched</th></tr></thead><tbody>
+<tr><td>2%</td><td>1.02</td><td>30</td><td>12/12</td></tr>
+<tr><td>4%</td><td>1.04</td><td>30</td><td>12/12</td></tr>
+<tr><td>6%</td><td>1.06</td><td>30</td><td>10/12</td></tr>
+<tr><td>8%</td><td>1.08</td><td>30</td><td>6/12</td></tr>
+<tr><td>18%</td><td>1.18</td><td>41</td><td>1/12</td></tr>
+<tr><td>20%</td><td>1.20</td><td>44</td><td>1/12</td></tr>
+<tr><td>40%</td><td>1.40</td><td>74</td><td>0/12</td></tr>
+<tr><td>80%</td><td>1.80</td><td>135</td><td>0/12</td></tr>
+</tbody></table>
+</div>
+<p>Matching collapses almost immediately — well before 20% stretch. That's
+surprising: at this book's own 40-pixel kernel scale, a real
+degradation-driven failure shouldn't set in this early.</p>
+<h2 id="two-hypotheses-both-ruled-out"><a class="header" href="#two-hypotheses-both-ruled-out">Two Hypotheses, Both Ruled Out</a></h2>
+<p>Two mechanisms seemed likely going in.</p>
+<h3 id="hypothesis-1-blur"><a class="header" href="#hypothesis-1-blur">Hypothesis 1: Blur</a></h3>
+<p><code>stretch</code> uses bilinear interpolation, sampling an increasingly small
+crop of the original image to fill the same canvas. Whole-image
+contrast does drop as <code>factor_x</code> grows — but only mildly, from a
+standard deviation of 63.8 at <code>factor_x=1.0</code> to 58.1 even at
+<code>factor_x=3.0</code>. Not a collapse.</p>
+<p>That claim is a whole-image statistic. Seeing it directly, side by
+side with the image it's measuring, makes it concrete rather than
+just asserted:</p>
+<pre><code class="language-python">import matplotlib.pyplot as plt
+from dictk.image import read, stretch
+
+reference_image = read(path="astronaut0.png")
+factors = [1.0, 1.5, 2.0, 3.0]
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+fig, axes = plt.subplots(2, len(factors), figsize=(11, 5.8), constrained_layout=True)
+for col, factor_x in enumerate(factors):
+    img = stretch(arr=reference_image, factor_x=factor_x)
+    mean, std = img.mean(), img.std()
+
+    axes[0, col].imshow(img, cmap="gray", vmin=0, vmax=255)
+    axes[0, col].set_title(f"factor_x={factor_x:.1f}\nstd={std:.1f}", fontsize=10)
+    axes[0, col].set_xticks([])
+    axes[0, col].set_yticks([])
+
+    ax_hist = axes[1, col]
+    counts, _, _ = ax_hist.hist(img.ravel(), bins=50, range=(0, 255), color="black", alpha=0.7)
+    y_bracket = counts.max() * 1.12
+    ax_hist.axvline(mean - std, color="tab:red", linestyle="--", linewidth=1)
+    ax_hist.axvline(mean + std, color="tab:red", linestyle="--", linewidth=1)
+    ax_hist.annotate(
+        "",
+        xy=(mean - std, y_bracket),
+        xytext=(mean + std, y_bracket),
+        arrowprops=dict(arrowstyle="&lt;-&gt;", color="tab:red"),
+    )
+    ax_hist.text(mean, y_bracket * 1.06, f"±1 std = {std:.1f}", ha="center", va="bottom", fontsize=8, color="tab:red")
+    ax_hist.set_ylim(0, y_bracket * 1.35)
+    ax_hist.set_xlim(0, 255)
+    ax_hist.set_xlabel("pixel value", fontsize=8)
+fig.savefig("kernel_search_window_ratio_blur.png", dpi=300)
+</code></pre>
+<p>Saved: kernel_search_window_ratio_blur.png</p>
+<figure>
+    <img src="getting_started/kernel_search_window_ratio_blur.png" alt="astronaut0 stretched at factor_x 1.0, 1.5, 2.0, and 3.0, with each image's pixel-value histogram below it, each histogram marked with a red bracket showing the ±1 standard deviation span narrowing from 63.8 to 58.2" />
+    <figcaption>Top: <code>astronaut0</code> stretched at four factors. Bottom: each one's own pixel-value histogram, with a red bracket marking the ±1 standard deviation span. The images show <em>where</em> the blur comes from — horizontal streaking, since <code>stretch</code> only resamples along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> — but the bracket confirms it's mild: the span narrows only slightly as standard deviation drops from 63.8 to 58.2, nowhere near the collapse the first sweep showed at just 6-8%.</figcaption>
+</figure>
+<p>There's also a theoretical reason this mild blur shouldn't move the peak
+at all. <code>locate</code>'s <a href="getting_started/./correlation_criteria.html#fourier-domain">phase normalization</a>
+divides out signal strength at every frequency and keeps only direction.
+Blurring changes strength, not direction — the same property that already
+makes <code>locate</code> insensitive to contrast. Only heavy blur eventually breaks
+that guarantee in practice, since real images pad and round at their
+edges instead of matching the idealized math exactly. <code>stretch</code> never
+reaches that regime at these factors.</p>
+<h3 id="hypothesis-2-canvas-exit"><a class="header" href="#hypothesis-2-canvas-exit">Hypothesis 2: Canvas Exit</a></h3>
+<p><code>stretch</code> pivots at the origin, so a point far enough from it can be
+pushed past the image's fixed 300-pixel edge. For <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">150</span></span></span></span> (this grid's
+maximum <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> dimension) that doesn't happen until <code>factor_x=2.0</code> — 100%
+stretch, long after the matching collapse above.</p>
+<p>Plotting that point's <em>expected</em> position directly on each stretched
+image makes the exit itself visible, not just computed:</p>
+<pre><code class="language-python">import matplotlib.pyplot as plt
+from dictk.image import read, stretch
+
+reference_image = read(path="astronaut0.png")
+height, width = reference_image.shape
+p_x, p_y = 150, 50  # the grid's farthest point from the origin
+factors = [1.0, 1.5, 2.0, 2.5]
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+fig, axes = plt.subplots(1, len(factors), figsize=(11, 3.4), constrained_layout=True)
+for ax, factor_x in zip(axes, factors):
+    img = stretch(arr=reference_image, factor_x=factor_x)
+    x_expected = p_x * factor_x
+    on_canvas = x_expected &lt; width
+
+    ax.imshow(img, cmap="gray", vmin=0, vmax=255, extent=[0, width, height, 0])
+    ax.axvline(width, color="tab:red", linestyle="--", linewidth=1)
+    ax.plot(x_expected, p_y, marker="+", color="tab:orange", markersize=10, markeredgewidth=2.5)
+    ax.set_xlim(-20, 400)
+    ax.set_ylim(height + 20, -20)
+    status = "on canvas" if on_canvas else "OFF CANVAS"
+    ax.set_title(f"factor_x={factor_x:.1f}\nx={x_expected:.0f}  ({status})", fontsize=10)
+    ax.set_xticks([])
+    ax.set_yticks([])
+fig.savefig("kernel_search_window_ratio_canvas_exit.png", dpi=300)
+</code></pre>
+<p>Saved: kernel_search_window_ratio_canvas_exit.png</p>
+<figure>
+    <img src="getting_started/kernel_search_window_ratio_canvas_exit.png" alt="astronaut0 stretched at factor_x 1.0, 1.5, 2.0, and 2.5, with an orange marker showing where the x=150 point is expected to land; the marker moves right with each stretch, sits exactly on the canvas edge at factor_x=2.0, and floats clearly outside the image at factor_x=2.5" />
+    <figcaption>The <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">150</span></span></span></span> point's expected position (orange marker), plotted directly on each stretched image. The dashed red line marks the canvas's own right edge. The marker sits exactly on that edge at <code>factor_x=2.0</code> — the threshold the text above states — and floats clearly outside the image by <code>factor_x=2.5</code>. That threshold sits far past the collapse the first sweep showed at just 6-8%, ruling canvas exit out too.</figcaption>
+</figure>
+<p>Neither blur nor canvas exit explains a collapse at 6-8%. Something else
+is going on, and it isn't image degradation.</p>
+<h2 id="an-interpolation-confound-set-aside"><a class="header" href="#an-interpolation-confound-set-aside">An Interpolation Confound, Set Aside</a></h2>
+<p>Chasing the real cause directly through <code>stretch</code> turned out to be the
+wrong tool: even at a percentage chosen so a point's <em>center</em> pixel
+lands on an exact integer, bilinear interpolation still resamples
+every <em>other</em> pixel in that point's kernel from a fractional source
+coordinate. The center matches; the kernel's surrounding texture is
+subtly blurred anyway, in a way that grows with <code>factor_x</code>. That's a
+real phenomenon — related to <a href="getting_started/./path_forward.html#2026-08-11">Path Forward's Postponed subpixel-accuracy
+item</a> — but a second, separate one from
+whatever is causing the sharp, early collapse above. Isolating the real
+cause means removing this confound entirely: pure integer-pixel
+<a href="getting_started/../api/dictk/image.html#translate"><code>translate</code></a> instead of <code>stretch</code>,
+where every pixel maps from an exact integer source coordinate and
+bilinear interpolation never activates at all.</p>
+<h2 id="isolating-the-real-variable"><a class="header" href="#isolating-the-real-variable">Isolating the Real Variable</a></h2>
+<p>The first guess was the kernel-to-search-window size <em>ratio</em>. It's
+wrong — a small, fixed, well-within-bounds displacement succeeds at
+every ratio tested, from a comfortable 0.67 down to a razor-thin 0.10:</p>
+<pre><code class="language-python">from dictk.image import read, translate, PixelCoordinate
+from dictk.translation import locate
+
+reference_image = read(path="astronaut0.png")
+p0 = PixelCoordinate(x=150, y=150)
+dx = 10
+current_image = translate(arr=reference_image, dx=dx, dy=0)
+expected = PixelCoordinate(x=p0.x + dx, y=p0.y)
+
+for kernel_margin in [15, 20, 25, 30]:
+    for search_margin in [kernel_margin + 15, kernel_margin + 80]:
+        found = locate(
+            reference_image=reference_image, current_image=current_image,
+            reference_point=p0, search_center=p0,
+            kernel_margin_width=kernel_margin, kernel_margin_height=kernel_margin,
+            search_margin_width=search_margin, search_margin_height=search_margin,
+        )
+        ratio = kernel_margin / search_margin
+        print(f"kernel_margin={kernel_margin:2d}  search_margin={search_margin:3d}  ratio={ratio:.2f}  match={found == expected}")
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>kernel_margin</th><th>search_margin</th><th>ratio</th><th>match</th></tr></thead><tbody>
+<tr><td>15</td><td>30</td><td>0.50</td><td>True</td></tr>
+<tr><td>15</td><td>95</td><td>0.16</td><td>True</td></tr>
+<tr><td>20</td><td>35</td><td>0.57</td><td>True</td></tr>
+<tr><td>20</td><td>100</td><td>0.20</td><td>True</td></tr>
+<tr><td>25</td><td>40</td><td>0.62</td><td>True</td></tr>
+<tr><td>25</td><td>105</td><td>0.24</td><td>True</td></tr>
+<tr><td>30</td><td>45</td><td>0.67</td><td>True</td></tr>
+<tr><td>30</td><td>110</td><td>0.27</td><td>True</td></tr>
+</tbody></table>
+</div>
+<p>Ratio genuinely doesn't matter. What does: the <em>raw displacement</em>,
+compared against <code>kernel_margin</code> alone — not <code>search_margin</code>, no matter
+how generously it's sized. Demonstrating this needs <code>locate</code>'s <em>pre-fix</em>
+behavior explicitly (<code>centered=False</code>, the padding placement this page
+is about to change) — the real, shipped <code>locate</code> no longer reproduces
+the bug it's meant to illustrate. A <code>def</code>-based helper like this doesn't fit
+a single-line <code>cmdrun</code> invocation, so
+<a href="getting_started/kernel_search_window_ratio.html#kernel_search_window_ratio_uncentered_demopy"><code>kernel_search_window_ratio_uncentered_demo.py</code></a>
+(full source at the bottom of this page) holds it instead, matching
+<a href="getting_started/./parallelization.html#parallelization_benchpy"><code>parallelization_bench.py</code></a>'s
+precedent for logic too complex for a one-liner — cheap enough here to
+still run live, though, not a committed snapshot:</p>
+<div class="table-wrapper"><table><thead><tr><th>dx</th><th>kernel_margin offset</th><th>found</th><th>match</th></tr></thead><tbody>
+<tr><td>27</td><td>-3</td><td>(177,150)</td><td>True</td></tr>
+<tr><td>29</td><td>-1</td><td>(179,150)</td><td>True</td></tr>
+<tr><td>30</td><td>+0</td><td>(180,150)</td><td>True</td></tr>
+<tr><td>31</td><td>+1</td><td>(-179,150)</td><td>False</td></tr>
+<tr><td>33</td><td>+3</td><td>(-177,150)</td><td>False</td></tr>
+</tbody></table>
+</div>
+<p>A sharp cliff, exactly at <code>dx == kernel_margin</code>. <code>search_margin=180</code> —
+six times larger than <code>kernel_margin</code> — makes no difference at all.</p>
+<h2 id="root-cause"><a class="header" href="#root-cause">Root Cause</a></h2>
+<p><a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a>
+zero-pads the kernel up to the search area's own size before the FFT
+(see <a href="getting_started/./correlation_criteria.html#fourier-domain">Correlation Criteria</a>).
+Until this page, that padding placed the kernel's real content at the
+padded array's top-left corner — everything else, zero. FFT-based phase
+correlation is circular: the shift it reports is only meaningful modulo
+the array's own size, wrapping silently past that. With the kernel
+anchored at the corner instead of centered, the <em>safe</em> half of that
+circle landed almost entirely on the negative side. The positive side
+had almost none of it to spare — capped at exactly <code>kernel_margin</code>,
+regardless of how large <code>search_margin</code> was set. Past that cap, <code>locate</code>
+didn't fail visibly. It returned a confidently wrong <code>PixelCoordinate</code>,
+offset from the true one by exactly the padded array's own width.</p>
+<h2 id="the-fix"><a class="header" href="#the-fix">The Fix</a></h2>
+<p>Center the kernel's content within the padded array instead — split the
+padding before/after rather than putting it all after. The recoverable
+range becomes symmetric, bounded by <code>search_margin</code> in <em>both</em>
+directions, exactly as the parameter's own name implies it always
+should have been:</p>
+<div class="table-wrapper"><table><thead><tr><th>dx</th><th>found</th><th>expected</th><th>match</th></tr></thead><tbody>
+<tr><td>30</td><td>(180,150)</td><td>(180,150)</td><td>True</td></tr>
+<tr><td>40</td><td>(190,150)</td><td>(190,150)</td><td>True</td></tr>
+<tr><td>44</td><td>(194,150)</td><td>(194,150)</td><td>True</td></tr>
+<tr><td>45</td><td>(195,150)</td><td>(195,150)</td><td>True</td></tr>
+<tr><td>-44</td><td>(106,150)</td><td>(106,150)</td><td>True</td></tr>
+<tr><td>-45</td><td>(195,150)</td><td>(105,150)</td><td>False</td></tr>
+</tbody></table>
+</div>
+<p><code>dx=45</code> (exactly <code>search_margin</code>) now succeeds in both directions —
+<code>dx=44</code> positive, <code>dx=-44</code> negative, both fine too, with <code>dx=45</code>/<code>-45</code>
+sitting at the single aliased boundary point every circular system has
+(where <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">+</span><span class="mord">45</span></span></span></span> and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">−</span><span class="mord">45</span></span></span></span> are indistinguishable modulo the array's own
+90-pixel width). That one-pixel edge case is an inherent property of
+representing a circle with discrete arithmetic, not a bug — a world away
+from the old, severely lopsided range this page started with.</p>
+<h2 id="scope-of-the-fix"><a class="header" href="#scope-of-the-fix">Scope of the Fix</a></h2>
+<p>The old, single <code>_window_and_pad</code> helper did two separable jobs at
+once: taper <code>kernel</code>/<code>search</code> toward zero (if <code>windowing</code> was given),
+then zero-pad <code>kernel</code> up to <code>search</code>'s own shape. Only the first job
+ever needed the full <code>search</code> array; the second only ever read its
+<em>shape</em>. Splitting them makes that honest: <code>_window</code> tapers both arrays
+(unchanged from before), and <code>_kernel_pad</code> grows <code>kernel</code> up to a given
+<code>(height, width)</code> — never <code>search</code> itself — gaining the <code>centered</code>
+parameter this page is about. <code>locate</code> calls <code>_kernel_pad</code> with
+<code>centered=True</code>.
+<a href="getting_started/../api/dictk/correlation.html#phase_correlation"><code>phase_correlation</code></a> —
+the surface-visualization function behind every figure in <a href="getting_started/./correlation_visualization.html">Correlation
+Visualization</a> — keeps the old,
+uncentered default. Every peak position already published there, all
+well within the old safe range regardless of which convention computed
+it, stays exactly as documented; nothing needed regenerating.
+<a href="getting_started/./correlation_criteria.html#fourier-domain">Correlation Criteria</a> notes
+the difference where its own teaching example reimplements this same
+padding step.</p>
+<h2 id="what-this-means-in-practice"><a class="header" href="#what-this-means-in-practice">What This Means in Practice</a></h2>
+<p><code>search_margin</code> now means what it always should have: the full range a
+true displacement can fall within, safely, in every direction. That's
+progress, but it doesn't remove the underlying cost — a bigger unknown
+displacement still needs a bigger <code>search_margin</code>, and a bigger
+<code>search_margin</code> still means a bigger FFT at every point. <a href="getting_started/./search_center_predictions.html">Search Center
+Predictions</a> picks up exactly here: a
+better initial guess than "zero displacement" shrinks how much
+<code>search_margin</code> has to cover in the first place.</p>
+<p>The original question — how far <code>astronaut0</code> can actually be stretched
+or compressed before <code>locate</code> breaks — is still open. This page didn't
+answer it; it found and fixed something that had to be fixed first. The
+interpolation confound flagged above is still there too. Both are
+follow-up work, not resolved here.</p>
+<h3 id="kernel_search_window_ratio_uncentered_demopy"><a class="header" href="#kernel_search_window_ratio_uncentered_demopy"><code>kernel_search_window_ratio_uncentered_demo.py</code></a></h3>
+<pre><code class="language-python">"""Reproduces `dictk.translation.locate`'s behavior before the fix
+documented in Recoverable Displacement Range: kernel content anchored at
+the padded array's top-left corner, not centered. A `def`-based helper
+like this doesn't fit cleanly into a single-line `cmdrun` invocation (the
+convention every other live demo in this book uses), so it lives here
+instead -- matching parallelization_bench.py's precedent for logic too
+complex for a one-liner. Unlike that script, this one is cheap and runs
+live on every book build, not a committed one-time snapshot.
+"""
+
+from dictk.correlation import _kernel_pad, _window
+from dictk.image import PixelCoordinate, read, subimage, translate
+from skimage.registration import phase_cross_correlation
+
+
+def locate_uncentered(
+    reference_image,
+    current_image,
+    reference_point,
+    search_center,
+    kernel_margin,
+    search_margin,
+):
+    kernel_origin = PixelCoordinate(
+        x=reference_point.x - kernel_margin, y=reference_point.y - kernel_margin
+    )
+    kernel = subimage(
+        image=reference_image,
+        origin=kernel_origin,
+        width=2 * kernel_margin,
+        height=2 * kernel_margin,
+    )
+    search_origin = PixelCoordinate(
+        x=search_center.x - search_margin, y=search_center.y - search_margin
+    )
+    search = subimage(
+        image=current_image,
+        origin=search_origin,
+        width=2 * search_margin,
+        height=2 * search_margin,
+    )
+    kernel, search = _window(kernel=kernel, search=search, windowing=None)
+    kernel_padded, _, _ = _kernel_pad(kernel=kernel, shape=search.shape, centered=False)
+    shift, _, _ = phase_cross_correlation(
+        reference_image=search, moving_image=kernel_padded, normalization="phase"
+    )
+    return PixelCoordinate(
+        x=search_origin.x + int(shift[1]) + kernel_margin,
+        y=search_origin.y + int(shift[0]) + kernel_margin,
+    )
+
+
+if __name__ == "__main__":
+    reference_image = read(path="astronaut0.png")
+    p0 = PixelCoordinate(x=150, y=150)
+    kernel_margin = 30
+    search_margin = (
+        180  # generous, fixed -- shouldn't matter, per the ratio result above
+    )
+
+    print("| dx | kernel_margin offset | found | match |")
+    print("|---|---|---|---|")
+    for dx in [
+        kernel_margin - 3,
+        kernel_margin - 1,
+        kernel_margin,
+        kernel_margin + 1,
+        kernel_margin + 3,
+    ]:
+        current_image = translate(arr=reference_image, dx=dx, dy=0)
+        expected = PixelCoordinate(x=p0.x + dx, y=p0.y)
+        found = locate_uncentered(
+            reference_image, current_image, p0, p0, kernel_margin, search_margin
+        )
+        print(
+            f"| {dx} | {dx - kernel_margin:+d} | ({found.x},{found.y}) | {found == expected} |"
+        )
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="search-center-predictions"><a class="header" href="#search-center-predictions">Search Center Predictions</a></h1>
+<p><a href="getting_started/../api/dictk/grid.html#locate"><code>dictk.grid.locate</code></a>'s <code>search_centers</code>
+parameter defaults to <code>None</code>, which means each point's own
+<code>reference_points</code> entry doubles as its search center — a "zero
+displacement" guess. Every worked example in this book relies on that
+default. It works well here because every displacement used so far is
+small relative to the search margin chosen to contain it.</p>
+<p><a href="getting_started/./kernel_search_window_ratio.html">Recoverable Displacement Range</a>
+establishes that the searchable range is bounded by <code>search_margin</code>
+itself now, not by <code>kernel_margin</code>. That's good news — it's a real,
+symmetric bound to design around — but it doesn't remove the underlying
+tension: a bigger unknown displacement still needs a bigger
+<code>search_margin</code> to contain it, and a bigger <code>search_margin</code> costs more
+compute (a larger FFT, at every point). The zero-displacement guess is
+the worst case for this: it forces <code>search_margin</code> to cover the <em>entire</em>
+possible displacement, with no help from anything already known about
+how the specimen is actually deforming.</p>
+<h2 id="a-better-guess"><a class="header" href="#a-better-guess">A Better Guess</a></h2>
+<p>If some estimate of the deformation already exists — a coarse global DIC
+pass, a prior loading step in a finite element analysis, or just a
+reasonable assumption about how the specimen is expected to move — that
+estimate can predict roughly where each point ended up, instead of
+guessing zero displacement. A smaller <code>search_margin</code> then suffices,
+since it only needs to cover how <em>wrong</em> that prediction might be, not
+the full displacement itself.</p>
+<p>The natural way to express such an estimate is a <strong>deformation
+gradient</strong>, the same <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">F</span></span></span></span></span></span> <a href="getting_started/./continuum_mechanics.html#deformation-gradient">Continuum
+Mechanics</a>
+already defines — extended here to an affine map in homogeneous
+coordinates, so a single matrix carries both the linear part (stretch,
+rotation, shear) and a translation:</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">F</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.6em;vertical-align:-1.55em;"></span><span class="minner"><span class="mopen"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.05em;"><span class="pstrut" style="height:5.6em;"></span><span style="width:0.667em;height:3.600em;"><svg xmlns="http://www.w3.org/2000/svg" width='0.667em' height='3.600em' viewBox='0 0 667 3600'><path d='M403 1759 V84 H666 V0 H319 V1759 v0 v1759 h347 v-84 H403z M403 1759 V0 H319 V1759 v0 v1759 h84z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">21</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">12</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.13889em;">F</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">22</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">t</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span></span><span class="mclose"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.05em;"><span class="pstrut" style="height:5.6em;"></span><span style="width:0.667em;height:3.600em;"><svg xmlns="http://www.w3.org/2000/svg" width='0.667em' height='3.600em' viewBox='0 0 667 3600'><path d='M347 1759 V0 H0 V84 H263 V1759 v0 v1759 H0 v84 H347z M347 1759 V0 H263 V1759 v0 v1759 h84z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7079em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol">x</span></span></span></span><span style="top:-3.0134em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.25em;"><span class="mord">^</span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8805em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">F</span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.07778em;">X</span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.07778em;">X</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.6em;vertical-align:-1.55em;"></span><span class="minner"><span class="mopen"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.05em;"><span class="pstrut" style="height:5.6em;"></span><span style="width:0.667em;height:3.600em;"><svg xmlns="http://www.w3.org/2000/svg" width='0.667em' height='3.600em' viewBox='0 0 667 3600'><path d='M403 1759 V84 H666 V0 H319 V1759 v0 v1759 h347 v-84 H403z M403 1759 V0 H319 V1759 v0 v1759 h84z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.22222em;">Y</span></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span></span><span class="mclose"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.05em;"><span class="pstrut" style="height:5.6em;"></span><span style="width:0.667em;height:3.600em;"><svg xmlns="http://www.w3.org/2000/svg" width='0.667em' height='3.600em' viewBox='0 0 667 3600'><path d='M347 1759 V0 H0 V84 H263 V1759 v0 v1759 H0 v84 H347z M347 1759 V0 H263 V1759 v0 v1759 h84z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p>where <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.07778em;">X</span></span></span></span></span></span> is a point's reference position (in homogeneous
+form) and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7079em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7079em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol">x</span></span></span></span><span style="top:-3.0134em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.25em;"><span class="mord">^</span></span></span></span></span></span></span></span></span></span> is its <em>predicted</em> current position —
+the search center to use, not the answer itself. This is not quite
+Continuum Mechanics' own <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">F</span></span></span></span></span></span>: that one is purely linear (no
+translation, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2</span></span></span></span> in 2D); this extends it to <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">3</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">3</span></span></span></span>
+specifically so one matrix can express a rigid translation too, the same
+kind of motion <a href="getting_started/./multi_point_motion.html">Multi-Point Motion</a> tracks.</p>
+<p><strong>The default should be <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">F</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.07778em;">I</span></span></span></span></span></span></strong> — the
+identity:</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.07778em;">I</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.6em;vertical-align:-1.55em;"></span><span class="minner"><span class="mopen"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.05em;"><span class="pstrut" style="height:5.6em;"></span><span style="width:0.667em;height:3.600em;"><svg xmlns="http://www.w3.org/2000/svg" width='0.667em' height='3.600em' viewBox='0 0 667 3600'><path d='M403 1759 V84 H666 V0 H319 V1759 v0 v1759 h347 v-84 H403z M403 1759 V0 H319 V1759 v0 v1759 h84z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span></span><span class="mclose"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.05em;"><span class="pstrut" style="height:5.6em;"></span><span style="width:0.667em;height:3.600em;"><svg xmlns="http://www.w3.org/2000/svg" width='0.667em' height='3.600em' viewBox='0 0 667 3600'><path d='M347 1759 V0 H0 V84 H263 V1759 v0 v1759 H0 v84 H347z M347 1759 V0 H263 V1759 v0 v1759 h84z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p>Because <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.07778em;">I</span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.07778em;">X</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.07778em;">X</span></span></span></span></span></span>, an identity
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">F</span></span></span></span></span></span> predicts zero displacement — exactly today's existing
+default (<code>search_centers=None</code> ⟹ each point's own reference position).
+Introducing <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">F</span></span></span></span></span></span> this way changes nothing for every example
+already in this book; it only adds a way to do better when a better
+guess is available.</p>
+<h2 id="not-implemented-yet"><a class="header" href="#not-implemented-yet">Not Implemented Yet</a></h2>
+<p>This is a real API change, not a small one, and it touches design
+questions this page doesn't resolve on its own:</p>
+<ul>
+<li>Where does <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">F</span></span></span></span></span></span> apply — <code>grid.locate</code> only (a natural
+fit, since it already computes a <code>search_centers</code> list per call), or
+does <code>translation.locate</code>'s single-point API need an equivalent?</li>
+<li>If a caller supplies both <code>F</code> and <code>search_centers</code> explicitly, which
+wins, or is that combination an error?</li>
+<li>Applying an affine <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">F</span></span></span></span></span></span> to a <code>PixelCoordinate</code> is itself a
+small, independently testable piece — likely a new function in
+<code>dictk.image</code>, alongside <code>translate</code>/<code>stretch</code>, before <code>grid.locate</code>
+ever calls it.</li>
+<li>A worked example needs a <em>source</em> for <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">F</span></span></span></span></span></span> that isn't
+circular (an estimate close enough to be useful, but not so close it
+trivializes what <code>locate</code> is finding). Where that estimate comes from
+in practice is its own open question.</li>
+</ul>
+<p>None of this is scoped or scheduled — this page records that the
+direction exists and sketches its math, not a commitment to build it on
+any timeline. Build it in pieces, each with its own tests, rather than
+landing the whole API change at once: the small affine-transform helper
+first, then wiring it into <code>grid.locate</code> behind the identity default,
+then a worked example once both exist. See <a href="getting_started/./path_forward.html#2026-08-11">Path
+Forward</a> for the related "dynamic
+search-window sizing" direction this connects to — a better
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">F</span></span></span></span></span></span>-based guess and a smaller <code>search_margin</code> are two sides
+of the same idea.</p>
+<p>Twelve points, twelve independent correlations, each one still
+sequential so far: <a href="getting_started/./parallelization.html">Parallelization</a> picks up
+from here.</p>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="parallelization"><a class="header" href="#parallelization">Parallelization</a></h1>
 <p><a href="getting_started/./multi_point_motion.html#tracking-the-grid">Multi-Point Motion</a> just ran 12
 independent calls to
@@ -3407,10 +3885,10 @@ committed data, so it always matches the file on disk:</p>
 <tr><td>realistic_mesh</td><td>200</td><td>100000</td><td>98.60379</td><td>31.72111</td><td>3.108x</td><td>36.23009</td><td>2.722x</td></tr>
 </tbody></table>
 </div><figure>
-    <img src="getting_started/parallelization_bench.png" alt="three panels: book_scale shows sequential always fastest from 100 to 1,000,000 points; large_subset shows threads reaching over 4x speedup as correlation size grows while processes never beat sequential at only 16 points; realistic_mesh shows both threads and processes beating sequential, with processes catching up to threads as point count grows" />
-    <figcaption>Speedup vs. sequential, measured once on a 10-core machine (macOS, <code>spawn</code> start method). Left: at this book's own 40-pixel scale, sequential wins at every point count tested, up to 1,000,000. Middle: at only 16 points, threads win decisively once correlations are large enough; processes never recover their fixed startup cost. Right: with enough points, both help, and processes close the gap on threads as point count grows.</figcaption>
+    <img src="getting_started/parallelization_bench.png" alt="three stacked panels: book_scale shows sequential always fastest from 100 to 1,000,000 points, with a dashed trend line predicting that holds out to a trillion points; large_subset shows threads reaching over 4x speedup as correlation size grows while processes never beat sequential at only 16 points, not extrapolated; realistic_mesh shows both threads and processes beating sequential, with processes catching up to threads as point count grows, and dashed trend lines predicting each pair levels off close to its last measured value" />
+    <figcaption>Speedup vs. sequential, measured once on a 10-core machine (macOS, <code>spawn</code> start method). Solid lines are measured data. Dashed lines are trend extrapolations — a straight-line time-vs-point-count fit, projected out to 10<sup>6</sup>, 10<sup>9</sup>, and 10<sup>12</sup> points. Top: at this book's own 40-pixel scale, sequential wins at every point count tested, up to 1,000,000, and the trend predicts it keeps winning — processes plateau near 0.62x, threads near 0.42x, even out to a trillion points. Middle: at only 16 points, threads win decisively once correlations are large enough; processes never recover their fixed startup cost. Not extrapolated: this panel's x-axis is correlation size, not point count, and a subset a billion pixels wide isn't physical. Bottom: with enough points, both help, and processes close the gap on threads as point count grows; the trend predicts each pair levels off close to its last measured value.</figcaption>
 </figure>
-<p>Three findings, read directly off that data:</p>
+<p>Four findings, read directly off that data:</p>
 <ol>
 <li><strong>At this book's own scale, sequential always wins.</strong> 1,000,000
 points at 40 pixels still favors sequential (71.7s) over both
@@ -3428,6 +3906,18 @@ pass threads.</strong> At 100 pixels, processes start behind threads
 points (1.76x vs. 1.10x). More tasks keep amortizing a process
 pool's fixed cost long after a thread pool's per-task cost has
 stopped improving.</li>
+<li><strong>The trend, extrapolated to Path Forward's north-star scale,
+predicts a plateau, not a crossover.</strong> Fitting a straight line to
+each method's measured time-vs-point-count and reading off the
+resulting speedup ratio at 10<sup>6</sup>, 10<sup>9</sup>, and
+10<sup>12</sup> points: <code>book_scale</code>'s ordering never flips
+(processes settle near 0.62x, threads near 0.42x, both still
+slower than sequential); <code>realistic_mesh</code>'s pairs settle close to
+their last measured value (size=100: threads 1.10x, processes
+1.84x; size=200: threads 3.13x, processes 2.78x). This is a linear
+extrapolation from a handful of measured points, not a new
+measurement — a hypothesis worth testing at real scale, not a
+settled result.</li>
 </ol>
 <h2 id="using-max_workers"><a class="header" href="#using-max_workers">Using <code>max_workers</code></a></h2>
 <p><code>dictk.grid.locate</code> accepts <code>max_workers</code> and <code>executor</code> directly now,
@@ -3632,21 +4122,83 @@ def run_sweep() -&gt; None:
     print(f"\nWrote {CSV_PATH}")
 
 
+# Point counts to extrapolate speedup trends out to, tying directly to
+# the "north star" scale in Path Forward (billions of correlations,
+# staying under a trillion by design). Only scenarios whose x-axis is
+# point count (book_scale, realistic_mesh) get this treatment --
+# large_subset's x-axis is correlation *size*, and extrapolating a
+# subset's side length out to a billion pixels isn't physical.
+EXTRAPOLATION_TARGETS = [1_000_000, 1_000_000_000, 1_000_000_000_000]
+
+
+def _trend_line(ns, seq_times, other_times, targets):
+    """Fit a linear time-vs-n trend (time = a*n + b) to `seq_times` and
+    `other_times` independently, then extrapolate the *speedup ratio*
+    (their fitted-time ratio) out to every target beyond the last real
+    data point.
+
+    Returns `(xs, speedups, marks)`: `xs`/`speedups` start at the last
+    *measured* point (so a plotted dashed line picks up exactly where
+    the solid measured line ends, no visual gap) and run through every
+    target; `marks` is just the subset of targets genuinely beyond the
+    measured range, for placing "predicted value" markers.
+    """
+    a_seq, b_seq = np.polyfit(ns, seq_times, 1)
+    a_other, b_other = np.polyfit(ns, other_times, 1)
+    last_n = ns[-1]
+    marks = [t for t in targets if t &gt; last_n]
+    xs = [last_n] + marks
+    speedups = [(a_seq * n + b_seq) / (a_other * n + b_other) for n in xs]
+    return xs, speedups, marks
+
+
+def _add_trend(ax, ns, seq_times, other_times, color):
+    xs, speedups, marks = _trend_line(ns, seq_times, other_times, EXTRAPOLATION_TARGETS)
+    ax.plot(xs, speedups, linestyle="--", color=color, linewidth=1.2)
+    mark_speedups = speedups[-len(marks) :] if marks else []
+    ax.plot(
+        marks,
+        mark_speedups,
+        linestyle="none",
+        marker="x",
+        color=color,
+        markersize=7,
+        markeredgewidth=1.5,
+    )
+    for n, s in zip(marks, mark_speedups):
+        ax.annotate(
+            f"{s:.2f}x",
+            (n, s),
+            textcoords="offset points",
+            xytext=(4, 4),
+            fontsize=7,
+            color=color,
+        )
+
+
 def plot_summary() -&gt; None:
     with open(CSV_PATH) as f:
         rows = list(csv.DictReader(f))
 
     with plt.rc_context({"font.family": "serif", "mathtext.fontset": "cm"}):
-        fig, axes = plt.subplots(1, 3, figsize=(15, 4.5), constrained_layout=True)
+        fig, axes = plt.subplots(3, 1, figsize=(7, 15), constrained_layout=True)
 
         panels = [
-            (axes[0], "book_scale", "n_calls", "point count (size=40 fixed)", "log"),
+            (
+                axes[0],
+                "book_scale",
+                "n_calls",
+                "point count (size=40 fixed)",
+                "log",
+                True,
+            ),
             (
                 axes[1],
                 "large_subset",
                 "size",
                 "correlation size (n=16 fixed)",
                 "linear",
+                False,
             ),
             (
                 axes[2],
@@ -3654,9 +4206,10 @@ def plot_summary() -&gt; None:
                 "n_calls",
                 "point count (size=100 or 200)",
                 "log",
+                True,
             ),
         ]
-        for ax, scenario, xkey, xlabel, xscale in panels:
+        for ax, scenario, xkey, xlabel, xscale, extrapolate in panels:
             data = [r for r in rows if r["scenario"] == scenario]
             if scenario == "realistic_mesh":
                 for size, marker in [("100", "o"), ("200", "s")]:
@@ -3676,6 +4229,12 @@ def plot_summary() -&gt; None:
                         color="tab:orange",
                         label=f"processes (size={size})",
                     )
+                    if extrapolate:
+                        seq = [float(r["sequential_s"]) for r in sub]
+                        thr = [float(r["threads_s"]) for r in sub]
+                        proc = [float(r["processes_s"]) for r in sub]
+                        _add_trend(ax, xs, seq, thr, "tab:blue")
+                        _add_trend(ax, xs, seq, proc, "tab:orange")
             else:
                 xs = [int(r[xkey]) for r in data]
                 ax.plot(
@@ -3692,6 +4251,12 @@ def plot_summary() -&gt; None:
                     color="tab:orange",
                     label="processes",
                 )
+                if extrapolate:
+                    seq = [float(r["sequential_s"]) for r in data]
+                    thr = [float(r["threads_s"]) for r in data]
+                    proc = [float(r["processes_s"]) for r in data]
+                    _add_trend(ax, xs, seq, thr, "tab:blue")
+                    _add_trend(ax, xs, seq, proc, "tab:orange")
             ax.axhline(
                 1.0,
                 color="black",
@@ -3700,10 +4265,36 @@ def plot_summary() -&gt; None:
                 label="sequential (baseline)",
             )
             ax.set_xscale(xscale)
+            if extrapolate:
+                # Headroom so the rightmost "N.NNx" annotation (at the
+                # 10^12 target) doesn't clip against the panel edge.
+                ax.set_xlim(right=ax.get_xlim()[1] * 3)
             ax.set_xlabel(xlabel)
             ax.set_ylabel("speedup vs sequential")
             ax.set_title(scenario)
-            ax.legend(fontsize=7)
+            handles, labels = ax.get_legend_handles_labels()
+            if extrapolate:
+                from matplotlib.lines import Line2D
+
+                handles += [
+                    Line2D(
+                        [0],
+                        [0],
+                        color="gray",
+                        marker="o",
+                        linestyle="-",
+                        label="measured",
+                    ),
+                    Line2D(
+                        [0],
+                        [0],
+                        color="gray",
+                        marker="x",
+                        linestyle="--",
+                        label="trend (extrapolated)",
+                    ),
+                ]
+            ax.legend(handles=handles, fontsize=7)
 
         fig.savefig(FIGURE_PATH, dpi=300)
         plt.close(fig)
@@ -3928,6 +4519,15 @@ pipeline green for everyone else.</p>
 uv run ruff format --check  # verify formatting without changing files (CI runs this)
 uv run ruff check           # lint
 </code></pre>
+<p><code>pyproject.toml</code> has no <code>[tool.ruff.lint]</code> section, so <code>ruff check</code> runs
+ruff's bare default rule selection — <code>E4</code>/<code>E7</code>/<code>E9</code> (pycodestyle basics)
+plus <code>F</code> (pyflakes). This is deliberate, not an oversight. <code>ruff check</code> is a
+hard CI gate; broader rule sets (<code>D</code> docstring-style, <code>ANN</code>
+type-annotation-completeness, <code>S</code> security, and the rest) risk fighting
+conventions already established elsewhere in this codebase (e.g. the
+Google-style docstrings <code>pdoc --docformat google</code> depends on), or simply
+duplicating ground <a href="contributing.html#running-pylint-informational"><code>pylint</code></a> already
+covers informationally, without ruff's same all-or-nothing gating risk.</p>
 <h3 id="building-the-docs"><a class="header" href="#building-the-docs">Building the docs</a></h3>
 <p>Documentation is an <a href="https://rust-lang.github.io/mdBook/">mdBook</a> under
 <code>docs/userguide/</code>, with two preprocessors enabled:
@@ -3962,22 +4562,57 @@ uv run mdbook serve --open    # live preview at http://localhost:3000
 <h3 id="building-the-api-docs"><a class="header" href="#building-the-api-docs">Building the API docs</a></h3>
 <p>Python API reference docs (function signatures, docstrings) are generated
 from source with <a href="https://pdoc.dev/">pdoc</a>, a dev dependency:</p>
-<pre><code class="language-bash">uv run pdoc dictk dictk.image dictk.translation dictk.correlation dictk.grid dictk.cli -o docs/api
+<pre><code class="language-bash">uv run pdoc dictk -o docs/api --docformat google --math -t docs/pdoc_templates   # build once, output in docs/api/
+uv run pdoc dictk --docformat google --math -t docs/pdoc_templates              # live preview, serves on localhost
 </code></pre>
-<p><code>dictk.rosta</code> doesn't need to be listed explicitly — pdoc's submodule
-discovery respects a package's <code>__all__</code>, and <code>rosta</code> is exported there (see
-below), so it's picked up automatically. The other submodules (<code>image</code>,
-<code>translation</code>, <code>correlation</code>, <code>grid</code>, <code>cli</code>) aren't in <code>__all__</code> —
-<code>dictk/__init__.py</code> only lists the individual functions it re-exports, not
-module names — so pdoc's automatic package walk skips them unless named
-explicitly on the command line, per
-<a href="https://pdoc.dev/docs/pdoc.html#what-objects-are-documented">pdoc's <code>__all__</code> handling</a>. If you add a new top-level submodule, add it to this
-command too, or it will silently go undocumented.</p>
-<pre><code class="language-bash">uv run pdoc dictk dictk.image dictk.translation dictk.correlation dictk.grid dictk.cli   # live preview, serves on localhost
-</code></pre>
+<p><code>--docformat google</code> matters: pdoc defaults to <code>restructuredtext</code>, which
+doesn't recognize this codebase's Google-style <code>Args:</code>/<code>Returns:</code>/<code>Raises:</code>
+docstring sections — without it, an <code>Args:</code> section renders as one flat
+paragraph instead of a proper bulleted list.</p>
+<p><code>--math</code> matters too: several docstrings (<code>dictk.correlation</code>'s CC/NCC/
+ZCC/ZNCC/phase-correlation formulas) use <code>$...$</code>/<code>$$...$$</code> LaTeX — without
+it, no MathJax gets included and the raw LaTeX source shows up literally
+instead of being rendered. A separate trap in the same area: pdoc treats
+a docstring as Markdown before MathJax ever sees it, and Markdown's own
+backslash-escape rule silently strips the backslash off LaTeX commands
+like <code>\!</code> (a backslash followed by ASCII punctuation). Avoid that pattern
+in docstring math, or double the backslash (<code>\\!</code>).</p>
+<p>No submodules need listing on the command line — bare <code>pdoc dictk</code>
+discovers all of them, and also builds the "Submodules" links on the
+<code>dictk.html</code> landing page, because every one of them
+(<code>image</code>/<code>translation</code>/<code>correlation</code>/<code>grid</code>/<code>cli</code>/<code>rosta</code>) is named
+directly in <code>dictk/__init__.py</code>'s own <code>__all__</code>, alongside the
+individual functions (<code>astronaut</code>, <code>checkerboard</code>, <code>rosta</code>,
+<code>__version__</code>) it re-exports:
+<a href="https://pdoc.dev/docs/pdoc.html#what-objects-are-documented">pdoc's <code>__all__</code> handling</a>
+treats a name in <code>__all__</code> that isn't already a bound attribute as a
+submodule to import and document. Leaving a submodule out of <code>__all__</code>
+doesn't fail the build — it silently drops that module from both the
+generated docs and the landing page's own navigation — so if you add a
+new top-level submodule, add its name to <code>__all__</code> too, not to this
+command.</p>
 <p>Output goes to <code>docs/api/</code> (gitignored, regenerated on demand). CI builds
 this too and publishes it alongside the mdBook user guide — see
 <a href="contributing.html#cicd-architecture">"CI/CD architecture"</a> below.</p>
+<p><strong>Development note:</strong> <code>-t docs/pdoc_templates</code> points pdoc at
+<code>docs/pdoc_templates/custom.css</code>, pdoc's own supported override point
+(<code>-t</code>/<code>--template-directory</code> — see
+<a href="https://pdoc.dev/docs/pdoc.html">pdoc's documentation</a>). It's included
+last, after <code>theme.css</code>/<code>layout.css</code>/<code>content.css</code>, so it always wins
+the cascade. This one softens pdoc's default theme: a pure white page
+background (<code>--pdoc-background: #fff</code>) with code-block/highlighted-box
+backgrounds only slightly darker (<code>--code: #f8f8f8</code>, <code>--accent: #eee</code>)
+reads as a stark white glare across the page as a whole. The override
+shifts all three together — <code>--pdoc-background: #efede7</code>,
+<code>--code: #e3dfd7</code>, <code>--accent: #d7d3c9</code> — rather than tinting the
+background alone, so the page &lt; code-block &lt; accent-box hierarchy
+pdoc's default theme establishes stays intact, just softer throughout.
+Tuned in two successive passes, each computed in HSL space (same hue/
+saturation per variable, lightness lowered by a measured delta) rather
+than picked by eye, so the gaps between the three tiers stay even
+instead of collapsing into each other. <code>--accent2</code> (the border/
+scrollbar gray, <code>#c1c1c1</code>) is untouched — already reads with plenty of
+contrast against every tone above.</p>
 <h3 id="building-the-coverage-badge"><a class="header" href="#building-the-coverage-badge">Building the coverage badge</a></h3>
 <p>The README's coverage badge is a real SVG generated from <code>coverage.xml</code> with
 <a href="https://smarie.github.io/python-genbadge/">genbadge</a>, a dev dependency —
@@ -3986,12 +4621,33 @@ not a static label:</p>
 uv run genbadge coverage -i coverage.xml -o coverage-badge.svg
 </code></pre>
 <p>In CI this runs in the <code>docs</code> job (not <code>test</code>) using the coverage.xml
-produced by the <code>test</code> job's <code>report-coverage</code> artifact, so the badge only
+produced by the <code>test</code> job's <code>report-test</code> artifact, so the badge only
 updates on pushes to <code>main</code> or <code>dev</code> — same cadence as the Docs and API
 badges, not per-PR. Both <code>coverage-badge.svg</code> and the full <code>htmlcov/</code> report
 are staged into the deployed site under that branch's subdirectory
 (<code>&lt;branch&gt;/badges/coverage.svg</code> and <code>&lt;branch&gt;/coverage/</code> respectively) — see
 <a href="contributing.html#cicd-architecture">"CI/CD architecture"</a> below.</p>
+<h3 id="building-the-tests-badge"><a class="header" href="#building-the-tests-badge">Building the tests badge</a></h3>
+<p>The README's tests badge (<code>tests: N pass M fail</code>) is a real SVG built from
+pytest's own JUnit XML report, not a static label:</p>
+<pre><code class="language-bash">uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html --junitxml=junit.xml
+uv run python .github/scripts/generate_tests_badge.py --input junit.xml --output tests-badge.svg
+</code></pre>
+<p><code>--junitxml</code> is a builtin pytest flag — no extra plugin needed.
+<code>generate_tests_badge.py</code> parses that report's pass/fail/skip counts and
+requests a matching badge from shields.io directly (same service
+<a href="https://smarie.github.io/python-genbadge/">genbadge</a> uses for the coverage
+badge above, just called directly here rather than through that library,
+since genbadge's own test-badge format is <code>N/M</code>, not the <code>N pass M fail</code>
+wording this one matches) — green when nothing fails, red otherwise. Like
+the coverage badge, this runs in the <code>docs</code> job using the <code>test</code> job's
+<code>report-test</code> artifact, so it updates on pushes to <code>main</code>/<code>dev</code> only. Staged
+into the deployed site at <code>&lt;branch&gt;/badges/tests.svg</code>.</p>
+<p><strong>Development note:</strong> shields.io returns <code>403 Forbidden</code> for <code>urllib</code>'s
+default User-Agent string (<code>Python-urllib/x.y</code>) — presumably basic bot
+filtering, since <code>curl</code> (used by the lint badge below) isn't blocked.
+Fixed by setting an explicit <code>User-Agent</code> header on the request rather
+than shelling out to <code>curl</code> from a Python script for no other reason.</p>
 <h3 id="running-pylint-informational"><a class="header" href="#running-pylint-informational">Running pylint (informational)</a></h3>
 <p>ruff (<code>ruff format --check</code> and <code>ruff check</code>) is what actually gates CI —
 see <a href="contributing.html#linting-and-formatting">"Linting and formatting"</a> above. <a href="https://pylint.readthedocs.io/">pylint</a>
@@ -4039,8 +4695,8 @@ deployed site at <code>&lt;branch&gt;/dashboard/</code>.</p>
 deploy to their own subdirectory (see <a href="contributing.html#cicd-architecture">"CI/CD
 architecture"</a> below), so the root is a two-column
 dashboard (main "Released" in blue, dev "Development" in orange) linking to
-each branch's user guide, API reference, dashboard, coverage, and lint
-badges, styled with the Tailwind CDN build — modeled on
+each branch's user guide, API reference, dashboard, coverage, lint, and
+tests badges, styled with the Tailwind CDN build — modeled on
 <a href="https://sandialabs.github.io/rattlesnake-vibration-controller/">sandialabs/rattlesnake-vibration-controller's gh-pages
 dashboard</a>.
 It's generated by <code>.github/scripts/render_landing.py</code> and regenerated on
@@ -4062,10 +4718,11 @@ columns' links are static):</p>
 the checks manually:</p>
 <pre><code class="language-bash">uv run ruff format --check
 uv run ruff check
-uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html
+uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html --junitxml=junit.xml
 uv run mdbook build
-uv run pdoc dictk dictk.image dictk.translation dictk.correlation dictk.grid dictk.cli -o docs/api
+uv run pdoc dictk -o docs/api --docformat google --math -t docs/pdoc_templates
 uv run genbadge coverage -i coverage.xml -o coverage-badge.svg
+uv run python .github/scripts/generate_tests_badge.py --input junit.xml --output tests-badge.svg
 uv run pylint src/dictk --output-format=text --reports=yes
 </code></pre>
 <p>These are exactly the checks the <code>test</code> and <code>docs</code> jobs run in CI.</p>
@@ -4079,8 +4736,9 @@ invoke it as a reusable workflow:</p>
 <li>
 <p><strong><code>test</code></strong> — runs on every push, pull request, and when called from
 <code>release.yml</code>. Installs dependencies with <code>uv sync</code>, runs <code>uv build</code> as a
-build sanity check, <code>ruff format --check</code>, <code>ruff check</code>, and <code>pytest --cov</code>.
-Uploads the coverage report as a build artifact.</p>
+build sanity check, <code>ruff format --check</code>, <code>ruff check</code>, and <code>pytest --cov</code>
+(with <code>--junitxml</code> too). Uploads the coverage and JUnit XML reports as a
+build artifact (<code>report-test</code>).</p>
 </li>
 <li>
 <p><strong><code>docs</code></strong> — runs only on pushes to <code>main</code> or <code>dev</code>, after <code>test</code> passes
@@ -4088,15 +4746,19 @@ Uploads the coverage report as a build artifact.</p>
 <code>ci.yml</code> from a tag push, since the ref won't be <code>refs/heads/main</code> or
 <code>refs/heads/dev</code>). Installs the pinned <code>mdbook</code> 0.4.52, <code>mdbook-cmdrun</code>,
 and <code>mdbook-katex</code> (cached via <code>actions/cache</code>), downloads the <code>test</code>
-job's coverage artifact, builds the mdBook user guide with <code>dictk</code>'s own
-CLI on <code>PATH</code>, builds the pdoc API reference, generates a coverage badge from
-<code>coverage.xml</code> with <a href="https://smarie.github.io/python-genbadge/">genbadge</a>,
-runs pylint informationally to get a 0-10 score (fetched as a shields.io
+job's <code>report-test</code> artifact, builds the mdBook user guide with <code>dictk</code>'s
+own CLI on <code>PATH</code>, builds the pdoc API reference, generates a coverage
+badge from <code>coverage.xml</code> with
+<a href="https://smarie.github.io/python-genbadge/">genbadge</a> and a tests badge
+from <code>junit.xml</code> (<code>N pass M fail</code>, via <code>generate_tests_badge.py</code> — see
+<a href="contributing.html#building-the-tests-badge">"Building the tests badge"</a> above), runs
+pylint informationally to get a 0-10 score (fetched as a shields.io
 badge) and a full findings report, renders a status dashboard linking all
 of the above, and stages all of it into one directory (user guide at the
-root, API reference under <code>api/</code>, badges under <code>badges/coverage.svg</code> and
-<code>badges/lint.svg</code>, full HTML coverage report under <code>coverage/</code>, full
-pylint report under <code>reports/lint/</code>, dashboard under <code>dashboard/</code>).</p>
+root, API reference under <code>api/</code>, badges under <code>badges/coverage.svg</code>,
+<code>badges/lint.svg</code>, and <code>badges/tests.svg</code>, full HTML coverage report
+under <code>coverage/</code>, full pylint report under <code>reports/lint/</code>, dashboard
+under <code>dashboard/</code>).</p>
 <p>That staged directory becomes the <em>whole subtree</em> for whichever branch
 triggered the run — deployed to <code>main/</code> or <code>dev/</code> on the <code>gh-pages</code>
 branch (published via GitHub Pages), alongside a regenerated root

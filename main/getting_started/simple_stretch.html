@@ -351,11 +351,33 @@ for rigid translation. This page confirms it holds under a real
 deformation too.</p>
 <p>Twelve points, twelve independent correlations, whether the underlying
 motion is a rigid shift or a stretch:
-<a href="./parallelization.html">Parallelization</a> picks up from here.</p>
+<a href="./kernel_search_window_ratio.html">Recoverable Displacement Range</a> picks
+up from here.</p>
 <h2 id="data-download"><a class="header" href="#data-download">Data Download</a></h2>
-<p>Every image this page used is downloadable below, as a TIFF — see
-<a href="./multi_point_motion.html#data-download">Multi-Point Motion's Data Download</a>
-for why, and for a note on the <code>.tif</code>/<code>.tiff</code> naming.</p>
+<p>Every image this page used is downloadable below, as a TIFF. Download
+files individually, or all at once: one compressed zip file bundles
+every full image (reference and current), every kernel, and every
+search area.</p>
+<pre><code class="language-python">import zipfile
+import imageio.v3 as iio
+
+images = {"astronaut0.tiff": reference_image, "astronaut2.tiff": current_image}
+for i, point in enumerate(points):
+    origin = PixelCoordinate(x=point.x - kernel_margin, y=point.y - kernel_margin)
+    images[f"kernel_{i:02d}.tiff"] = subimage(
+        image=reference_image, origin=origin, width=2 * kernel_margin, height=2 * kernel_margin
+    )
+for i, point in enumerate(points):
+    origin = PixelCoordinate(x=point.x - search_margin_width, y=point.y - search_margin_height)
+    images[f"search_area_stretch_{i:02d}.tiff"] = subimage(
+        image=current_image, origin=origin, width=2 * search_margin_width, height=2 * search_margin_height
+    )
+
+with zipfile.ZipFile("simple_stretch_data.zip", "w", zipfile.ZIP_DEFLATED) as zf:
+    for name, arr in images.items():
+        zf.writestr(name, iio.imwrite("&lt;bytes&gt;", arr, extension=".tiff"))
+</code></pre>
+<p><strong>Download all</strong>: <a href="simple_stretch_data.zip">simple_stretch_data.zip</a> (26 files, 299 KB)</p>
 <h3 id="full-images"><a class="header" href="#full-images">Full Images</a></h3>
 <p><code>astronaut0.tiff</code> is <code>reference_image</code> — identical to <a href="./multi_point_motion.html#full-images">Multi-Point
 Motion's</a> copy, since both pages
@@ -436,7 +458,7 @@ for i, point in enumerate(points):
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../getting_started/parallelization.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../getting_started/kernel_search_window_ratio.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -450,7 +472,7 @@ for i, point in enumerate(points):
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../getting_started/parallelization.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../getting_started/kernel_search_window_ratio.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
