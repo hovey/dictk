@@ -45,6 +45,8 @@ PAGE_TEMPLATE = """<!doctype html>
   src="../badges/coverage.svg" alt="Coverage"></a>
 <a href="../reports/lint/"><img
   src="../badges/lint.svg" alt="Lint"></a>
+<a href="{github_repo_url}/actions/workflows/ci.yml?query=branch%3A{ref_name}"><img
+  src="../badges/tests.svg" alt="Tests"></a>
 </p>
 
 <ul>

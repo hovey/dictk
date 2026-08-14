@@ -26,6 +26,7 @@ with point-tracking (registration) under active development.
 [![User Guide](https://img.shields.io/badge/docs-user%20guide-blue?logo=mdbook&logoColor=white&style=flat)](https://hovey.github.io/dictk/main/)&nbsp;
 [![API Docs](https://img.shields.io/badge/docs-API%20reference-blue?logo=python&logoColor=white&style=flat)](https://hovey.github.io/dictk/main/api/dictk.html)
 <br>
+[![Tests](https://hovey.github.io/dictk/main/badges/tests.svg)](https://github.com/hovey/dictk/actions/workflows/ci.yml?query=branch%3Amain)&nbsp;
 [![Coverage](https://hovey.github.io/dictk/main/badges/coverage.svg)](https://hovey.github.io/dictk/main/coverage/)&nbsp;
 [![Lint](https://hovey.github.io/dictk/main/badges/lint.svg)](https://hovey.github.io/dictk/main/reports/lint/)
 
@@ -38,6 +39,7 @@ with point-tracking (registration) under active development.
 [![User Guide](https://img.shields.io/badge/docs-user%20guide-orange?logo=mdbook&logoColor=white&style=flat)](https://hovey.github.io/dictk/dev/)&nbsp;
 [![API Docs](https://img.shields.io/badge/docs-API%20reference-orange?logo=python&logoColor=white&style=flat)](https://hovey.github.io/dictk/dev/api/dictk.html)
 <br>
+[![Tests](https://hovey.github.io/dictk/dev/badges/tests.svg)](https://github.com/hovey/dictk/actions/workflows/ci.yml?query=branch%3Adev)&nbsp;
 [![Coverage](https://hovey.github.io/dictk/dev/badges/coverage.svg)](https://hovey.github.io/dictk/dev/coverage/)&nbsp;
 [![Lint](https://hovey.github.io/dictk/dev/badges/lint.svg)](https://hovey.github.io/dictk/dev/reports/lint/)
 
