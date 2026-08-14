@@ -2349,7 +2349,7 @@ at every frequency before inverting it (see the extensive comment in
 anchored at the padded array's top-left corner (<code>np.pad</code>'s own
 default), matching <code>cc()</code>'s corner-offset convention above. <code>locate</code>
 centers it instead — a reason worth knowing once you've worked with
-<code>locate</code> a bit more: see <a href="getting_started/./kernel_search_window_ratio.html">Recoverable Displacement
+<code>locate</code> a bit more: see <a href="getting_started/./recoverable_displacement_range.html">Recoverable Displacement
 Range</a>.</li>
 </ol>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
@@ -3217,7 +3217,7 @@ for rigid translation. This page confirms it holds under a real
 deformation too.</p>
 <p>Twelve points, twelve independent correlations, whether the underlying
 motion is a rigid shift or a stretch:
-<a href="getting_started/./kernel_search_window_ratio.html">Recoverable Displacement Range</a> picks
+<a href="getting_started/./recoverable_displacement_range.html">Recoverable Displacement Range</a> picks
 up from here.</p>
 <h2 id="data-download-1"><a class="header" href="#data-download-1">Data Download</a></h2>
 <p>Every image this page used is downloadable below, as a TIFF. Download
@@ -3408,11 +3408,11 @@ for col, factor_x in enumerate(factors):
     ax_hist.set_ylim(0, y_bracket * 1.35)
     ax_hist.set_xlim(0, 255)
     ax_hist.set_xlabel("pixel value", fontsize=8)
-fig.savefig("kernel_search_window_ratio_blur.png", dpi=300)
+fig.savefig("recoverable_displacement_range_blur.png", dpi=300)
 </code></pre>
-<p>Saved: kernel_search_window_ratio_blur.png</p>
+<p>Saved: recoverable_displacement_range_blur.png</p>
 <figure>
-    <img src="getting_started/kernel_search_window_ratio_blur.png" alt="astronaut0 stretched at factor_x 1.0, 1.5, 2.0, and 3.0, with each image's pixel-value histogram below it, each histogram marked with a red bracket showing the ±1 standard deviation span narrowing from 63.8 to 58.2" />
+    <img src="getting_started/recoverable_displacement_range_blur.png" alt="astronaut0 stretched at factor_x 1.0, 1.5, 2.0, and 3.0, with each image's pixel-value histogram below it, each histogram marked with a red bracket showing the ±1 standard deviation span narrowing from 63.8 to 58.2" />
     <figcaption>Top: <code>astronaut0</code> stretched at four factors. Bottom: each one's own pixel-value histogram, with a red bracket marking the ±1 standard deviation span. The images show <em>where</em> the blur comes from — horizontal streaking, since <code>stretch</code> only resamples along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> — but the bracket confirms it's mild: the span narrows only slightly as standard deviation drops from 63.8 to 58.2, nowhere near the collapse the first sweep showed at just 6-8%.</figcaption>
 </figure>
 <p>There's also a theoretical reason this mild blur shouldn't move the peak
@@ -3454,11 +3454,11 @@ for ax, factor_x in zip(axes, factors):
     ax.set_title(f"factor_x={factor_x:.1f}\nx={x_expected:.0f}  ({status})", fontsize=10)
     ax.set_xticks([])
     ax.set_yticks([])
-fig.savefig("kernel_search_window_ratio_canvas_exit.png", dpi=300)
+fig.savefig("recoverable_displacement_range_canvas_exit.png", dpi=300)
 </code></pre>
-<p>Saved: kernel_search_window_ratio_canvas_exit.png</p>
+<p>Saved: recoverable_displacement_range_canvas_exit.png</p>
 <figure>
-    <img src="getting_started/kernel_search_window_ratio_canvas_exit.png" alt="astronaut0 stretched at factor_x 1.0, 1.5, 2.0, and 2.5, with an orange marker showing where the x=150 point is expected to land; the marker moves right with each stretch, sits exactly on the canvas edge at factor_x=2.0, and floats clearly outside the image at factor_x=2.5" />
+    <img src="getting_started/recoverable_displacement_range_canvas_exit.png" alt="astronaut0 stretched at factor_x 1.0, 1.5, 2.0, and 2.5, with an orange marker showing where the x=150 point is expected to land; the marker moves right with each stretch, sits exactly on the canvas edge at factor_x=2.0, and floats clearly outside the image at factor_x=2.5" />
     <figcaption>The <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">150</span></span></span></span> point's expected position (orange marker), plotted directly on each stretched image. The dashed red line marks the canvas's own right edge. The marker sits exactly on that edge at <code>factor_x=2.0</code> — the threshold the text above states — and floats clearly outside the image by <code>factor_x=2.5</code>. That threshold sits far past the collapse the first sweep showed at just 6-8%, ruling canvas exit out too.</figcaption>
 </figure>
 <p>Neither blur nor canvas exit explains a collapse at 6-8%. Something else
@@ -3478,9 +3478,19 @@ cause means removing this confound entirely: pure integer-pixel
 where every pixel maps from an exact integer source coordinate and
 bilinear interpolation never activates at all.</p>
 <h2 id="isolating-the-real-variable"><a class="header" href="#isolating-the-real-variable">Isolating the Real Variable</a></h2>
-<p>The first guess was the kernel-to-search-window size <em>ratio</em>. It's
-wrong — a small, fixed, well-within-bounds displacement succeeds at
-every ratio tested, from a comfortable 0.67 down to a razor-thin 0.10:</p>
+<p>Consider a point in the reference configuration with coordinate <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">150</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span></span></span></span> px in <code>astronaut0</code>.
+It moves a displacement of <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">10</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">0</span><span class="mclose">)</span></span></span></span> px — 10 px
+to the right — landing at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">160</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span></span></span></span> px in the current configuration.
+Now consider four kernel margins (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8389em;vertical-align:-0.1944em;"></span><span class="mord">15</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">20</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">25</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">30</span></span></span></span> px, small to large)
+and, for each one, two search margins (<code>kernel_margin + 15</code> and
+<code>kernel_margin + 80</code> px) — eight combinations in total.</p>
+<ul>
+<li><strong>Question:</strong> Does the ratio
+of kernel size to search-window size explain anything?</li>
+<li><strong>Answer:</strong> It does not.</li>
+</ul>
+<p>All eight combinations find the exact expected point —
+from a comfortable ratio of 0.67 down to a razor-thin 0.10:</p>
 <pre><code class="language-python">from dictk.image import read, translate, PixelCoordinate
 from dictk.translation import locate
 
@@ -3512,28 +3522,37 @@ for kernel_margin in [15, 20, 25, 30]:
 <tr><td>30</td><td>110</td><td>0.27</td><td>True</td></tr>
 </tbody></table>
 </div>
-<p>Ratio genuinely doesn't matter. What does: the <em>raw displacement</em>,
-compared against <code>kernel_margin</code> alone — not <code>search_margin</code>, no matter
-how generously it's sized. Demonstrating this needs <code>locate</code>'s <em>pre-fix</em>
-behavior explicitly (<code>centered=False</code>, the padding placement this page
-is about to change) — the real, shipped <code>locate</code> no longer reproduces
-the bug it's meant to illustrate. A <code>def</code>-based helper like this doesn't fit
-a single-line <code>cmdrun</code> invocation, so
-<a href="getting_started/kernel_search_window_ratio.html#kernel_search_window_ratio_uncentered_demopy"><code>kernel_search_window_ratio_uncentered_demo.py</code></a>
-(full source at the bottom of this page) holds it instead, matching
-<a href="getting_started/./parallelization.html#parallelization_benchpy"><code>parallelization_bench.py</code></a>'s
-precedent for logic too complex for a one-liner — cheap enough here to
-still run live, though, not a committed snapshot:</p>
-<div class="table-wrapper"><table><thead><tr><th>dx</th><th>kernel_margin offset</th><th>found</th><th>match</th></tr></thead><tbody>
-<tr><td>27</td><td>-3</td><td>(177,150)</td><td>True</td></tr>
-<tr><td>29</td><td>-1</td><td>(179,150)</td><td>True</td></tr>
-<tr><td>30</td><td>+0</td><td>(180,150)</td><td>True</td></tr>
-<tr><td>31</td><td>+1</td><td>(-179,150)</td><td>False</td></tr>
-<tr><td>33</td><td>+3</td><td>(-177,150)</td><td>False</td></tr>
+<p>Ratio genuinely doesn't matter. But, raw displacement <em>does</em> matter.
+<code>locate</code> compares that raw displacement against <code>kernel_margin</code> alone.
+<code>search_margin</code> plays no role here, no matter how large it is.</p>
+<p>The rest of this section demonstrates that failure directly, using
+<a href="getting_started/recoverable_displacement_range.html#recoverable_displacement_range_uncentered_demopy"><code>recoverable_displacement_range_uncentered_demo.py</code></a>,
+a Python script listed at the bottom of this page. That script
+contains a (now understood to be buggy) version of <code>locate</code>, called
+<code>locate_uncentered</code>. It calls <code>_kernel_pad(..., centered=False)</code>, where the
+<code>centered=False</code> is the crucial bug-inducing parameter. This
+script exists because the real, shipped <code>locate</code> has already been
+fixed to center-pad the kernel. It would no longer reproduce the
+<strong>cliff bug</strong>, shown next.</p>
+<p>Consider again a point in the reference configuration at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">150</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span></span></span></span> px.
+Let <code>kernel_margin = 30</code> px, a reasonable size.
+Let <code>search_margin = 180</code> px, a generous size (and this size shouldn't matter, per the result above).</p>
+<p>Now investigate a series of <code>dx</code> values: <code>kernel_margin</code> <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">+</span><span class="mopen">[</span><span class="mord">−</span><span class="mord">3</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">−</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">3</span><span class="mclose">]</span></span></span></span>,
+which is <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mord">27</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">29</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">30</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">31</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">33</span><span class="mclose">]</span></span></span></span>. Each <code>dx</code> produces one candidate current
+configuration. The (right-hand side) cliff appears the moment <code>dx</code> crosses one pixel past
+<code>kernel_margin</code>, at <code>kernel_margin</code> <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">+</span><span class="mord">1</span></span></span></span>. There, the <code>found</code> location is
+predicted at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">−</span><span class="mord">179</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span></span></span></span> px, not the expected <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">181</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span></span></span></span> px value.</p>
+<p>The tabular output from <code>recoverable_displacement_range_uncentered_demo.py</code> follows:</p>
+<div class="table-wrapper"><table><thead><tr><th>dx</th><th>kernel_margin offset</th><th>expected</th><th>found</th><th>match</th></tr></thead><tbody>
+<tr><td>27</td><td>-3</td><td>(177,150)</td><td>(177,150)</td><td>True</td></tr>
+<tr><td>29</td><td>-1</td><td>(179,150)</td><td>(179,150)</td><td>True</td></tr>
+<tr><td>30</td><td>+0</td><td>(180,150)</td><td>(180,150)</td><td>True</td></tr>
+<tr><td>31</td><td>+1</td><td>(181,150)</td><td>(-179,150)</td><td>False</td></tr>
+<tr><td>33</td><td>+3</td><td>(183,150)</td><td>(-177,150)</td><td>False</td></tr>
 </tbody></table>
 </div>
-<p>A sharp cliff, exactly at <code>dx == kernel_margin</code>. <code>search_margin=180</code> —
-six times larger than <code>kernel_margin</code> — makes no difference at all.</p>
+<p>A sharp (right-side) cliff, exactly at <code>dx == kernel_margin</code>. The <code>search_margin=180</code>,
+six times larger than <code>kernel_margin</code>, makes no difference at all.</p>
 <h2 id="root-cause"><a class="header" href="#root-cause">Root Cause</a></h2>
 <p><a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a>
 zero-pads the kernel up to the search area's own size before the FFT
@@ -3541,35 +3560,60 @@ zero-pads the kernel up to the search area's own size before the FFT
 Until this page, that padding placed the kernel's real content at the
 padded array's top-left corner — everything else, zero. FFT-based phase
 correlation is circular: the shift it reports is only meaningful modulo
-the array's own size, wrapping silently past that. With the kernel
+the array's own size, wrapping silently past that.</p>
+<p>With the kernel
 anchored at the corner instead of centered, the <em>safe</em> half of that
 circle landed almost entirely on the negative side. The positive side
 had almost none of it to spare — capped at exactly <code>kernel_margin</code>,
 regardless of how large <code>search_margin</code> was set. Past that cap, <code>locate</code>
-didn't fail visibly. It returned a confidently wrong <code>PixelCoordinate</code>,
+didn't fail visibly. It confidently returned a <em>wrong</em> <code>PixelCoordinate</code>,
 offset from the true one by exactly the padded array's own width.</p>
 <h2 id="the-fix"><a class="header" href="#the-fix">The Fix</a></h2>
-<p>Center the kernel's content within the padded array instead — split the
-padding before/after rather than putting it all after. The recoverable
-range becomes symmetric, bounded by <code>search_margin</code> in <em>both</em>
-directions, exactly as the parameter's own name implies it always
-should have been:</p>
-<div class="table-wrapper"><table><thead><tr><th>dx</th><th>found</th><th>expected</th><th>match</th></tr></thead><tbody>
+<p>Now let's use the fixed (updated/shipped) version of <code>locate</code>, which
+centers the kernel's content within the padded array.</p>
+<p>Consider again a point with reference configuration <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">150</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span></span></span></span> px.
+Let <code>kernel_margin = 30</code> and let <code>search_margin = 45</code>.</p>
+<p>The recoverable range is now symmetric, bounded by <code>search_margin</code> in
+<em>both</em> directions, exactly as the parameter's own name implies it
+always should have been:</p>
+<div class="table-wrapper"><table><thead><tr><th>dx</th><th>expected</th><th>found</th><th>match</th></tr></thead><tbody>
 <tr><td>30</td><td>(180,150)</td><td>(180,150)</td><td>True</td></tr>
 <tr><td>40</td><td>(190,150)</td><td>(190,150)</td><td>True</td></tr>
 <tr><td>44</td><td>(194,150)</td><td>(194,150)</td><td>True</td></tr>
 <tr><td>45</td><td>(195,150)</td><td>(195,150)</td><td>True</td></tr>
+<tr><td>46</td><td>(196,150)</td><td>(106,150)</td><td>False</td></tr>
 <tr><td>-44</td><td>(106,150)</td><td>(106,150)</td><td>True</td></tr>
-<tr><td>-45</td><td>(195,150)</td><td>(105,150)</td><td>False</td></tr>
+<tr><td>-45</td><td>(105,150)</td><td>(195,150)</td><td>False</td></tr>
 </tbody></table>
 </div>
-<p><code>dx=45</code> (exactly <code>search_margin</code>) now succeeds in both directions —
-<code>dx=44</code> positive, <code>dx=-44</code> negative, both fine too, with <code>dx=45</code>/<code>-45</code>
-sitting at the single aliased boundary point every circular system has
-(where <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">+</span><span class="mord">45</span></span></span></span> and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">−</span><span class="mord">45</span></span></span></span> are indistinguishable modulo the array's own
-90-pixel width). That one-pixel edge case is an inherent property of
-representing a circle with discrete arithmetic, not a bug — a world away
-from the old, severely lopsided range this page started with.</p>
+<p>We now have success right up to the <code>search_margin</code> on the right:</p>
+<ul>
+<li>With <code>dx = 45</code>, <code>locate</code> successfully finds the correct <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">195</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span></span></span></span> value.</li>
+<li>With <code>dx = 46</code>, <code>locate</code> cycles back <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2</span><span class="mord">×</span></span></span></span> the <code>search_margin</code>, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">90</span></span></span></span> px, predicting <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">106</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">196</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">90</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">0</span><span class="mclose">)</span></span></span></span>, not the expected <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">196</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span></span></span></span>.</li>
+</ul>
+<p>Similarly, on the left side of the <code>search_margin</code>:</p>
+<ul>
+<li>With <code>dx = -44</code>, <code>locate</code> successfully finds the correct <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">106</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span></span></span></span> value.</li>
+<li>With <code>dx = -45</code>, <code>locate</code> cycles forward <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2</span><span class="mord">×</span></span></span></span> the <code>search_margin</code>,
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">90</span></span></span></span> px, predicting <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">195</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span></span></span></span>, not the expected <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">105</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span></span></span></span>.</li>
+</ul>
+<p>Look closely at <code>dx = 45</code> and <code>dx = -45</code>. One succeeds; the other fails.
+That is not a contradiction of the symmetry claimed above — it is a
+single, unavoidable edge case. In this circular system, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">+</span><span class="mord">45</span></span></span></span> and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">−</span><span class="mord">45</span></span></span></span>
+land on the exact same point: they are <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">90</span></span></span></span> px apart, and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">90</span></span></span></span> px is
+the whole width of the padded array. <code>locate</code> cannot tell them apart.
+It must pick one interpretation, and it happens to pick the positive
+one. This one-pixel ambiguity is a property of representing a circle
+with discrete arithmetic. It is not a bug.</p>
+<p>The whole picture — point, kernel, search window, and the two
+positions one pixel past the edge where <code>locate</code> wraps — drawn by
+<a href="getting_started/recoverable_displacement_range.html#recoverable_displacement_range_the_fix_cliffpy"><code>recoverable_displacement_range_the_fix_cliff.py</code></a>
+(full source at the bottom of this page):</p>
+<p>Saved: recoverable_displacement_range_the_fix_cliff.png</p>
+<figure>
+    <img src="getting_started/recoverable_displacement_range_the_fix_cliff.png" alt="reference point P (150, 150) with a 60x60 green kernel box and a 90x90 red search-window box, both centered on P; two double-headed magenta arrows lie along y=150, one from P to a red x marker at dx=-45 (exactly at the left edge) and one from P to a red x marker at dx=+46 (one pixel past the right edge), each labeled on the line, both marking failing positions where locate wraps" />
+    <figcaption>Point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mspace"> </span><span class="mopen">(</span><span class="mord">150</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span></span></span></span>, its 60x60 kernel (green), and its 90x90 search window (red). Two magenta lines run from <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span> to each failing position — <code>dx = -45</code> on the left, exactly at the search window's edge, and <code>dx = +46</code> on the right, one pixel past it. At both (the red <code>×</code> marks), <code>locate</code> wraps and fails.</figcaption>
+</figure>
 <h2 id="scope-of-the-fix"><a class="header" href="#scope-of-the-fix">Scope of the Fix</a></h2>
 <p>The old, single <code>_window_and_pad</code> helper did two separable jobs at
 once: taper <code>kernel</code>/<code>search</code> toward zero (if <code>windowing</code> was given),
@@ -3603,15 +3647,12 @@ or compressed before <code>locate</code> breaks — is still open. This page did
 answer it; it found and fixed something that had to be fixed first. The
 interpolation confound flagged above is still there too. Both are
 follow-up work, not resolved here.</p>
-<h3 id="kernel_search_window_ratio_uncentered_demopy"><a class="header" href="#kernel_search_window_ratio_uncentered_demopy"><code>kernel_search_window_ratio_uncentered_demo.py</code></a></h3>
+<h3 id="recoverable_displacement_range_uncentered_demopy"><a class="header" href="#recoverable_displacement_range_uncentered_demopy"><code>recoverable_displacement_range_uncentered_demo.py</code></a></h3>
 <pre><code class="language-python">"""Reproduces `dictk.translation.locate`'s behavior before the fix
 documented in Recoverable Displacement Range: kernel content anchored at
-the padded array's top-left corner, not centered. A `def`-based helper
-like this doesn't fit cleanly into a single-line `cmdrun` invocation (the
-convention every other live demo in this book uses), so it lives here
-instead -- matching parallelization_bench.py's precedent for logic too
-complex for a one-liner. Unlike that script, this one is cheap and runs
-live on every book build, not a committed one-time snapshot.
+the padded array's top-left corner, not centered.
+
+Runs live on every book build, not from a committed snapshot.
 """
 
 from dictk.correlation import _kernel_pad, _window
@@ -3664,8 +3705,8 @@ if __name__ == "__main__":
         180  # generous, fixed -- shouldn't matter, per the ratio result above
     )
 
-    print("| dx | kernel_margin offset | found | match |")
-    print("|---|---|---|---|")
+    print("| dx | kernel_margin offset | expected | found | match |")
+    print("|---|---|---|---|---|")
     for dx in [
         kernel_margin - 3,
         kernel_margin - 1,
@@ -3679,8 +3720,184 @@ if __name__ == "__main__":
             reference_image, current_image, p0, p0, kernel_margin, search_margin
         )
         print(
-            f"| {dx} | {dx - kernel_margin:+d} | ({found.x},{found.y}) | {found == expected} |"
+            f"| {dx} | {dx - kernel_margin:+d} | ({expected.x},{expected.y}) | "
+            f"({found.x},{found.y}) | {found == expected} |"
         )
+</code></pre>
+<h3 id="recoverable_displacement_range_the_fix_cliffpy"><a class="header" href="#recoverable_displacement_range_the_fix_cliffpy"><code>recoverable_displacement_range_the_fix_cliff.py</code></a></h3>
+<pre><code class="language-python">"""Draws the reference point, its kernel (green), and its search window
+(red) from The Fix in Recoverable Displacement Range, along with the
+two positions one pixel past the search_margin edge where `locate`
+wraps and fails.
+
+Runs live on every book build, not from a committed snapshot.
+"""
+
+import matplotlib.patches as patches
+import matplotlib.pyplot as plt
+
+p0_x, p0_y = 150, 150
+kernel_margin = 30
+search_margin = 45
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+fig, ax = plt.subplots(figsize=(7.5, 6.5), constrained_layout=True)
+
+ax.plot(p0_x, p0_y, "o", color="black", markersize=5, zorder=8)
+ax.annotate(
+    "$P\\ (150, 150)$",
+    (p0_x, p0_y),
+    textcoords="offset points",
+    xytext=(0, 18),
+    ha="center",
+    fontsize=10,
+    zorder=9,
+)
+
+# kernel (green) and search window (red), same colors as cross_correlation.md
+ax.add_patch(
+    patches.Rectangle(
+        (p0_x - kernel_margin, p0_y - kernel_margin),
+        2 * kernel_margin,
+        2 * kernel_margin,
+        edgecolor="green",
+        facecolor="none",
+        linewidth=1.5,
+        zorder=3,
+    )
+)
+ax.add_patch(
+    patches.Rectangle(
+        (p0_x - search_margin, p0_y - search_margin),
+        2 * search_margin,
+        2 * search_margin,
+        edgecolor="red",
+        facecolor="none",
+        linewidth=1.5,
+        zorder=2,
+    )
+)
+
+# two dx displacement lines, each with arrowheads at both its own ends,
+# right at y=150 -- P's own row. Left: P to the dx=-45 marker. Right: P
+# to the dx=+46 marker. Labels sit right on the line, in the gap between
+# the kernel box and each marker, clear of the kernel box itself.
+dx_y = p0_y
+for x_start, x_end, label, label_x in [
+    (p0_x - 45, p0_x, "dx = -45", 117),
+    (p0_x, p0_x + 46, "dx = +46", 184),
+]:
+    ax.annotate(
+        "",
+        xy=(x_end, dx_y),
+        xytext=(x_start, dx_y),
+        arrowprops=dict(
+            arrowstyle="&lt;-&gt;", color="magenta", linewidth=1.5, shrinkA=0, shrinkB=0
+        ),
+        zorder=6,
+    )
+    ax.text(
+        label_x,
+        dx_y,
+        label,
+        ha="center",
+        va="center",
+        fontsize=7.5,
+        color="magenta",
+        zorder=7,
+        bbox=dict(facecolor="white", edgecolor="none", pad=1),
+    )
+
+# one pixel past the search_margin edge, both sides -- where locate wraps
+ax.plot(
+    p0_x + 46, p0_y, "x", color="tab:red", markersize=10, markeredgewidth=2.5, zorder=4
+)
+ax.plot(
+    p0_x - 45, p0_y, "x", color="tab:red", markersize=10, markeredgewidth=2.5, zorder=4
+)
+ax.annotate(
+    "dx=+46\n1 px past the\nsearch_margin edge\n→ wraps, fails",
+    (p0_x + 46, p0_y),
+    textcoords="offset points",
+    xytext=(35, -45),
+    fontsize=8,
+    ha="left",
+    color="tab:red",
+    arrowprops=dict(arrowstyle="-", color="gray", linewidth=0.7, shrinkA=3, shrinkB=3),
+)
+ax.annotate(
+    "dx=-45\nright at the\nsearch_margin edge\n→ wraps, fails",
+    (p0_x - 45, p0_y),
+    textcoords="offset points",
+    xytext=(-40, 45),
+    fontsize=8,
+    ha="right",
+    color="tab:red",
+    arrowprops=dict(arrowstyle="-", color="gray", linewidth=0.7, shrinkA=3, shrinkB=3),
+)
+
+# dimension arrows for both boxes -- kdim_y sits close to the kernel
+# box's own top edge; sdim_y stays further out, above the search box
+kdim_y, sdim_y = p0_y - kernel_margin - 4, p0_y - search_margin - 8
+ax.annotate(
+    "",
+    xy=(p0_x - kernel_margin, kdim_y),
+    xytext=(p0_x + kernel_margin, kdim_y),
+    arrowprops=dict(arrowstyle="&lt;-&gt;", color="green", shrinkA=0, shrinkB=0),
+)
+ax.text(
+    p0_x,
+    kdim_y - 3,
+    "60 px (2×kernel_margin)",
+    ha="center",
+    va="bottom",
+    fontsize=8,
+    color="green",
+)
+ax.annotate(
+    "",
+    xy=(p0_x - search_margin, sdim_y),
+    xytext=(p0_x + search_margin, sdim_y),
+    arrowprops=dict(arrowstyle="&lt;-&gt;", color="red", shrinkA=0, shrinkB=0),
+)
+ax.text(
+    p0_x,
+    sdim_y - 3,
+    "90 px (2×search_margin)",
+    ha="center",
+    va="bottom",
+    fontsize=8,
+    color="red",
+)
+
+# guide lines from each search_margin edge down to a caption naming its dx value
+caption_y = p0_y + search_margin + 18
+for x_edge, sign in [(p0_x - search_margin, "-45"), (p0_x + search_margin, "+45")]:
+    ax.plot(
+        [x_edge, x_edge],
+        [p0_y + search_margin, caption_y - 3],
+        color="gray",
+        linestyle="--",
+        linewidth=0.8,
+    )
+    ax.text(
+        x_edge,
+        caption_y,
+        f"search_margin edge = dx={sign}",
+        ha="center",
+        va="top",
+        fontsize=7.5,
+        color="darkred",
+    )
+
+ax.set_xlim(p0_x - search_margin - 55, p0_x + search_margin + 55)
+ax.set_ylim(p0_y + search_margin + 35, sdim_y - 12)
+ax.set_xlabel("x (pixels)")
+ax.set_ylabel("y (pixels)")
+ax.set_aspect("equal")
+
+fig.savefig("recoverable_displacement_range_the_fix_cliff.png", dpi=300)
+print("Saved: recoverable_displacement_range_the_fix_cliff.png")
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="search-center-predictions"><a class="header" href="#search-center-predictions">Search Center Predictions</a></h1>
@@ -3690,7 +3907,7 @@ parameter defaults to <code>None</code>, which means each point's own
 displacement" guess. Every worked example in this book relies on that
 default. It works well here because every displacement used so far is
 small relative to the search margin chosen to contain it.</p>
-<p><a href="getting_started/./kernel_search_window_ratio.html">Recoverable Displacement Range</a>
+<p><a href="getting_started/./recoverable_displacement_range.html">Recoverable Displacement Range</a>
 establishes that the searchable range is bounded by <code>search_margin</code>
 itself now, not by <code>kernel_margin</code>. That's good news — it's a real,
 symmetric bound to design around — but it doesn't remove the underlying
@@ -4370,6 +4587,24 @@ the mesh doesn't need to conform to the crack. The DIC-side analogue —
 enriching the correlation itself to detect and locate a discontinuity,
 not just generating test images that contain one — is worth exploring.
 Not scoped yet.</p>
+<h2 id="2026-08-14"><a class="header" href="#2026-08-14">2026-08-14</a></h2>
+<p><strong>Re-running The First Sweep after the centered-padding fix: checked,
+not automatically fixed.</strong> <a href="getting_started/./recoverable_displacement_range.html#the-first-sweep">Recoverable Displacement
+Range</a>'s own
+opening sweep sizes <code>search_margin_width</code> generously for every
+percentage tested — always larger than the true displacement — so it
+was never hitting the asymmetric-padding bug that page's fix
+addresses. Re-ran it against the fixed <code>locate()</code> to check directly,
+rather than assume: the collapse is identical to before the fix —
+12/12, 12/12, 10/12, 6/12, 1/12, 1/12, 0/12, 0/12 for
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8389em;vertical-align:-0.1944em;"></span><span class="mord">2</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">4</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">6</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">8</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">18</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">20</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">40</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">80</span></span></span></span>. The real cause is still <a href="getting_started/./recoverable_displacement_range.html#an-interpolation-confound-set-aside">the
+interpolation confound that page already
+names</a>:
+<code>stretch</code>'s own bilinear interpolation subtly blurs kernel-surrounding
+texture even where a point's center pixel lands on an exact integer,
+producing near-miss failures — not the wraparound cliff the fix
+resolved. Confirms the Postponed subpixel-accuracy item below is still
+the right next step here, not something this fix already covered.</p>
 <h3 id="postponed"><a class="header" href="#postponed">Postponed</a></h3>
 <p>Noted, not being pursued right now:</p>
 <ul>
