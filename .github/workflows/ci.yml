@@ -168,7 +168,10 @@ jobs:
         # --math: several dictk.correlation docstrings use $...$/$$...$$
         # LaTeX -- without this flag no MathJax gets included, so the raw
         # LaTeX source shows up literally instead of being rendered.
-        run: uv run pdoc dictk -o docs/api --docformat google --math
+        # -t docs/pdoc_templates: overrides pdoc's default theme colors
+        # via docs/pdoc_templates/custom.css (softened background/code/
+        # accent palette) -- see CONTRIBUTING.md#building-the-api-docs.
+        run: uv run pdoc dictk -o docs/api --docformat google --math -t docs/pdoc_templates
 
       - name: Generate status dashboard
         run: |

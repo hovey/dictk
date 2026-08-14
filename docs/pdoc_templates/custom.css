@@ -1,0 +1,22 @@
+/* Softened neutral palette: pdoc's own theme.css hardcodes a pure white
+ * page background (--pdoc-background: #fff), with --code/--accent only
+ * slightly darker (#f8f8f8/#eee) for code-block and highlighted-box
+ * backgrounds -- a narrow gap that reads as a stark, bright-white glare
+ * on the page as a whole. This shifts the entire neutral scale down
+ * together (background, code, accent) rather than tinting only the
+ * background, so the same page < code-block < accent-box relative
+ * hierarchy pdoc's default theme establishes stays intact -- just
+ * softer throughout, not flattened.
+ *
+ * --accent2 (border/scrollbar color, #c1c1c1) is left as pdoc's own
+ * default: it's already a clear mid-gray, and still reads with plenty
+ * of contrast against every tone above.
+ */
+:root {
+  --pdoc-background: #efede7;
+}
+
+.pdoc {
+  --code: #e3dfd7;
+  --accent: #d7d3c9;
+}

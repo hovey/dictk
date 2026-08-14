@@ -243,8 +243,8 @@ Python API reference docs (function signatures, docstrings) are generated
 from source with [pdoc](https://pdoc.dev/), a dev dependency:
 
 ```bash
-uv run pdoc dictk -o docs/api --docformat google --math   # build once, output in docs/api/
-uv run pdoc dictk --docformat google --math              # live preview, serves on localhost
+uv run pdoc dictk -o docs/api --docformat google --math -t docs/pdoc_templates   # build once, output in docs/api/
+uv run pdoc dictk --docformat google --math -t docs/pdoc_templates              # live preview, serves on localhost
 ```
 
 `--docformat google` matters: pdoc defaults to `restructuredtext`, which
@@ -279,6 +279,26 @@ command.
 Output goes to `docs/api/` (gitignored, regenerated on demand). CI builds
 this too and publishes it alongside the mdBook user guide — see
 ["CI/CD architecture"](#cicd-architecture) below.
+
+**Development note:** `-t docs/pdoc_templates` points pdoc at
+`docs/pdoc_templates/custom.css`, pdoc's own supported override point
+(`-t`/`--template-directory` — see
+[pdoc's documentation](https://pdoc.dev/docs/pdoc.html)). It's included
+last, after `theme.css`/`layout.css`/`content.css`, so it always wins
+the cascade. This one softens pdoc's default theme: a pure white page
+background (`--pdoc-background: #fff`) with code-block/highlighted-box
+backgrounds only slightly darker (`--code: #f8f8f8`, `--accent: #eee`)
+reads as a stark white glare across the page as a whole. The override
+shifts all three together — `--pdoc-background: #efede7`,
+`--code: #e3dfd7`, `--accent: #d7d3c9` — rather than tinting the
+background alone, so the page < code-block < accent-box hierarchy
+pdoc's default theme establishes stays intact, just softer throughout.
+Tuned in two successive passes, each computed in HSL space (same hue/
+saturation per variable, lightness lowered by a measured delta) rather
+than picked by eye, so the gaps between the three tiers stay even
+instead of collapsing into each other. `--accent2` (the border/
+scrollbar gray, `#c1c1c1`) is untouched — already reads with plenty of
+contrast against every tone above.
 
 ### Building the coverage badge
 
@@ -389,7 +409,7 @@ uv run ruff format --check
 uv run ruff check
 uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html
 uv run mdbook build
-uv run pdoc dictk -o docs/api --docformat google --math
+uv run pdoc dictk -o docs/api --docformat google --math -t docs/pdoc_templates
 uv run genbadge coverage -i coverage.xml -o coverage-badge.svg
 uv run pylint src/dictk --output-format=text --reports=yes
 ```
