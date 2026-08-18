@@ -1,34 +1,28 @@
-"""The First Sweep: directly triggers the asymmetric-padding bug that
-motivates the rest of Recoverable Displacement Range, using
-`recoverable_displacement_range_uncentered_demo.py`'s `locate_uncentered`
--- the real, shipped `locate` has already been fixed and would not
-reproduce this collapse.
+r"""Fixing `locate`: re-runs The First Sweep's exact scenario and dx
+values, this time against the real, shipped `dictk.translation.locate`
+-- not `locate_uncentered` -- to show the fix directly, before the rest
+of this page walks through why it was needed.
 
-Reports `expected`/`found` in two reference frames side by side:
-`current_image`'s own absolute frame (what `locate_uncentered` actually
-returns), and the local frame of `search` itself -- labeled "Fixed
-Image, frame $\\mathcal{S}$" in Seeing the Cliff's quadrant figures below,
-matching that panel's own boxes exactly: `expected` here always equals
-the correlation surface's own true peak, `found` always equals the
-figures' magenta box.
+Same two reference frames as The First Sweep's own table: `current_image`'s
+own absolute frame (what `locate` actually returns), and the local frame
+of `search` itself, labeled "Fixed Image, frame $\mathcal{S}$" to match
+Seeing the Cliff's quadrant figures above -- those figures aren't
+redrawn here (they already show the pre-fix failure; this table shows
+the post-fix success, numbers only).
 
 Runs live on every book build, not from a committed snapshot. Raw HTML,
-not markdown pipe-table syntax, since the spanning reference-frame
-header needs colspan -- markdown tables can't express that (same reason
-Multi-Point Motion's own Point Grid table uses raw HTML).
+not markdown pipe-table syntax, for the same colspan reason The First
+Sweep's own table needs it.
 """
 
 from dictk.image import PixelCoordinate, read, translate
-from recoverable_displacement_range_uncentered_demo import locate_uncentered
+from dictk.translation import locate
 
 if __name__ == "__main__":
     reference_image = read(path="astronaut0.png")
     p0 = PixelCoordinate(x=150, y=150)
     kernel_margin = 30
-    search_margin = 150  # generous -- per Root Cause, size won't help here --
-    # and exactly half of astronaut0's 300px canvas, so Seeing the Cliff's
-    # figures below read the whole image with no extraction margin of
-    # their own
+    search_margin = 150
     search_origin = PixelCoordinate(x=p0.x - search_margin, y=p0.y - search_margin)
 
     print("<table>")
@@ -45,8 +39,15 @@ if __name__ == "__main__":
     for dx in [0, 10, 20, 25, 29, 30, 31, 35, 40, 50]:
         current_image = translate(arr=reference_image, dx=dx, dy=0)
         expected = PixelCoordinate(x=p0.x + dx, y=p0.y)
-        found = locate_uncentered(
-            reference_image, current_image, p0, p0, kernel_margin, search_margin
+        found = locate(
+            reference_image=reference_image,
+            current_image=current_image,
+            reference_point=p0,
+            search_center=p0,
+            kernel_margin_width=kernel_margin,
+            kernel_margin_height=kernel_margin,
+            search_margin_width=search_margin,
+            search_margin_height=search_margin,
         )
         expected_s = PixelCoordinate(
             x=(expected.x - kernel_margin) - search_origin.x,
