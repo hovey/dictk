@@ -9,10 +9,51 @@ fixed. This page chronicles how.
 
 ## The First Sweep
 
-Reuse [Point Grid](./multi_point_motion.md#point-grid)'s 12 points and
-sweep `factor_x` upward, sizing `search_margin_width` per factor so it
-always comfortably contains the largest point's displacement — wide
-enough that "the window was too small" can't explain a failure:
+The rest of this page traces a real, silent bug in `locate`: the kernel
+content it correlates against gets padded asymmetrically, capping how
+far a point can move and still be found. Here it is, directly. A point
+at $(150, 150)$ px, a 60x60 px kernel (`kernel_margin = 30`), moved by
+a series of `dx` values, tracked with a deliberately pre-fix version of
+`locate`.
+[`locate_uncentered`](#recoverable_displacement_range_uncentered_demopy) —
+introduced properly, with the reasoning behind it, in [Isolating the
+Real Variable](#isolating-the-real-variable) below — reproduces exactly
+the padding this page's real, shipped `locate` no longer has. The fixed
+version wouldn't reproduce this collapse at all:
+
+```python
+from dictk.image import PixelCoordinate, read, translate
+from recoverable_displacement_range_uncentered_demo import locate_uncentered
+
+reference_image = read(path="astronaut0.png")
+p0 = PixelCoordinate(x=150, y=150)
+kernel_margin = 30
+search_margin = 180  # generous -- per Root Cause, size won't help here
+
+for dx in [10, 20, 25, 29, 30, 31, 40, 60, 90, 120]:
+    current_image = translate(arr=reference_image, dx=dx, dy=0)
+    expected = PixelCoordinate(x=p0.x + dx, y=p0.y)
+    found = locate_uncentered(reference_image, current_image, p0, p0, kernel_margin, search_margin)
+    print(f"dx={dx}  expected={expected}  found={found}  match={found == expected}")
+```
+
+<!-- cmdrun python3 recoverable_displacement_range_first_sweep.py -->
+
+A sharp cliff, right at `dx = kernel_margin + 1`. `search_margin = 180`
+— six times `kernel_margin` — makes no difference past that point at
+all. The rest of this page explains why, and fixes it.
+
+## The Original Stretch Question
+
+That cliff is the real bug this page fixes, but it isn't how the
+investigation actually started. It began from a different angle:
+[Simple Stretch](./simple_stretch.md)'s own question, how far can
+`astronaut0` be stretched, or compressed, before `locate` stops finding
+the exact expected position? Reuse [Point
+Grid](./multi_point_motion.md#point-grid)'s 12 points and sweep
+`factor_x` upward, sizing `search_margin_width` per factor so it always
+comfortably contains the largest point's displacement — wide enough
+that "the window was too small" can't explain a failure:
 
 ```python
 from dictk.image import read, stretch, PixelCoordinate
@@ -45,9 +86,17 @@ Matching collapses almost immediately — well before 20% stretch. That's
 surprising: at this book's own 40-pixel kernel scale, a real
 degradation-driven failure shouldn't set in this early.
 
+This table already runs against `locate`'s real, fixed version — it's
+live, re-run on every book build. [Path
+Forward](./path_forward.md#2026-08-14) already checked whether the fix
+above changed it, and it doesn't: `search_margin_width` here is always
+sized larger than the true displacement, so this sweep never actually
+hits the cliff bug The First Sweep demonstrated. Something else
+explains this particular collapse.
+
 ## Two Hypotheses, Both Ruled Out
 
-Two mechanisms seemed likely going in.
+Two mechanisms seemed possible: [blur](#hypothesis-1-blur) or [canvas exit](#hypothesis-2-canvas-exit).
 
 ### Hypothesis 1: Blur
 
