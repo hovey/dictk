@@ -105,3 +105,21 @@ Noted, not being pursued right now:
   registration; `dictk` doesn't expose it yet. Real, non-synthetic
   displacements won't land on exact pixels, so this becomes necessary
   once the book moves past known-integer test cases.
+
+## 2026-08-18
+
+**Pure Rotation: The First Sweep.** New page, [Pure
+Rotation](./pure_rotation.md), starts checking direction 3 above
+empirically. Its First Sweep reuses [Point
+Grid](./multi_point_motion.md#point-grid)'s 12-point grid and sweeps
+`rotate`'s angle, sizing `search_margin` generously at every step so
+window size can't be the limiting factor — the same approach
+[Recoverable Displacement
+Range](./recoverable_displacement_range.md#the-first-sweep) used.
+Matching collapses even faster than that page's stretch sweep did: well
+under half the points still match by 2 degrees, none by 8 degrees. The
+likely cause, already named in this page's own direction-3 note above,
+isn't confirmed yet — a large enough rotation turns a kernel's own
+content around a point, not just moves it, and a translation-only
+search can't follow that. Checking that hypothesis directly is the next
+step here, not started yet.
