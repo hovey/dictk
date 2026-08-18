@@ -181,8 +181,7 @@
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="pure-rotation"><a class="header" href="#pure-rotation">Pure Rotation</a></h1>
-<p><a href="./path_forward.html#2026-08-11">Path Forward</a> names a direction worth
-testing empirically: how large a rigid-body rotation angle can
+<p>How large a rigid-body rotation angle can
 <code>dictk</code>'s correlation-based tracking actually recover before it breaks
 down? <a href="./rigid_body_motion.html">Rigid Body Motion</a> and the polar
 decomposition (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">F</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.00421em;">R</span></span></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.11424em;">U</span></span></span></span></span></span>, see
@@ -195,7 +194,7 @@ against real tracking, not just the closed-form math.</p>
 sweep <code>rotate</code>'s <code>angle</code> upward. <code>rotate</code> pivots on the image's
 top-left corner (0, 0), so each point's expected position after
 rotation comes from the standard rotation matrix applied to its own
-<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span> coordinate — not a fixed displacement, since points farther
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">Y</span><span class="mclose">)</span></span></span></span> coordinate — not a fixed displacement, since points farther
 from the pivot sweep a wider arc for the same angle. Size
 <code>search_margin_width</code>/<code>search_margin_height</code> per angle so they always
 comfortably contain the farthest point's displacement, the same
@@ -246,13 +245,72 @@ for angle in [0.5, 1, 1.5, 2, 3, 5, 8, 15]:
 Range</a>'s stretch
 sweep did — well under half the points still match by 2 degrees, and
 none do by 8 degrees. <code>search_margin</code> is generous at every angle here,
-so window size isn't the constraint. Path Forward's own framing already
-names the likely reason: a large enough rotation doesn't just move a
+so window size isn't the constraint.
+A likely reason: a large enough rotation doesn't just move a
 point, it turns the kernel's own content around that point, and a
 translation-only search can't follow content that's rotating, not just
-sliding. That hypothesis isn't confirmed yet — a future pass should
-check it directly, the same way Recoverable Displacement Range ruled
-hypotheses in or out one at a time before finding its real cause.</p>
+sliding. The next two sections test that directly.</p>
+<h2 id="confirming-the-content-rotation-hypothesis"><a class="header" href="#confirming-the-content-rotation-hypothesis">Confirming the Content-Rotation Hypothesis</a></h2>
+<h3 id="removing-the-search-itself"><a class="header" href="#removing-the-search-itself">Removing the Search Itself</a></h3>
+<p>The First Sweep's <code>search_margin</code> is generous, but it's still a guess —
+<code>locate</code> still has to search for the right answer within that margin.
+Remove that variable entirely: pass <code>search_centers</code> the true expected
+position directly, so <code>locate</code> doesn't have to search at all, and shrink
+the margin down to a fixed, minimal size:</p>
+<div class="table-wrapper"><table><thead><tr><th>Angle (deg)</th><th>Matched</th></tr></thead><tbody>
+<tr><td>0.5</td><td>12/12</td></tr>
+<tr><td>1</td><td>12/12</td></tr>
+<tr><td>1.5</td><td>11/12</td></tr>
+<tr><td>2</td><td>9/12</td></tr>
+<tr><td>3</td><td>7/12</td></tr>
+<tr><td>5</td><td>0/12</td></tr>
+<tr><td>8</td><td>0/12</td></tr>
+<tr><td>15</td><td>0/12</td></tr>
+</tbody></table>
+</div>
+<p>Nearly the same collapse, at nearly the same angles, as the First
+Sweep's generous-margin version. Handing <code>locate</code> the exact right
+answer barely helps. Search mechanics — margin size, centering guesses
+— were never the constraint.</p>
+<h3 id="measuring-content-similarity-directly"><a class="header" href="#measuring-content-similarity-directly">Measuring Content Similarity Directly</a></h3>
+<p>If the search itself isn't the problem, the content being matched is.
+Set that up as a direct measurement, with no search or <code>locate</code> call at
+all: extract the kernel from <code>reference_image</code> at each point, extract
+the same-sized patch from the rotated <code>current_image</code> at that point's
+<em>exact</em> true position, and score their similarity with
+<a href="./correlation_criteria.html"><code>dictk.correlation.zncc</code></a>, which is exactly
+1.0 for identical content and falls toward 0 (or negative) as content
+diverges:</p>
+<div class="table-wrapper"><table><thead><tr><th>Angle (deg)</th><th>Mean ZNCC</th><th>Min ZNCC</th></tr></thead><tbody>
+<tr><td>0</td><td>1.000</td><td>1.000</td></tr>
+<tr><td>0.5</td><td>0.968</td><td>0.939</td></tr>
+<tr><td>1</td><td>0.965</td><td>0.948</td></tr>
+<tr><td>1.5</td><td>0.940</td><td>0.879</td></tr>
+<tr><td>2</td><td>0.909</td><td>0.861</td></tr>
+<tr><td>3</td><td>0.860</td><td>0.800</td></tr>
+<tr><td>5</td><td>0.736</td><td>0.669</td></tr>
+<tr><td>8</td><td>0.545</td><td>0.408</td></tr>
+<tr><td>15</td><td>0.249</td><td>-0.184</td></tr>
+</tbody></table>
+</div>
+<p>Similarity falls off steeply and smoothly with angle, with zero search
+involved at all — this is the exact correct alignment, every time. By 8
+degrees, mean similarity has already dropped to about half; by 15, some
+points score negative, meaning the rotated patch is anti-correlated
+with the original, not just a weaker match. That confirms the
+hypothesis directly: a rotated kernel's content genuinely stops
+resembling itself, at exactly the position where it should match
+perfectly. This isn't a search, margin, or centering-guess problem —
+it's that the content itself has changed shape.</p>
+<p>One thing this doesn't separate out: <code>rotate</code> uses the same bilinear
+interpolation as <code>stretch</code>, and <a href="./recoverable_displacement_range.html#an-interpolation-confound-set-aside">Recoverable Displacement
+Range</a>
+already found interpolation blur alone can cause a similar-looking
+near-miss failure. A genuinely rotated feature (say, a straight edge
+tilted a few degrees) looks different from the original even with
+perfect, blur-free resampling — so both effects are likely compounding
+here, not just one. Telling those two contributions apart is a
+reasonable next step, not done yet.</p>
 
                     </main>
 
