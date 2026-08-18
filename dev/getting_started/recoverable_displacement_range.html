@@ -493,18 +493,17 @@ centers the kernel's content within the padded array.</p>
 Let <code>kernel_margin = 30</code> and let <code>search_margin = 45</code>.</p>
 <p>The recoverable range is now symmetric, bounded by <code>search_margin</code> in
 <em>both</em> directions, exactly as the parameter's own name implies it
-always should have been. The two failing rows below — both wraparound,
-not a regression — are highlighted; <a href="#recoverable_displacement_range_the_fix_tablepy"><code>recoverable_displacement_range_the_fix_table.py</code></a>
-renders this as raw HTML rather than a markdown table so they can be:</p>
-<table><thead><tr><th>dx</th><th>expected</th><th>found</th><th>match</th></tr></thead><tbody>
+always should have been:</p>
+<div class="table-wrapper"><table><thead><tr><th>dx</th><th>expected</th><th>found</th><th>match</th></tr></thead><tbody>
 <tr><td>30</td><td>(180,150)</td><td>(180,150)</td><td>True</td></tr>
 <tr><td>40</td><td>(190,150)</td><td>(190,150)</td><td>True</td></tr>
 <tr><td>44</td><td>(194,150)</td><td>(194,150)</td><td>True</td></tr>
 <tr><td>45</td><td>(195,150)</td><td>(195,150)</td><td>True</td></tr>
-<tr class="match-false"><td>46</td><td>(196,150)</td><td>(106,150)</td><td>False</td></tr>
+<tr><td>46</td><td>(196,150)</td><td>(106,150)</td><td>False</td></tr>
 <tr><td>-44</td><td>(106,150)</td><td>(106,150)</td><td>True</td></tr>
-<tr class="match-false"><td>-45</td><td>(105,150)</td><td>(195,150)</td><td>False</td></tr>
+<tr><td>-45</td><td>(105,150)</td><td>(195,150)</td><td>False</td></tr>
 </tbody></table>
+</div>
 <p>We now have success right up to the <code>search_margin</code> on the right:</p>
 <ul>
 <li>With <code>dx = 45</code>, <code>locate</code> successfully finds the correct <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">195</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span></span></span></span> value.</li>
@@ -817,48 +816,6 @@ ax.set_aspect("equal")
 
 fig.savefig("recoverable_displacement_range_the_fix_cliff.png", dpi=300)
 print("Saved: recoverable_displacement_range_the_fix_cliff.png")
-</code></pre>
-<h3 id="recoverable_displacement_range_the_fix_tablepy"><a class="header" href="#recoverable_displacement_range_the_fix_tablepy"><code>recoverable_displacement_range_the_fix_table.py</code></a></h3>
-<pre><code class="language-python">"""The Fix's dx sweep table, from Recoverable Displacement Range,
-rendered as raw HTML instead of markdown pipe-table syntax so the two
-failing (wraparound) rows can carry a `match-false` class -- markdown
-tables have no way to style an individual row.
-
-Runs live on every book build, not from a committed snapshot.
-"""
-
-from dictk.image import PixelCoordinate, read, translate
-from dictk.translation import locate
-
-if __name__ == "__main__":
-    reference_image = read(path="astronaut0.png")
-    p0 = PixelCoordinate(x=150, y=150)
-    kernel_margin = 30
-    search_margin = 45
-
-    print(
-        "&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;dx&lt;/th&gt;&lt;th&gt;expected&lt;/th&gt;&lt;th&gt;found&lt;/th&gt;&lt;th&gt;match&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;"
-    )
-    for dx in [30, 40, 44, 45, 46, -44, -45]:
-        current_image = translate(arr=reference_image, dx=dx, dy=0)
-        expected = PixelCoordinate(x=p0.x + dx, y=p0.y)
-        found = locate(
-            reference_image=reference_image,
-            current_image=current_image,
-            reference_point=p0,
-            search_center=p0,
-            kernel_margin_width=kernel_margin,
-            kernel_margin_height=kernel_margin,
-            search_margin_width=search_margin,
-            search_margin_height=search_margin,
-        )
-        match = found == expected
-        row_class = ' class="match-false"' if not match else ""
-        print(
-            f"&lt;tr{row_class}&gt;&lt;td&gt;{dx}&lt;/td&gt;&lt;td&gt;({expected.x},{expected.y})&lt;/td&gt;"
-            f"&lt;td&gt;({found.x},{found.y})&lt;/td&gt;&lt;td&gt;{match}&lt;/td&gt;&lt;/tr&gt;"
-        )
-    print("&lt;/tbody&gt;&lt;/table&gt;")
 </code></pre>
 
                     </main>
