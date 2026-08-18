@@ -20,6 +20,6 @@
   - [Recoverable Displacement Range](./getting_started/recoverable_displacement_range.md)
   - [Pure Rotation](./getting_started/pure_rotation.md)
   - [Search Center Predictions](./getting_started/search_center_predictions.md)
-  - [Parallelization](./getting_started/parallelization.md)
+- [Parallelization](./getting_started/parallelization.md)
 - [Path Forward](./getting_started/path_forward.md)
 - [Contributing](./contributing.md)
