@@ -24,21 +24,3 @@
     color: black;
     margin-top: 5px;
 }
-
-/* tr.match-false: highlight a table row representing a failed result,
- * e.g. Recoverable Displacement Range's "The Fix" wraparound-edge-case
- * rows. Background reuses mdbook's own --search-mark-bg variable,
- * already tuned per built-in theme (Light, Rust, Coal, Navy, Ayu) for
- * contrast against that theme's --fg -- so this stays legible and
- * looks intentional under every theme, including Auto, without a
- * separate hardcoded color per theme. The border adds a second,
- * color-independent cue via --warning-border. Targeting <td>, not
- * <tr>, so the highlight always shows through general.css's own
- * zebra-striped `table tbody tr:nth-child(2n)` background.
- */
-tr.match-false > td {
-    background-color: var(--search-mark-bg);
-}
-tr.match-false > td:first-child {
-    border-left: 3px solid var(--warning-border);
-}
