@@ -325,9 +325,11 @@ Let `kernel_margin = 30` and let `search_margin = 45`.
 
 The recoverable range is now symmetric, bounded by `search_margin` in
 *both* directions, exactly as the parameter's own name implies it
-always should have been:
+always should have been. The two failing rows below — both wraparound,
+not a regression — are highlighted; [`recoverable_displacement_range_the_fix_table.py`](#recoverable_displacement_range_the_fix_tablepy)
+renders this as raw HTML rather than a markdown table so they can be:
 
-<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate; from dictk.translation import locate; reference_image = read(path='astronaut0.png'); p0 = PixelCoordinate(x=150, y=150); kernel_margin = 30; search_margin = 45; print('| dx | expected | found | match |'); print('|---|---|---|---|'); [print(f'| {dx} | ({p0.x+dx},{p0.y}) | ({locate(reference_image=reference_image, current_image=translate(arr=reference_image, dx=dx, dy=0), reference_point=p0, search_center=p0, kernel_margin_width=kernel_margin, kernel_margin_height=kernel_margin, search_margin_width=search_margin, search_margin_height=search_margin).x},{p0.y}) | {locate(reference_image=reference_image, current_image=translate(arr=reference_image, dx=dx, dy=0), reference_point=p0, search_center=p0, kernel_margin_width=kernel_margin, kernel_margin_height=kernel_margin, search_margin_width=search_margin, search_margin_height=search_margin) == PixelCoordinate(x=p0.x+dx, y=p0.y)} |') for dx in [30, 40, 44, 45, 46, -44, -45]]" -->
+<!-- cmdrun python3 recoverable_displacement_range_the_fix_table.py -->
 
 We now have success right up to the `search_margin` on the right:
 
@@ -409,4 +411,10 @@ follow-up work, not resolved here.
 
 ```python
 <!-- cmdrun cat recoverable_displacement_range_the_fix_cliff.py -->
+```
+
+### `recoverable_displacement_range_the_fix_table.py`
+
+```python
+<!-- cmdrun cat recoverable_displacement_range_the_fix_table.py -->
 ```
