@@ -3,6 +3,7 @@ import pytest
 
 from dictk.correlation import (
     WindowingMethod,
+    _kernel_pad,
     cc,
     ncc,
     phase_correlation,
@@ -267,6 +268,49 @@ def test_phase_correlation_matches_locate():
     locate_offset_y = found_point.y - search_origin.y - kernel_margin
 
     assert (surface_dx, surface_dy) == (locate_offset_x, locate_offset_y)
+
+
+def test_phase_correlation_centered_matches_locate():
+    """phase_correlation(centered=True) agrees with locate()'s own
+    internal computation too -- same idea as test_phase_correlation_matches_locate
+    above, but with centered=True and a displacement large enough
+    (dx=26 > kernel_margin=25) that centered padding actually matters:
+    the surface's own raw argmax alone isn't the match position anymore
+    once kernel's content is centered, not anchored at (0, 0) -- see
+    Recoverable Displacement Range for the full story. _kernel_pad's own
+    pad_before_width/pad_before_height need adding back in first."""
+    reference_image = rosta(width=200, height=200, density=0.5)
+    p0 = PixelCoordinate(x=100, y=75)
+    dx, dy = 26, 0
+    current_image = translate(arr=reference_image, dx=dx, dy=dy)
+    kernel_margin, search_margin = 25, 70
+
+    kernel, search, search_origin, _ = _kernel_and_search(
+        dx=dx, dy=dy, kernel_margin=kernel_margin, search_margin=search_margin
+    )
+
+    surface = phase_correlation(kernel=kernel, search=search, centered=True)
+    surface_dy, surface_dx = np.unravel_index(np.argmax(surface), surface.shape)
+    _, pad_before_height, pad_before_width = _kernel_pad(
+        kernel=kernel, shape=search.shape, centered=True
+    )
+    box_x = (surface_dx + pad_before_width) % search.shape[1]
+    box_y = (surface_dy + pad_before_height) % search.shape[0]
+
+    found_point = locate(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_point=p0,
+        search_center=p0,
+        kernel_margin_width=kernel_margin,
+        kernel_margin_height=kernel_margin,
+        search_margin_width=search_margin,
+        search_margin_height=search_margin,
+    )
+    locate_offset_x = found_point.x - search_origin.x - kernel_margin
+    locate_offset_y = found_point.y - search_origin.y - kernel_margin
+
+    assert (box_x, box_y) == (locate_offset_x, locate_offset_y)
 
 
 def test_window_requires_keyword_arguments():

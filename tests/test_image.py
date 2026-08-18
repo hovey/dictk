@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from dictk.correlation import WindowingMethod, cc, phase_correlation, zncc
+from dictk.correlation import WindowingMethod, _kernel_pad, cc, phase_correlation, zncc
 from dictk.grid import generate as grid_generate
 from dictk.rosta import rosta
 from dictk.image import (
@@ -1109,6 +1109,112 @@ def test_phase_correlation_quadrant_plot_windowing_changes_display(
         kernel=kernel, search=search, windowing=method, path=path_windowed
     )
     assert path_none.read_bytes() != path_windowed.read_bytes()
+
+
+def test_phase_correlation_quadrant_plot_reported_position_writes_file(
+    tmp_path: Path,
+):
+    kernel, search = _astronaut0_kernel_and_search(
+        dx=-6, dy=8, kernel_margin=25, search_margin=50
+    )
+    path = tmp_path / "phase_correlation_quadrant_reported.png"
+    phase_correlation_quadrant_plot(
+        kernel=kernel,
+        search=search,
+        reported_position=PixelCoordinate(x=10, y=10),
+        reported_position_label="locate_uncentered",
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_phase_correlation_quadrant_plot_reported_position_changes_display(
+    tmp_path: Path,
+):
+    """Regression guard, same shape as the windowing test above: passing
+    reported_position must actually draw the second box (and legend),
+    not silently do nothing."""
+    kernel, search = _astronaut0_kernel_and_search(
+        dx=-6, dy=8, kernel_margin=25, search_margin=50
+    )
+    path_without = tmp_path / "phase_correlation_quadrant_without.png"
+    path_with = tmp_path / "phase_correlation_quadrant_with.png"
+    phase_correlation_quadrant_plot(kernel=kernel, search=search, path=path_without)
+    phase_correlation_quadrant_plot(
+        kernel=kernel,
+        search=search,
+        reported_position=PixelCoordinate(x=10, y=10),
+        path=path_with,
+    )
+    assert path_without.read_bytes() != path_with.read_bytes()
+
+
+def test_phase_correlation_quadrant_plot_centered_writes_file(tmp_path: Path):
+    kernel, search = _astronaut0_kernel_and_search(
+        dx=-6, dy=8, kernel_margin=25, search_margin=50
+    )
+    path = tmp_path / "phase_correlation_quadrant_centered.png"
+    phase_correlation_quadrant_plot(
+        kernel=kernel, search=search, centered=True, path=path
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_phase_correlation_quadrant_plot_centered_changes_display(tmp_path: Path):
+    """centered=True must actually change the render (different Moving
+    Image padding, different Fixed Image box position for the same
+    kernel/search), not silently do nothing."""
+    kernel, search = _astronaut0_kernel_and_search(
+        dx=-6, dy=8, kernel_margin=25, search_margin=50
+    )
+    path_uncentered = tmp_path / "phase_correlation_quadrant_uncentered.png"
+    path_centered = tmp_path / "phase_correlation_quadrant_centered.png"
+    phase_correlation_quadrant_plot(kernel=kernel, search=search, path=path_uncentered)
+    phase_correlation_quadrant_plot(
+        kernel=kernel, search=search, centered=True, path=path_centered
+    )
+    assert path_uncentered.read_bytes() != path_centered.read_bytes()
+
+
+def test_phase_correlation_quadrant_plot_centered_box_matches_known_displacement(
+    tmp_path: Path,
+):
+    """Same correctness bar as the uncentered peak_matches_known_displacement
+    test: independently compute the centered surface's own content-adjusted
+    box position (raw argmax + _kernel_pad's own pad_before, wrapped) and
+    verify it lands on the same true geometric position the uncentered
+    surface's raw argmax already does -- despite the differently-shifted
+    raw peak underneath, since centering only moves where kernel's content
+    sits inside the padded array, not the true match position itself.
+    dictk.correlation.phase_correlation itself has the equivalent, more
+    thorough test against a real locate() call --
+    test_phase_correlation_centered_matches_locate; this one stays focused
+    on phase_correlation_quadrant_plot's own box-placement math."""
+    dx, dy = -6, 8
+    kernel_margin, search_margin = 25, 50
+    kernel, search = _astronaut0_kernel_and_search(
+        dx=dx, dy=dy, kernel_margin=kernel_margin, search_margin=search_margin
+    )
+    expected_x = search_margin + dx - kernel_margin
+    expected_y = search_margin + dy - kernel_margin
+
+    surface = phase_correlation(kernel=kernel, search=search, centered=True)
+    _, pad_before_height, pad_before_width = _kernel_pad(
+        kernel=kernel, shape=search.shape, centered=True
+    )
+    raw_peak_y, raw_peak_x = np.unravel_index(np.argmax(surface), surface.shape)
+    box_x = (int(raw_peak_x) + pad_before_width) % search.shape[1]
+    box_y = (int(raw_peak_y) + pad_before_height) % search.shape[0]
+    assert (box_x, box_y) == (expected_x, expected_y)
+
+    path = tmp_path / "phase_correlation_quadrant_centered.png"
+    phase_correlation_quadrant_plot(
+        kernel=kernel, search=search, centered=True, path=path
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
 
 
 def test_point_grid_plot_writes_file(tmp_path: Path):

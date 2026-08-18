@@ -15,7 +15,7 @@ from matplotlib.path import Path as MarkerPath
 from scipy.interpolate import RegularGridInterpolator
 from scipy.ndimage import zoom
 
-from dictk.correlation import WindowingMethod, phase_correlation, window
+from dictk.correlation import WindowingMethod, _kernel_pad, phase_correlation, window
 
 
 class PixelCoordinate(NamedTuple):
@@ -1438,10 +1438,19 @@ def _correlation_surface_ticks(size: int) -> list[int]:
     same-shape-as-`search` 100x100 ones (no windowing/Hann/Hamming).
     Rather than matplotlib's own per-panel default (which lands on
     different steps for the two sizes, and doesn't always reach the
-    axis's own upper bound), each size gets one fixed, round-number tick
-    list spanning its own full extent -- so every 51x51 panel matches
-    every other 51x51 panel, and every 100x100 one matches every other
-    100x100 one, when read side by side.
+    axis's own upper bound), each of those two known sizes gets one
+    fixed, round-number tick list spanning its own full extent -- so
+    every 51x51 panel matches every other 51x51 panel, and every 100x100
+    one matches every other 100x100 one, when read side by side.
+
+    Any other `size` (e.g. Recoverable Displacement Range's 300x300
+    quadrant figures, `search_margin=150` against `astronaut0`'s own
+    300px canvas) falls back to a generated five-interval, round-number
+    step instead of matplotlib's own default -- the original problem
+    this function exists to fix in the first place. Without this
+    fallback, every `size` other than the two known ones used to
+    silently reuse the 100-wide list regardless of its own actual
+    extent, cramming every tick into the axis's first 100 pixels.
 
     Args:
         size: The axis's length in pixels (a Correlation Surface panel's
@@ -1449,11 +1458,16 @@ def _correlation_surface_ticks(size: int) -> list[int]:
 
     Returns:
         `[0, 10, 20, 30, 40, 50]` for the 51-wide "valid" surfaces,
-        `[0, 20, 40, 60, 80, 100]` for the 100-wide full-search ones.
+        `[0, 20, 40, 60, 80, 100]` for the 100-wide full-search ones,
+        otherwise five evenly-spaced ticks from 0 up to (as close as a
+        multiple-of-10 step allows) `size` itself.
     """
-    if size > 60:
+    if size == 51:
+        return [0, 10, 20, 30, 40, 50]
+    if size == 100:
         return [0, 20, 40, 60, 80, 100]
-    return [0, 10, 20, 30, 40, 50]
+    step = max(10, round(size / 5 / 10) * 10)
+    return list(range(0, size + 1, step))
 
 
 def _correlation_quadrant_plot(
@@ -1466,6 +1480,9 @@ def _correlation_quadrant_plot(
     figsize: tuple[float, float] = (8.0, 8.0),
     dpi: int = 300,
     vicinity_margin: int = 4,
+    reported_position: PixelCoordinate | None = None,
+    reported_position_label: str = "reported",
+    centered: bool = False,
 ) -> None:
     """Shared renderer behind spatial_correlation_quadrant_plot() and
     phase_correlation_quadrant_plot() -- private (never published by
@@ -1478,6 +1495,31 @@ def _correlation_quadrant_plot(
     surface came from a spatial-domain "valid" computation (smaller than
     `search`) or a same-shape-as-`search` Fourier-domain one -- it only
     ever takes that array's own argmax and plots whatever shape comes in.
+
+    `reported_position`, if given, is a second position in `search`'s own
+    local frame (same top-left-corner convention as the surface's own
+    peak) -- some other, external computation's *claimed* answer, which
+    may differ from where `correlation_surface` itself actually peaks.
+    Drawn as a second, dotted magenta box on the Fixed Image panel,
+    distinct from the surface's own yellow dashed one, with a legend
+    naming both. `None` (default) omits it entirely, leaving every
+    existing figure byte-identical to before this parameter existed.
+
+    `centered`, if `True`, pads the Moving Image panel's `kernel` display
+    the same way `dictk.translation.locate` does internally (via
+    `_kernel_pad(..., centered=True)`) instead of the permanent
+    bottom-right-only padding `phase_correlation` itself always uses (see
+    [Recoverable Displacement
+    Range](../../getting_started/recoverable_displacement_range.html) for
+    why those two conventions differ). `correlation_surface`'s own raw
+    `argmax` is always relative to *that* padding, so with centered
+    padding the Fixed Image panel's box needs `kernel_padded`'s own
+    content offset added back in to land on the true match position --
+    `correlation_surface`'s peak itself (and the Correlation Surface/
+    Solution Vicinity panels showing it) is unaffected, still the raw
+    array position. Default `False` reproduces the original bottom-right
+    padding exactly, byte-identical to every figure from before this
+    parameter existed.
     """
     if search.shape[0] < kernel.shape[0] or search.shape[1] < kernel.shape[1]:
         raise ValueError(
@@ -1493,13 +1535,25 @@ def _correlation_quadrant_plot(
     )
     peak_y, peak_x = int(peak_y), int(peak_x)
 
-    # Same bottom/right zero-padding dictk.translation.locate() applies
-    # internally, here purely for display so the kernel's content sits at
-    # the correct corner of a search-shaped canvas.
-    kernel_padded = np.pad(
-        kernel,
-        ((0, search_height - kernel_height), (0, search_width - kernel_width)),
-    )
+    if centered:
+        # Same padding dictk.translation.locate() applies internally --
+        # kernel_padded's own content no longer starts at (0, 0), so the
+        # Fixed Image panel's box needs that offset added back in to the
+        # surface's own raw peak to land on the true match position.
+        kernel_padded, pad_before_height, pad_before_width = _kernel_pad(
+            kernel=kernel, shape=search.shape, centered=True
+        )
+        box_x = (peak_x + pad_before_width) % search_width
+        box_y = (peak_y + pad_before_height) % search_height
+    else:
+        # Same bottom/right zero-padding dictk.translation.locate() applied
+        # before its own fix, here purely for display so the kernel's
+        # content sits at the correct corner of a search-shaped canvas.
+        kernel_padded = np.pad(
+            kernel,
+            ((0, search_height - kernel_height), (0, search_width - kernel_width)),
+        )
+        box_x, box_y = peak_x, peak_y
 
     with plt.rc_context({"font.family": "serif", "mathtext.fontset": "cm"}):
         fig, axes = plt.subplots(2, 2, figsize=figsize, constrained_layout=True)
@@ -1517,7 +1571,7 @@ def _correlation_quadrant_plot(
         plt.colorbar(im1, ax=ax1, shrink=0.8)
         ax1.add_patch(
             patches.Rectangle(
-                (peak_x, peak_y),
+                (box_x, box_y),
                 kernel_width,
                 kernel_height,
                 edgecolor="yellow",
@@ -1525,17 +1579,37 @@ def _correlation_quadrant_plot(
                 linestyle="--",
                 linewidth=1,
                 alpha=0.8,
+                label="correlation surface peak",
             )
         )
-        ax1.axvline(x=peak_x, color="red", linestyle="--", linewidth=1, alpha=0.8)
-        ax1.axhline(y=peak_y, color="green", linestyle="--", linewidth=1, alpha=0.8)
-        ax1.set_xticks(sorted({0, search_width, peak_x}))
-        ax1.set_yticks(sorted({0, search_height, peak_y}))
+        ax1.axvline(x=box_x, color="red", linestyle="--", linewidth=1, alpha=0.8)
+        ax1.axhline(y=box_y, color="green", linestyle="--", linewidth=1, alpha=0.8)
+        xticks = {0, search_width, box_x}
+        yticks = {0, search_height, box_y}
+        if reported_position is not None:
+            ax1.add_patch(
+                patches.Rectangle(
+                    (reported_position.x, reported_position.y),
+                    kernel_width,
+                    kernel_height,
+                    edgecolor="magenta",
+                    facecolor="none",
+                    linestyle=":",
+                    linewidth=1.5,
+                    alpha=0.5,
+                    label=reported_position_label,
+                )
+            )
+            xticks.add(reported_position.x)
+            yticks.add(reported_position.y)
+            ax1.legend(loc="upper right", fontsize=7, framealpha=0.9)
+        ax1.set_xticks(sorted(xticks))
+        ax1.set_yticks(sorted(yticks))
         for label in ax1.get_xticklabels():
-            if label.get_text() == str(peak_x):
+            if label.get_text() == str(box_x):
                 label.set_color("red")
         for label in ax1.get_yticklabels():
-            if label.get_text() == str(peak_y):
+            if label.get_text() == str(box_y):
                 label.set_color("green")
         ax1.set_title(r"Fixed Image with frame $\mathcal{S}$")
         ax1.set_xlabel("x (pixels)")
@@ -1550,9 +1624,26 @@ def _correlation_quadrant_plot(
             extent=(0, search_width, search_height, 0),
         )
         plt.colorbar(im2, ax=ax2, shrink=0.8)
-        ax2.set_xticks(sorted({0, search_width, kernel_width}))
-        ax2.set_yticks(sorted({0, search_height, kernel_height}))
-        ax2.set_title(r"Moving Image with frame $\mathcal{K}$")
+        if centered:
+            kernel_xticks = {
+                0,
+                search_width,
+                pad_before_width,
+                pad_before_width + kernel_width,
+            }
+            kernel_yticks = {
+                0,
+                search_height,
+                pad_before_height,
+                pad_before_height + kernel_height,
+            }
+            ax2.set_title(r"Moving Image with frame $\mathcal{K}$ (centered)")
+        else:
+            kernel_xticks = {0, search_width, kernel_width}
+            kernel_yticks = {0, search_height, kernel_height}
+            ax2.set_title(r"Moving Image with frame $\mathcal{K}$")
+        ax2.set_xticks(sorted(kernel_xticks))
+        ax2.set_yticks(sorted(kernel_yticks))
         ax2.set_xlabel("x (pixels)")
         ax2.set_ylabel("y (pixels)")
 
@@ -1696,6 +1787,9 @@ def phase_correlation_quadrant_plot(
     figsize: tuple[float, float] = (8.0, 8.0),
     dpi: int = 300,
     vicinity_margin: int = 4,
+    reported_position: PixelCoordinate | None = None,
+    reported_position_label: str = "reported",
+    centered: bool = False,
 ) -> None:
     r"""Save a 2x2 composite figure illustrating Fourier-domain phase correlation end to end.
 
@@ -1758,18 +1852,46 @@ def phase_correlation_quadrant_plot(
         dpi: Resolution of the saved figure.
         vicinity_margin: Half-width/height, in pixels, of the Solution
             Vicinity zoom window around the correlation surface's peak.
+        reported_position: A second position, in `search`'s own local
+            frame (same top-left-corner convention as the surface's own
+            peak), to mark on the Fixed Image panel as a dotted magenta
+            box distinct from the surface's own yellow dashed one --
+            some other, external computation's *claimed* answer, useful
+            when that answer might disagree with where this surface
+            itself actually peaks (e.g. [Recoverable Displacement
+            Range](../../getting_started/recoverable_displacement_range.html)'s
+            pre-fix `locate` reporting a wrapped, wrong position even
+            though the underlying surface it was computed from peaks at
+            the correct one). Default `None` omits it entirely, leaving
+            every figure that doesn't pass it byte-identical to before
+            this parameter existed.
+        reported_position_label: Legend label for `reported_position`'s
+            box, shown alongside "correlation surface peak" for the
+            existing yellow one. Only rendered (and only then does a
+            legend appear at all) when `reported_position` is given.
+        centered: Passed straight through to
+            [`phase_correlation`](../correlation.html#phase_correlation)'s
+            own `centered` parameter -- the same convention
+            `dictk.translation.locate` uses internally. The Moving Image
+            panel's padding, and the Fixed Image panel's box position,
+            follow suit (see `_correlation_quadrant_plot`'s own note on
+            why the box needs the padding offset added back in). Default
+            `False` matches `phase_correlation`'s own default exactly,
+            byte-identical to every figure from before this parameter
+            existed.
 
     Raises:
         ValueError: If `search` is smaller than `kernel` in either
             dimension.
     """
     correlation_surface = phase_correlation(
-        kernel=kernel, search=search, windowing=windowing
+        kernel=kernel, search=search, windowing=windowing, centered=centered
     )
     display_kernel, display_search = kernel, search
     if windowing is not None:
         display_kernel = window(arr=kernel, method=windowing)
         display_search = window(arr=search, method=windowing)
+
     _correlation_quadrant_plot(
         kernel=display_kernel,
         search=display_search,
@@ -1779,6 +1901,9 @@ def phase_correlation_quadrant_plot(
         figsize=figsize,
         dpi=dpi,
         vicinity_margin=vicinity_margin,
+        reported_position=reported_position,
+        reported_position_label=reported_position_label,
+        centered=centered,
     )
 
 
