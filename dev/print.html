@@ -3900,6 +3900,80 @@ fig.savefig("recoverable_displacement_range_the_fix_cliff.png", dpi=300)
 print("Saved: recoverable_displacement_range_the_fix_cliff.png")
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="pure-rotation-1"><a class="header" href="#pure-rotation-1">Pure Rotation</a></h1>
+<p><a href="getting_started/./path_forward.html#2026-08-11">Path Forward</a> names a direction worth
+testing empirically: how large a rigid-body rotation angle can
+<code>dictk</code>'s correlation-based tracking actually recover before it breaks
+down? <a href="getting_started/./rigid_body_motion.html">Rigid Body Motion</a> and the polar
+decomposition (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">F</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.00421em;">R</span></span></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.11424em;">U</span></span></span></span></span></span>, see
+<a href="getting_started/./continuum_mechanics.html#polar-decomposition">Continuum Mechanics</a>)
+already separate rotation from stretch in theory — a pure rotation
+carries zero strain by construction. This page starts checking that
+against real tracking, not just the closed-form math.</p>
+<h2 id="the-first-sweep-1"><a class="header" href="#the-first-sweep-1">The First Sweep</a></h2>
+<p>Reuse <a href="getting_started/./multi_point_motion.html#point-grid">Point Grid</a>'s 12 points and
+sweep <code>rotate</code>'s <code>angle</code> upward. <code>rotate</code> pivots on the image's
+top-left corner (0, 0), so each point's expected position after
+rotation comes from the standard rotation matrix applied to its own
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span> coordinate — not a fixed displacement, since points farther
+from the pivot sweep a wider arc for the same angle. Size
+<code>search_margin_width</code>/<code>search_margin_height</code> per angle so they always
+comfortably contain the farthest point's displacement, the same
+generous-margin approach <a href="getting_started/./recoverable_displacement_range.html#the-first-sweep">Recoverable Displacement
+Range</a> used:</p>
+<pre><code class="language-python">from dictk.image import read, rotate, PixelCoordinate
+from dictk.grid import generate, locate
+import numpy as np
+
+reference_image = read(path="astronaut0.png")
+points = generate(
+    origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55
+)
+kernel_margin = 20
+
+def expected_position(pt, angle_deg):
+    theta = np.deg2rad(angle_deg)
+    c, s = np.cos(theta), np.sin(theta)
+    x = c * pt.x - s * pt.y
+    y = s * pt.x + c * pt.y
+    return PixelCoordinate(x=int(round(x)), y=int(round(y)))
+
+for angle in [0.5, 1, 1.5, 2, 3, 5, 8, 15]:
+    current_image = rotate(arr=reference_image, angle=angle)
+    expected = [expected_position(pt, angle) for pt in points]
+    max_disp = max(max(abs(e.x - pt.x), abs(e.y - pt.y)) for pt, e in zip(points, expected))
+    search_margin = max(int(max_disp) + 15, kernel_margin + 10)
+    found = locate(
+        reference_image=reference_image, current_image=current_image, reference_points=points,
+        kernel_margin_width=kernel_margin, kernel_margin_height=kernel_margin,
+        search_margin_width=search_margin, search_margin_height=search_margin,
+    )
+    n_match = sum(1 for f, e in zip(found, expected) if f == e)
+    print(f"{angle}deg  search_margin={search_margin}  matched={n_match}/12")
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>Angle (deg)</th><th>search_margin</th><th>Matched</th></tr></thead><tbody>
+<tr><td>0.5</td><td>30</td><td>12/12</td></tr>
+<tr><td>1</td><td>30</td><td>12/12</td></tr>
+<tr><td>1.5</td><td>30</td><td>11/12</td></tr>
+<tr><td>2</td><td>30</td><td>9/12</td></tr>
+<tr><td>3</td><td>30</td><td>6/12</td></tr>
+<tr><td>5</td><td>34</td><td>1/12</td></tr>
+<tr><td>8</td><td>46</td><td>0/12</td></tr>
+<tr><td>15</td><td>76</td><td>0/12</td></tr>
+</tbody></table>
+</div>
+<p>Matching collapses even faster than <a href="getting_started/./recoverable_displacement_range.html#the-first-sweep">Recoverable Displacement
+Range</a>'s stretch
+sweep did — well under half the points still match by 2 degrees, and
+none do by 8 degrees. <code>search_margin</code> is generous at every angle here,
+so window size isn't the constraint. Path Forward's own framing already
+names the likely reason: a large enough rotation doesn't just move a
+point, it turns the kernel's own content around that point, and a
+translation-only search can't follow content that's rotating, not just
+sliding. That hypothesis isn't confirmed yet — a future pass should
+check it directly, the same way Recoverable Displacement Range ruled
+hypotheses in or out one at a time before finding its real cause.</p>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="search-center-predictions"><a class="header" href="#search-center-predictions">Search Center Predictions</a></h1>
 <p><a href="getting_started/../api/dictk/grid.html#locate"><code>dictk.grid.locate</code></a>'s <code>search_centers</code>
 parameter defaults to <code>None</code>, which means each point's own
@@ -4622,6 +4696,22 @@ registration; <code>dictk</code> doesn't expose it yet. Real, non-synthetic
 displacements won't land on exact pixels, so this becomes necessary
 once the book moves past known-integer test cases.</li>
 </ul>
+<h2 id="2026-08-18"><a class="header" href="#2026-08-18">2026-08-18</a></h2>
+<p><strong>Pure Rotation: The First Sweep.</strong> New page, <a href="getting_started/./pure_rotation.html">Pure
+Rotation</a>, starts checking direction 3 above
+empirically. Its First Sweep reuses <a href="getting_started/./multi_point_motion.html#point-grid">Point
+Grid</a>'s 12-point grid and sweeps
+<code>rotate</code>'s angle, sizing <code>search_margin</code> generously at every step so
+window size can't be the limiting factor — the same approach
+<a href="getting_started/./recoverable_displacement_range.html#the-first-sweep">Recoverable Displacement
+Range</a> used.
+Matching collapses even faster than that page's stretch sweep did: well
+under half the points still match by 2 degrees, none by 8 degrees. The
+likely cause, already named in this page's own direction-3 note above,
+isn't confirmed yet — a large enough rotation turns a kernel's own
+content around a point, not just moves it, and a translation-only
+search can't follow that. Checking that hypothesis directly is the next
+step here, not started yet.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="contributing-to-dictk"><a class="header" href="#contributing-to-dictk">Contributing to <code>dictk</code></a></h1>
 <p><code>dictk</code> is developed on <a href="https://github.com/hovey/dictk">GitHub</a> using
