@@ -188,10 +188,57 @@ that followed didn't answer that question directly. It found something
 more fundamental first — a real, silent bug in <code>locate</code> itself, now
 fixed. This page chronicles how.</p>
 <h2 id="the-first-sweep"><a class="header" href="#the-first-sweep">The First Sweep</a></h2>
-<p>Reuse <a href="./multi_point_motion.html#point-grid">Point Grid</a>'s 12 points and
-sweep <code>factor_x</code> upward, sizing <code>search_margin_width</code> per factor so it
-always comfortably contains the largest point's displacement — wide
-enough that "the window was too small" can't explain a failure:</p>
+<p>The rest of this page traces a real, silent bug in <code>locate</code>: the kernel
+content it correlates against gets padded asymmetrically, capping how
+far a point can move and still be found. Here it is, directly. A point
+at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">150</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span></span></span></span> px, a 60x60 px kernel (<code>kernel_margin = 30</code>), moved by
+a series of <code>dx</code> values, tracked with a deliberately pre-fix version of
+<code>locate</code>.
+<a href="#recoverable_displacement_range_uncentered_demopy"><code>locate_uncentered</code></a> —
+introduced properly, with the reasoning behind it, in <a href="#isolating-the-real-variable">Isolating the
+Real Variable</a> below — reproduces exactly
+the padding this page's real, shipped <code>locate</code> no longer has. The fixed
+version wouldn't reproduce this collapse at all:</p>
+<pre><code class="language-python">from dictk.image import PixelCoordinate, read, translate
+from recoverable_displacement_range_uncentered_demo import locate_uncentered
+
+reference_image = read(path="astronaut0.png")
+p0 = PixelCoordinate(x=150, y=150)
+kernel_margin = 30
+search_margin = 180  # generous -- per Root Cause, size won't help here
+
+for dx in [10, 20, 25, 29, 30, 31, 40, 60, 90, 120]:
+    current_image = translate(arr=reference_image, dx=dx, dy=0)
+    expected = PixelCoordinate(x=p0.x + dx, y=p0.y)
+    found = locate_uncentered(reference_image, current_image, p0, p0, kernel_margin, search_margin)
+    print(f"dx={dx}  expected={expected}  found={found}  match={found == expected}")
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>dx</th><th>expected</th><th>found</th><th>match</th></tr></thead><tbody>
+<tr><td>10</td><td>(160,150)</td><td>(160,150)</td><td>True</td></tr>
+<tr><td>20</td><td>(170,150)</td><td>(170,150)</td><td>True</td></tr>
+<tr><td>25</td><td>(175,150)</td><td>(175,150)</td><td>True</td></tr>
+<tr><td>29</td><td>(179,150)</td><td>(179,150)</td><td>True</td></tr>
+<tr><td>30</td><td>(180,150)</td><td>(180,150)</td><td>True</td></tr>
+<tr><td>31</td><td>(181,150)</td><td>(-179,150)</td><td>False</td></tr>
+<tr><td>40</td><td>(190,150)</td><td>(-170,150)</td><td>False</td></tr>
+<tr><td>60</td><td>(210,150)</td><td>(-150,150)</td><td>False</td></tr>
+<tr><td>90</td><td>(240,150)</td><td>(-120,150)</td><td>False</td></tr>
+<tr><td>120</td><td>(270,150)</td><td>(-90,150)</td><td>False</td></tr>
+</tbody></table>
+</div>
+<p>A sharp cliff, right at <code>dx = kernel_margin + 1</code>. <code>search_margin = 180</code>
+— six times <code>kernel_margin</code> — makes no difference past that point at
+all. The rest of this page explains why, and fixes it.</p>
+<h2 id="the-original-stretch-question"><a class="header" href="#the-original-stretch-question">The Original Stretch Question</a></h2>
+<p>That cliff is the real bug this page fixes, but it isn't how the
+investigation actually started. It began from a different angle:
+<a href="./simple_stretch.html">Simple Stretch</a>'s own question, how far can
+<code>astronaut0</code> be stretched, or compressed, before <code>locate</code> stops finding
+the exact expected position? Reuse <a href="./multi_point_motion.html#point-grid">Point
+Grid</a>'s 12 points and sweep
+<code>factor_x</code> upward, sizing <code>search_margin_width</code> per factor so it always
+comfortably contains the largest point's displacement — wide enough
+that "the window was too small" can't explain a failure:</p>
 <pre><code class="language-python">from dictk.image import read, stretch, PixelCoordinate
 from dictk.grid import generate, locate
 
@@ -229,8 +276,15 @@ for p in [2, 4, 6, 8, 18, 20, 40, 80]:
 <p>Matching collapses almost immediately — well before 20% stretch. That's
 surprising: at this book's own 40-pixel kernel scale, a real
 degradation-driven failure shouldn't set in this early.</p>
+<p>This table already runs against <code>locate</code>'s real, fixed version — it's
+live, re-run on every book build. <a href="./path_forward.html#2026-08-14">Path
+Forward</a> already checked whether the fix
+above changed it, and it doesn't: <code>search_margin_width</code> here is always
+sized larger than the true displacement, so this sweep never actually
+hits the cliff bug The First Sweep demonstrated. Something else
+explains this particular collapse.</p>
 <h2 id="two-hypotheses-both-ruled-out"><a class="header" href="#two-hypotheses-both-ruled-out">Two Hypotheses, Both Ruled Out</a></h2>
-<p>Two mechanisms seemed likely going in.</p>
+<p>Two mechanisms seemed possible: <a href="#hypothesis-1-blur">blur</a> or <a href="#hypothesis-2-canvas-exit">canvas exit</a>.</p>
 <h3 id="hypothesis-1-blur"><a class="header" href="#hypothesis-1-blur">Hypothesis 1: Blur</a></h3>
 <p><code>stretch</code> uses bilinear interpolation, sampling an increasingly small
 crop of the original image to fill the same canvas. Whole-image
