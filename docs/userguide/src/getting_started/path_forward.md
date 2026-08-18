@@ -123,3 +123,20 @@ isn't confirmed yet — a large enough rotation turns a kernel's own
 content around a point, not just moves it, and a translation-only
 search can't follow that. Checking that hypothesis directly is the next
 step here, not started yet.
+
+**Pure Rotation: hypothesis confirmed.** Same page, new [Confirming the
+Content-Rotation
+Hypothesis](./pure_rotation.md#confirming-the-content-rotation-hypothesis)
+section. Two direct checks: handing `locate` the exact true search
+center instead of a generous margin barely changes the collapse,
+ruling out search mechanics; and a plain `zncc` similarity score
+between the reference kernel and the true-aligned current-image patch
+(no search at all) falls off steeply with angle, confirming the real
+cause is content, not search. One thing this doesn't separate out yet:
+`rotate` shares `stretch`'s bilinear interpolation, and [Recoverable
+Displacement
+Range](./recoverable_displacement_range.md#an-interpolation-confound-set-aside)
+already found interpolation blur alone can look similar — genuine
+geometric content rotation and interpolation blur are likely both
+compounding here. Telling them apart is the next open step, not
+started.
