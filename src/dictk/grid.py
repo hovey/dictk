@@ -108,6 +108,53 @@ def generate(
     ]
 
 
+def elements(*, count_x: int, count_y: int) -> list[tuple[int, int, int, int]]:
+    """Q4 connectivity for the regular `count_x` x `count_y` lattice `generate` produces.
+
+    Each element is one of `generate`'s point grid's unit cells, its 4
+    corner nodes given as indices into that same points list -- so
+    `[points[i] for i in elements(...)[0]]` are one element's 4 corner
+    `PixelCoordinate`s, ready to hand to
+    [`dictk.element.gauss_point_green_lagrange_strains`](../api/dictk/element.html#gauss_point_green_lagrange_strains)
+    or
+    [`dictk.element.gauss_point_log_strains`](../api/dictk/element.html#gauss_point_log_strains).
+
+    Each 4-tuple is `(top_left, top_right, bottom_right, bottom_left)`
+    point indices -- the same $N_1$..$N_4$ corner order those functions'
+    `shape_functions` convention expects (see [Shape
+    Functions](../getting_started/finite_element_method.html#shape-functions)).
+
+    Args:
+        count_x: Number of points along x in the source `generate` call.
+            Must be >= 2 (at least 2 points make 1 element along x).
+        count_y: Number of points along y in the source `generate` call.
+            Must be >= 2.
+
+    Returns:
+        A list of `(count_x - 1) * (count_y - 1)` 4-tuples, in row-major
+        order (all of element row 0 first, then row 1, and so on) --
+        matching `generate`'s own point ordering.
+
+    Raises:
+        ValueError: If `count_x` or `count_y` is less than 2.
+    """
+    if count_x < 2:
+        raise ValueError(f"count_x {count_x} must be >= 2")
+    if count_y < 2:
+        raise ValueError(f"count_y {count_y} must be >= 2")
+
+    return [
+        (
+            j * count_x + i,  # top_left
+            j * count_x + i + 1,  # top_right
+            (j + 1) * count_x + i + 1,  # bottom_right
+            (j + 1) * count_x + i,  # bottom_left
+        )
+        for j in range(count_y - 1)
+        for i in range(count_x - 1)
+    ]
+
+
 def locate(
     *,
     reference_image: np.ndarray,

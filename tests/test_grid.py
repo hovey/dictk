@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from dictk.correlation import WindowingMethod
-from dictk.grid import Executor, generate, locate
+from dictk.grid import Executor, elements, generate, locate
 from dictk.image import PixelCoordinate, translate
 from dictk.rosta import rosta
 
@@ -75,6 +75,68 @@ def test_generate_invalid_count_y_raises(count_y):
             spacing_x=1,
             spacing_y=1,
         )
+
+
+def test_elements_requires_keyword_arguments():
+    with pytest.raises(TypeError):
+        elements(3, 4)
+
+
+def test_elements_count_matches_multi_point_motion_grid():
+    # Multi-Point Motion and Simple Stretch's own 3x4 point grid: 2x3
+    # unit cells = 6 elements.
+    els = elements(count_x=3, count_y=4)
+    assert len(els) == 6
+
+
+def test_elements_corner_order_of_a_single_cell():
+    # A 2x2 point grid is exactly 1 element: points 0,1,2,3 at row-major
+    # indices (top_left=0, top_right=1, bottom_right=3, bottom_left=2).
+    els = elements(count_x=2, count_y=2)
+    assert els == [(0, 1, 3, 2)]
+
+
+def test_elements_row_major_order():
+    # A 3x3 point grid is 2x2 = 4 elements. Row 0 of elements first (both
+    # cells sharing point-grid row 0-1), then row 1 (point-grid rows 1-2).
+    els = elements(count_x=3, count_y=3)
+    assert els == [
+        (0, 1, 4, 3),
+        (1, 2, 5, 4),
+        (3, 4, 7, 6),
+        (4, 5, 8, 7),
+    ]
+
+
+def test_elements_indices_match_generate_points():
+    # A live cross-check: elements()'s indices, applied to generate()'s
+    # own output, must recover a geometrically sane quad (top_left/
+    # top_right share a y, top_left/bottom_left share an x).
+    points = generate(
+        origin=PixelCoordinate(x=0, y=0),
+        count_x=3,
+        count_y=3,
+        spacing_x=1,
+        spacing_y=1,
+    )
+    top_left, top_right, bottom_right, bottom_left = elements(count_x=3, count_y=3)[0]
+    assert points[top_left].y == points[top_right].y
+    assert points[top_left].x == points[bottom_left].x
+    assert points[bottom_right].y == points[bottom_left].y
+    assert points[bottom_right].x == points[top_right].x
+    assert points[top_left].y < points[bottom_left].y
+
+
+@pytest.mark.parametrize("count_x", [0, 1, -1])
+def test_elements_invalid_count_x_raises(count_x):
+    with pytest.raises(ValueError):
+        elements(count_x=count_x, count_y=2)
+
+
+@pytest.mark.parametrize("count_y", [0, 1, -1])
+def test_elements_invalid_count_y_raises(count_y):
+    with pytest.raises(ValueError):
+        elements(count_x=2, count_y=count_y)
 
 
 def _reference_and_current(dx: float, dy: float):
