@@ -26,8 +26,9 @@ src/dictk/element.py:194:18: W0621: Redefining name &#x27;deformation_gradient&#
 src/dictk/correlation.py:46:0: C0301: Line too long (140/100) (line-too-long)
 src/dictk/correlation.py:493:10: E1101: Instance of &#x27;finfo&#x27; has no &#x27;eps&#x27; member (no-member)
 ************* Module dictk.grid
+src/dictk/grid.py:118:0: C0301: Line too long (118/100) (line-too-long)
 src/dictk/grid.py:33:0: R0913: Too many arguments (8/5) (too-many-arguments)
-src/dictk/grid.py:111:0: R0913: Too many arguments (11/5) (too-many-arguments)
+src/dictk/grid.py:158:0: R0913: Too many arguments (11/5) (too-many-arguments)
 ************* Module dictk.image
 src/dictk/image.py:1706:0: C0301: Line too long (101/100) (line-too-long)
 src/dictk/image.py:1:0: C0302: Too many lines in module (2163/1000) (too-many-lines)
@@ -63,7 +64,7 @@ src/dictk/translation.py:10:0: R0914: Too many local variables (23/15) (too-many
 
 Report
 ======
-838 statements analysed.
+844 statements analysed.
 
 Statistics by type
 ------------------
@@ -77,7 +78,7 @@ Statistics by type
 +---------+-------+-----------+-----------+------------+---------+
 |method   |1      |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
-|function |70     |NC         |NC         |100.00      |0.00     |
+|function |71     |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
 
 
@@ -102,7 +103,7 @@ External dependencies
 
 
 
-3896 lines have been analyzed
+3944 lines have been analyzed
 
 Raw metrics
 -----------
@@ -110,13 +111,13 @@ Raw metrics
 +----------+-------+------+---------+-----------+
 |type      |number |%     |previous |difference |
 +==========+=======+======+=========+===========+
-|code      |1641   |42.12 |NC       |NC         |
+|code      |1656   |41.99 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|docstring |1769   |45.41 |NC       |NC         |
+|docstring |1799   |45.61 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|comment   |167    |4.29  |NC       |NC         |
+|comment   |167    |4.23  |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|empty     |319    |8.19  |NC       |NC         |
+|empty     |322    |8.16  |NC       |NC         |
 +----------+-------+------+---------+-----------+
 
 
@@ -140,7 +141,7 @@ Messages by category
 +-----------+-------+---------+-----------+
 |type       |number |previous |difference |
 +===========+=======+=========+===========+
-|convention |7      |NC       |NC         |
+|convention |8      |NC       |NC         |
 +-----------+-------+---------+-----------+
 |refactor   |25     |NC       |NC         |
 +-----------+-------+---------+-----------+
@@ -159,13 +160,13 @@ Messages by category
 +==================+======+========+=========+===========+
 |dictk.translation |50.00 |0.00    |8.00     |0.00       |
 +------------------+------+--------+---------+-----------+
-|dictk.correlation |50.00 |0.00    |0.00     |14.29      |
+|dictk.correlation |50.00 |0.00    |0.00     |12.50      |
 +------------------+------+--------+---------+-----------+
-|dictk.element     |0.00  |80.00   |0.00     |57.14      |
+|dictk.element     |0.00  |80.00   |0.00     |50.00      |
 +------------------+------+--------+---------+-----------+
-|dictk.image       |0.00  |20.00   |72.00    |28.57      |
+|dictk.image       |0.00  |20.00   |72.00    |25.00      |
 +------------------+------+--------+---------+-----------+
-|dictk.grid        |0.00  |0.00    |8.00     |0.00       |
+|dictk.grid        |0.00  |0.00    |8.00     |12.50      |
 +------------------+------+--------+---------+-----------+
 |dictk.cli         |0.00  |0.00    |8.00     |0.00       |
 +------------------+------+--------+---------+-----------+
@@ -184,7 +185,7 @@ Messages
 +------------------------------+------------+
 |too-many-locals               |8           |
 +------------------------------+------------+
-|line-too-long                 |6           |
+|line-too-long                 |7           |
 +------------------------------+------------+
 |redefined-outer-name          |4           |
 +------------------------------+------------+
@@ -205,7 +206,7 @@ Messages
 
 
 -----------------------------------
-Your code has been rated at 9.44/10
+Your code has been rated at 9.43/10
 </pre>
 </body>
 </html>
