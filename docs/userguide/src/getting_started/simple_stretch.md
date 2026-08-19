@@ -159,6 +159,28 @@ motion is a rigid shift or a stretch:
 [Recoverable Displacement Range](./recoverable_displacement_range.md) picks
 up from here.
 
+## Strain
+
+Visualizing strain results is a combination of mathematical accuracy and
+visual clarity. One might want to plot the "raw" data at the Gauss
+points, since that is the location within the element where the FEA
+solver actually calculates strain, making it the most accurate.
+However, this manner of visualization causes jumps (discontinuities) at
+element boundaries.
+
+The professional standard is to calculate strain at the Gauss points,
+extrapolate the results to the nodes, and then report the **nodal
+average** from all adjacent elements to create a smooth contour plot.
+
+For now, let's report the strain at the Gauss points.
+
+`dictk` doesn't compute strain yet — [Finite Element
+Method](./finite_element_method.md) covers the Q4 element formulation
+and the deformation gradient $\boldsymbol{F}(\boldsymbol{X})$ strain is
+built from, but no Gauss-point or mesh-level machinery exists in the
+codebase to actually evaluate it on tracked points like the twelve
+above. That's the next piece of work this page is waiting on.
+
 ## Data Download
 
 Every image this page used is downloadable below, as a TIFF. Download
@@ -243,3 +265,40 @@ for i, point in enumerate(points):
 ```
 
 <!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, stretch, subimage, write; from dictk.grid import generate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); factor_x = 1.02; current_image = stretch(arr=reference_image, factor_x=factor_x); search_margin_width, search_margin_height = 48, 52; print('| File | Point | Origin (pixels) |'); print('|---|---|---|'); [ (lambda origin, search_area: (write(arr=search_area, path=f'search_area_stretch_{i:02d}.tiff'), print(f'| [search_area_stretch_{i:02d}.tiff](search_area_stretch_{i:02d}.tiff) | {i:02d} | ({origin.x}, {origin.y}) |')))(PixelCoordinate(x=p.x - search_margin_width, y=p.y - search_margin_height), subimage(image=current_image, origin=PixelCoordinate(x=p.x - search_margin_width, y=p.y - search_margin_height), width=2 * search_margin_width, height=2 * search_margin_height)) for i, p in enumerate(points) ]" -->
+
+## Verification Against VIC-2D
+
+[Path Forward](./path_forward.md#2026-08-11) names a direction worth
+pursuing: running this book's own synthetic datasets through established
+DIC software, and comparing directly against `dictk`'s own results. This
+page's own `factor_x = 1.02` stretch was run through
+[VIC-2D](https://www.correlatedsolutions.com/vic-2d/) (Correlated
+Solutions, Inc.), independently of `dictk`. Unlike [Multi-Point
+Motion](./multi_point_motion.md#verification-against-vic-2d)'s
+comparison, this one isn't against a `dictk`-computed value —
+`dictk` doesn't compute strain anywhere on this page yet, only
+displacement — so it's checked directly against the closed-form
+analytical strain a `factor_x = 1.02` stretch implies instead:
+
+<figure>
+    <a href="../verification/simple_stretch_result_vic.png" target="_blank" rel="noopener">
+        <img src="../verification/simple_stretch_result_vic.png" alt="VIC-2D's measured exx (logarithmic Euler strain) field for the factor_x=1.02 stretch example, a striped noisy pattern averaging around 19900 microstrain, with a horizontal extensometer line annotated E0: 19905.2 microstrain" />
+    </a>
+    <figcaption>VIC-2D's own measured $e_{xx}$ (logarithmic/Euler strain) field for this page's <code>factor_x = 1.02</code> stretch (click to enlarge). The horizontal line is VIC-2D's own extensometer annotation, reading 19905.2 microstrain along that path.</figcaption>
+</figure>
+
+Across the 2682 subsets VIC-2D correlated successfully (180 more,
+along the image's outer edge, masked out), $e_{xx}$ averages
+19875.8 microstrain — close to, but noisier than,
+[Multi-Point Motion](./multi_point_motion.md#verification-against-vic-2d)'s
+displacement match, since strain is a spatial derivative of already-noisy
+per-point displacement data, not a directly measured quantity. The
+analytical logarithmic (true/Euler) strain a `factor_x = 1.02` stretch
+implies is $\ln(1.02) \approx 19802.6$ microstrain —
+VIC-2D's own mean lands within 0.4% of it.
+
+The full, subset-by-subset VIC-2D output —
+[`simple_stretch_vic_out.csv`](../verification/simple_stretch_vic_out.csv)
+— is available for closer inspection: every subset's position,
+displacement, strain, and correlation quality metrics, not just the
+summary field shown above.

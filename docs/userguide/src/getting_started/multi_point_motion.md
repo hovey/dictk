@@ -433,10 +433,14 @@ a widely used commercial DIC package, to verify agreement with `dictk`.
 
 <figure>
     <div style="display: flex; gap: 1em;">
-        <img src="../verification/multi_point_motion_U_result_vic.png" alt="VIC-2D's recovered U (x-displacement) field for the dx=-6, dy=8 example, showing a uniform displacement of -6 pixels across the specimen" style="flex: 1 1 0; min-width: 0;" />
-        <img src="../verification/multi_point_motion_V_result_vic.png" alt="VIC-2D's recovered V (y-displacement) field for the dx=-6, dy=8 example, showing a uniform displacement of -8 pixels across the specimen in VIC-2D's own sign convention" style="flex: 1 1 0; min-width: 0;" />
+        <a href="../verification/multi_point_motion_U_result_vic.png" target="_blank" rel="noopener" style="flex: 1 1 0; min-width: 0;">
+            <img src="../verification/multi_point_motion_U_result_vic.png" alt="VIC-2D's recovered U (x-displacement) field for the dx=-6, dy=8 example, showing a uniform displacement of -6 pixels across the specimen" style="width: 100%;" />
+        </a>
+        <a href="../verification/multi_point_motion_V_result_vic.png" target="_blank" rel="noopener" style="flex: 1 1 0; min-width: 0;">
+            <img src="../verification/multi_point_motion_V_result_vic.png" alt="VIC-2D's recovered V (y-displacement) field for the dx=-6, dy=8 example, showing a uniform displacement of -8 pixels across the specimen in VIC-2D's own sign convention" style="width: 100%;" />
+        </a>
     </div>
-    <figcaption>VIC-2D's own verified displacement fields for this page's <code>dx = -6</code>, <code>dy = 8</code> example: <code>U</code>, the x-axis displacement, uniformly -6 pixels (left, <code>multi_point_motion_U</code>); <code>V</code>, the y-axis displacement, uniformly -8 pixels (right, <code>multi_point_motion_V</code>) — VIC-2D's own $y$-axis points opposite `dictk`'s, so its sign is flipped from this page's <code>dy = 8</code> even though both describe the identical physical motion.</figcaption>
+    <figcaption>VIC-2D's own verified displacement fields for this page's <code>dx = -6</code>, <code>dy = 8</code> example (click either image for the full-size version): <code>U</code>, the x-axis displacement, uniformly -6 pixels (left, <code>multi_point_motion_U</code>); <code>V</code>, the y-axis displacement, uniformly -8 pixels (right, <code>multi_point_motion_V</code>) — VIC-2D's own $y$-axis points opposite <code>dictk</code>'s, so its sign is flipped from this page's <code>dy = 8</code> even though both describe the identical physical motion.</figcaption>
 </figure>
 
 Across the 2861 subsets VIC-2D correlated successfully (109 more, all
