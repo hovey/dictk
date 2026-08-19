@@ -66,23 +66,18 @@ This mapping allows:
 - Use of the same shape functions for geometry and displacement (isoparametric concept)
 
 The isoparametric coordinates $(\xi, \eta)$ range from $-1$ to $+1$ in both the $X$ and $Y$ directions. 
-The isoparametric coordinates $(\xi, \eta)$ range from $-1$ to $+1$ in both the $X$ and $Y$ directions. 
 
 The mapping between global coordinates $(X, Y)$ and local coordinates is introduced as a linear combination of local shape functions $N_{\mathrm{node}}(\boldsymbol{X})$:
 
 $$
-\boldsymbol{X}(\boldsymbol{\xi}) = 
 \boldsymbol{X}(\boldsymbol{\xi}) = 
 \begin{Bmatrix}
 X(\xi, \eta) \\
 Y(\xi, \eta)
 \end{Bmatrix}
 = \sum_{a=1}^{4} N_a(\boldsymbol{\xi}) \boldsymbol{X}_a
-= \sum_{a=1}^{4} N_a(\boldsymbol{\xi}) \boldsymbol{X}_a
 = \sum_{a=1}^{4} N_a(\xi, \eta)
 \begin{Bmatrix}
-X_a \\
-Y_a
 X_a \\
 Y_a
 \end{Bmatrix}
@@ -127,12 +122,7 @@ The Jacobian matrix $\boldsymbol{j}_0$ relates derivatives in local coordinates 
 
 $$
 \boldsymbol{X} = 
-\boldsymbol{X} = 
 \begin{bmatrix}
-X_1 & Y_1 \\
-X_2 & Y_2 \\
-X_3 & Y_3 \\
-X_4 & Y_4
 X_1 & Y_1 \\
 X_2 & Y_2 \\
 X_3 & Y_3 \\
@@ -145,8 +135,6 @@ the Jacobian matrix $\boldsymbol{j}_0$ is computed as:
 $$
 \boldsymbol{j}_0(\boldsymbol{\xi}) := \frac{\partial \boldsymbol{X}(\boldsymbol{\xi})}{\partial \boldsymbol{\xi}} 
 = \begin{bmatrix}
-\frac{\partial X}{\partial \xi} & \frac{\partial Y}{\partial \xi} \\[1em]
-\frac{\partial X}{\partial \eta} & \frac{\partial Y}{\partial \eta}
 \frac{\partial X}{\partial \xi} & \frac{\partial Y}{\partial \xi} \\[1em]
 \frac{\partial X}{\partial \eta} & \frac{\partial Y}{\partial \eta}
 \end{bmatrix}_{2 \times 2}
@@ -172,20 +160,14 @@ Since
 $$
 \frac{\partial N_a}{\partial X} = 
 \frac{\partial N_a}{\partial \xi} \frac{\partial \xi}{\partial X}
-\frac{\partial N_a}{\partial X} = 
-\frac{\partial N_a}{\partial \xi} \frac{\partial \xi}{\partial X}
 +
-\frac{\partial N_a}{\partial \eta} \frac{\partial \eta}{\partial X}
 \frac{\partial N_a}{\partial \eta} \frac{\partial \eta}{\partial X}
 $$
 
 $$
 \frac{\partial N_a}{\partial Y} = 
 \frac{\partial N_a}{\partial \xi} \frac{\partial \xi}{\partial Y}
-\frac{\partial N_a}{\partial Y} = 
-\frac{\partial N_a}{\partial \xi} \frac{\partial \xi}{\partial Y}
 +
-\frac{\partial N_a}{\partial \eta} \frac{\partial \eta}{\partial Y}
 \frac{\partial N_a}{\partial \eta} \frac{\partial \eta}{\partial Y}
 $$
 
@@ -195,13 +177,9 @@ $$
 \begin{bmatrix}
 \frac{\partial N_a}{\partial X} \\[1em]
 \frac{\partial N_a}{\partial Y}
-\frac{\partial N_a}{\partial X} \\[1em]
-\frac{\partial N_a}{\partial Y}
 \end{bmatrix}
 =
 \begin{bmatrix}
-\frac{\partial \xi}{\partial X} & \frac{\partial \eta}{\partial X} \\[1em]
-\frac{\partial \xi}{\partial Y} & \frac{\partial \eta}{\partial Y}
 \frac{\partial \xi}{\partial X} & \frac{\partial \eta}{\partial X} \\[1em]
 \frac{\partial \xi}{\partial Y} & \frac{\partial \eta}{\partial Y}
 \end{bmatrix}_{2 \times 2}
@@ -226,10 +204,7 @@ where:
 
 $$
 \frac{\partial \boldsymbol{N}}{\partial \boldsymbol{X}} = 
-\frac{\partial \boldsymbol{N}}{\partial \boldsymbol{X}} = 
 \begin{bmatrix}
-\frac{\partial N_1}{\partial X} & \frac{\partial N_2}{\partial X} & \frac{\partial N_3}{\partial X} & \frac{\partial N_4}{\partial X} \\[0.5em]
-\frac{\partial N_1}{\partial Y} & \frac{\partial N_2}{\partial Y} & \frac{\partial N_3}{\partial Y} & \frac{\partial N_4}{\partial Y}
 \frac{\partial N_1}{\partial X} & \frac{\partial N_2}{\partial X} & \frac{\partial N_3}{\partial X} & \frac{\partial N_4}{\partial X} \\[0.5em]
 \frac{\partial N_1}{\partial Y} & \frac{\partial N_2}{\partial Y} & \frac{\partial N_3}{\partial Y} & \frac{\partial N_4}{\partial Y}
 \end{bmatrix}_{2 \times 4}
@@ -238,11 +213,8 @@ $$
 ### Displacement Field
 
 The displacement $\boldsymbol{u}(\boldsymbol{X})$ is defined as the difference between the current configuration $\boldsymbol{\varphi}(\boldsymbol{X})$ and the reference configuration $\boldsymbol{X}$,
-The displacement $\boldsymbol{u}(\boldsymbol{X})$ is defined as the difference between the current configuration $\boldsymbol{\varphi}(\boldsymbol{X})$ and the reference configuration $\boldsymbol{X}$,
 
 $$
-\boldsymbol{u}(\boldsymbol{X}) :=
-\boldsymbol{\varphi}(\boldsymbol{X}) - \boldsymbol{X}
 \boldsymbol{u}(\boldsymbol{X}) :=
 \boldsymbol{\varphi}(\boldsymbol{X}) - \boldsymbol{X}
 $$
@@ -264,14 +236,11 @@ v_a
 $$
 
 where $(u_a, v_a)$ is the respective $(X, Y)$ displacement of node $a$, and $a = 1 \ldots 4$.
-where $(u_a, v_a)$ is the respective $(X, Y)$ displacement of node $a$, and $a = 1 \ldots 4$.
 
 ### Displacement Gradient
 
 $$\boldsymbol{\nabla}_0\,\boldsymbol{u}(\boldsymbol{X}) =
 \begin{bmatrix}
-\frac{\partial u}{\partial X} & \frac{\partial u}{\partial Y} \\[1em]
-\frac{\partial v}{\partial X} & \frac{\partial v}{\partial Y}
 \frac{\partial u}{\partial X} & \frac{\partial u}{\partial Y} \\[1em]
 \frac{\partial v}{\partial X} & \frac{\partial v}{\partial Y}
 \end{bmatrix}_{2 \times 2}
@@ -281,10 +250,6 @@ Each component is computed using the chain rule:
 
 $$
 \begin{align}
-\frac{\partial u}{\partial X} &= \sum_{a=1}^{4} \frac{\partial N_a}{\partial X} u_a \\[1em]
-\frac{\partial u}{\partial Y} &= \sum_{a=1}^{4} \frac{\partial N_a}{\partial Y} u_a \\[1em]
-\frac{\partial v}{\partial X} &= \sum_{a=1}^{4} \frac{\partial N_a}{\partial X} v_a \\[1em]
-\frac{\partial v}{\partial Y} &= \sum_{a=1}^{4} \frac{\partial N_a}{\partial Y} v_a
 \frac{\partial u}{\partial X} &= \sum_{a=1}^{4} \frac{\partial N_a}{\partial X} u_a \\[1em]
 \frac{\partial u}{\partial Y} &= \sum_{a=1}^{4} \frac{\partial N_a}{\partial Y} u_a \\[1em]
 \frac{\partial v}{\partial X} &= \sum_{a=1}^{4} \frac{\partial N_a}{\partial X} v_a \\[1em]
@@ -317,10 +282,8 @@ The deformation gradient tensor $\boldsymbol{F}(\boldsymbol{X})$ maps material p
 
 $$
 \boldsymbol{F}(\boldsymbol{X}) := \frac{\partial \boldsymbol{\varphi}(\boldsymbol{X})}{\partial \boldsymbol{X}}
-\boldsymbol{F}(\boldsymbol{X}) := \frac{\partial \boldsymbol{\varphi}(\boldsymbol{X})}{\partial \boldsymbol{X}}
 $$
 
-Because $\boldsymbol{u}(\boldsymbol{X})= \boldsymbol{\varphi}(\boldsymbol{X}) - \boldsymbol{X}$, 
 Because $\boldsymbol{u}(\boldsymbol{X})= \boldsymbol{\varphi}(\boldsymbol{X}) - \boldsymbol{X}$, 
 
 $$
@@ -340,8 +303,6 @@ F_{21} & F_{22}
 \end{bmatrix}
 =
 \begin{bmatrix}
-\frac{\partial u}{\partial X} + 1 & \frac{\partial u}{\partial Y} \\[0.5em]
-\frac{\partial v}{\partial X} & \frac{\partial v}{\partial Y} + 1
 \frac{\partial u}{\partial X} + 1 & \frac{\partial u}{\partial Y} \\[0.5em]
 \frac{\partial v}{\partial X} & \frac{\partial v}{\partial Y} + 1
 \end{bmatrix}
