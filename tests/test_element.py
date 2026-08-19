@@ -4,10 +4,12 @@ import pytest
 from dictk.element import (
     deformation_gradient,
     displacement_gradient,
-    gauss_point_strains,
+    gauss_point_green_lagrange_strains,
+    gauss_point_log_strains,
     gauss_points,
     green_lagrange_strain,
     jacobian,
+    log_strain,
     shape_function_derivatives,
     shape_function_gradients,
     shape_functions,
@@ -134,23 +136,58 @@ def test_green_lagrange_strain_at_identity_is_zero():
     )
 
 
-def test_gauss_point_strains_requires_keyword_arguments():
+def test_log_strain_requires_keyword_arguments():
     with pytest.raises(TypeError):
-        gauss_point_strains(UNIT_SQUARE, UNIT_SQUARE)
+        log_strain(np.eye(2))
 
 
-def test_gauss_point_strains_wrong_length_raises():
+def test_log_strain_at_identity_is_zero():
+    assert np.allclose(log_strain(deformation_gradient=np.eye(2)), np.zeros((2, 2)))
+
+
+def test_log_strain_matches_closed_form_uniaxial_stretch():
+    """A pure axis-aligned stretch has no rotation, so U = F exactly, and
+    ln(U) is diagonal with ln(stretch factor) on the diagonal -- an
+    independent closed-form check of the spectral-decomposition result."""
+    f = np.diag([1.05, 1.0])
+    e = log_strain(deformation_gradient=f)
+    assert np.isclose(e[0, 0], np.log(1.05))
+    assert np.isclose(e[0, 1], 0.0)
+    assert np.isclose(e[1, 0], 0.0)
+    assert np.isclose(e[1, 1], 0.0)
+
+
+def test_log_strain_matches_scipy_matrix_log_for_a_general_case():
+    """Cross-check the eigendecomposition-based formula against scipy's
+    general matrix logarithm on a case with shear, where U != F, so the
+    closed-form diagonal shortcut above doesn't apply."""
+    import scipy.linalg
+
+    f = np.array([[1.05, 0.1], [0.02, 0.98]])
+    e = log_strain(deformation_gradient=f)
+    c = f.T @ f
+    u = scipy.linalg.sqrtm(c)
+    expected = np.real(scipy.linalg.logm(u))
+    assert np.allclose(e, expected)
+
+
+def test_gauss_point_green_lagrange_strains_requires_keyword_arguments():
+    with pytest.raises(TypeError):
+        gauss_point_green_lagrange_strains(UNIT_SQUARE, UNIT_SQUARE)
+
+
+def test_gauss_point_green_lagrange_strains_wrong_length_raises():
     with pytest.raises(ValueError):
-        gauss_point_strains(
+        gauss_point_green_lagrange_strains(
             reference_points=UNIT_SQUARE[:3], current_points=UNIT_SQUARE
         )
     with pytest.raises(ValueError):
-        gauss_point_strains(
+        gauss_point_green_lagrange_strains(
             reference_points=UNIT_SQUARE, current_points=UNIT_SQUARE[:3]
         )
 
 
-def test_gauss_point_strains_matches_hdic_worked_example():
+def test_gauss_point_green_lagrange_strains_matches_hdic_worked_example():
     """The primary regression anchor: hdic's own example_04a.md and its
     tests/test_fea.py independently agree that a unit square stretched
     5% in x gives E11 = 0.05125 exactly, at every Gauss point (a uniform
@@ -165,7 +202,9 @@ def test_gauss_point_strains_matches_hdic_worked_example():
         PixelCoordinate(x=1.05, y=1),
         PixelCoordinate(x=0, y=1),
     ]
-    strains = gauss_point_strains(reference_points=reference, current_points=current)
+    strains = gauss_point_green_lagrange_strains(
+        reference_points=reference, current_points=current
+    )
     assert len(strains) == 4
     for e in strains:
         assert e.shape == (2, 2)
@@ -175,8 +214,55 @@ def test_gauss_point_strains_matches_hdic_worked_example():
         assert np.isclose(e[1, 1], 0.0)
 
 
-def test_gauss_point_strains_zero_displacement_is_zero_strain():
-    strains = gauss_point_strains(
+def test_gauss_point_green_lagrange_strains_zero_displacement_is_zero_strain():
+    strains = gauss_point_green_lagrange_strains(
+        reference_points=UNIT_SQUARE, current_points=UNIT_SQUARE
+    )
+    for e in strains:
+        assert np.allclose(e, np.zeros((2, 2)))
+
+
+def test_gauss_point_log_strains_requires_keyword_arguments():
+    with pytest.raises(TypeError):
+        gauss_point_log_strains(UNIT_SQUARE, UNIT_SQUARE)
+
+
+def test_gauss_point_log_strains_wrong_length_raises():
+    with pytest.raises(ValueError):
+        gauss_point_log_strains(
+            reference_points=UNIT_SQUARE[:3], current_points=UNIT_SQUARE
+        )
+    with pytest.raises(ValueError):
+        gauss_point_log_strains(
+            reference_points=UNIT_SQUARE, current_points=UNIT_SQUARE[:3]
+        )
+
+
+def test_gauss_point_log_strains_matches_closed_form_uniaxial_stretch():
+    """Same scenario as the Green-Lagrange regression anchor above (5%
+    uniaxial x-stretch, exact everywhere since it's affine), but checked
+    against log strain's own closed form: ln(1.05), not 0.5*(1.05**2-1)."""
+    reference = UNIT_SQUARE
+    current = [
+        PixelCoordinate(x=0, y=0),
+        PixelCoordinate(x=1.05, y=0),
+        PixelCoordinate(x=1.05, y=1),
+        PixelCoordinate(x=0, y=1),
+    ]
+    strains = gauss_point_log_strains(
+        reference_points=reference, current_points=current
+    )
+    assert len(strains) == 4
+    for e in strains:
+        assert e.shape == (2, 2)
+        assert np.isclose(e[0, 0], np.log(1.05))
+        assert np.isclose(e[0, 1], 0.0)
+        assert np.isclose(e[1, 0], 0.0)
+        assert np.isclose(e[1, 1], 0.0)
+
+
+def test_gauss_point_log_strains_zero_displacement_is_zero_strain():
+    strains = gauss_point_log_strains(
         reference_points=UNIT_SQUARE, current_points=UNIT_SQUARE
     )
     for e in strains:
