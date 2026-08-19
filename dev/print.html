@@ -3049,10 +3049,14 @@ for i, point in enumerate(points):
 a widely used commercial DIC package, to verify agreement with <code>dictk</code>.</p>
 <figure>
     <div style="display: flex; gap: 1em;">
-        <img src="getting_started/../verification/multi_point_motion_U_result_vic.png" alt="VIC-2D's recovered U (x-displacement) field for the dx=-6, dy=8 example, showing a uniform displacement of -6 pixels across the specimen" style="flex: 1 1 0; min-width: 0;" />
-        <img src="getting_started/../verification/multi_point_motion_V_result_vic.png" alt="VIC-2D's recovered V (y-displacement) field for the dx=-6, dy=8 example, showing a uniform displacement of -8 pixels across the specimen in VIC-2D's own sign convention" style="flex: 1 1 0; min-width: 0;" />
+        <a href="getting_started/../verification/multi_point_motion_U_result_vic.png" target="_blank" rel="noopener" style="flex: 1 1 0; min-width: 0;">
+            <img src="getting_started/../verification/multi_point_motion_U_result_vic.png" alt="VIC-2D's recovered U (x-displacement) field for the dx=-6, dy=8 example, showing a uniform displacement of -6 pixels across the specimen" style="width: 100%;" />
+        </a>
+        <a href="getting_started/../verification/multi_point_motion_V_result_vic.png" target="_blank" rel="noopener" style="flex: 1 1 0; min-width: 0;">
+            <img src="getting_started/../verification/multi_point_motion_V_result_vic.png" alt="VIC-2D's recovered V (y-displacement) field for the dx=-6, dy=8 example, showing a uniform displacement of -8 pixels across the specimen in VIC-2D's own sign convention" style="width: 100%;" />
+        </a>
     </div>
-    <figcaption>VIC-2D's own verified displacement fields for this page's <code>dx = -6</code>, <code>dy = 8</code> example: <code>U</code>, the x-axis displacement, uniformly -6 pixels (left, <code>multi_point_motion_U</code>); <code>V</code>, the y-axis displacement, uniformly -8 pixels (right, <code>multi_point_motion_V</code>) — VIC-2D's own <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>-axis points opposite `dictk`'s, so its sign is flipped from this page's <code>dy = 8</code> even though both describe the identical physical motion.</figcaption>
+    <figcaption>VIC-2D's own verified displacement fields for this page's <code>dx = -6</code>, <code>dy = 8</code> example (click either image for the full-size version): <code>U</code>, the x-axis displacement, uniformly -6 pixels (left, <code>multi_point_motion_U</code>); <code>V</code>, the y-axis displacement, uniformly -8 pixels (right, <code>multi_point_motion_V</code>) — VIC-2D's own <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>-axis points opposite <code>dictk</code>'s, so its sign is flipped from this page's <code>dy = 8</code> even though both describe the identical physical motion.</figcaption>
 </figure>
 <p>Across the 2861 subsets VIC-2D correlated successfully (109 more, all
 along the image's outer edge, fell outside the shifted current image and
@@ -3250,6 +3254,23 @@ deformation too.</p>
 motion is a rigid shift or a stretch:
 <a href="getting_started/./recoverable_displacement_range.html">Recoverable Displacement Range</a> picks
 up from here.</p>
+<h2 id="strain"><a class="header" href="#strain">Strain</a></h2>
+<p>Visualizing strain results is a combination of mathematical accuracy and
+visual clarity. One might want to plot the "raw" data at the Gauss
+points, since that is the location within the element where the FEA
+solver actually calculates strain, making it the most accurate.
+However, this manner of visualization causes jumps (discontinuities) at
+element boundaries.</p>
+<p>The professional standard is to calculate strain at the Gauss points,
+extrapolate the results to the nodes, and then report the <strong>nodal
+average</strong> from all adjacent elements to create a smooth contour plot.</p>
+<p>For now, let's report the strain at the Gauss points.</p>
+<p><code>dictk</code> doesn't compute strain yet — <a href="getting_started/./finite_element_method.html">Finite Element
+Method</a> covers the Q4 element formulation
+and the deformation gradient <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">F</span></span></span><span class="mopen">(</span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.07778em;">X</span></span></span><span class="mclose">)</span></span></span></span> strain is
+built from, but no Gauss-point or mesh-level machinery exists in the
+codebase to actually evaluate it on tracked points like the twelve
+above. That's the next piece of work this page is waiting on.</p>
 <h2 id="data-download-1"><a class="header" href="#data-download-1">Data Download</a></h2>
 <p>Every image this page used is downloadable below, as a TIFF. Download
 files individually, or all at once: one compressed zip file bundles
@@ -3346,7 +3367,40 @@ for i, point in enumerate(points):
 <tr><td><a href="getting_started/search_area_stretch_10.tiff">search_area_stretch_10.tiff</a></td><td>10</td><td>(52, 163)</td></tr>
 <tr><td><a href="getting_started/search_area_stretch_11.tiff">search_area_stretch_11.tiff</a></td><td>11</td><td>(102, 163)</td></tr>
 </tbody></table>
-</div><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+</div>
+<h2 id="verification-against-vic-2d-1"><a class="header" href="#verification-against-vic-2d-1">Verification Against VIC-2D</a></h2>
+<p><a href="getting_started/./path_forward.html#2026-08-11">Path Forward</a> names a direction worth
+pursuing: running this book's own synthetic datasets through established
+DIC software, and comparing directly against <code>dictk</code>'s own results. This
+page's own <code>factor_x = 1.02</code> stretch was run through
+<a href="https://www.correlatedsolutions.com/vic-2d/">VIC-2D</a> (Correlated
+Solutions, Inc.), independently of <code>dictk</code>. Unlike <a href="getting_started/./multi_point_motion.html#verification-against-vic-2d">Multi-Point
+Motion</a>'s
+comparison, this one isn't against a <code>dictk</code>-computed value —
+<code>dictk</code> doesn't compute strain anywhere on this page yet, only
+displacement — so it's checked directly against the closed-form
+analytical strain a <code>factor_x = 1.02</code> stretch implies instead:</p>
+<figure>
+    <a href="getting_started/../verification/simple_stretch_result_vic.png" target="_blank" rel="noopener">
+        <img src="getting_started/../verification/simple_stretch_result_vic.png" alt="VIC-2D's measured exx (logarithmic Euler strain) field for the factor_x=1.02 stretch example, a striped noisy pattern averaging around 19900 microstrain, with a horizontal extensometer line annotated E0: 19905.2 microstrain" />
+    </a>
+    <figcaption>VIC-2D's own measured <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">xx</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> (logarithmic/Euler strain) field for this page's <code>factor_x = 1.02</code> stretch (click to enlarge). The horizontal line is VIC-2D's own extensometer annotation, reading 19905.2 microstrain along that path.</figcaption>
+</figure>
+<p>Across the 2682 subsets VIC-2D correlated successfully (180 more,
+along the image's outer edge, masked out), <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">xx</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> averages
+19875.8 microstrain — close to, but noisier than,
+<a href="getting_started/./multi_point_motion.html#verification-against-vic-2d">Multi-Point Motion</a>'s
+displacement match, since strain is a spatial derivative of already-noisy
+per-point displacement data, not a directly measured quantity. The
+analytical logarithmic (true/Euler) strain a <code>factor_x = 1.02</code> stretch
+implies is <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">ln</span><span class="mopen">(</span><span class="mord">1.02</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">19802.6</span></span></span></span> microstrain —
+VIC-2D's own mean lands within 0.4% of it.</p>
+<p>The full, subset-by-subset VIC-2D output —
+<a href="getting_started/../verification/simple_stretch_vic_out.csv"><code>simple_stretch_vic_out.csv</code></a>
+— is available for closer inspection: every subset's position,
+displacement, strain, and correlation quality metrics, not just the
+summary field shown above.</p>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="recoverable-displacement-range"><a class="header" href="#recoverable-displacement-range">Recoverable Displacement Range</a></h1>
 <p><a href="getting_started/./simple_stretch.html">Simple Stretch</a> raised a natural follow-up
 question: how far can <code>astronaut0</code> be stretched, or compressed, before
