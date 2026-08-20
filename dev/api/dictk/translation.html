@@ -55,6 +55,9 @@
             <li>
                     <a class="function" href="#locate">locate</a>
             </li>
+            <li>
+                    <a class="function" href="#locate_subpixel">locate_subpixel</a>
+            </li>
     </ul>
 
 
@@ -84,7 +87,7 @@
 </span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">skimage.registration</span><span class="w"> </span><span class="kn">import</span> <span class="n">phase_cross_correlation</span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a>
 </span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">dictk.correlation</span><span class="w"> </span><span class="kn">import</span> <span class="n">WindowingMethod</span><span class="p">,</span> <span class="n">_kernel_pad</span><span class="p">,</span> <span class="n">_window</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">dictk.image</span><span class="w"> </span><span class="kn">import</span> <span class="n">PixelCoordinate</span><span class="p">,</span> <span class="n">subimage</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">dictk.image</span><span class="w"> </span><span class="kn">import</span> <span class="n">PixelCoordinate</span><span class="p">,</span> <span class="n">SubpixelCoordinate</span><span class="p">,</span> <span class="n">subimage</span>
 </span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a>
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a>
 </span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="k">def</span><span class="w"> </span><span class="nf">locate</span><span class="p">(</span>
@@ -277,6 +280,144 @@
 </span><span id="L-197"><a href="#L-197"><span class="linenos">197</span></a>        <span class="n">x</span><span class="o">=</span><span class="n">search_origin</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">shift</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">kernel_margin_width</span> <span class="o">+</span> <span class="n">pad_before_width</span><span class="p">,</span>
 </span><span id="L-198"><a href="#L-198"><span class="linenos">198</span></a>        <span class="n">y</span><span class="o">=</span><span class="n">search_origin</span><span class="o">.</span><span class="n">y</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">shift</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">kernel_margin_height</span> <span class="o">+</span> <span class="n">pad_before_height</span><span class="p">,</span>
 </span><span id="L-199"><a href="#L-199"><span class="linenos">199</span></a>    <span class="p">)</span>
+</span><span id="L-200"><a href="#L-200"><span class="linenos">200</span></a>
+</span><span id="L-201"><a href="#L-201"><span class="linenos">201</span></a>
+</span><span id="L-202"><a href="#L-202"><span class="linenos">202</span></a><span class="k">def</span><span class="w"> </span><span class="nf">locate_subpixel</span><span class="p">(</span>
+</span><span id="L-203"><a href="#L-203"><span class="linenos">203</span></a>    <span class="o">*</span><span class="p">,</span>
+</span><span id="L-204"><a href="#L-204"><span class="linenos">204</span></a>    <span class="n">reference_image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+</span><span id="L-205"><a href="#L-205"><span class="linenos">205</span></a>    <span class="n">current_image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+</span><span id="L-206"><a href="#L-206"><span class="linenos">206</span></a>    <span class="n">reference_point</span><span class="p">:</span> <span class="n">PixelCoordinate</span><span class="p">,</span>
+</span><span id="L-207"><a href="#L-207"><span class="linenos">207</span></a>    <span class="n">search_center</span><span class="p">:</span> <span class="n">PixelCoordinate</span><span class="p">,</span>
+</span><span id="L-208"><a href="#L-208"><span class="linenos">208</span></a>    <span class="n">kernel_margin_width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="L-209"><a href="#L-209"><span class="linenos">209</span></a>    <span class="n">kernel_margin_height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="L-210"><a href="#L-210"><span class="linenos">210</span></a>    <span class="n">search_margin_width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="L-211"><a href="#L-211"><span class="linenos">211</span></a>    <span class="n">search_margin_height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="L-212"><a href="#L-212"><span class="linenos">212</span></a>    <span class="n">windowing</span><span class="p">:</span> <span class="n">WindowingMethod</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="L-213"><a href="#L-213"><span class="linenos">213</span></a>    <span class="n">upsample_factor</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+</span><span id="L-214"><a href="#L-214"><span class="linenos">214</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SubpixelCoordinate</span><span class="p">:</span>
+</span><span id="L-215"><a href="#L-215"><span class="linenos">215</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The subpixel-accurate sibling of [`locate`](#locate): recovers a</span>
+</span><span id="L-216"><a href="#L-216"><span class="linenos">216</span></a><span class="sd">    fractional position instead of rounding it away.</span>
+</span><span id="L-217"><a href="#L-217"><span class="linenos">217</span></a>
+</span><span id="L-218"><a href="#L-218"><span class="linenos">218</span></a><span class="sd">    Same kernel/search extraction, windowing, and centered padding as</span>
+</span><span id="L-219"><a href="#L-219"><span class="linenos">219</span></a><span class="sd">    `locate` -- deliberately a separate function, not a parameter added</span>
+</span><span id="L-220"><a href="#L-220"><span class="linenos">220</span></a><span class="sd">    to it, so `locate`&#39;s own return type (`PixelCoordinate`, always</span>
+</span><span id="L-221"><a href="#L-221"><span class="linenos">221</span></a><span class="sd">    `int`) never changes shape based on an argument. `locate` truncates</span>
+</span><span id="L-222"><a href="#L-222"><span class="linenos">222</span></a><span class="sd">    `phase_cross_correlation`&#39;s shift to the nearest whole pixel with</span>
+</span><span id="L-223"><a href="#L-223"><span class="linenos">223</span></a><span class="sd">    `int()`; this function instead requests a refined, generally</span>
+</span><span id="L-224"><a href="#L-224"><span class="linenos">224</span></a><span class="sd">    fractional shift from `phase_cross_correlation` itself</span>
+</span><span id="L-225"><a href="#L-225"><span class="linenos">225</span></a><span class="sd">    (`upsample_factor`) and returns it directly, undiscarded.</span>
+</span><span id="L-226"><a href="#L-226"><span class="linenos">226</span></a>
+</span><span id="L-227"><a href="#L-227"><span class="linenos">227</span></a><span class="sd">    `upsample_factor` does not &quot;fix&quot; `locate`&#39;s own exact-integer</span>
+</span><span id="L-228"><a href="#L-228"><span class="linenos">228</span></a><span class="sd">    matching in the way it might sound like it should: if the true</span>
+</span><span id="L-229"><a href="#L-229"><span class="linenos">229</span></a><span class="sd">    displacement genuinely isn&#39;t an integer (a stretch&#39;s own resampling</span>
+</span><span id="L-230"><a href="#L-230"><span class="linenos">230</span></a><span class="sd">    can easily make this true even for an otherwise-integer-pixel</span>
+</span><span id="L-231"><a href="#L-231"><span class="linenos">231</span></a><span class="sd">    target -- see [Subpixel</span>
+</span><span id="L-232"><a href="#L-232"><span class="linenos">232</span></a><span class="sd">    Accuracy](../getting_started/subpixel_accuracy.html)), no amount of</span>
+</span><span id="L-233"><a href="#L-233"><span class="linenos">233</span></a><span class="sd">    refinement makes `locate`&#39;s truncated answer correct, because</span>
+</span><span id="L-234"><a href="#L-234"><span class="linenos">234</span></a><span class="sd">    `locate`&#39;s question (&quot;which integer pixel?&quot;) isn&#39;t the right one to</span>
+</span><span id="L-235"><a href="#L-235"><span class="linenos">235</span></a><span class="sd">    ask anymore. What subpixel refinement *does* reliably improve is how</span>
+</span><span id="L-236"><a href="#L-236"><span class="linenos">236</span></a><span class="sd">    close the returned position lands to the true, generally fractional,</span>
+</span><span id="L-237"><a href="#L-237"><span class="linenos">237</span></a><span class="sd">    target -- a different, and for a real (non-integer) displacement, a</span>
+</span><span id="L-238"><a href="#L-238"><span class="linenos">238</span></a><span class="sd">    more honest question.</span>
+</span><span id="L-239"><a href="#L-239"><span class="linenos">239</span></a>
+</span><span id="L-240"><a href="#L-240"><span class="linenos">240</span></a><span class="sd">    Args:</span>
+</span><span id="L-241"><a href="#L-241"><span class="linenos">241</span></a><span class="sd">        reference_image: The reference (undeformed) 2D grayscale image.</span>
+</span><span id="L-242"><a href="#L-242"><span class="linenos">242</span></a><span class="sd">        current_image: The current (deformed) 2D grayscale image.</span>
+</span><span id="L-243"><a href="#L-243"><span class="linenos">243</span></a><span class="sd">        reference_point: The point&#39;s fixed, known position, in</span>
+</span><span id="L-244"><a href="#L-244"><span class="linenos">244</span></a><span class="sd">            `reference_image`&#39;s pixel reference frame.</span>
+</span><span id="L-245"><a href="#L-245"><span class="linenos">245</span></a><span class="sd">        search_center: Where to center the search area, in</span>
+</span><span id="L-246"><a href="#L-246"><span class="linenos">246</span></a><span class="sd">            `current_image`&#39;s pixel reference frame -- see `locate`&#39;s</span>
+</span><span id="L-247"><a href="#L-247"><span class="linenos">247</span></a><span class="sd">            own docstring for the full explanation of this parameter.</span>
+</span><span id="L-248"><a href="#L-248"><span class="linenos">248</span></a><span class="sd">        kernel_margin_width: Half the kernel&#39;s width, in pixels. Must</span>
+</span><span id="L-249"><a href="#L-249"><span class="linenos">249</span></a><span class="sd">            be &gt;= 1.</span>
+</span><span id="L-250"><a href="#L-250"><span class="linenos">250</span></a><span class="sd">        kernel_margin_height: Half the kernel&#39;s height, in pixels. Must</span>
+</span><span id="L-251"><a href="#L-251"><span class="linenos">251</span></a><span class="sd">            be &gt;= 1.</span>
+</span><span id="L-252"><a href="#L-252"><span class="linenos">252</span></a><span class="sd">        search_margin_width: Half the search area&#39;s width, in pixels.</span>
+</span><span id="L-253"><a href="#L-253"><span class="linenos">253</span></a><span class="sd">            Must be greater than `kernel_margin_width`.</span>
+</span><span id="L-254"><a href="#L-254"><span class="linenos">254</span></a><span class="sd">        search_margin_height: Half the search area&#39;s height, in pixels.</span>
+</span><span id="L-255"><a href="#L-255"><span class="linenos">255</span></a><span class="sd">            Must be greater than `kernel_margin_height`.</span>
+</span><span id="L-256"><a href="#L-256"><span class="linenos">256</span></a><span class="sd">        windowing: Passed straight through to</span>
+</span><span id="L-257"><a href="#L-257"><span class="linenos">257</span></a><span class="sd">            [`dictk.correlation.window`](./correlation.html#window),</span>
+</span><span id="L-258"><a href="#L-258"><span class="linenos">258</span></a><span class="sd">            same as `locate`&#39;s own `windowing` parameter.</span>
+</span><span id="L-259"><a href="#L-259"><span class="linenos">259</span></a><span class="sd">        upsample_factor: Passed straight through to</span>
+</span><span id="L-260"><a href="#L-260"><span class="linenos">260</span></a><span class="sd">            `skimage.registration.phase_cross_correlation`&#39;s own</span>
+</span><span id="L-261"><a href="#L-261"><span class="linenos">261</span></a><span class="sd">            `upsample_factor` -- images are registered to within</span>
+</span><span id="L-262"><a href="#L-262"><span class="linenos">262</span></a><span class="sd">            `1 / upsample_factor` of a pixel. Default `100`, matching</span>
+</span><span id="L-263"><a href="#L-263"><span class="linenos">263</span></a><span class="sd">            the point past which [Subpixel</span>
+</span><span id="L-264"><a href="#L-264"><span class="linenos">264</span></a><span class="sd">            Accuracy](../getting_started/subpixel_accuracy.html) found</span>
+</span><span id="L-265"><a href="#L-265"><span class="linenos">265</span></a><span class="sd">            diminishing returns (`10` was already close to `100`&#39;s own</span>
+</span><span id="L-266"><a href="#L-266"><span class="linenos">266</span></a><span class="sd">            accuracy in that measurement). Must be &gt;= 1.</span>
+</span><span id="L-267"><a href="#L-267"><span class="linenos">267</span></a>
+</span><span id="L-268"><a href="#L-268"><span class="linenos">268</span></a><span class="sd">    Returns:</span>
+</span><span id="L-269"><a href="#L-269"><span class="linenos">269</span></a><span class="sd">        The point&#39;s location, in `current_image`&#39;s pixel reference</span>
+</span><span id="L-270"><a href="#L-270"><span class="linenos">270</span></a><span class="sd">        frame, generally fractional.</span>
+</span><span id="L-271"><a href="#L-271"><span class="linenos">271</span></a>
+</span><span id="L-272"><a href="#L-272"><span class="linenos">272</span></a><span class="sd">    Raises:</span>
+</span><span id="L-273"><a href="#L-273"><span class="linenos">273</span></a><span class="sd">        ValueError: If `kernel_margin_width` or `kernel_margin_height` is</span>
+</span><span id="L-274"><a href="#L-274"><span class="linenos">274</span></a><span class="sd">            less than 1, either `search_margin_width`/</span>
+</span><span id="L-275"><a href="#L-275"><span class="linenos">275</span></a><span class="sd">            `search_margin_height` is not greater than its kernel</span>
+</span><span id="L-276"><a href="#L-276"><span class="linenos">276</span></a><span class="sd">            counterpart, or `upsample_factor` is less than 1.</span>
+</span><span id="L-277"><a href="#L-277"><span class="linenos">277</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-278"><a href="#L-278"><span class="linenos">278</span></a>    <span class="k">if</span> <span class="n">kernel_margin_width</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="L-279"><a href="#L-279"><span class="linenos">279</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;kernel_margin_width </span><span class="si">{</span><span class="n">kernel_margin_width</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
+</span><span id="L-280"><a href="#L-280"><span class="linenos">280</span></a>    <span class="k">if</span> <span class="n">kernel_margin_height</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="L-281"><a href="#L-281"><span class="linenos">281</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;kernel_margin_height </span><span class="si">{</span><span class="n">kernel_margin_height</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
+</span><span id="L-282"><a href="#L-282"><span class="linenos">282</span></a>    <span class="k">if</span> <span class="n">search_margin_width</span> <span class="o">&lt;=</span> <span class="n">kernel_margin_width</span><span class="p">:</span>
+</span><span id="L-283"><a href="#L-283"><span class="linenos">283</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="L-284"><a href="#L-284"><span class="linenos">284</span></a>            <span class="sa">f</span><span class="s2">&quot;search_margin_width </span><span class="si">{</span><span class="n">search_margin_width</span><span class="si">}</span><span class="s2"> must be greater than &quot;</span>
+</span><span id="L-285"><a href="#L-285"><span class="linenos">285</span></a>            <span class="sa">f</span><span class="s2">&quot;kernel_margin_width </span><span class="si">{</span><span class="n">kernel_margin_width</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="L-286"><a href="#L-286"><span class="linenos">286</span></a>        <span class="p">)</span>
+</span><span id="L-287"><a href="#L-287"><span class="linenos">287</span></a>    <span class="k">if</span> <span class="n">search_margin_height</span> <span class="o">&lt;=</span> <span class="n">kernel_margin_height</span><span class="p">:</span>
+</span><span id="L-288"><a href="#L-288"><span class="linenos">288</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="L-289"><a href="#L-289"><span class="linenos">289</span></a>            <span class="sa">f</span><span class="s2">&quot;search_margin_height </span><span class="si">{</span><span class="n">search_margin_height</span><span class="si">}</span><span class="s2"> must be greater than &quot;</span>
+</span><span id="L-290"><a href="#L-290"><span class="linenos">290</span></a>            <span class="sa">f</span><span class="s2">&quot;kernel_margin_height </span><span class="si">{</span><span class="n">kernel_margin_height</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="L-291"><a href="#L-291"><span class="linenos">291</span></a>        <span class="p">)</span>
+</span><span id="L-292"><a href="#L-292"><span class="linenos">292</span></a>    <span class="k">if</span> <span class="n">upsample_factor</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="L-293"><a href="#L-293"><span class="linenos">293</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;upsample_factor </span><span class="si">{</span><span class="n">upsample_factor</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
+</span><span id="L-294"><a href="#L-294"><span class="linenos">294</span></a>
+</span><span id="L-295"><a href="#L-295"><span class="linenos">295</span></a>    <span class="n">kernel_width</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">kernel_margin_width</span>
+</span><span id="L-296"><a href="#L-296"><span class="linenos">296</span></a>    <span class="n">kernel_height</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">kernel_margin_height</span>
+</span><span id="L-297"><a href="#L-297"><span class="linenos">297</span></a>    <span class="n">search_width</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">search_margin_width</span>
+</span><span id="L-298"><a href="#L-298"><span class="linenos">298</span></a>    <span class="n">search_height</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">search_margin_height</span>
+</span><span id="L-299"><a href="#L-299"><span class="linenos">299</span></a>
+</span><span id="L-300"><a href="#L-300"><span class="linenos">300</span></a>    <span class="n">kernel_origin</span> <span class="o">=</span> <span class="n">PixelCoordinate</span><span class="p">(</span>
+</span><span id="L-301"><a href="#L-301"><span class="linenos">301</span></a>        <span class="n">x</span><span class="o">=</span><span class="n">reference_point</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">kernel_margin_width</span><span class="p">,</span>
+</span><span id="L-302"><a href="#L-302"><span class="linenos">302</span></a>        <span class="n">y</span><span class="o">=</span><span class="n">reference_point</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">kernel_margin_height</span><span class="p">,</span>
+</span><span id="L-303"><a href="#L-303"><span class="linenos">303</span></a>    <span class="p">)</span>
+</span><span id="L-304"><a href="#L-304"><span class="linenos">304</span></a>    <span class="n">kernel</span> <span class="o">=</span> <span class="n">subimage</span><span class="p">(</span>
+</span><span id="L-305"><a href="#L-305"><span class="linenos">305</span></a>        <span class="n">image</span><span class="o">=</span><span class="n">reference_image</span><span class="p">,</span>
+</span><span id="L-306"><a href="#L-306"><span class="linenos">306</span></a>        <span class="n">origin</span><span class="o">=</span><span class="n">kernel_origin</span><span class="p">,</span>
+</span><span id="L-307"><a href="#L-307"><span class="linenos">307</span></a>        <span class="n">width</span><span class="o">=</span><span class="n">kernel_width</span><span class="p">,</span>
+</span><span id="L-308"><a href="#L-308"><span class="linenos">308</span></a>        <span class="n">height</span><span class="o">=</span><span class="n">kernel_height</span><span class="p">,</span>
+</span><span id="L-309"><a href="#L-309"><span class="linenos">309</span></a>    <span class="p">)</span>
+</span><span id="L-310"><a href="#L-310"><span class="linenos">310</span></a>
+</span><span id="L-311"><a href="#L-311"><span class="linenos">311</span></a>    <span class="n">search_origin</span> <span class="o">=</span> <span class="n">PixelCoordinate</span><span class="p">(</span>
+</span><span id="L-312"><a href="#L-312"><span class="linenos">312</span></a>        <span class="n">x</span><span class="o">=</span><span class="n">search_center</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">search_margin_width</span><span class="p">,</span>
+</span><span id="L-313"><a href="#L-313"><span class="linenos">313</span></a>        <span class="n">y</span><span class="o">=</span><span class="n">search_center</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">search_margin_height</span><span class="p">,</span>
+</span><span id="L-314"><a href="#L-314"><span class="linenos">314</span></a>    <span class="p">)</span>
+</span><span id="L-315"><a href="#L-315"><span class="linenos">315</span></a>    <span class="n">search</span> <span class="o">=</span> <span class="n">subimage</span><span class="p">(</span>
+</span><span id="L-316"><a href="#L-316"><span class="linenos">316</span></a>        <span class="n">image</span><span class="o">=</span><span class="n">current_image</span><span class="p">,</span>
+</span><span id="L-317"><a href="#L-317"><span class="linenos">317</span></a>        <span class="n">origin</span><span class="o">=</span><span class="n">search_origin</span><span class="p">,</span>
+</span><span id="L-318"><a href="#L-318"><span class="linenos">318</span></a>        <span class="n">width</span><span class="o">=</span><span class="n">search_width</span><span class="p">,</span>
+</span><span id="L-319"><a href="#L-319"><span class="linenos">319</span></a>        <span class="n">height</span><span class="o">=</span><span class="n">search_height</span><span class="p">,</span>
+</span><span id="L-320"><a href="#L-320"><span class="linenos">320</span></a>    <span class="p">)</span>
+</span><span id="L-321"><a href="#L-321"><span class="linenos">321</span></a>
+</span><span id="L-322"><a href="#L-322"><span class="linenos">322</span></a>    <span class="n">kernel</span><span class="p">,</span> <span class="n">search</span> <span class="o">=</span> <span class="n">_window</span><span class="p">(</span><span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> <span class="n">search</span><span class="o">=</span><span class="n">search</span><span class="p">,</span> <span class="n">windowing</span><span class="o">=</span><span class="n">windowing</span><span class="p">)</span>
+</span><span id="L-323"><a href="#L-323"><span class="linenos">323</span></a>    <span class="n">kernel_padded</span><span class="p">,</span> <span class="n">pad_before_height</span><span class="p">,</span> <span class="n">pad_before_width</span> <span class="o">=</span> <span class="n">_kernel_pad</span><span class="p">(</span>
+</span><span id="L-324"><a href="#L-324"><span class="linenos">324</span></a>        <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">search</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">centered</span><span class="o">=</span><span class="kc">True</span>
+</span><span id="L-325"><a href="#L-325"><span class="linenos">325</span></a>    <span class="p">)</span>
+</span><span id="L-326"><a href="#L-326"><span class="linenos">326</span></a>
+</span><span id="L-327"><a href="#L-327"><span class="linenos">327</span></a>    <span class="n">shift</span><span class="p">,</span> <span class="n">_error</span><span class="p">,</span> <span class="n">_phasediff</span> <span class="o">=</span> <span class="n">phase_cross_correlation</span><span class="p">(</span>
+</span><span id="L-328"><a href="#L-328"><span class="linenos">328</span></a>        <span class="n">reference_image</span><span class="o">=</span><span class="n">search</span><span class="p">,</span>
+</span><span id="L-329"><a href="#L-329"><span class="linenos">329</span></a>        <span class="n">moving_image</span><span class="o">=</span><span class="n">kernel_padded</span><span class="p">,</span>
+</span><span id="L-330"><a href="#L-330"><span class="linenos">330</span></a>        <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;phase&quot;</span><span class="p">,</span>
+</span><span id="L-331"><a href="#L-331"><span class="linenos">331</span></a>        <span class="n">upsample_factor</span><span class="o">=</span><span class="n">upsample_factor</span><span class="p">,</span>
+</span><span id="L-332"><a href="#L-332"><span class="linenos">332</span></a>    <span class="p">)</span>
+</span><span id="L-333"><a href="#L-333"><span class="linenos">333</span></a>
+</span><span id="L-334"><a href="#L-334"><span class="linenos">334</span></a>    <span class="k">return</span> <span class="n">SubpixelCoordinate</span><span class="p">(</span>
+</span><span id="L-335"><a href="#L-335"><span class="linenos">335</span></a>        <span class="n">x</span><span class="o">=</span><span class="n">search_origin</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">shift</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">kernel_margin_width</span> <span class="o">+</span> <span class="n">pad_before_width</span><span class="p">,</span>
+</span><span id="L-336"><a href="#L-336"><span class="linenos">336</span></a>        <span class="n">y</span><span class="o">=</span><span class="n">search_origin</span><span class="o">.</span><span class="n">y</span> <span class="o">+</span> <span class="n">shift</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">kernel_margin_height</span> <span class="o">+</span> <span class="n">pad_before_height</span><span class="p">,</span>
+</span><span id="L-337"><a href="#L-337"><span class="linenos">337</span></a>    <span class="p">)</span>
 </span></pre></div>
 
 
@@ -565,6 +706,231 @@ original behavior exactly.</li>
 less than 1, or either <code>search_margin_width</code>/
 <code>search_margin_height</code> is not greater than its kernel
 counterpart.</li>
+</ul>
+</div>
+
+
+                </section>
+                <section id="locate_subpixel">
+                            <input id="locate_subpixel-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">locate_subpixel</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="o">*</span>,</span><span class="param">	<span class="n">reference_image</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">current_image</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>,</span><span class="param">	<span class="n">reference_point</span><span class="p">:</span> <span class="n"><a href="image.html#PixelCoordinate">dictk.image.PixelCoordinate</a></span>,</span><span class="param">	<span class="n">search_center</span><span class="p">:</span> <span class="n"><a href="image.html#PixelCoordinate">dictk.image.PixelCoordinate</a></span>,</span><span class="param">	<span class="n">kernel_margin_width</span><span class="p">:</span> <span class="nb">int</span>,</span><span class="param">	<span class="n">kernel_margin_height</span><span class="p">:</span> <span class="nb">int</span>,</span><span class="param">	<span class="n">search_margin_width</span><span class="p">:</span> <span class="nb">int</span>,</span><span class="param">	<span class="n">search_margin_height</span><span class="p">:</span> <span class="nb">int</span>,</span><span class="param">	<span class="n">windowing</span><span class="p">:</span> <span class="n"><a href="correlation.html#WindowingMethod">dictk.correlation.WindowingMethod</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">upsample_factor</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span></span><span class="return-annotation">) -> <span class="n"><a href="image.html#SubpixelCoordinate">dictk.image.SubpixelCoordinate</a></span>:</span></span>
+
+                <label class="view-source-button" for="locate_subpixel-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#locate_subpixel"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="locate_subpixel-203"><a href="#locate_subpixel-203"><span class="linenos">203</span></a><span class="k">def</span><span class="w"> </span><span class="nf">locate_subpixel</span><span class="p">(</span>
+</span><span id="locate_subpixel-204"><a href="#locate_subpixel-204"><span class="linenos">204</span></a>    <span class="o">*</span><span class="p">,</span>
+</span><span id="locate_subpixel-205"><a href="#locate_subpixel-205"><span class="linenos">205</span></a>    <span class="n">reference_image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+</span><span id="locate_subpixel-206"><a href="#locate_subpixel-206"><span class="linenos">206</span></a>    <span class="n">current_image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+</span><span id="locate_subpixel-207"><a href="#locate_subpixel-207"><span class="linenos">207</span></a>    <span class="n">reference_point</span><span class="p">:</span> <span class="n">PixelCoordinate</span><span class="p">,</span>
+</span><span id="locate_subpixel-208"><a href="#locate_subpixel-208"><span class="linenos">208</span></a>    <span class="n">search_center</span><span class="p">:</span> <span class="n">PixelCoordinate</span><span class="p">,</span>
+</span><span id="locate_subpixel-209"><a href="#locate_subpixel-209"><span class="linenos">209</span></a>    <span class="n">kernel_margin_width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="locate_subpixel-210"><a href="#locate_subpixel-210"><span class="linenos">210</span></a>    <span class="n">kernel_margin_height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="locate_subpixel-211"><a href="#locate_subpixel-211"><span class="linenos">211</span></a>    <span class="n">search_margin_width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="locate_subpixel-212"><a href="#locate_subpixel-212"><span class="linenos">212</span></a>    <span class="n">search_margin_height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="locate_subpixel-213"><a href="#locate_subpixel-213"><span class="linenos">213</span></a>    <span class="n">windowing</span><span class="p">:</span> <span class="n">WindowingMethod</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="locate_subpixel-214"><a href="#locate_subpixel-214"><span class="linenos">214</span></a>    <span class="n">upsample_factor</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+</span><span id="locate_subpixel-215"><a href="#locate_subpixel-215"><span class="linenos">215</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SubpixelCoordinate</span><span class="p">:</span>
+</span><span id="locate_subpixel-216"><a href="#locate_subpixel-216"><span class="linenos">216</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;The subpixel-accurate sibling of [`locate`](#locate): recovers a</span>
+</span><span id="locate_subpixel-217"><a href="#locate_subpixel-217"><span class="linenos">217</span></a><span class="sd">    fractional position instead of rounding it away.</span>
+</span><span id="locate_subpixel-218"><a href="#locate_subpixel-218"><span class="linenos">218</span></a>
+</span><span id="locate_subpixel-219"><a href="#locate_subpixel-219"><span class="linenos">219</span></a><span class="sd">    Same kernel/search extraction, windowing, and centered padding as</span>
+</span><span id="locate_subpixel-220"><a href="#locate_subpixel-220"><span class="linenos">220</span></a><span class="sd">    `locate` -- deliberately a separate function, not a parameter added</span>
+</span><span id="locate_subpixel-221"><a href="#locate_subpixel-221"><span class="linenos">221</span></a><span class="sd">    to it, so `locate`&#39;s own return type (`PixelCoordinate`, always</span>
+</span><span id="locate_subpixel-222"><a href="#locate_subpixel-222"><span class="linenos">222</span></a><span class="sd">    `int`) never changes shape based on an argument. `locate` truncates</span>
+</span><span id="locate_subpixel-223"><a href="#locate_subpixel-223"><span class="linenos">223</span></a><span class="sd">    `phase_cross_correlation`&#39;s shift to the nearest whole pixel with</span>
+</span><span id="locate_subpixel-224"><a href="#locate_subpixel-224"><span class="linenos">224</span></a><span class="sd">    `int()`; this function instead requests a refined, generally</span>
+</span><span id="locate_subpixel-225"><a href="#locate_subpixel-225"><span class="linenos">225</span></a><span class="sd">    fractional shift from `phase_cross_correlation` itself</span>
+</span><span id="locate_subpixel-226"><a href="#locate_subpixel-226"><span class="linenos">226</span></a><span class="sd">    (`upsample_factor`) and returns it directly, undiscarded.</span>
+</span><span id="locate_subpixel-227"><a href="#locate_subpixel-227"><span class="linenos">227</span></a>
+</span><span id="locate_subpixel-228"><a href="#locate_subpixel-228"><span class="linenos">228</span></a><span class="sd">    `upsample_factor` does not &quot;fix&quot; `locate`&#39;s own exact-integer</span>
+</span><span id="locate_subpixel-229"><a href="#locate_subpixel-229"><span class="linenos">229</span></a><span class="sd">    matching in the way it might sound like it should: if the true</span>
+</span><span id="locate_subpixel-230"><a href="#locate_subpixel-230"><span class="linenos">230</span></a><span class="sd">    displacement genuinely isn&#39;t an integer (a stretch&#39;s own resampling</span>
+</span><span id="locate_subpixel-231"><a href="#locate_subpixel-231"><span class="linenos">231</span></a><span class="sd">    can easily make this true even for an otherwise-integer-pixel</span>
+</span><span id="locate_subpixel-232"><a href="#locate_subpixel-232"><span class="linenos">232</span></a><span class="sd">    target -- see [Subpixel</span>
+</span><span id="locate_subpixel-233"><a href="#locate_subpixel-233"><span class="linenos">233</span></a><span class="sd">    Accuracy](../getting_started/subpixel_accuracy.html)), no amount of</span>
+</span><span id="locate_subpixel-234"><a href="#locate_subpixel-234"><span class="linenos">234</span></a><span class="sd">    refinement makes `locate`&#39;s truncated answer correct, because</span>
+</span><span id="locate_subpixel-235"><a href="#locate_subpixel-235"><span class="linenos">235</span></a><span class="sd">    `locate`&#39;s question (&quot;which integer pixel?&quot;) isn&#39;t the right one to</span>
+</span><span id="locate_subpixel-236"><a href="#locate_subpixel-236"><span class="linenos">236</span></a><span class="sd">    ask anymore. What subpixel refinement *does* reliably improve is how</span>
+</span><span id="locate_subpixel-237"><a href="#locate_subpixel-237"><span class="linenos">237</span></a><span class="sd">    close the returned position lands to the true, generally fractional,</span>
+</span><span id="locate_subpixel-238"><a href="#locate_subpixel-238"><span class="linenos">238</span></a><span class="sd">    target -- a different, and for a real (non-integer) displacement, a</span>
+</span><span id="locate_subpixel-239"><a href="#locate_subpixel-239"><span class="linenos">239</span></a><span class="sd">    more honest question.</span>
+</span><span id="locate_subpixel-240"><a href="#locate_subpixel-240"><span class="linenos">240</span></a>
+</span><span id="locate_subpixel-241"><a href="#locate_subpixel-241"><span class="linenos">241</span></a><span class="sd">    Args:</span>
+</span><span id="locate_subpixel-242"><a href="#locate_subpixel-242"><span class="linenos">242</span></a><span class="sd">        reference_image: The reference (undeformed) 2D grayscale image.</span>
+</span><span id="locate_subpixel-243"><a href="#locate_subpixel-243"><span class="linenos">243</span></a><span class="sd">        current_image: The current (deformed) 2D grayscale image.</span>
+</span><span id="locate_subpixel-244"><a href="#locate_subpixel-244"><span class="linenos">244</span></a><span class="sd">        reference_point: The point&#39;s fixed, known position, in</span>
+</span><span id="locate_subpixel-245"><a href="#locate_subpixel-245"><span class="linenos">245</span></a><span class="sd">            `reference_image`&#39;s pixel reference frame.</span>
+</span><span id="locate_subpixel-246"><a href="#locate_subpixel-246"><span class="linenos">246</span></a><span class="sd">        search_center: Where to center the search area, in</span>
+</span><span id="locate_subpixel-247"><a href="#locate_subpixel-247"><span class="linenos">247</span></a><span class="sd">            `current_image`&#39;s pixel reference frame -- see `locate`&#39;s</span>
+</span><span id="locate_subpixel-248"><a href="#locate_subpixel-248"><span class="linenos">248</span></a><span class="sd">            own docstring for the full explanation of this parameter.</span>
+</span><span id="locate_subpixel-249"><a href="#locate_subpixel-249"><span class="linenos">249</span></a><span class="sd">        kernel_margin_width: Half the kernel&#39;s width, in pixels. Must</span>
+</span><span id="locate_subpixel-250"><a href="#locate_subpixel-250"><span class="linenos">250</span></a><span class="sd">            be &gt;= 1.</span>
+</span><span id="locate_subpixel-251"><a href="#locate_subpixel-251"><span class="linenos">251</span></a><span class="sd">        kernel_margin_height: Half the kernel&#39;s height, in pixels. Must</span>
+</span><span id="locate_subpixel-252"><a href="#locate_subpixel-252"><span class="linenos">252</span></a><span class="sd">            be &gt;= 1.</span>
+</span><span id="locate_subpixel-253"><a href="#locate_subpixel-253"><span class="linenos">253</span></a><span class="sd">        search_margin_width: Half the search area&#39;s width, in pixels.</span>
+</span><span id="locate_subpixel-254"><a href="#locate_subpixel-254"><span class="linenos">254</span></a><span class="sd">            Must be greater than `kernel_margin_width`.</span>
+</span><span id="locate_subpixel-255"><a href="#locate_subpixel-255"><span class="linenos">255</span></a><span class="sd">        search_margin_height: Half the search area&#39;s height, in pixels.</span>
+</span><span id="locate_subpixel-256"><a href="#locate_subpixel-256"><span class="linenos">256</span></a><span class="sd">            Must be greater than `kernel_margin_height`.</span>
+</span><span id="locate_subpixel-257"><a href="#locate_subpixel-257"><span class="linenos">257</span></a><span class="sd">        windowing: Passed straight through to</span>
+</span><span id="locate_subpixel-258"><a href="#locate_subpixel-258"><span class="linenos">258</span></a><span class="sd">            [`dictk.correlation.window`](./correlation.html#window),</span>
+</span><span id="locate_subpixel-259"><a href="#locate_subpixel-259"><span class="linenos">259</span></a><span class="sd">            same as `locate`&#39;s own `windowing` parameter.</span>
+</span><span id="locate_subpixel-260"><a href="#locate_subpixel-260"><span class="linenos">260</span></a><span class="sd">        upsample_factor: Passed straight through to</span>
+</span><span id="locate_subpixel-261"><a href="#locate_subpixel-261"><span class="linenos">261</span></a><span class="sd">            `skimage.registration.phase_cross_correlation`&#39;s own</span>
+</span><span id="locate_subpixel-262"><a href="#locate_subpixel-262"><span class="linenos">262</span></a><span class="sd">            `upsample_factor` -- images are registered to within</span>
+</span><span id="locate_subpixel-263"><a href="#locate_subpixel-263"><span class="linenos">263</span></a><span class="sd">            `1 / upsample_factor` of a pixel. Default `100`, matching</span>
+</span><span id="locate_subpixel-264"><a href="#locate_subpixel-264"><span class="linenos">264</span></a><span class="sd">            the point past which [Subpixel</span>
+</span><span id="locate_subpixel-265"><a href="#locate_subpixel-265"><span class="linenos">265</span></a><span class="sd">            Accuracy](../getting_started/subpixel_accuracy.html) found</span>
+</span><span id="locate_subpixel-266"><a href="#locate_subpixel-266"><span class="linenos">266</span></a><span class="sd">            diminishing returns (`10` was already close to `100`&#39;s own</span>
+</span><span id="locate_subpixel-267"><a href="#locate_subpixel-267"><span class="linenos">267</span></a><span class="sd">            accuracy in that measurement). Must be &gt;= 1.</span>
+</span><span id="locate_subpixel-268"><a href="#locate_subpixel-268"><span class="linenos">268</span></a>
+</span><span id="locate_subpixel-269"><a href="#locate_subpixel-269"><span class="linenos">269</span></a><span class="sd">    Returns:</span>
+</span><span id="locate_subpixel-270"><a href="#locate_subpixel-270"><span class="linenos">270</span></a><span class="sd">        The point&#39;s location, in `current_image`&#39;s pixel reference</span>
+</span><span id="locate_subpixel-271"><a href="#locate_subpixel-271"><span class="linenos">271</span></a><span class="sd">        frame, generally fractional.</span>
+</span><span id="locate_subpixel-272"><a href="#locate_subpixel-272"><span class="linenos">272</span></a>
+</span><span id="locate_subpixel-273"><a href="#locate_subpixel-273"><span class="linenos">273</span></a><span class="sd">    Raises:</span>
+</span><span id="locate_subpixel-274"><a href="#locate_subpixel-274"><span class="linenos">274</span></a><span class="sd">        ValueError: If `kernel_margin_width` or `kernel_margin_height` is</span>
+</span><span id="locate_subpixel-275"><a href="#locate_subpixel-275"><span class="linenos">275</span></a><span class="sd">            less than 1, either `search_margin_width`/</span>
+</span><span id="locate_subpixel-276"><a href="#locate_subpixel-276"><span class="linenos">276</span></a><span class="sd">            `search_margin_height` is not greater than its kernel</span>
+</span><span id="locate_subpixel-277"><a href="#locate_subpixel-277"><span class="linenos">277</span></a><span class="sd">            counterpart, or `upsample_factor` is less than 1.</span>
+</span><span id="locate_subpixel-278"><a href="#locate_subpixel-278"><span class="linenos">278</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="locate_subpixel-279"><a href="#locate_subpixel-279"><span class="linenos">279</span></a>    <span class="k">if</span> <span class="n">kernel_margin_width</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="locate_subpixel-280"><a href="#locate_subpixel-280"><span class="linenos">280</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;kernel_margin_width </span><span class="si">{</span><span class="n">kernel_margin_width</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
+</span><span id="locate_subpixel-281"><a href="#locate_subpixel-281"><span class="linenos">281</span></a>    <span class="k">if</span> <span class="n">kernel_margin_height</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="locate_subpixel-282"><a href="#locate_subpixel-282"><span class="linenos">282</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;kernel_margin_height </span><span class="si">{</span><span class="n">kernel_margin_height</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
+</span><span id="locate_subpixel-283"><a href="#locate_subpixel-283"><span class="linenos">283</span></a>    <span class="k">if</span> <span class="n">search_margin_width</span> <span class="o">&lt;=</span> <span class="n">kernel_margin_width</span><span class="p">:</span>
+</span><span id="locate_subpixel-284"><a href="#locate_subpixel-284"><span class="linenos">284</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="locate_subpixel-285"><a href="#locate_subpixel-285"><span class="linenos">285</span></a>            <span class="sa">f</span><span class="s2">&quot;search_margin_width </span><span class="si">{</span><span class="n">search_margin_width</span><span class="si">}</span><span class="s2"> must be greater than &quot;</span>
+</span><span id="locate_subpixel-286"><a href="#locate_subpixel-286"><span class="linenos">286</span></a>            <span class="sa">f</span><span class="s2">&quot;kernel_margin_width </span><span class="si">{</span><span class="n">kernel_margin_width</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="locate_subpixel-287"><a href="#locate_subpixel-287"><span class="linenos">287</span></a>        <span class="p">)</span>
+</span><span id="locate_subpixel-288"><a href="#locate_subpixel-288"><span class="linenos">288</span></a>    <span class="k">if</span> <span class="n">search_margin_height</span> <span class="o">&lt;=</span> <span class="n">kernel_margin_height</span><span class="p">:</span>
+</span><span id="locate_subpixel-289"><a href="#locate_subpixel-289"><span class="linenos">289</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="locate_subpixel-290"><a href="#locate_subpixel-290"><span class="linenos">290</span></a>            <span class="sa">f</span><span class="s2">&quot;search_margin_height </span><span class="si">{</span><span class="n">search_margin_height</span><span class="si">}</span><span class="s2"> must be greater than &quot;</span>
+</span><span id="locate_subpixel-291"><a href="#locate_subpixel-291"><span class="linenos">291</span></a>            <span class="sa">f</span><span class="s2">&quot;kernel_margin_height </span><span class="si">{</span><span class="n">kernel_margin_height</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="locate_subpixel-292"><a href="#locate_subpixel-292"><span class="linenos">292</span></a>        <span class="p">)</span>
+</span><span id="locate_subpixel-293"><a href="#locate_subpixel-293"><span class="linenos">293</span></a>    <span class="k">if</span> <span class="n">upsample_factor</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="locate_subpixel-294"><a href="#locate_subpixel-294"><span class="linenos">294</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;upsample_factor </span><span class="si">{</span><span class="n">upsample_factor</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
+</span><span id="locate_subpixel-295"><a href="#locate_subpixel-295"><span class="linenos">295</span></a>
+</span><span id="locate_subpixel-296"><a href="#locate_subpixel-296"><span class="linenos">296</span></a>    <span class="n">kernel_width</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">kernel_margin_width</span>
+</span><span id="locate_subpixel-297"><a href="#locate_subpixel-297"><span class="linenos">297</span></a>    <span class="n">kernel_height</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">kernel_margin_height</span>
+</span><span id="locate_subpixel-298"><a href="#locate_subpixel-298"><span class="linenos">298</span></a>    <span class="n">search_width</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">search_margin_width</span>
+</span><span id="locate_subpixel-299"><a href="#locate_subpixel-299"><span class="linenos">299</span></a>    <span class="n">search_height</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">search_margin_height</span>
+</span><span id="locate_subpixel-300"><a href="#locate_subpixel-300"><span class="linenos">300</span></a>
+</span><span id="locate_subpixel-301"><a href="#locate_subpixel-301"><span class="linenos">301</span></a>    <span class="n">kernel_origin</span> <span class="o">=</span> <span class="n">PixelCoordinate</span><span class="p">(</span>
+</span><span id="locate_subpixel-302"><a href="#locate_subpixel-302"><span class="linenos">302</span></a>        <span class="n">x</span><span class="o">=</span><span class="n">reference_point</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">kernel_margin_width</span><span class="p">,</span>
+</span><span id="locate_subpixel-303"><a href="#locate_subpixel-303"><span class="linenos">303</span></a>        <span class="n">y</span><span class="o">=</span><span class="n">reference_point</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">kernel_margin_height</span><span class="p">,</span>
+</span><span id="locate_subpixel-304"><a href="#locate_subpixel-304"><span class="linenos">304</span></a>    <span class="p">)</span>
+</span><span id="locate_subpixel-305"><a href="#locate_subpixel-305"><span class="linenos">305</span></a>    <span class="n">kernel</span> <span class="o">=</span> <span class="n">subimage</span><span class="p">(</span>
+</span><span id="locate_subpixel-306"><a href="#locate_subpixel-306"><span class="linenos">306</span></a>        <span class="n">image</span><span class="o">=</span><span class="n">reference_image</span><span class="p">,</span>
+</span><span id="locate_subpixel-307"><a href="#locate_subpixel-307"><span class="linenos">307</span></a>        <span class="n">origin</span><span class="o">=</span><span class="n">kernel_origin</span><span class="p">,</span>
+</span><span id="locate_subpixel-308"><a href="#locate_subpixel-308"><span class="linenos">308</span></a>        <span class="n">width</span><span class="o">=</span><span class="n">kernel_width</span><span class="p">,</span>
+</span><span id="locate_subpixel-309"><a href="#locate_subpixel-309"><span class="linenos">309</span></a>        <span class="n">height</span><span class="o">=</span><span class="n">kernel_height</span><span class="p">,</span>
+</span><span id="locate_subpixel-310"><a href="#locate_subpixel-310"><span class="linenos">310</span></a>    <span class="p">)</span>
+</span><span id="locate_subpixel-311"><a href="#locate_subpixel-311"><span class="linenos">311</span></a>
+</span><span id="locate_subpixel-312"><a href="#locate_subpixel-312"><span class="linenos">312</span></a>    <span class="n">search_origin</span> <span class="o">=</span> <span class="n">PixelCoordinate</span><span class="p">(</span>
+</span><span id="locate_subpixel-313"><a href="#locate_subpixel-313"><span class="linenos">313</span></a>        <span class="n">x</span><span class="o">=</span><span class="n">search_center</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">search_margin_width</span><span class="p">,</span>
+</span><span id="locate_subpixel-314"><a href="#locate_subpixel-314"><span class="linenos">314</span></a>        <span class="n">y</span><span class="o">=</span><span class="n">search_center</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">search_margin_height</span><span class="p">,</span>
+</span><span id="locate_subpixel-315"><a href="#locate_subpixel-315"><span class="linenos">315</span></a>    <span class="p">)</span>
+</span><span id="locate_subpixel-316"><a href="#locate_subpixel-316"><span class="linenos">316</span></a>    <span class="n">search</span> <span class="o">=</span> <span class="n">subimage</span><span class="p">(</span>
+</span><span id="locate_subpixel-317"><a href="#locate_subpixel-317"><span class="linenos">317</span></a>        <span class="n">image</span><span class="o">=</span><span class="n">current_image</span><span class="p">,</span>
+</span><span id="locate_subpixel-318"><a href="#locate_subpixel-318"><span class="linenos">318</span></a>        <span class="n">origin</span><span class="o">=</span><span class="n">search_origin</span><span class="p">,</span>
+</span><span id="locate_subpixel-319"><a href="#locate_subpixel-319"><span class="linenos">319</span></a>        <span class="n">width</span><span class="o">=</span><span class="n">search_width</span><span class="p">,</span>
+</span><span id="locate_subpixel-320"><a href="#locate_subpixel-320"><span class="linenos">320</span></a>        <span class="n">height</span><span class="o">=</span><span class="n">search_height</span><span class="p">,</span>
+</span><span id="locate_subpixel-321"><a href="#locate_subpixel-321"><span class="linenos">321</span></a>    <span class="p">)</span>
+</span><span id="locate_subpixel-322"><a href="#locate_subpixel-322"><span class="linenos">322</span></a>
+</span><span id="locate_subpixel-323"><a href="#locate_subpixel-323"><span class="linenos">323</span></a>    <span class="n">kernel</span><span class="p">,</span> <span class="n">search</span> <span class="o">=</span> <span class="n">_window</span><span class="p">(</span><span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> <span class="n">search</span><span class="o">=</span><span class="n">search</span><span class="p">,</span> <span class="n">windowing</span><span class="o">=</span><span class="n">windowing</span><span class="p">)</span>
+</span><span id="locate_subpixel-324"><a href="#locate_subpixel-324"><span class="linenos">324</span></a>    <span class="n">kernel_padded</span><span class="p">,</span> <span class="n">pad_before_height</span><span class="p">,</span> <span class="n">pad_before_width</span> <span class="o">=</span> <span class="n">_kernel_pad</span><span class="p">(</span>
+</span><span id="locate_subpixel-325"><a href="#locate_subpixel-325"><span class="linenos">325</span></a>        <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">search</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">centered</span><span class="o">=</span><span class="kc">True</span>
+</span><span id="locate_subpixel-326"><a href="#locate_subpixel-326"><span class="linenos">326</span></a>    <span class="p">)</span>
+</span><span id="locate_subpixel-327"><a href="#locate_subpixel-327"><span class="linenos">327</span></a>
+</span><span id="locate_subpixel-328"><a href="#locate_subpixel-328"><span class="linenos">328</span></a>    <span class="n">shift</span><span class="p">,</span> <span class="n">_error</span><span class="p">,</span> <span class="n">_phasediff</span> <span class="o">=</span> <span class="n">phase_cross_correlation</span><span class="p">(</span>
+</span><span id="locate_subpixel-329"><a href="#locate_subpixel-329"><span class="linenos">329</span></a>        <span class="n">reference_image</span><span class="o">=</span><span class="n">search</span><span class="p">,</span>
+</span><span id="locate_subpixel-330"><a href="#locate_subpixel-330"><span class="linenos">330</span></a>        <span class="n">moving_image</span><span class="o">=</span><span class="n">kernel_padded</span><span class="p">,</span>
+</span><span id="locate_subpixel-331"><a href="#locate_subpixel-331"><span class="linenos">331</span></a>        <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;phase&quot;</span><span class="p">,</span>
+</span><span id="locate_subpixel-332"><a href="#locate_subpixel-332"><span class="linenos">332</span></a>        <span class="n">upsample_factor</span><span class="o">=</span><span class="n">upsample_factor</span><span class="p">,</span>
+</span><span id="locate_subpixel-333"><a href="#locate_subpixel-333"><span class="linenos">333</span></a>    <span class="p">)</span>
+</span><span id="locate_subpixel-334"><a href="#locate_subpixel-334"><span class="linenos">334</span></a>
+</span><span id="locate_subpixel-335"><a href="#locate_subpixel-335"><span class="linenos">335</span></a>    <span class="k">return</span> <span class="n">SubpixelCoordinate</span><span class="p">(</span>
+</span><span id="locate_subpixel-336"><a href="#locate_subpixel-336"><span class="linenos">336</span></a>        <span class="n">x</span><span class="o">=</span><span class="n">search_origin</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">shift</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">kernel_margin_width</span> <span class="o">+</span> <span class="n">pad_before_width</span><span class="p">,</span>
+</span><span id="locate_subpixel-337"><a href="#locate_subpixel-337"><span class="linenos">337</span></a>        <span class="n">y</span><span class="o">=</span><span class="n">search_origin</span><span class="o">.</span><span class="n">y</span> <span class="o">+</span> <span class="n">shift</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">kernel_margin_height</span> <span class="o">+</span> <span class="n">pad_before_height</span><span class="p">,</span>
+</span><span id="locate_subpixel-338"><a href="#locate_subpixel-338"><span class="linenos">338</span></a>    <span class="p">)</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>The subpixel-accurate sibling of <a href="#locate"><code>locate</code></a>: recovers a
+fractional position instead of rounding it away.</p>
+
+<p>Same kernel/search extraction, windowing, and centered padding as
+<code><a href="#locate">locate</a></code> -- deliberately a separate function, not a parameter added
+to it, so <code><a href="#locate">locate</a></code>'s own return type (<code>PixelCoordinate</code>, always
+<code>int</code>) never changes shape based on an argument. <code><a href="#locate">locate</a></code> truncates
+<code>phase_cross_correlation</code>'s shift to the nearest whole pixel with
+<code>int()</code>; this function instead requests a refined, generally
+fractional shift from <code>phase_cross_correlation</code> itself
+(<code>upsample_factor</code>) and returns it directly, undiscarded.</p>
+
+<p><code>upsample_factor</code> does not "fix" <code><a href="#locate">locate</a></code>'s own exact-integer
+matching in the way it might sound like it should: if the true
+displacement genuinely isn't an integer (a stretch's own resampling
+can easily make this true even for an otherwise-integer-pixel
+target -- see <a href="../getting_started/subpixel_accuracy.html">Subpixel
+Accuracy</a>), no amount of
+refinement makes <code><a href="#locate">locate</a></code>'s truncated answer correct, because
+<code><a href="#locate">locate</a></code>'s question ("which integer pixel?") isn't the right one to
+ask anymore. What subpixel refinement <em>does</em> reliably improve is how
+close the returned position lands to the true, generally fractional,
+target -- a different, and for a real (non-integer) displacement, a
+more honest question.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>reference_image:</strong>  The reference (undeformed) 2D grayscale image.</li>
+<li><strong>current_image:</strong>  The current (deformed) 2D grayscale image.</li>
+<li><strong>reference_point:</strong>  The point's fixed, known position, in
+<code>reference_image</code>'s pixel reference frame.</li>
+<li><strong>search_center:</strong>  Where to center the search area, in
+<code>current_image</code>'s pixel reference frame -- see <code><a href="#locate">locate</a></code>'s
+own docstring for the full explanation of this parameter.</li>
+<li><strong>kernel_margin_width:</strong>  Half the kernel's width, in pixels. Must
+be &gt;= 1.</li>
+<li><strong>kernel_margin_height:</strong>  Half the kernel's height, in pixels. Must
+be &gt;= 1.</li>
+<li><strong>search_margin_width:</strong>  Half the search area's width, in pixels.
+Must be greater than <code>kernel_margin_width</code>.</li>
+<li><strong>search_margin_height:</strong>  Half the search area's height, in pixels.
+Must be greater than <code>kernel_margin_height</code>.</li>
+<li><strong>windowing:</strong>  Passed straight through to
+<a href="./correlation.html#window"><code><a href="correlation.html#window">dictk.correlation.window</a></code></a>,
+same as <code><a href="#locate">locate</a></code>'s own <code>windowing</code> parameter.</li>
+<li><strong>upsample_factor:</strong>  Passed straight through to
+<code>skimage.registration.phase_cross_correlation</code>'s own
+<code>upsample_factor</code> -- images are registered to within
+<code>1 / upsample_factor</code> of a pixel. Default <code>100</code>, matching
+the point past which <a href="../getting_started/subpixel_accuracy.html">Subpixel
+Accuracy</a> found
+diminishing returns (<code>10</code> was already close to <code>100</code>'s own
+accuracy in that measurement). Must be &gt;= 1.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>The point's location, in <code>current_image</code>'s pixel reference
+  frame, generally fractional.</p>
+</blockquote>
+
+<h6 id="raises">Raises:</h6>
+
+<ul>
+<li><strong>ValueError:</strong>  If <code>kernel_margin_width</code> or <code>kernel_margin_height</code> is
+less than 1, either <code>search_margin_width</code>/
+<code>search_margin_height</code> is not greater than its kernel
+counterpart, or <code>upsample_factor</code> is less than 1.</li>
 </ul>
 </div>
 

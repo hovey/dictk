@@ -268,16 +268,6 @@ the right next step here, not something this fix already covered.</p>
 <li><strong>Heaviside DIC and XFEM</strong> — enriching the correlation itself to
 detect and locate a discontinuity, not just generating test images
 that contain one (see above).</li>
-<li><strong>Subpixel accuracy (upsampling).</strong> Every worked example in this book
-is deliberately built around a known, exact-integer-pixel ground
-truth (see <a href="./single_point_motion.html#current-configuration-and-displacement">Single Point
-Motion</a>),
-so <code>dictk</code>'s correlation results have never needed anything past
-whole-pixel accuracy. <code>skimage.registration.phase_cross_correlation</code>
-already supports an <code>upsample_factor</code> parameter for sub-pixel
-registration; <code>dictk</code> doesn't expose it yet. Real, non-synthetic
-displacements won't land on exact pixels, so this becomes necessary
-once the book moves past known-integer test cases.</li>
 <li><strong><code>grid.locate()</code> windowing demo.</strong> <code>windowing</code> has only ever been
 demonstrated directly on
 <a href="../api/dictk/correlation.html#phase_correlation"><code>dictk.correlation.phase_correlation</code></a>
@@ -322,12 +312,34 @@ already found interpolation blur alone can look similar — genuine
 geometric content rotation and interpolation blur are likely both
 compounding here. Telling them apart is the next open step, not
 started.</p>
+<h2 id="2026-08-20"><a class="header" href="#2026-08-20">2026-08-20</a></h2>
+<p><strong>Postponed subpixel accuracy item, resolved.</strong> <a href="./simple_stretch.html#simple-stretch-revisited">Simple Stretch
+Revisited</a> found the
+concrete trigger this Postponed item's own wording anticipated: at
+<code>factor_x = 1.02</code>, only points whose <code>x</code> is a multiple of 50 land on
+an integer pixel in the deformed configuration. A denser grid mostly
+doesn't. New <a href="./subpixel_accuracy.html">Subpixel
+Accuracy</a> page: <code>dictk.translation.locate_subpixel</code>
+and <code>dictk.grid.locate_subpixel</code>, exposing
+<code>phase_cross_correlation</code>'s own <code>upsample_factor</code> — separate functions
+from <code>locate</code>/<code>grid.locate</code>, not a parameter added to them, returning
+a new <code>dictk.image.SubpixelCoordinate</code> (float <code>x</code>/<code>y</code>) instead of
+<code>PixelCoordinate</code>. Measured directly against VIC-2D's own 2862-point
+grid: <code>upsample_factor</code> doesn't make <code>locate</code>'s truncated integer
+answer more often correct (the true target usually isn't an integer at
+that density, so no refinement changes that) — but it substantially
+improves how close the tracked position lands to the true, generally
+fractional, target (mean absolute error 0.26px at <code>upsample_factor=1</code>,
+down to 0.09px at <code>10</code>). Parallelization (9) gains this as its first
+child, 9.1; a second child, 9.2 High Point Density, picking the same
+subpixel tooling up at real density, is the planned next step, not
+started yet.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../getting_started/parallelization.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../getting_started/subpixel_accuracy.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
@@ -341,7 +353,7 @@ started.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../getting_started/parallelization.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../getting_started/subpixel_accuracy.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
