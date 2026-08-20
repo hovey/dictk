@@ -21,5 +21,6 @@
   - [Pure Rotation](./getting_started/pure_rotation.md)
   - [Search Center Predictions](./getting_started/search_center_predictions.md)
 - [Parallelization](./getting_started/parallelization.md)
+  - [Subpixel Accuracy](./getting_started/subpixel_accuracy.md)
 - [Path Forward](./getting_started/path_forward.md)
 - [Contributing](./contributing.md)

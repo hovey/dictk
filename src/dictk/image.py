@@ -30,6 +30,26 @@ class PixelCoordinate(NamedTuple):
     y: int
 
 
+class SubpixelCoordinate(NamedTuple):
+    """A sub-pixel location in an image's reference frame.
+
+    Same reference frame as [`PixelCoordinate`](#PixelCoordinate), but
+    `x`/`y` are `float`, not `int` -- returned by
+    [`dictk.translation.locate_subpixel`](./translation.html#locate_subpixel)
+    and [`dictk.grid.locate_subpixel`](./grid.html#locate_subpixel),
+    which recover a fractional position via subpixel refinement.
+    `PixelCoordinate`'s own `int` fields would silently truncate exactly
+    the value those functions exist to preserve.
+
+    Attributes:
+        x: Horizontal pixel coordinate, increasing left to right.
+        y: Vertical pixel coordinate, increasing top to bottom.
+    """
+
+    x: float
+    y: float
+
+
 # Shared figure scale (pixels of image data per inch) for
 # subimage_bounds_plot() and subimage_plot(), so each saved figure's size
 # is proportional to its actual pixel content rather than a fixed default
@@ -2165,7 +2185,7 @@ def point_grid_plot(
 
 def element_strain_plot(
     *,
-    points: Sequence[PixelCoordinate],
+    points: Sequence[PixelCoordinate | SubpixelCoordinate],
     elements: Sequence[tuple[int, int, int, int]],
     coordinates: Sequence[tuple[float, float]],
     values: Sequence[float],

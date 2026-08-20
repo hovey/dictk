@@ -12,6 +12,7 @@ from dictk.image import (
     BoxAnnotation,
     PixelCoordinate,
     PointAnnotation,
+    SubpixelCoordinate,
     astronaut,
     brightness,
     checkerboard,
@@ -1308,6 +1309,22 @@ def test_element_strain_plot_show_node_numbers_writes_file(tmp_path: Path):
         values=values,
         label="Log Strain, E11",
         show_node_numbers=True,
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_element_strain_plot_accepts_subpixel_coordinate_points(tmp_path: Path):
+    _, element_indices, coordinates, values = _element_strain_plot_inputs()
+    points = [SubpixelCoordinate(x=50.3, y=50.7)] * 12  # only .x/.y are used
+    path = tmp_path / "element_strain_subpixel.png"
+    element_strain_plot(
+        points=points,
+        elements=element_indices,
+        coordinates=coordinates,
+        values=values,
+        label="Log Strain, E11",
         path=path,
     )
     assert path.exists()

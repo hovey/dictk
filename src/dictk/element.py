@@ -26,7 +26,7 @@ from typing import Final
 
 import numpy as np
 
-from dictk.image import PixelCoordinate
+from dictk.image import PixelCoordinate, SubpixelCoordinate
 
 #: The 2x2 Gauss quadrature rule's local coordinate value -- see
 #: [Gauss Points](../getting_started/finite_element_method.html#gauss-points).
@@ -74,7 +74,7 @@ def gauss_points() -> list[tuple[float, float]]:
 
 
 def gauss_point_coordinates(
-    *, points: Sequence[PixelCoordinate]
+    *, points: Sequence[PixelCoordinate | SubpixelCoordinate]
 ) -> list[tuple[float, float]]:
     r"""An element's 4 Gauss points' own global $(X, Y)$ position.
 
@@ -293,8 +293,8 @@ def log_strain(*, deformation_gradient: np.ndarray) -> np.ndarray:
 
 def _gauss_point_deformation_gradients(
     *,
-    reference_points: Sequence[PixelCoordinate],
-    current_points: Sequence[PixelCoordinate],
+    reference_points: Sequence[PixelCoordinate | SubpixelCoordinate],
+    current_points: Sequence[PixelCoordinate | SubpixelCoordinate],
 ) -> list[np.ndarray]:
     r"""The deformation gradient $\boldsymbol{F}$ at an element's 4 Gauss points.
 
@@ -350,8 +350,8 @@ def _gauss_point_deformation_gradients(
 
 def gauss_point_green_lagrange_strains(
     *,
-    reference_points: Sequence[PixelCoordinate],
-    current_points: Sequence[PixelCoordinate],
+    reference_points: Sequence[PixelCoordinate | SubpixelCoordinate],
+    current_points: Sequence[PixelCoordinate | SubpixelCoordinate],
 ) -> list[np.ndarray]:
     r"""Green-Lagrange strain at an element's 4 Gauss points.
 
@@ -381,8 +381,8 @@ def gauss_point_green_lagrange_strains(
 
 def gauss_point_log_strains(
     *,
-    reference_points: Sequence[PixelCoordinate],
-    current_points: Sequence[PixelCoordinate],
+    reference_points: Sequence[PixelCoordinate | SubpixelCoordinate],
+    current_points: Sequence[PixelCoordinate | SubpixelCoordinate],
 ) -> list[np.ndarray]:
     r"""Logarithmic (Hencky) strain at an element's 4 Gauss points.
 

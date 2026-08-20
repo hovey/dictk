@@ -9,7 +9,7 @@ import numpy as np
 
 from dictk import translation
 from dictk.correlation import WindowingMethod
-from dictk.image import PixelCoordinate
+from dictk.image import PixelCoordinate, SubpixelCoordinate
 
 
 class Executor(Enum):
@@ -59,6 +59,36 @@ def _locate_worker(
         search_margin_width=search_margin_width,
         search_margin_height=search_margin_height,
         windowing=windowing,
+    )
+
+
+def _locate_subpixel_worker(
+    args: tuple[PixelCoordinate, PixelCoordinate],
+    *,
+    reference_image: np.ndarray,
+    current_image: np.ndarray,
+    kernel_margin_width: int,
+    kernel_margin_height: int,
+    search_margin_width: int,
+    search_margin_height: int,
+    windowing: WindowingMethod | None,
+    upsample_factor: int,
+) -> SubpixelCoordinate:
+    """One point's worth of `translation.locate_subpixel` -- see
+    `_locate_worker`'s own docstring for why this is a module-level
+    function taking a single positional argument, not a closure."""
+    reference_point, search_center = args
+    return translation.locate_subpixel(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_point=reference_point,
+        search_center=search_center,
+        kernel_margin_width=kernel_margin_width,
+        kernel_margin_height=kernel_margin_height,
+        search_margin_width=search_margin_width,
+        search_margin_height=search_margin_height,
+        windowing=windowing,
+        upsample_factor=upsample_factor,
     )
 
 
@@ -280,6 +310,116 @@ def locate(
         search_margin_width=search_margin_width,
         search_margin_height=search_margin_height,
         windowing=windowing,
+    )
+    executor_cls = (
+        ThreadPoolExecutor if executor is Executor.THREAD else ProcessPoolExecutor
+    )
+    with executor_cls(max_workers=max_workers) as pool:
+        return list(pool.map(worker, zip(reference_points, search_centers)))
+
+
+def locate_subpixel(
+    *,
+    reference_image: np.ndarray,
+    current_image: np.ndarray,
+    reference_points: Sequence[PixelCoordinate],
+    search_centers: Sequence[PixelCoordinate] | None = None,
+    kernel_margin_width: int,
+    kernel_margin_height: int,
+    search_margin_width: int,
+    search_margin_height: int,
+    windowing: WindowingMethod | None = None,
+    upsample_factor: int = 100,
+    max_workers: int | None = None,
+    executor: Executor = Executor.THREAD,
+) -> list[SubpixelCoordinate]:
+    """Batch version of `dictk.translation.locate_subpixel`: track many
+    points at once, with subpixel refinement.
+
+    Same structure as [`locate`](#locate) -- see its own docstring for
+    the full explanation of `search_centers`, `windowing`,
+    `max_workers`, and `executor`. The one behavioral difference beyond
+    the added `upsample_factor` parameter: each point's found position
+    is a [`SubpixelCoordinate`](../image.html#SubpixelCoordinate)
+    (generally fractional), not a `PixelCoordinate`, matching
+    `translation.locate_subpixel`'s own return type.
+
+    Args:
+        reference_image: The reference (undeformed) 2D grayscale image.
+        current_image: The current (deformed) 2D grayscale image.
+        reference_points: Each point's fixed, known position, in
+            `reference_image`'s pixel reference frame.
+        search_centers: Where to center each point's search area -- see
+            `locate`'s own docstring. If `None` (default), each point's
+            own `reference_points` entry is used.
+        kernel_margin_width: Half each kernel's width, in pixels. Must
+            be >= 1.
+        kernel_margin_height: Half each kernel's height, in pixels. Must
+            be >= 1.
+        search_margin_width: Half each search area's width, in pixels.
+            Must be greater than `kernel_margin_width`.
+        search_margin_height: Half each search area's height, in pixels.
+            Must be greater than `kernel_margin_height`.
+        windowing: Passed straight through to each per-point
+            [`dictk.translation.locate_subpixel`](../translation.html#locate_subpixel)
+            call. Default `None` applies no windowing.
+        upsample_factor: Passed straight through to each per-point
+            `locate_subpixel` call. Default `100`, matching that
+            function's own default. Must be >= 1.
+        max_workers: If given, points are tracked concurrently across
+            this many workers instead of one at a time -- see `locate`'s
+            own docstring for the measured trade-offs.
+        executor: Which pool type `max_workers` runs on. Ignored if
+            `max_workers` is `None`. Default `Executor.THREAD`.
+
+    Returns:
+        Each point's location, in `current_image`'s pixel reference
+        frame, generally fractional, in the same order as
+        `reference_points`.
+
+    Raises:
+        ValueError: If `search_centers` is given and its length doesn't
+            match `reference_points`, `max_workers` is given and less
+            than 1, or (from the underlying per-point call) if the
+            margin or `upsample_factor` arguments are invalid.
+    """
+    if search_centers is None:
+        search_centers = reference_points
+    elif len(search_centers) != len(reference_points):
+        raise ValueError(
+            f"search_centers length ({len(search_centers)}) must match "
+            f"reference_points length ({len(reference_points)})"
+        )
+    if max_workers is not None and max_workers < 1:
+        raise ValueError(f"max_workers {max_workers} must be >= 1")
+
+    if max_workers is None:
+        return [
+            translation.locate_subpixel(
+                reference_image=reference_image,
+                current_image=current_image,
+                reference_point=reference_point,
+                search_center=search_center,
+                kernel_margin_width=kernel_margin_width,
+                kernel_margin_height=kernel_margin_height,
+                search_margin_width=search_margin_width,
+                search_margin_height=search_margin_height,
+                windowing=windowing,
+                upsample_factor=upsample_factor,
+            )
+            for reference_point, search_center in zip(reference_points, search_centers)
+        ]
+
+    worker = partial(
+        _locate_subpixel_worker,
+        reference_image=reference_image,
+        current_image=current_image,
+        kernel_margin_width=kernel_margin_width,
+        kernel_margin_height=kernel_margin_height,
+        search_margin_width=search_margin_width,
+        search_margin_height=search_margin_height,
+        windowing=windowing,
+        upsample_factor=upsample_factor,
     )
     executor_cls = (
         ThreadPoolExecutor if executor is Executor.THREAD else ProcessPoolExecutor

@@ -15,7 +15,7 @@ from dictk.element import (
     shape_function_gradients,
     shape_functions,
 )
-from dictk.image import PixelCoordinate
+from dictk.image import PixelCoordinate, SubpixelCoordinate
 
 # A unit square, reference corners in N1..N4 order (bottom-left,
 # bottom-right, top-right, top-left).
@@ -74,6 +74,37 @@ def test_gauss_point_coordinates_at_unit_square_center():
     mean_y = sum(c[1] for c in coords) / 4
     assert np.isclose(mean_x, 0.5)
     assert np.isclose(mean_y, 0.5)
+
+
+def test_gauss_point_coordinates_accepts_subpixel_coordinate():
+    """SubpixelCoordinate (float x/y) works identically to PixelCoordinate
+    -- both just get p.x/p.y attribute-accessed internally."""
+    square = [
+        SubpixelCoordinate(x=0.0, y=0.0),
+        SubpixelCoordinate(x=1.0, y=0.0),
+        SubpixelCoordinate(x=1.0, y=1.0),
+        SubpixelCoordinate(x=0.0, y=1.0),
+    ]
+    assert gauss_point_coordinates(points=square) == gauss_point_coordinates(
+        points=UNIT_SQUARE
+    )
+
+
+def test_gauss_point_log_strains_accepts_subpixel_coordinate():
+    """A 5% stretch expressed via SubpixelCoordinate current_points gives
+    the same E11 = ln(1.05) result as the equivalent PixelCoordinate
+    case (test_log_strain_matches_closed_form_uniaxial_stretch)."""
+    current = [
+        SubpixelCoordinate(x=0.0, y=0.0),
+        SubpixelCoordinate(x=1.05, y=0.0),
+        SubpixelCoordinate(x=1.05, y=1.0),
+        SubpixelCoordinate(x=0.0, y=1.0),
+    ]
+    strains = gauss_point_log_strains(
+        reference_points=UNIT_SQUARE, current_points=current
+    )
+    for e in strains:
+        assert np.isclose(e[0, 0], np.log(1.05))
 
 
 def test_shape_functions_requires_keyword_arguments():

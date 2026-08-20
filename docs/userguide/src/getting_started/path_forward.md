@@ -95,16 +95,6 @@ Noted, not being pursued right now:
 * **Heaviside DIC and XFEM** — enriching the correlation itself to
   detect and locate a discontinuity, not just generating test images
   that contain one (see above).
-* **Subpixel accuracy (upsampling).** Every worked example in this book
-  is deliberately built around a known, exact-integer-pixel ground
-  truth (see [Single Point
-  Motion](./single_point_motion.md#current-configuration-and-displacement)),
-  so `dictk`'s correlation results have never needed anything past
-  whole-pixel accuracy. `skimage.registration.phase_cross_correlation`
-  already supports an `upsample_factor` parameter for sub-pixel
-  registration; `dictk` doesn't expose it yet. Real, non-synthetic
-  displacements won't land on exact pixels, so this becomes necessary
-  once the book moves past known-integer test cases.
 * **`grid.locate()` windowing demo.** `windowing` has only ever been
   demonstrated directly on
   [`dictk.correlation.phase_correlation`](../api/dictk/correlation.html#phase_correlation)
@@ -151,3 +141,27 @@ already found interpolation blur alone can look similar — genuine
 geometric content rotation and interpolation blur are likely both
 compounding here. Telling them apart is the next open step, not
 started.
+
+## 2026-08-20
+
+**Postponed subpixel accuracy item, resolved.** [Simple Stretch
+Revisited](./simple_stretch.md#simple-stretch-revisited) found the
+concrete trigger this Postponed item's own wording anticipated: at
+`factor_x = 1.02`, only points whose `x` is a multiple of 50 land on
+an integer pixel in the deformed configuration. A denser grid mostly
+doesn't. New [Subpixel
+Accuracy](./subpixel_accuracy.md) page: `dictk.translation.locate_subpixel`
+and `dictk.grid.locate_subpixel`, exposing
+`phase_cross_correlation`'s own `upsample_factor` — separate functions
+from `locate`/`grid.locate`, not a parameter added to them, returning
+a new `dictk.image.SubpixelCoordinate` (float `x`/`y`) instead of
+`PixelCoordinate`. Measured directly against VIC-2D's own 2862-point
+grid: `upsample_factor` doesn't make `locate`'s truncated integer
+answer more often correct (the true target usually isn't an integer at
+that density, so no refinement changes that) — but it substantially
+improves how close the tracked position lands to the true, generally
+fractional, target (mean absolute error 0.26px at `upsample_factor=1`,
+down to 0.09px at `10`). Parallelization (9) gains this as its first
+child, 9.1; a second child, 9.2 High Point Density, picking the same
+subpixel tooling up at real density, is the planned next step, not
+started yet.

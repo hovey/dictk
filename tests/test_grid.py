@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 
 from dictk.correlation import WindowingMethod
-from dictk.grid import Executor, elements, generate, locate
-from dictk.image import PixelCoordinate, translate
+from dictk.grid import Executor, elements, generate, locate, locate_subpixel
+from dictk.image import PixelCoordinate, stretch, translate
 from dictk.rosta import rosta
 
 
@@ -347,3 +347,147 @@ def test_locate_max_workers_invalid_raises(max_workers):
             search_margin_height=20,
             max_workers=max_workers,
         )
+
+
+def test_locate_subpixel_requires_keyword_arguments():
+    arr = np.zeros((50, 50), dtype=np.uint8)
+    points = [PixelCoordinate(x=25, y=25)]
+    with pytest.raises(TypeError):
+        locate_subpixel(arr, arr, points, None, 10, 10, 20, 20)
+
+
+def test_locate_subpixel_batch_matches_locate_for_integer_displacement():
+    # atol matches translation.locate_subpixel's own regression anchor --
+    # translate() bilinear-interpolates even integer dx/dy, so a small
+    # residual error is expected here, not a bug.
+    ref, cur = _reference_and_current(dx=-6, dy=8)
+    points = generate(
+        origin=PixelCoordinate(x=40, y=40),
+        count_x=3,
+        count_y=3,
+        spacing_x=20,
+        spacing_y=20,
+    )
+    found = locate_subpixel(
+        reference_image=ref,
+        current_image=cur,
+        reference_points=points,
+        kernel_margin_width=15,
+        kernel_margin_height=15,
+        search_margin_width=30,
+        search_margin_height=30,
+    )
+    assert len(found) == len(points)
+    for p0, p1 in zip(points, found):
+        assert np.isclose(p1.x - p0.x, -6, atol=0.05)
+        assert np.isclose(p1.y - p0.y, 8, atol=0.05)
+
+
+def test_locate_subpixel_empty_points_returns_empty_list():
+    ref, cur = _reference_and_current(dx=0, dy=0)
+    found = locate_subpixel(
+        reference_image=ref,
+        current_image=cur,
+        reference_points=[],
+        kernel_margin_width=15,
+        kernel_margin_height=15,
+        search_margin_width=30,
+        search_margin_height=30,
+    )
+    assert found == []
+
+
+def test_locate_subpixel_mismatched_search_centers_length_raises():
+    ref, cur = _reference_and_current(dx=0, dy=0)
+    points = generate(
+        origin=PixelCoordinate(x=40, y=40),
+        count_x=2,
+        count_y=2,
+        spacing_x=20,
+        spacing_y=20,
+    )
+    with pytest.raises(ValueError):
+        locate_subpixel(
+            reference_image=ref,
+            current_image=cur,
+            reference_points=points,
+            search_centers=points[:2],
+            kernel_margin_width=15,
+            kernel_margin_height=15,
+            search_margin_width=30,
+            search_margin_height=30,
+        )
+
+
+@pytest.mark.parametrize("executor", [Executor.THREAD, Executor.PROCESS])
+@pytest.mark.parametrize("max_workers", [1, 2, 4])
+def test_locate_subpixel_max_workers_matches_sequential(max_workers, executor):
+    ref, cur = _reference_and_current(dx=-6, dy=8)
+    points = generate(
+        origin=PixelCoordinate(x=40, y=40),
+        count_x=3,
+        count_y=3,
+        spacing_x=20,
+        spacing_y=20,
+    )
+    kwargs = dict(
+        reference_image=ref,
+        current_image=cur,
+        reference_points=points,
+        kernel_margin_width=15,
+        kernel_margin_height=15,
+        search_margin_width=30,
+        search_margin_height=30,
+    )
+    sequential = locate_subpixel(**kwargs)
+    concurrent = locate_subpixel(**kwargs, max_workers=max_workers, executor=executor)
+    assert concurrent == sequential
+
+
+@pytest.mark.parametrize("max_workers", [0, -1])
+def test_locate_subpixel_max_workers_invalid_raises(max_workers):
+    arr = np.zeros((50, 50), dtype=np.uint8)
+    points = [PixelCoordinate(x=25, y=25)]
+    with pytest.raises(ValueError):
+        locate_subpixel(
+            reference_image=arr,
+            current_image=arr,
+            reference_points=points,
+            kernel_margin_width=10,
+            kernel_margin_height=10,
+            search_margin_width=20,
+            search_margin_height=20,
+            max_workers=max_workers,
+        )
+
+
+def test_locate_subpixel_recovers_true_fractional_target_more_closely_than_locate():
+    """Same reasoning as translation.locate_subpixel's own regression
+    anchor, at batch scale: a uniaxial stretch's true targets are
+    generally fractional, and locate_subpixel() should land closer to
+    them than locate()'s own truncated results, on average."""
+    reference_image = rosta(width=200, height=200, density=0.4)
+    factor_x = 1.02
+    current_image = stretch(arr=reference_image, factor_x=factor_x)
+    points = generate(
+        origin=PixelCoordinate(x=18, y=16),
+        count_x=10,
+        count_y=10,
+        spacing_x=5,
+        spacing_y=5,
+    )
+    kwargs = dict(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_points=points,
+        kernel_margin_width=20,
+        kernel_margin_height=20,
+        search_margin_width=48,
+        search_margin_height=52,
+    )
+    integer_found = locate(**kwargs)
+    subpixel_found = locate_subpixel(**kwargs)
+    true_x = [p.x * factor_x for p in points]
+    integer_error = np.mean([abs(f.x - tx) for f, tx in zip(integer_found, true_x)])
+    subpixel_error = np.mean([abs(f.x - tx) for f, tx in zip(subpixel_found, true_x)])
+    assert subpixel_error < integer_error

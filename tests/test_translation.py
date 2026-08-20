@@ -2,9 +2,9 @@ import numpy as np
 import pytest
 
 from dictk.correlation import WindowingMethod
-from dictk.image import PixelCoordinate, translate
+from dictk.image import PixelCoordinate, stretch, translate
 from dictk.rosta import rosta
-from dictk.translation import locate
+from dictk.translation import locate, locate_subpixel
 
 
 def _reference_and_current(dx: float, dy: float):
@@ -215,3 +215,94 @@ def test_locate_windowing_still_recovers_known_translation(method):
         windowing=method,
     )
     assert (p1.x - p0.x, p1.y - p0.y) == (-6, 8)
+
+
+def test_locate_subpixel_requires_keyword_arguments():
+    arr = np.zeros((50, 50), dtype=np.uint8)
+    p = PixelCoordinate(x=25, y=25)
+    with pytest.raises(TypeError):
+        locate_subpixel(arr, arr, p, p, 10, 10, 20, 20)
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        dict(kernel_margin_width=0),
+        dict(kernel_margin_height=0),
+        dict(search_margin_width=10),
+        dict(search_margin_height=10),
+        dict(upsample_factor=0),
+    ],
+)
+def test_locate_subpixel_invalid_arguments_raise(kwargs):
+    arr = np.zeros((50, 50), dtype=np.uint8)
+    p = PixelCoordinate(x=25, y=25)
+    base = dict(
+        reference_image=arr,
+        current_image=arr,
+        reference_point=p,
+        search_center=p,
+        kernel_margin_width=10,
+        kernel_margin_height=10,
+        search_margin_width=20,
+        search_margin_height=20,
+    )
+    with pytest.raises(ValueError):
+        locate_subpixel(**{**base, **kwargs})
+
+
+def test_locate_subpixel_matches_locate_for_integer_displacement():
+    """A pure integer translation's true target is already an integer --
+    subpixel refinement should land close to it. Not exactly: translate()
+    uses the same backward-mapping bilinear interpolation as stretch()
+    even for integer dx/dy (see its own docstring), so a small residual
+    error is expected here too, not a bug -- atol matches that, not an
+    unrealistic exact-recovery expectation."""
+    ref, cur = _reference_and_current(dx=-6, dy=8)
+    p0 = PixelCoordinate(x=60, y=60)
+    p1 = locate_subpixel(
+        reference_image=ref,
+        current_image=cur,
+        reference_point=p0,
+        search_center=p0,
+        kernel_margin_width=20,
+        kernel_margin_height=20,
+        search_margin_width=35,
+        search_margin_height=35,
+    )
+    assert np.isclose(p1.x - p0.x, -6, atol=0.05)
+    assert np.isclose(p1.y - p0.y, 8, atol=0.05)
+
+
+def test_locate_subpixel_recovers_true_fractional_target_more_closely_than_locate():
+    """A uniaxial stretch's own true target is generally fractional, not
+    an integer -- locate()'s own truncated answer is necessarily off by
+    some amount, but locate_subpixel() should land measurably closer to
+    the true value, not just report a different-but-equally-wrong one."""
+    reference_image = rosta(width=200, height=200, density=0.4)
+    factor_x = 1.02
+    current_image = stretch(arr=reference_image, factor_x=factor_x)
+    p0 = PixelCoordinate(x=63, y=100)  # 63 * 1.02 = 64.26, not an integer
+    true_x = p0.x * factor_x
+
+    integer_result = locate(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_point=p0,
+        search_center=p0,
+        kernel_margin_width=20,
+        kernel_margin_height=20,
+        search_margin_width=48,
+        search_margin_height=52,
+    )
+    subpixel_result = locate_subpixel(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_point=p0,
+        search_center=p0,
+        kernel_margin_width=20,
+        kernel_margin_height=20,
+        search_margin_width=48,
+        search_margin_height=52,
+    )
+    assert abs(subpixel_result.x - true_x) < abs(integer_result.x - true_x)
