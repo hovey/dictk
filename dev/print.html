@@ -5200,6 +5200,17 @@ already supports an <code>upsample_factor</code> parameter for sub-pixel
 registration; <code>dictk</code> doesn't expose it yet. Real, non-synthetic
 displacements won't land on exact pixels, so this becomes necessary
 once the book moves past known-integer test cases.</li>
+<li><strong><code>grid.locate()</code> windowing demo.</strong> <code>windowing</code> has only ever been
+demonstrated directly on
+<a href="getting_started/../api/dictk/correlation.html#phase_correlation"><code>dictk.correlation.phase_correlation</code></a>
+(see <a href="getting_started/./correlation_visualization.html#phase-correlation">Correlation
+Visualization</a>).
+Every
+<code>grid.locate()</code> call across the book so far (Multi-Point Motion,
+Simple Stretch, Recoverable Displacement Range, Pure Rotation,
+Parallelization) leaves <code>windowing</code> at its default <code>None</code> — the one
+parameter of <code>grid.locate</code>'s own signature with no live worked
+example yet.</li>
 </ul>
 <h2 id="2026-08-18"><a class="header" href="#2026-08-18">2026-08-18</a></h2>
 <p><strong>Pure Rotation: The First Sweep.</strong> New page, <a href="getting_started/./pure_rotation.html">Pure
