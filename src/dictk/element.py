@@ -3,8 +3,8 @@ Jacobian, deformation gradient, and strain at its Gauss points.
 
 The shape-function/Jacobian/deformation-gradient chain and the
 Green-Lagrange strain measure are ported from the `hdic` codebase's
-`~/hdic/src/hdic/types/fea.py` (see [[project_dictk_hdic_provenance]]).
-The one hdic FEA implementation actually wired into a
+`~/hdic/src/hdic/types/fea.py` (see [[project_dictk_hdic_provenance]]),
+which was one hdic FEA implementation actually wired into a
 real pipeline there, and validated end to end against a hand-worked
 example (a unit square stretched 5% in $x$ gives $E_{11} = 0.05125$
 exactly), reproduced here as this module's own regression test.
@@ -22,6 +22,7 @@ the specific subsection its math comes from.
 """
 
 from collections.abc import Sequence
+from typing import Final
 
 import numpy as np
 
@@ -29,17 +30,41 @@ from dictk.image import PixelCoordinate
 
 #: The 2x2 Gauss quadrature rule's local coordinate value -- see
 #: [Gauss Points](../getting_started/finite_element_method.html#gauss-points).
-GAUSS_POINT_COORDINATE: float = 1.0 / np.sqrt(3.0)
+GAUSS_POINT_COORDINATE: Final[float] = 1.0 / np.sqrt(3.0)
 
 
 def gauss_points() -> list[tuple[float, float]]:
-    r"""The 4 $(\xi, \eta)$ locations of the standard 2x2 Gauss rule.
+    r"""The four $(\xi, \eta)$ locations of the standard 2x2 Gauss rule.
 
     See [Gauss
     Points](../getting_started/finite_element_method.html#gauss-points).
+    In the standard FEA local coordinate system, the y-axis points up,
+    different from the image coordinate system where the y-axis points down.
+    For both coordinate systems, the x-axis points right.
     Ordered to match `shape_functions`' own $N_1$..$N_4$ corner
     convention (bottom-left, bottom-right, top-right, top-left in local
-    coordinates).
+    coordinates), for a y-axis-up convention:
+
+    ```
+                         eta
+                          ^
+                          |
+    N4 (-1, 1)     o------+------o N3 (1, 1)
+                   |      |      |
+                   |  g4  |  g3  |
+                   |      |      |
+                   |------+------|---> xi
+                   |      |      |
+                   |  g1  |  g2  |
+                   |      |      |
+    N1 (-1,-1)     o------+------o N2 (1,-1)
+    ```
+
+    `N1`..`N4` are the element's 4 corner nodes, at the local coordinates
+    labeled above. `g1`..`g4` are this function's own 4 returned
+    `(xi, eta)` pairs, in return order -- each at
+    $(\pm 1/\sqrt{3}, \pm 1/\sqrt{3})$, inset from its nearest corner
+    node.
 
     Returns:
         A length-4 list of `(xi, eta)` pairs.
