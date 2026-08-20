@@ -4,6 +4,7 @@ import pytest
 from dictk.element import (
     deformation_gradient,
     displacement_gradient,
+    gauss_point_coordinates,
     gauss_point_green_lagrange_strains,
     gauss_point_log_strains,
     gauss_points,
@@ -32,6 +33,47 @@ def test_gauss_points_returns_four_points():
     assert len(points) == 4
     g = 1.0 / np.sqrt(3.0)
     assert np.allclose(points, [(-g, -g), (g, -g), (g, g), (-g, g)])
+
+
+def test_gauss_point_coordinates_requires_keyword_arguments():
+    """Positional arguments are rejected."""
+    with pytest.raises(TypeError):
+        gauss_point_coordinates(UNIT_SQUARE)
+
+
+def test_gauss_point_coordinates_wrong_length_raises():
+    """A points list of length != 4 raises ValueError."""
+    with pytest.raises(ValueError):
+        gauss_point_coordinates(points=UNIT_SQUARE[:3])
+
+
+def test_gauss_point_coordinates_matches_hand_computation():
+    """A 2x-scaled square's Gauss point 1 position, hand-computed via
+    shape_functions(xi=-g, eta=-g) @ coordinates independently, matches."""
+    square = [
+        PixelCoordinate(x=0, y=0),
+        PixelCoordinate(x=2, y=0),
+        PixelCoordinate(x=2, y=2),
+        PixelCoordinate(x=0, y=2),
+    ]
+    coords = gauss_point_coordinates(points=square)
+    assert len(coords) == 4
+    g = 1.0 / np.sqrt(3.0)
+    expected_gp1 = shape_functions(xi=-g, eta=-g) @ np.array(
+        [[0, 0], [2, 0], [2, 2], [0, 2]], dtype=float
+    )
+    assert np.allclose(coords[0], expected_gp1)
+
+
+def test_gauss_point_coordinates_at_unit_square_center():
+    """The unit square's own center, xi=eta=0, would map to (0.5, 0.5) --
+    not one of the 4 returned Gauss points, but a sanity check that the
+    4 actual Gauss points straddle it symmetrically."""
+    coords = gauss_point_coordinates(points=UNIT_SQUARE)
+    mean_x = sum(c[0] for c in coords) / 4
+    mean_y = sum(c[1] for c in coords) / 4
+    assert np.isclose(mean_x, 0.5)
+    assert np.isclose(mean_y, 0.5)
 
 
 def test_shape_functions_requires_keyword_arguments():

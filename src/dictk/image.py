@@ -2161,3 +2161,137 @@ def point_grid_plot(
 
     plt.savefig(path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
+
+
+def element_strain_plot(
+    *,
+    points: Sequence[PixelCoordinate],
+    elements: Sequence[tuple[int, int, int, int]],
+    coordinates: Sequence[tuple[float, float]],
+    values: Sequence[float],
+    label: str,
+    image: np.ndarray | None = None,
+    show_node_numbers: bool = False,
+    cmap: str = "viridis",
+    figsize: tuple[float, float] = (10.0, 5.0),
+    path: Path,
+    dpi: int = 300,
+) -> None:
+    r"""Save a figure of a Q4 mesh with its Gauss points colored by a scalar value.
+
+    Modeled on the reference `hdic` codebase's
+    `~/hdic/src/hdic/types/fea_vis.py`'s `plot_strain_at_gauss_points` --
+    same two-mode design (with or without a background image), same
+    node-number/Gauss-point-scatter/colorbar layout -- adapted to dictk's
+    own point/element representation
+    ([`dictk.grid.elements`](../grid.html#elements),
+    [`dictk.element.gauss_point_coordinates`](../element.html#gauss_point_coordinates)).
+    Deliberately agnostic to which strain measure (or any other
+    per-Gauss-point scalar) produced `values` -- it only draws what it's
+    given, matching
+    [`point_grid_plot`](#point_grid_plot)/[`point_grid_boxes_plot`](#point_grid_boxes_plot)'s
+    own "just draws what it's given" design, rather than computing strain
+    itself.
+
+    Draws each of `elements`' 4-corner polygon outline from `points`,
+    optionally labels each of `points` with its own zero-padded index
+    (matching `point_grid_plot`'s exact `"00"`, `"01"`, ... convention),
+    and scatters `coordinates` colored by `values` with a colorbar
+    labeled `label`. If `image` is given, it's drawn as the background
+    (e.g. pass the current/deformed image, with `points`/`coordinates` in
+    that same current configuration, to show the mesh atop what it was
+    measured from); otherwise the axes alone are y-inverted to match
+    image/pixel convention (y increasing downward), so the two modes
+    render in the same visual orientation. The axes are always
+    aspect-locked 1:1 (a pixel spans the same rendered length along
+    x and y), regardless of `figsize` or `image`'s own shape -- so the
+    mesh's true proportions are never visually distorted.
+
+    Args:
+        points: The mesh's corner node positions, in the same
+            configuration `coordinates` uses (e.g. `found`, not the
+            original reference `points`, to draw the deformed shape).
+        elements: Q4 connectivity, e.g. from
+            [`dictk.grid.elements`](../grid.html#elements) -- each
+            4-tuple indexes into `points`.
+        coordinates: One `(X, Y)` position per Gauss point, e.g. from
+            [`dictk.element.gauss_point_coordinates`](../element.html#gauss_point_coordinates)
+            called once per element and concatenated, in the same order
+            as `values`.
+        values: One scalar per Gauss point, same order and length as
+            `coordinates` -- e.g. a strain tensor's own `[0, 0]`
+            component at each point.
+        label: Colorbar label, e.g. `r"Log Strain, $E_{11}$"`.
+        image: Optional background image (2D grayscale array). Default
+            `None` draws the mesh alone, on a plain y-inverted axes.
+        show_node_numbers: Whether to label each of `points` with its own
+            zero-padded index.
+        cmap: Matplotlib colormap for the Gauss-point scatter.
+        figsize: `(width, height)` in inches for the saved figure, used
+            whether or not `image` is given -- unlike `point_grid_plot`,
+            this isn't sized from `image`'s own shape (see `image`
+            above).
+        path: Output file path for the figure; format is inferred from
+            the extension by matplotlib's savefig (e.g. `.png`).
+        dpi: Resolution of the saved figure.
+    """
+    gauss_xs = [c[0] for c in coordinates]
+    gauss_ys = [c[1] for c in coordinates]
+
+    # Same figsize whether or not image is given -- not sized from
+    # image.shape -- matching hdic's own plot_strain_at_gauss_points,
+    # which uses one fixed canvas for both calls.
+    fig, ax = plt.subplots(figsize=figsize)
+
+    if image is not None:
+        image_height, image_width = image.shape
+        ax.imshow(
+            image,
+            cmap="gray",
+            origin="upper",
+            extent=(0, image_width, image_height, 0),
+        )
+    elif not ax.yaxis_inverted():
+        # No image to establish the y-down orientation via its own
+        # extent -- invert explicitly, matching hdic's own conditional
+        # invert_yaxis() call.
+        ax.invert_yaxis()
+
+    for element in elements:
+        corners = [points[i] for i in element]
+        corners.append(corners[0])  # close the quadrilateral
+        ax.plot([c.x for c in corners], [c.y for c in corners], "k-", alpha=0.3)
+
+    if show_node_numbers:
+        label_outline = [patheffects.withStroke(linewidth=1, foreground="white")]
+        index_width = len(str(len(points) - 1)) if len(points) > 1 else 2
+        for i, point in enumerate(points):
+            ax.text(
+                point.x,
+                point.y,
+                f"{i:0{index_width}d}",
+                color="red",
+                fontsize=10,
+                fontweight="bold",
+                ha="center",
+                va="center",
+                path_effects=label_outline,
+            )
+
+    scatter = ax.scatter(gauss_xs, gauss_ys, c=values, cmap=cmap, s=150)
+    fig.colorbar(scatter, ax=ax, label=label)
+
+    ax.axis("image")  # aspect-locked 1:1, autoscaled tight to the data --
+    # matching hdic's own plt.axis("image") exactly, not a manually
+    # recreated aspect+anchor+xlim/ylim equivalent.
+    ax.set_xlabel("x (pixels)")
+    ax.set_ylabel("y (pixels)")
+
+    plt.tight_layout()
+    # No bbox_inches="tight" here, unlike this module's other plot
+    # functions -- matching hdic's own plot_strain_at_gauss_points, which
+    # keeps its fixed-size canvas as saved (plt.savefig(..., dpi=300),
+    # no bbox_inches) rather than cropping to the mesh's own, generally
+    # smaller, content bounding box.
+    plt.savefig(path, dpi=dpi)
+    plt.close(fig)

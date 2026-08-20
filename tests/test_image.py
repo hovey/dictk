@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from dictk.correlation import WindowingMethod, _kernel_pad, cc, phase_correlation, zncc
+from dictk.grid import elements as grid_elements
 from dictk.grid import generate as grid_generate
 from dictk.rosta import rosta
 from dictk.image import (
@@ -19,6 +20,7 @@ from dictk.image import (
     contrast,
     crack_dislocation,
     describe,
+    element_strain_plot,
     phase_correlation_quadrant_plot,
     point_grid_boxes_plot,
     point_grid_plot,
@@ -1236,6 +1238,78 @@ def test_point_grid_plot_empty_points_writes_file(tmp_path: Path):
     arr = checkerboard(width=100, height=100)
     path = tmp_path / "point_grid_empty.png"
     point_grid_plot(image=arr, points=[], path=path)
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def _element_strain_plot_inputs():
+    points = grid_generate(
+        origin=PixelCoordinate(x=50, y=50),
+        count_x=3,
+        count_y=4,
+        spacing_x=50,
+        spacing_y=55,
+    )
+    element_indices = grid_elements(count_x=3, count_y=4)
+    # Fabricated coordinates/values -- element_strain_plot only draws what
+    # it's given, so a real strain computation isn't needed to test it.
+    coordinates = [(float(p.x) + 5, float(p.y) + 5) for p in points for _ in range(2)][
+        : len(element_indices) * 4
+    ]
+    values = [float(i) for i in range(len(coordinates))]
+    return points, element_indices, coordinates, values
+
+
+def test_element_strain_plot_requires_keyword_arguments():
+    points, element_indices, coordinates, values = _element_strain_plot_inputs()
+    with pytest.raises(TypeError):
+        element_strain_plot(points, element_indices, coordinates, values, "label")
+
+
+def test_element_strain_plot_without_image_writes_file(tmp_path: Path):
+    points, element_indices, coordinates, values = _element_strain_plot_inputs()
+    path = tmp_path / "element_strain.png"
+    element_strain_plot(
+        points=points,
+        elements=element_indices,
+        coordinates=coordinates,
+        values=values,
+        label="Log Strain, E11",
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_element_strain_plot_with_image_writes_file(tmp_path: Path):
+    points, element_indices, coordinates, values = _element_strain_plot_inputs()
+    photo = astronaut(width=300, height=300)
+    path = tmp_path / "element_strain_on_image.png"
+    element_strain_plot(
+        points=points,
+        elements=element_indices,
+        coordinates=coordinates,
+        values=values,
+        label="Log Strain, E11",
+        image=photo,
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_element_strain_plot_show_node_numbers_writes_file(tmp_path: Path):
+    points, element_indices, coordinates, values = _element_strain_plot_inputs()
+    path = tmp_path / "element_strain_numbered.png"
+    element_strain_plot(
+        points=points,
+        elements=element_indices,
+        coordinates=coordinates,
+        values=values,
+        label="Log Strain, E11",
+        show_node_numbers=True,
+        path=path,
+    )
     assert path.exists()
     assert path.stat().st_size > 0
 

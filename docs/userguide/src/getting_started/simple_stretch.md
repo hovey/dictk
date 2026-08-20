@@ -174,12 +174,77 @@ average** from all adjacent elements to create a smooth contour plot.
 
 For now, let's report the strain at the Gauss points.
 
-`dictk` doesn't compute strain yet — [Finite Element
-Method](./finite_element_method.md) covers the Q4 element formulation
-and the deformation gradient $\boldsymbol{F}(\boldsymbol{X})$ strain is
-built from, but no Gauss-point or mesh-level machinery exists in the
-codebase to actually evaluate it on tracked points like the twelve
-above. That's the next piece of work this page is waiting on.
+[`dictk.grid.elements`](../api/dictk/grid.html#elements) turns the
+tracked grid's 12 points into 6 Q4 elements, then
+[`dictk.element.gauss_point_log_strains`](../api/dictk/element.html#gauss_point_log_strains)
+and
+[`dictk.element.gauss_point_coordinates`](../api/dictk/element.html#gauss_point_coordinates)
+compute each element's 4 Gauss points' logarithmic (Hencky) strain and
+their own global position, in the current (found) configuration.
+Logarithmic strain, not Green-Lagrange, so this matches the [Verification
+Against VIC-2D](#verification-against-vic-2d) section below, which
+reports VIC-2D's own logarithmic/Euler strain:
+
+```python
+from dictk.element import gauss_point_coordinates, gauss_point_log_strains
+from dictk.grid import elements
+from dictk.image import element_strain_plot
+
+element_indices = elements(count_x=3, count_y=4)
+values = []
+coordinates = []
+for element in element_indices:
+    reference_corners = [points[i] for i in element]
+    current_corners = [found[i] for i in element]
+    strains = gauss_point_log_strains(
+        reference_points=reference_corners, current_points=current_corners
+    )
+    values.extend(strain[0, 0] for strain in strains)
+    coordinates.extend(gauss_point_coordinates(points=current_corners))
+
+element_strain_plot(
+    points=found,
+    elements=element_indices,
+    coordinates=coordinates,
+    values=values,
+    label=r"Log Strain, $E_{11}$",
+    show_node_numbers=True,
+    path="simple_stretch_strain_gauss_points.png",
+)
+element_strain_plot(
+    points=found,
+    elements=element_indices,
+    coordinates=coordinates,
+    values=values,
+    label=r"Log Strain, $E_{11}$",
+    image=current_image,
+    show_node_numbers=True,
+    path="simple_stretch_strain_on_current.png",
+)
+```
+
+<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, stretch, element_strain_plot; from dictk.grid import generate, locate, elements; from dictk.element import gauss_point_coordinates, gauss_point_log_strains; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); factor_x = 1.02; current_image = stretch(arr=reference_image, factor_x=factor_x); found = locate(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=20, kernel_margin_height=20, search_margin_width=48, search_margin_height=52); element_indices = elements(count_x=3, count_y=4); values, coordinates = [], []; [ (values.extend(strain[0, 0] for strain in gauss_point_log_strains(reference_points=[points[i] for i in element], current_points=[found[i] for i in element])), coordinates.extend(gauss_point_coordinates(points=[found[i] for i in element]))) for element in element_indices ]; element_strain_plot(points=found, elements=element_indices, coordinates=coordinates, values=values, label=r'Log Strain, \$E_{11}\$', show_node_numbers=True, path='simple_stretch_strain_gauss_points.png'); element_strain_plot(points=found, elements=element_indices, coordinates=coordinates, values=values, label=r'Log Strain, \$E_{11}\$', image=current_image, show_node_numbers=True, path='simple_stretch_strain_on_current.png')" -->
+
+<figure>
+    <img src="simple_stretch_strain_gauss_points.png" alt="the 6-element mesh with node numbers 00 through 11 and 4 Gauss points per element, colored by log strain E11, no background image" />
+    <figcaption>The 6-element mesh, node numbers and Gauss points colored by log strain $E_{11}$.</figcaption>
+</figure>
+
+<figure>
+    <img src="simple_stretch_strain_on_current.png" alt="the same mesh and colored Gauss points overlaid on current_image, the stretched astronaut photo" />
+    <figcaption>The same mesh, overlaid on <code>current_image</code>.</figcaption>
+</figure>
+
+```text
+<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, stretch; from dictk.grid import generate, locate, elements; from dictk.element import gauss_points, gauss_point_log_strains; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); factor_x = 1.02; current_image = stretch(arr=reference_image, factor_x=factor_x); found = locate(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=20, kernel_margin_height=20, search_margin_width=48, search_margin_height=52); element_indices = elements(count_x=3, count_y=4); print('Strain Component: E11'); print('-' * 40); [print(f'Element {i:2d} | GP (xi={xi:+.3f}, eta={eta:+.3f}) | E11: {strain[0, 0]:.6e}') for i, element in enumerate(element_indices) for (xi, eta), strain in zip(gauss_points(), gauss_point_log_strains(reference_points=[points[j] for j in element], current_points=[found[j] for j in element]))]; print('-' * 40)" -->
+```
+
+All 24 Gauss points report the identical value, $E_{11} \approx 0.019803$
+— expected here, since `factor_x = 1.02` is a uniform, axis-aligned
+stretch, a globally affine map that Q4's bilinear interpolation
+reproduces exactly everywhere, not just at element corners. In the
+general case, where the deformation isn't perfectly uniform, each Gauss
+point's strain would differ.
 
 ## Data Download
 
@@ -273,12 +338,10 @@ pursuing: running this book's own synthetic datasets through established
 DIC software, and comparing directly against `dictk`'s own results. This
 page's own `factor_x = 1.02` stretch was run through
 [VIC-2D](https://www.correlatedsolutions.com/vic-2d/) (Correlated
-Solutions, Inc.), independently of `dictk`. Unlike [Multi-Point
-Motion](./multi_point_motion.md#verification-against-vic-2d)'s
-comparison, this one isn't against a `dictk`-computed value —
-`dictk` doesn't compute strain anywhere on this page yet, only
-displacement — so it's checked directly against the closed-form
-analytical strain a `factor_x = 1.02` stretch implies instead:
+Solutions, Inc.), independently of `dictk`. VIC-2D reports logarithmic
+(Euler) strain, so it's compared here against [the Strain
+section](#strain) above's own `dictk`-computed log strain, not
+Green-Lagrange:
 
 <figure>
     <a href="../verification/simple_stretch_result_vic.png" target="_blank" rel="noopener">
@@ -287,18 +350,173 @@ analytical strain a `factor_x = 1.02` stretch implies instead:
     <figcaption>VIC-2D's own measured $e_{xx}$ (logarithmic/Euler strain) field for this page's <code>factor_x = 1.02</code> stretch (click to enlarge). The horizontal line is VIC-2D's own extensometer annotation, reading 19905.2 microstrain along that path.</figcaption>
 </figure>
 
-Across the 2682 subsets VIC-2D correlated successfully (180 more,
-along the image's outer edge, masked out), $e_{xx}$ averages
+VIC-2D placed its own subsets on a regular grid, 5 pixels apart in both
+directions — 53x54, 2862 candidate positions across the image. 180 of
+them sit close enough to the image's outer edge that their own
+correlation window would run off-canvas, so VIC-2D masks those out,
+leaving 2682 valid subsets. Across those 2682 subsets, $e_{xx}$ averages
 19875.8 microstrain — close to, but noisier than,
 [Multi-Point Motion](./multi_point_motion.md#verification-against-vic-2d)'s
 displacement match, since strain is a spatial derivative of already-noisy
-per-point displacement data, not a directly measured quantity. The
-analytical logarithmic (true/Euler) strain a `factor_x = 1.02` stretch
-implies is $\ln(1.02) \approx 19802.6$ microstrain —
-VIC-2D's own mean lands within 0.4% of it.
+per-point displacement data, not a directly measured quantity.
+
+Three values agree closely: VIC-2D's own measured mean, 19875.8
+microstrain; `dictk`'s own computed $E_{11}$ from the Strain section
+above, 19803.0 microstrain (identical at all 24 Gauss points, since
+this page's stretch is exact and uniform); and the analytical
+logarithmic (true/Euler) strain a `factor_x = 1.02` stretch implies,
+$\ln(1.02) \approx 19802.6$ microstrain.
+
+`dictk`'s own value lands within 0.02% of the analytical one — it's
+derived from the exact-integer tracked positions established earlier
+on this page, not a separately measured quantity, so it agrees almost
+exactly. VIC-2D's own mean, measured from real correlated subsets
+rather than exact tracked points, lands within 0.4% of the same
+analytical value.
 
 The full, subset-by-subset VIC-2D output —
 [`simple_stretch_vic_out.csv`](../verification/simple_stretch_vic_out.csv)
 — is available for closer inspection: every subset's position,
 displacement, strain, and correlation quality metrics, not just the
 summary field shown above.
+
+## Simple Stretch Revisited
+
+Every point tracked so far on this page has landed on an exact integer
+pixel in the deformed configuration. That only works because of how
+the 12-point grid's own $x$ values were chosen. $\text{factor}_x =
+1.02$ is $51/50$. A point's stretched $x$ only comes out as a whole
+number when $x$ itself is a multiple of 50 — $50 \cdot 51/50 = 51$,
+exactly, but $51 \cdot 51/50 = 52.02$, not exactly. The grid's three
+distinct $x$ values, 50, 100, and 150, are all multiples of 50. That's
+not a coincidence — it's the same integer-safety check [Choosing an
+Integer-Safe Stretch Factor](#choosing-an-integer-safe-stretch-factor)
+already ran, just not stated in exactly these terms yet.
+
+A much denser grid doesn't automatically keep that property. Spacing
+points 5 pixels apart, matching VIC-2D's own subset grid, mostly
+lands on $x$ values that aren't multiples of 50 — most of those points'
+true stretched position isn't an integer at all, so nothing can land on
+it exactly, no matter how the tracking works.
+
+$\text{factor}_y = 1.0$ has no such restriction — every $y$ stays fixed,
+so $y$ spacing is free. That leaves one real lever: keep $x$ restricted
+to multiples of 50, and pack the $y$ direction as densely as space
+allows. Within this image, $x \in \{50, 100, 150, 200, 250\}$ — 5
+values, still 50 pixels apart, and (with `search_margin_width=48`) all
+comfortably clear of the image's own edges. A much larger, still fully
+integer-safe grid follows directly:
+
+```python
+from dictk.grid import generate
+
+points = generate(
+    origin=PixelCoordinate(x=50, y=52),
+    count_x=5,
+    count_y=50,
+    spacing_x=50,
+    spacing_y=4,
+)
+```
+
+<!-- cmdrun python3 -c "from dictk.image import PixelCoordinate; from dictk.grid import generate; points = generate(origin=PixelCoordinate(x=50, y=52), count_x=5, count_y=50, spacing_x=50, spacing_y=4); xs = sorted({p.x for p in points}); print(f'{len(points)} points, x values: {xs}, y range: {min(p.y for p in points)}-{max(p.y for p in points)}')" -->
+
+Tracked the same way as every other grid on this page:
+
+```python
+from dictk.grid import locate
+
+found = locate(
+    reference_image=reference_image,
+    current_image=current_image,
+    reference_points=points,
+    kernel_margin_width=20,
+    kernel_margin_height=20,
+    search_margin_width=48,
+    search_margin_height=52,
+)
+```
+
+<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, stretch; from dictk.grid import generate, locate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=52), count_x=5, count_y=50, spacing_x=50, spacing_y=4); factor_x = 1.02; current_image = stretch(arr=reference_image, factor_x=factor_x); found = locate(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=20, kernel_margin_height=20, search_margin_width=48, search_margin_height=52); expected = [PixelCoordinate(x=int(p.x * factor_x), y=p.y) for p in points]; matches = sum(1 for f, e in zip(found, expected) if f == e); print(f'{matches}/{len(points)} points land on their expected integer pixel exactly')" -->
+
+Every one of them lands exactly, the same as the 12-point grid — this
+grid is 20x larger, entirely by choosing $x$ values that stay
+integer-safe, not by luck.
+
+Strain follows the same recipe as [the Strain section](#strain) above:
+[`dictk.grid.elements`](../api/dictk/grid.html#elements) for
+connectivity, then
+[`dictk.element.gauss_point_log_strains`](../api/dictk/element.html#gauss_point_log_strains)
+and
+[`dictk.element.gauss_point_coordinates`](../api/dictk/element.html#gauss_point_coordinates)
+at each of the resulting 196 elements' Gauss points. Node numbers are
+left off this time — 250 labels would be clutter, not information, at
+this density:
+
+```python
+from dictk.element import gauss_point_coordinates, gauss_point_log_strains
+from dictk.grid import elements
+from dictk.image import element_strain_plot
+
+element_indices = elements(count_x=5, count_y=50)
+values = []
+coordinates = []
+for element in element_indices:
+    reference_corners = [points[i] for i in element]
+    current_corners = [found[i] for i in element]
+    strains = gauss_point_log_strains(
+        reference_points=reference_corners, current_points=current_corners
+    )
+    values.extend(strain[0, 0] for strain in strains)
+    coordinates.extend(gauss_point_coordinates(points=current_corners))
+
+element_strain_plot(
+    points=found,
+    elements=element_indices,
+    coordinates=coordinates,
+    values=values,
+    label=r"Log Strain, $E_{11}$",
+    path="simple_stretch_revisited_strain_gauss_points.png",
+)
+element_strain_plot(
+    points=found,
+    elements=element_indices,
+    coordinates=coordinates,
+    values=values,
+    label=r"Log Strain, $E_{11}$",
+    image=current_image,
+    path="simple_stretch_revisited_strain_on_current.png",
+)
+```
+
+<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, stretch, element_strain_plot; from dictk.grid import generate, locate, elements; from dictk.element import gauss_point_coordinates, gauss_point_log_strains; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=52), count_x=5, count_y=50, spacing_x=50, spacing_y=4); factor_x = 1.02; current_image = stretch(arr=reference_image, factor_x=factor_x); found = locate(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=20, kernel_margin_height=20, search_margin_width=48, search_margin_height=52); element_indices = elements(count_x=5, count_y=50); values, coordinates = [], []; [ (values.extend(strain[0, 0] for strain in gauss_point_log_strains(reference_points=[points[i] for i in element], current_points=[found[i] for i in element])), coordinates.extend(gauss_point_coordinates(points=[found[i] for i in element]))) for element in element_indices ]; element_strain_plot(points=found, elements=element_indices, coordinates=coordinates, values=values, label=r'Log Strain, \$E_{11}\$', path='simple_stretch_revisited_strain_gauss_points.png'); element_strain_plot(points=found, elements=element_indices, coordinates=coordinates, values=values, label=r'Log Strain, \$E_{11}\$', image=current_image, path='simple_stretch_revisited_strain_on_current.png')" -->
+
+<figure>
+    <img src="simple_stretch_revisited_strain_gauss_points.png" alt="a much denser 5x50 mesh with 4 Gauss points per element, colored by log strain E11, no node numbers, no background image" />
+    <figcaption>The same log strain $E_{11}$, at 196 elements instead of 6 -- close enough to continuous to start looking like a real strain field.</figcaption>
+</figure>
+
+<figure>
+    <img src="simple_stretch_revisited_strain_on_current.png" alt="the same dense mesh and colored Gauss points overlaid on current_image, the stretched astronaut photo" />
+    <figcaption>The same dense mesh, overlaid on <code>current_image</code>.</figcaption>
+</figure>
+
+$E_{11}$ is still exactly $\ln(1.02) \approx 0.019803$ at all 784
+Gauss points — a uniform stretch is still a uniform stretch,
+regardless of how finely it's sampled. What's new here isn't the
+number, it's that the method now scales cleanly to a grid closer to
+VIC-2D's own density, with no tracking failures anywhere in it.
+
+Point count was the free variable throughout this section — 250 here,
+chosen for exactness, not for speed. How `dictk`'s own tracking time
+scales as point count grows much larger, and how that scaling compares
+across sequential, threaded, and multi-process execution, is
+[Parallelization](./parallelization.md)'s own question, not this one.
+
+Two things this section deliberately leaves open. Every point here
+still has to land on an exact integer pixel — real displacements
+won't, and recovering those is [Path Forward](./path_forward.md#postponed)'s
+own Postponed subpixel-accuracy item, not something this section
+attempts. And the timing question just raised — how tracking time
+actually scales once point count grows past 250 — is
+[Parallelization](./parallelization.md)'s to answer, not this page's.

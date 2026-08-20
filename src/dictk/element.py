@@ -73,6 +73,49 @@ def gauss_points() -> list[tuple[float, float]]:
     return [(-g, -g), (g, -g), (g, g), (-g, g)]
 
 
+def gauss_point_coordinates(
+    *, points: Sequence[PixelCoordinate]
+) -> list[tuple[float, float]]:
+    r"""An element's 4 Gauss points' own global $(X, Y)$ position.
+
+    dictk-original -- no hdic counterpart. Computed as
+    `shape_functions(xi, eta) @ points` at each of `gauss_points()`'s 4
+    locations, so each Gauss point's position is a bilinear interpolation
+    of the element's 4 corner nodes, not the corners themselves.
+
+    Returns `(float, float)` pairs, not `PixelCoordinate` -- a Gauss
+    point's position is generally sub-pixel (bilinear interpolation of
+    integer corners rarely lands back on an integer), and
+    `PixelCoordinate.x`/`.y` are `int`, which would silently truncate it.
+
+    Args:
+        points: The element's 4 corner nodes' positions, in $N_1$..$N_4$
+            order (see [Shape
+            Functions](../getting_started/finite_element_method.html#shape-functions)).
+            Pass the *current* (deformed) positions to place each Gauss
+            point at its current-configuration location -- e.g. for
+            overlaying on a deformed image, matching the reference
+            hdic implementation this pattern is modeled on
+            (`~/hdic/src/hdic/types/fea_vis.py`'s
+            `plot_strain_at_gauss_points`, which always uses deformed
+            node positions).
+
+    Returns:
+        A length-4 list of `(X, Y)` pairs, in `gauss_points()`'s order.
+
+    Raises:
+        ValueError: If `points` is not length 4.
+    """
+    if len(points) != 4:
+        raise ValueError(f"points has {len(points)} points, must be exactly 4")
+
+    coordinates = np.array([[p.x, p.y] for p in points], dtype=float)
+    return [
+        tuple(shape_functions(xi=xi, eta=eta) @ coordinates)
+        for xi, eta in gauss_points()
+    ]
+
+
 def shape_functions(*, xi: float, eta: float) -> np.ndarray:
     r"""The 4 Q4 shape functions $N_1$..$N_4$ at local coordinate $(\xi, \eta)$.
 
