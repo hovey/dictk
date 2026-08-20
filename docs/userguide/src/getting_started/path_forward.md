@@ -105,6 +105,17 @@ Noted, not being pursued right now:
   registration; `dictk` doesn't expose it yet. Real, non-synthetic
   displacements won't land on exact pixels, so this becomes necessary
   once the book moves past known-integer test cases.
+* **`grid.locate()` windowing demo.** `windowing` has only ever been
+  demonstrated directly on
+  [`dictk.correlation.phase_correlation`](../api/dictk/correlation.html#phase_correlation)
+  (see [Correlation
+  Visualization](./correlation_visualization.md#phase-correlation)).
+  Every
+  `grid.locate()` call across the book so far (Multi-Point Motion,
+  Simple Stretch, Recoverable Displacement Range, Pure Rotation,
+  Parallelization) leaves `windowing` at its default `None` — the one
+  parameter of `grid.locate`'s own signature with no live worked
+  example yet.
 
 ## 2026-08-18
 

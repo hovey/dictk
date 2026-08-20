@@ -81,6 +81,14 @@ def generate(
     `spacing_y` need not be equal -- this is a general rectangular
     collection, not a square or uniformly-spaced one.
 
+    `count_x` or `count_y` of exactly `1` is allowed here -- a single
+    row or column of points is still a meaningful point-tracking grid on
+    its own. That's looser than [`elements`](#elements)'s own
+    requirement of `>= 2` along each axis, since forming even 1 finite
+    element needs 2 points per axis. The two functions check their own,
+    different preconditions independently -- `generate` doesn't know or
+    care about elements.
+
     Args:
         origin: Position of the top-left point, in the source image's
             pixel reference frame.
@@ -123,6 +131,15 @@ def elements(*, count_x: int, count_y: int) -> list[tuple[int, int, int, int]]:
     point indices -- the same $N_1$..$N_4$ corner order those functions'
     `shape_functions` convention expects (see [Shape
     Functions](../getting_started/finite_element_method.html#shape-functions)).
+    "Top"/"bottom" here use `generate`'s own image-pixel convention (y
+    increasing downward, origin at the top-left point) -- not the
+    math-style y-up convention `finite_element_method.md`'s figures use,
+    where the same 4 points would be called `N1`..`N4`'s "bottom-left,
+    bottom-right, top-right, top-left" instead. Only the labels differ
+    between the two: the actual point order (start at one corner, then
+    +x, then +x and +y together, then +y) is identical either way, and
+    that -- not which direction is called "up" -- is what makes it match
+    `shape_functions`' expected winding.
 
     Args:
         count_x: Number of points along x in the source `generate` call.
