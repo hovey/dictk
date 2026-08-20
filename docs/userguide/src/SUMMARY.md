@@ -22,5 +22,6 @@
   - [Search Center Predictions](./getting_started/search_center_predictions.md)
 - [Parallelization](./getting_started/parallelization.md)
   - [Subpixel Accuracy](./getting_started/subpixel_accuracy.md)
+  - [High Point Density](./getting_started/high_point_density.md)
 - [Path Forward](./getting_started/path_forward.md)
 - [Contributing](./contributing.md)

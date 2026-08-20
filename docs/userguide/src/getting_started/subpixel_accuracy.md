@@ -91,6 +91,7 @@ same density problem.
 This closes [Path Forward](./path_forward.html#postponed)'s own
 Postponed subpixel-accuracy item — real displacements don't land on
 exact pixels, and now `dictk` has a way to track them without
-pretending otherwise. High Point Density picks this up next, at a
-density Simple Stretch Revisited's own integer-safety constraint
-couldn't reach.
+pretending otherwise. [High Point
+Density](./high_point_density.md) picks this up next, at a density
+Simple Stretch Revisited's own integer-safety constraint couldn't
+reach.
