@@ -214,6 +214,9 @@
             <li>
                     <a class="function" href="#point_grid_plot">point_grid_plot</a>
             </li>
+            <li>
+                    <a class="function" href="#element_strain_plot">element_strain_plot</a>
+            </li>
     </ul>
 
 
@@ -2400,6 +2403,140 @@
 </span><span id="L-2161"><a href="#L-2161"><span class="linenos">2161</span></a>
 </span><span id="L-2162"><a href="#L-2162"><span class="linenos">2162</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">)</span>
 </span><span id="L-2163"><a href="#L-2163"><span class="linenos">2163</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+</span><span id="L-2164"><a href="#L-2164"><span class="linenos">2164</span></a>
+</span><span id="L-2165"><a href="#L-2165"><span class="linenos">2165</span></a>
+</span><span id="L-2166"><a href="#L-2166"><span class="linenos">2166</span></a><span class="k">def</span><span class="w"> </span><span class="nf">element_strain_plot</span><span class="p">(</span>
+</span><span id="L-2167"><a href="#L-2167"><span class="linenos">2167</span></a>    <span class="o">*</span><span class="p">,</span>
+</span><span id="L-2168"><a href="#L-2168"><span class="linenos">2168</span></a>    <span class="n">points</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">PixelCoordinate</span><span class="p">],</span>
+</span><span id="L-2169"><a href="#L-2169"><span class="linenos">2169</span></a>    <span class="n">elements</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span>
+</span><span id="L-2170"><a href="#L-2170"><span class="linenos">2170</span></a>    <span class="n">coordinates</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
+</span><span id="L-2171"><a href="#L-2171"><span class="linenos">2171</span></a>    <span class="n">values</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+</span><span id="L-2172"><a href="#L-2172"><span class="linenos">2172</span></a>    <span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="L-2173"><a href="#L-2173"><span class="linenos">2173</span></a>    <span class="n">image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="L-2174"><a href="#L-2174"><span class="linenos">2174</span></a>    <span class="n">show_node_numbers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="L-2175"><a href="#L-2175"><span class="linenos">2175</span></a>    <span class="n">cmap</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;viridis&quot;</span><span class="p">,</span>
+</span><span id="L-2176"><a href="#L-2176"><span class="linenos">2176</span></a>    <span class="n">figsize</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">),</span>
+</span><span id="L-2177"><a href="#L-2177"><span class="linenos">2177</span></a>    <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+</span><span id="L-2178"><a href="#L-2178"><span class="linenos">2178</span></a>    <span class="n">dpi</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">300</span><span class="p">,</span>
+</span><span id="L-2179"><a href="#L-2179"><span class="linenos">2179</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-2180"><a href="#L-2180"><span class="linenos">2180</span></a><span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Save a figure of a Q4 mesh with its Gauss points colored by a scalar value.</span>
+</span><span id="L-2181"><a href="#L-2181"><span class="linenos">2181</span></a>
+</span><span id="L-2182"><a href="#L-2182"><span class="linenos">2182</span></a><span class="sd">    Modeled on the reference `hdic` codebase&#39;s</span>
+</span><span id="L-2183"><a href="#L-2183"><span class="linenos">2183</span></a><span class="sd">    `~/hdic/src/hdic/types/fea_vis.py`&#39;s `plot_strain_at_gauss_points` --</span>
+</span><span id="L-2184"><a href="#L-2184"><span class="linenos">2184</span></a><span class="sd">    same two-mode design (with or without a background image), same</span>
+</span><span id="L-2185"><a href="#L-2185"><span class="linenos">2185</span></a><span class="sd">    node-number/Gauss-point-scatter/colorbar layout -- adapted to dictk&#39;s</span>
+</span><span id="L-2186"><a href="#L-2186"><span class="linenos">2186</span></a><span class="sd">    own point/element representation</span>
+</span><span id="L-2187"><a href="#L-2187"><span class="linenos">2187</span></a><span class="sd">    ([`dictk.grid.elements`](../grid.html#elements),</span>
+</span><span id="L-2188"><a href="#L-2188"><span class="linenos">2188</span></a><span class="sd">    [`dictk.element.gauss_point_coordinates`](../element.html#gauss_point_coordinates)).</span>
+</span><span id="L-2189"><a href="#L-2189"><span class="linenos">2189</span></a><span class="sd">    Deliberately agnostic to which strain measure (or any other</span>
+</span><span id="L-2190"><a href="#L-2190"><span class="linenos">2190</span></a><span class="sd">    per-Gauss-point scalar) produced `values` -- it only draws what it&#39;s</span>
+</span><span id="L-2191"><a href="#L-2191"><span class="linenos">2191</span></a><span class="sd">    given, matching</span>
+</span><span id="L-2192"><a href="#L-2192"><span class="linenos">2192</span></a><span class="sd">    [`point_grid_plot`](#point_grid_plot)/[`point_grid_boxes_plot`](#point_grid_boxes_plot)&#39;s</span>
+</span><span id="L-2193"><a href="#L-2193"><span class="linenos">2193</span></a><span class="sd">    own &quot;just draws what it&#39;s given&quot; design, rather than computing strain</span>
+</span><span id="L-2194"><a href="#L-2194"><span class="linenos">2194</span></a><span class="sd">    itself.</span>
+</span><span id="L-2195"><a href="#L-2195"><span class="linenos">2195</span></a>
+</span><span id="L-2196"><a href="#L-2196"><span class="linenos">2196</span></a><span class="sd">    Draws each of `elements`&#39; 4-corner polygon outline from `points`,</span>
+</span><span id="L-2197"><a href="#L-2197"><span class="linenos">2197</span></a><span class="sd">    optionally labels each of `points` with its own zero-padded index</span>
+</span><span id="L-2198"><a href="#L-2198"><span class="linenos">2198</span></a><span class="sd">    (matching `point_grid_plot`&#39;s exact `&quot;00&quot;`, `&quot;01&quot;`, ... convention),</span>
+</span><span id="L-2199"><a href="#L-2199"><span class="linenos">2199</span></a><span class="sd">    and scatters `coordinates` colored by `values` with a colorbar</span>
+</span><span id="L-2200"><a href="#L-2200"><span class="linenos">2200</span></a><span class="sd">    labeled `label`. If `image` is given, it&#39;s drawn as the background</span>
+</span><span id="L-2201"><a href="#L-2201"><span class="linenos">2201</span></a><span class="sd">    (e.g. pass the current/deformed image, with `points`/`coordinates` in</span>
+</span><span id="L-2202"><a href="#L-2202"><span class="linenos">2202</span></a><span class="sd">    that same current configuration, to show the mesh atop what it was</span>
+</span><span id="L-2203"><a href="#L-2203"><span class="linenos">2203</span></a><span class="sd">    measured from); otherwise the axes alone are y-inverted to match</span>
+</span><span id="L-2204"><a href="#L-2204"><span class="linenos">2204</span></a><span class="sd">    image/pixel convention (y increasing downward), so the two modes</span>
+</span><span id="L-2205"><a href="#L-2205"><span class="linenos">2205</span></a><span class="sd">    render in the same visual orientation. The axes are always</span>
+</span><span id="L-2206"><a href="#L-2206"><span class="linenos">2206</span></a><span class="sd">    aspect-locked 1:1 (a pixel spans the same rendered length along</span>
+</span><span id="L-2207"><a href="#L-2207"><span class="linenos">2207</span></a><span class="sd">    x and y), regardless of `figsize` or `image`&#39;s own shape -- so the</span>
+</span><span id="L-2208"><a href="#L-2208"><span class="linenos">2208</span></a><span class="sd">    mesh&#39;s true proportions are never visually distorted.</span>
+</span><span id="L-2209"><a href="#L-2209"><span class="linenos">2209</span></a>
+</span><span id="L-2210"><a href="#L-2210"><span class="linenos">2210</span></a><span class="sd">    Args:</span>
+</span><span id="L-2211"><a href="#L-2211"><span class="linenos">2211</span></a><span class="sd">        points: The mesh&#39;s corner node positions, in the same</span>
+</span><span id="L-2212"><a href="#L-2212"><span class="linenos">2212</span></a><span class="sd">            configuration `coordinates` uses (e.g. `found`, not the</span>
+</span><span id="L-2213"><a href="#L-2213"><span class="linenos">2213</span></a><span class="sd">            original reference `points`, to draw the deformed shape).</span>
+</span><span id="L-2214"><a href="#L-2214"><span class="linenos">2214</span></a><span class="sd">        elements: Q4 connectivity, e.g. from</span>
+</span><span id="L-2215"><a href="#L-2215"><span class="linenos">2215</span></a><span class="sd">            [`dictk.grid.elements`](../grid.html#elements) -- each</span>
+</span><span id="L-2216"><a href="#L-2216"><span class="linenos">2216</span></a><span class="sd">            4-tuple indexes into `points`.</span>
+</span><span id="L-2217"><a href="#L-2217"><span class="linenos">2217</span></a><span class="sd">        coordinates: One `(X, Y)` position per Gauss point, e.g. from</span>
+</span><span id="L-2218"><a href="#L-2218"><span class="linenos">2218</span></a><span class="sd">            [`dictk.element.gauss_point_coordinates`](../element.html#gauss_point_coordinates)</span>
+</span><span id="L-2219"><a href="#L-2219"><span class="linenos">2219</span></a><span class="sd">            called once per element and concatenated, in the same order</span>
+</span><span id="L-2220"><a href="#L-2220"><span class="linenos">2220</span></a><span class="sd">            as `values`.</span>
+</span><span id="L-2221"><a href="#L-2221"><span class="linenos">2221</span></a><span class="sd">        values: One scalar per Gauss point, same order and length as</span>
+</span><span id="L-2222"><a href="#L-2222"><span class="linenos">2222</span></a><span class="sd">            `coordinates` -- e.g. a strain tensor&#39;s own `[0, 0]`</span>
+</span><span id="L-2223"><a href="#L-2223"><span class="linenos">2223</span></a><span class="sd">            component at each point.</span>
+</span><span id="L-2224"><a href="#L-2224"><span class="linenos">2224</span></a><span class="sd">        label: Colorbar label, e.g. `r&quot;Log Strain, $E_{11}$&quot;`.</span>
+</span><span id="L-2225"><a href="#L-2225"><span class="linenos">2225</span></a><span class="sd">        image: Optional background image (2D grayscale array). Default</span>
+</span><span id="L-2226"><a href="#L-2226"><span class="linenos">2226</span></a><span class="sd">            `None` draws the mesh alone, on a plain y-inverted axes.</span>
+</span><span id="L-2227"><a href="#L-2227"><span class="linenos">2227</span></a><span class="sd">        show_node_numbers: Whether to label each of `points` with its own</span>
+</span><span id="L-2228"><a href="#L-2228"><span class="linenos">2228</span></a><span class="sd">            zero-padded index.</span>
+</span><span id="L-2229"><a href="#L-2229"><span class="linenos">2229</span></a><span class="sd">        cmap: Matplotlib colormap for the Gauss-point scatter.</span>
+</span><span id="L-2230"><a href="#L-2230"><span class="linenos">2230</span></a><span class="sd">        figsize: `(width, height)` in inches for the saved figure, used</span>
+</span><span id="L-2231"><a href="#L-2231"><span class="linenos">2231</span></a><span class="sd">            whether or not `image` is given -- unlike `point_grid_plot`,</span>
+</span><span id="L-2232"><a href="#L-2232"><span class="linenos">2232</span></a><span class="sd">            this isn&#39;t sized from `image`&#39;s own shape (see `image`</span>
+</span><span id="L-2233"><a href="#L-2233"><span class="linenos">2233</span></a><span class="sd">            above).</span>
+</span><span id="L-2234"><a href="#L-2234"><span class="linenos">2234</span></a><span class="sd">        path: Output file path for the figure; format is inferred from</span>
+</span><span id="L-2235"><a href="#L-2235"><span class="linenos">2235</span></a><span class="sd">            the extension by matplotlib&#39;s savefig (e.g. `.png`).</span>
+</span><span id="L-2236"><a href="#L-2236"><span class="linenos">2236</span></a><span class="sd">        dpi: Resolution of the saved figure.</span>
+</span><span id="L-2237"><a href="#L-2237"><span class="linenos">2237</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-2238"><a href="#L-2238"><span class="linenos">2238</span></a>    <span class="n">gauss_xs</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="p">]</span>
+</span><span id="L-2239"><a href="#L-2239"><span class="linenos">2239</span></a>    <span class="n">gauss_ys</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="p">]</span>
+</span><span id="L-2240"><a href="#L-2240"><span class="linenos">2240</span></a>
+</span><span id="L-2241"><a href="#L-2241"><span class="linenos">2241</span></a>    <span class="c1"># Same figsize whether or not image is given -- not sized from</span>
+</span><span id="L-2242"><a href="#L-2242"><span class="linenos">2242</span></a>    <span class="c1"># image.shape -- matching hdic&#39;s own plot_strain_at_gauss_points,</span>
+</span><span id="L-2243"><a href="#L-2243"><span class="linenos">2243</span></a>    <span class="c1"># which uses one fixed canvas for both calls.</span>
+</span><span id="L-2244"><a href="#L-2244"><span class="linenos">2244</span></a>    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
+</span><span id="L-2245"><a href="#L-2245"><span class="linenos">2245</span></a>
+</span><span id="L-2246"><a href="#L-2246"><span class="linenos">2246</span></a>    <span class="k">if</span> <span class="n">image</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-2247"><a href="#L-2247"><span class="linenos">2247</span></a>        <span class="n">image_height</span><span class="p">,</span> <span class="n">image_width</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span>
+</span><span id="L-2248"><a href="#L-2248"><span class="linenos">2248</span></a>        <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
+</span><span id="L-2249"><a href="#L-2249"><span class="linenos">2249</span></a>            <span class="n">image</span><span class="p">,</span>
+</span><span id="L-2250"><a href="#L-2250"><span class="linenos">2250</span></a>            <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">,</span>
+</span><span id="L-2251"><a href="#L-2251"><span class="linenos">2251</span></a>            <span class="n">origin</span><span class="o">=</span><span class="s2">&quot;upper&quot;</span><span class="p">,</span>
+</span><span id="L-2252"><a href="#L-2252"><span class="linenos">2252</span></a>            <span class="n">extent</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">image_width</span><span class="p">,</span> <span class="n">image_height</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+</span><span id="L-2253"><a href="#L-2253"><span class="linenos">2253</span></a>        <span class="p">)</span>
+</span><span id="L-2254"><a href="#L-2254"><span class="linenos">2254</span></a>    <span class="k">elif</span> <span class="ow">not</span> <span class="n">ax</span><span class="o">.</span><span class="n">yaxis_inverted</span><span class="p">():</span>
+</span><span id="L-2255"><a href="#L-2255"><span class="linenos">2255</span></a>        <span class="c1"># No image to establish the y-down orientation via its own</span>
+</span><span id="L-2256"><a href="#L-2256"><span class="linenos">2256</span></a>        <span class="c1"># extent -- invert explicitly, matching hdic&#39;s own conditional</span>
+</span><span id="L-2257"><a href="#L-2257"><span class="linenos">2257</span></a>        <span class="c1"># invert_yaxis() call.</span>
+</span><span id="L-2258"><a href="#L-2258"><span class="linenos">2258</span></a>        <span class="n">ax</span><span class="o">.</span><span class="n">invert_yaxis</span><span class="p">()</span>
+</span><span id="L-2259"><a href="#L-2259"><span class="linenos">2259</span></a>
+</span><span id="L-2260"><a href="#L-2260"><span class="linenos">2260</span></a>    <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+</span><span id="L-2261"><a href="#L-2261"><span class="linenos">2261</span></a>        <span class="n">corners</span> <span class="o">=</span> <span class="p">[</span><span class="n">points</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">element</span><span class="p">]</span>
+</span><span id="L-2262"><a href="#L-2262"><span class="linenos">2262</span></a>        <span class="n">corners</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">corners</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>  <span class="c1"># close the quadrilateral</span>
+</span><span id="L-2263"><a href="#L-2263"><span class="linenos">2263</span></a>        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">x</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corners</span><span class="p">],</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">y</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corners</span><span class="p">],</span> <span class="s2">&quot;k-&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+</span><span id="L-2264"><a href="#L-2264"><span class="linenos">2264</span></a>
+</span><span id="L-2265"><a href="#L-2265"><span class="linenos">2265</span></a>    <span class="k">if</span> <span class="n">show_node_numbers</span><span class="p">:</span>
+</span><span id="L-2266"><a href="#L-2266"><span class="linenos">2266</span></a>        <span class="n">label_outline</span> <span class="o">=</span> <span class="p">[</span><span class="n">patheffects</span><span class="o">.</span><span class="n">withStroke</span><span class="p">(</span><span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">)]</span>
+</span><span id="L-2267"><a href="#L-2267"><span class="linenos">2267</span></a>        <span class="n">index_width</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">2</span>
+</span><span id="L-2268"><a href="#L-2268"><span class="linenos">2268</span></a>        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">point</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">points</span><span class="p">):</span>
+</span><span id="L-2269"><a href="#L-2269"><span class="linenos">2269</span></a>            <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
+</span><span id="L-2270"><a href="#L-2270"><span class="linenos">2270</span></a>                <span class="n">point</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
+</span><span id="L-2271"><a href="#L-2271"><span class="linenos">2271</span></a>                <span class="n">point</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+</span><span id="L-2272"><a href="#L-2272"><span class="linenos">2272</span></a>                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">i</span><span class="si">:</span><span class="s2">0</span><span class="si">{</span><span class="n">index_width</span><span class="si">}</span><span class="s2">d</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+</span><span id="L-2273"><a href="#L-2273"><span class="linenos">2273</span></a>                <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span>
+</span><span id="L-2274"><a href="#L-2274"><span class="linenos">2274</span></a>                <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+</span><span id="L-2275"><a href="#L-2275"><span class="linenos">2275</span></a>                <span class="n">fontweight</span><span class="o">=</span><span class="s2">&quot;bold&quot;</span><span class="p">,</span>
+</span><span id="L-2276"><a href="#L-2276"><span class="linenos">2276</span></a>                <span class="n">ha</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span>
+</span><span id="L-2277"><a href="#L-2277"><span class="linenos">2277</span></a>                <span class="n">va</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span>
+</span><span id="L-2278"><a href="#L-2278"><span class="linenos">2278</span></a>                <span class="n">path_effects</span><span class="o">=</span><span class="n">label_outline</span><span class="p">,</span>
+</span><span id="L-2279"><a href="#L-2279"><span class="linenos">2279</span></a>            <span class="p">)</span>
+</span><span id="L-2280"><a href="#L-2280"><span class="linenos">2280</span></a>
+</span><span id="L-2281"><a href="#L-2281"><span class="linenos">2281</span></a>    <span class="n">scatter</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">gauss_xs</span><span class="p">,</span> <span class="n">gauss_ys</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">values</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+</span><span id="L-2282"><a href="#L-2282"><span class="linenos">2282</span></a>    <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">scatter</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+</span><span id="L-2283"><a href="#L-2283"><span class="linenos">2283</span></a>
+</span><span id="L-2284"><a href="#L-2284"><span class="linenos">2284</span></a>    <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">)</span>  <span class="c1"># aspect-locked 1:1, autoscaled tight to the data --</span>
+</span><span id="L-2285"><a href="#L-2285"><span class="linenos">2285</span></a>    <span class="c1"># matching hdic&#39;s own plt.axis(&quot;image&quot;) exactly, not a manually</span>
+</span><span id="L-2286"><a href="#L-2286"><span class="linenos">2286</span></a>    <span class="c1"># recreated aspect+anchor+xlim/ylim equivalent.</span>
+</span><span id="L-2287"><a href="#L-2287"><span class="linenos">2287</span></a>    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x (pixels)&quot;</span><span class="p">)</span>
+</span><span id="L-2288"><a href="#L-2288"><span class="linenos">2288</span></a>    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y (pixels)&quot;</span><span class="p">)</span>
+</span><span id="L-2289"><a href="#L-2289"><span class="linenos">2289</span></a>
+</span><span id="L-2290"><a href="#L-2290"><span class="linenos">2290</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+</span><span id="L-2291"><a href="#L-2291"><span class="linenos">2291</span></a>    <span class="c1"># No bbox_inches=&quot;tight&quot; here, unlike this module&#39;s other plot</span>
+</span><span id="L-2292"><a href="#L-2292"><span class="linenos">2292</span></a>    <span class="c1"># functions -- matching hdic&#39;s own plot_strain_at_gauss_points, which</span>
+</span><span id="L-2293"><a href="#L-2293"><span class="linenos">2293</span></a>    <span class="c1"># keeps its fixed-size canvas as saved (plt.savefig(..., dpi=300),</span>
+</span><span id="L-2294"><a href="#L-2294"><span class="linenos">2294</span></a>    <span class="c1"># no bbox_inches) rather than cropping to the mesh&#39;s own, generally</span>
+</span><span id="L-2295"><a href="#L-2295"><span class="linenos">2295</span></a>    <span class="c1"># smaller, content bounding box.</span>
+</span><span id="L-2296"><a href="#L-2296"><span class="linenos">2296</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
+</span><span id="L-2297"><a href="#L-2297"><span class="linenos">2297</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -5817,6 +5954,216 @@ extent; pass this to override with a fixed size instead.</li>
 <li><strong>path:</strong>  Output file path for the figure; format is inferred from the
 extension by matplotlib's savefig (e.g. .png), not dictk's own
 write/write_svg.</li>
+<li><strong>dpi:</strong>  Resolution of the saved figure.</li>
+</ul>
+</div>
+
+
+                </section>
+                <section id="element_strain_plot">
+                            <input id="element_strain_plot-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">element_strain_plot</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="o">*</span>,</span><span class="param">	<span class="n">points</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n"><a href="#PixelCoordinate">PixelCoordinate</a></span><span class="p">]</span>,</span><span class="param">	<span class="n">elements</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span>,</span><span class="param">	<span class="n">coordinates</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span>,</span><span class="param">	<span class="n">values</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>,</span><span class="param">	<span class="n">label</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">image</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>,</span><span class="param">	<span class="n">show_node_numbers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>,</span><span class="param">	<span class="n">cmap</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;viridis&#39;</span>,</span><span class="param">	<span class="n">figsize</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">)</span>,</span><span class="param">	<span class="n">path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span>,</span><span class="param">	<span class="n">dpi</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">300</span></span><span class="return-annotation">) -> <span class="kc">None</span>:</span></span>
+
+                <label class="view-source-button" for="element_strain_plot-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#element_strain_plot"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="element_strain_plot-2167"><a href="#element_strain_plot-2167"><span class="linenos">2167</span></a><span class="k">def</span><span class="w"> </span><span class="nf">element_strain_plot</span><span class="p">(</span>
+</span><span id="element_strain_plot-2168"><a href="#element_strain_plot-2168"><span class="linenos">2168</span></a>    <span class="o">*</span><span class="p">,</span>
+</span><span id="element_strain_plot-2169"><a href="#element_strain_plot-2169"><span class="linenos">2169</span></a>    <span class="n">points</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">PixelCoordinate</span><span class="p">],</span>
+</span><span id="element_strain_plot-2170"><a href="#element_strain_plot-2170"><span class="linenos">2170</span></a>    <span class="n">elements</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span>
+</span><span id="element_strain_plot-2171"><a href="#element_strain_plot-2171"><span class="linenos">2171</span></a>    <span class="n">coordinates</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
+</span><span id="element_strain_plot-2172"><a href="#element_strain_plot-2172"><span class="linenos">2172</span></a>    <span class="n">values</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+</span><span id="element_strain_plot-2173"><a href="#element_strain_plot-2173"><span class="linenos">2173</span></a>    <span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="element_strain_plot-2174"><a href="#element_strain_plot-2174"><span class="linenos">2174</span></a>    <span class="n">image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="element_strain_plot-2175"><a href="#element_strain_plot-2175"><span class="linenos">2175</span></a>    <span class="n">show_node_numbers</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="element_strain_plot-2176"><a href="#element_strain_plot-2176"><span class="linenos">2176</span></a>    <span class="n">cmap</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;viridis&quot;</span><span class="p">,</span>
+</span><span id="element_strain_plot-2177"><a href="#element_strain_plot-2177"><span class="linenos">2177</span></a>    <span class="n">figsize</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">),</span>
+</span><span id="element_strain_plot-2178"><a href="#element_strain_plot-2178"><span class="linenos">2178</span></a>    <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+</span><span id="element_strain_plot-2179"><a href="#element_strain_plot-2179"><span class="linenos">2179</span></a>    <span class="n">dpi</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">300</span><span class="p">,</span>
+</span><span id="element_strain_plot-2180"><a href="#element_strain_plot-2180"><span class="linenos">2180</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="element_strain_plot-2181"><a href="#element_strain_plot-2181"><span class="linenos">2181</span></a><span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Save a figure of a Q4 mesh with its Gauss points colored by a scalar value.</span>
+</span><span id="element_strain_plot-2182"><a href="#element_strain_plot-2182"><span class="linenos">2182</span></a>
+</span><span id="element_strain_plot-2183"><a href="#element_strain_plot-2183"><span class="linenos">2183</span></a><span class="sd">    Modeled on the reference `hdic` codebase&#39;s</span>
+</span><span id="element_strain_plot-2184"><a href="#element_strain_plot-2184"><span class="linenos">2184</span></a><span class="sd">    `~/hdic/src/hdic/types/fea_vis.py`&#39;s `plot_strain_at_gauss_points` --</span>
+</span><span id="element_strain_plot-2185"><a href="#element_strain_plot-2185"><span class="linenos">2185</span></a><span class="sd">    same two-mode design (with or without a background image), same</span>
+</span><span id="element_strain_plot-2186"><a href="#element_strain_plot-2186"><span class="linenos">2186</span></a><span class="sd">    node-number/Gauss-point-scatter/colorbar layout -- adapted to dictk&#39;s</span>
+</span><span id="element_strain_plot-2187"><a href="#element_strain_plot-2187"><span class="linenos">2187</span></a><span class="sd">    own point/element representation</span>
+</span><span id="element_strain_plot-2188"><a href="#element_strain_plot-2188"><span class="linenos">2188</span></a><span class="sd">    ([`dictk.grid.elements`](../grid.html#elements),</span>
+</span><span id="element_strain_plot-2189"><a href="#element_strain_plot-2189"><span class="linenos">2189</span></a><span class="sd">    [`dictk.element.gauss_point_coordinates`](../element.html#gauss_point_coordinates)).</span>
+</span><span id="element_strain_plot-2190"><a href="#element_strain_plot-2190"><span class="linenos">2190</span></a><span class="sd">    Deliberately agnostic to which strain measure (or any other</span>
+</span><span id="element_strain_plot-2191"><a href="#element_strain_plot-2191"><span class="linenos">2191</span></a><span class="sd">    per-Gauss-point scalar) produced `values` -- it only draws what it&#39;s</span>
+</span><span id="element_strain_plot-2192"><a href="#element_strain_plot-2192"><span class="linenos">2192</span></a><span class="sd">    given, matching</span>
+</span><span id="element_strain_plot-2193"><a href="#element_strain_plot-2193"><span class="linenos">2193</span></a><span class="sd">    [`point_grid_plot`](#point_grid_plot)/[`point_grid_boxes_plot`](#point_grid_boxes_plot)&#39;s</span>
+</span><span id="element_strain_plot-2194"><a href="#element_strain_plot-2194"><span class="linenos">2194</span></a><span class="sd">    own &quot;just draws what it&#39;s given&quot; design, rather than computing strain</span>
+</span><span id="element_strain_plot-2195"><a href="#element_strain_plot-2195"><span class="linenos">2195</span></a><span class="sd">    itself.</span>
+</span><span id="element_strain_plot-2196"><a href="#element_strain_plot-2196"><span class="linenos">2196</span></a>
+</span><span id="element_strain_plot-2197"><a href="#element_strain_plot-2197"><span class="linenos">2197</span></a><span class="sd">    Draws each of `elements`&#39; 4-corner polygon outline from `points`,</span>
+</span><span id="element_strain_plot-2198"><a href="#element_strain_plot-2198"><span class="linenos">2198</span></a><span class="sd">    optionally labels each of `points` with its own zero-padded index</span>
+</span><span id="element_strain_plot-2199"><a href="#element_strain_plot-2199"><span class="linenos">2199</span></a><span class="sd">    (matching `point_grid_plot`&#39;s exact `&quot;00&quot;`, `&quot;01&quot;`, ... convention),</span>
+</span><span id="element_strain_plot-2200"><a href="#element_strain_plot-2200"><span class="linenos">2200</span></a><span class="sd">    and scatters `coordinates` colored by `values` with a colorbar</span>
+</span><span id="element_strain_plot-2201"><a href="#element_strain_plot-2201"><span class="linenos">2201</span></a><span class="sd">    labeled `label`. If `image` is given, it&#39;s drawn as the background</span>
+</span><span id="element_strain_plot-2202"><a href="#element_strain_plot-2202"><span class="linenos">2202</span></a><span class="sd">    (e.g. pass the current/deformed image, with `points`/`coordinates` in</span>
+</span><span id="element_strain_plot-2203"><a href="#element_strain_plot-2203"><span class="linenos">2203</span></a><span class="sd">    that same current configuration, to show the mesh atop what it was</span>
+</span><span id="element_strain_plot-2204"><a href="#element_strain_plot-2204"><span class="linenos">2204</span></a><span class="sd">    measured from); otherwise the axes alone are y-inverted to match</span>
+</span><span id="element_strain_plot-2205"><a href="#element_strain_plot-2205"><span class="linenos">2205</span></a><span class="sd">    image/pixel convention (y increasing downward), so the two modes</span>
+</span><span id="element_strain_plot-2206"><a href="#element_strain_plot-2206"><span class="linenos">2206</span></a><span class="sd">    render in the same visual orientation. The axes are always</span>
+</span><span id="element_strain_plot-2207"><a href="#element_strain_plot-2207"><span class="linenos">2207</span></a><span class="sd">    aspect-locked 1:1 (a pixel spans the same rendered length along</span>
+</span><span id="element_strain_plot-2208"><a href="#element_strain_plot-2208"><span class="linenos">2208</span></a><span class="sd">    x and y), regardless of `figsize` or `image`&#39;s own shape -- so the</span>
+</span><span id="element_strain_plot-2209"><a href="#element_strain_plot-2209"><span class="linenos">2209</span></a><span class="sd">    mesh&#39;s true proportions are never visually distorted.</span>
+</span><span id="element_strain_plot-2210"><a href="#element_strain_plot-2210"><span class="linenos">2210</span></a>
+</span><span id="element_strain_plot-2211"><a href="#element_strain_plot-2211"><span class="linenos">2211</span></a><span class="sd">    Args:</span>
+</span><span id="element_strain_plot-2212"><a href="#element_strain_plot-2212"><span class="linenos">2212</span></a><span class="sd">        points: The mesh&#39;s corner node positions, in the same</span>
+</span><span id="element_strain_plot-2213"><a href="#element_strain_plot-2213"><span class="linenos">2213</span></a><span class="sd">            configuration `coordinates` uses (e.g. `found`, not the</span>
+</span><span id="element_strain_plot-2214"><a href="#element_strain_plot-2214"><span class="linenos">2214</span></a><span class="sd">            original reference `points`, to draw the deformed shape).</span>
+</span><span id="element_strain_plot-2215"><a href="#element_strain_plot-2215"><span class="linenos">2215</span></a><span class="sd">        elements: Q4 connectivity, e.g. from</span>
+</span><span id="element_strain_plot-2216"><a href="#element_strain_plot-2216"><span class="linenos">2216</span></a><span class="sd">            [`dictk.grid.elements`](../grid.html#elements) -- each</span>
+</span><span id="element_strain_plot-2217"><a href="#element_strain_plot-2217"><span class="linenos">2217</span></a><span class="sd">            4-tuple indexes into `points`.</span>
+</span><span id="element_strain_plot-2218"><a href="#element_strain_plot-2218"><span class="linenos">2218</span></a><span class="sd">        coordinates: One `(X, Y)` position per Gauss point, e.g. from</span>
+</span><span id="element_strain_plot-2219"><a href="#element_strain_plot-2219"><span class="linenos">2219</span></a><span class="sd">            [`dictk.element.gauss_point_coordinates`](../element.html#gauss_point_coordinates)</span>
+</span><span id="element_strain_plot-2220"><a href="#element_strain_plot-2220"><span class="linenos">2220</span></a><span class="sd">            called once per element and concatenated, in the same order</span>
+</span><span id="element_strain_plot-2221"><a href="#element_strain_plot-2221"><span class="linenos">2221</span></a><span class="sd">            as `values`.</span>
+</span><span id="element_strain_plot-2222"><a href="#element_strain_plot-2222"><span class="linenos">2222</span></a><span class="sd">        values: One scalar per Gauss point, same order and length as</span>
+</span><span id="element_strain_plot-2223"><a href="#element_strain_plot-2223"><span class="linenos">2223</span></a><span class="sd">            `coordinates` -- e.g. a strain tensor&#39;s own `[0, 0]`</span>
+</span><span id="element_strain_plot-2224"><a href="#element_strain_plot-2224"><span class="linenos">2224</span></a><span class="sd">            component at each point.</span>
+</span><span id="element_strain_plot-2225"><a href="#element_strain_plot-2225"><span class="linenos">2225</span></a><span class="sd">        label: Colorbar label, e.g. `r&quot;Log Strain, $E_{11}$&quot;`.</span>
+</span><span id="element_strain_plot-2226"><a href="#element_strain_plot-2226"><span class="linenos">2226</span></a><span class="sd">        image: Optional background image (2D grayscale array). Default</span>
+</span><span id="element_strain_plot-2227"><a href="#element_strain_plot-2227"><span class="linenos">2227</span></a><span class="sd">            `None` draws the mesh alone, on a plain y-inverted axes.</span>
+</span><span id="element_strain_plot-2228"><a href="#element_strain_plot-2228"><span class="linenos">2228</span></a><span class="sd">        show_node_numbers: Whether to label each of `points` with its own</span>
+</span><span id="element_strain_plot-2229"><a href="#element_strain_plot-2229"><span class="linenos">2229</span></a><span class="sd">            zero-padded index.</span>
+</span><span id="element_strain_plot-2230"><a href="#element_strain_plot-2230"><span class="linenos">2230</span></a><span class="sd">        cmap: Matplotlib colormap for the Gauss-point scatter.</span>
+</span><span id="element_strain_plot-2231"><a href="#element_strain_plot-2231"><span class="linenos">2231</span></a><span class="sd">        figsize: `(width, height)` in inches for the saved figure, used</span>
+</span><span id="element_strain_plot-2232"><a href="#element_strain_plot-2232"><span class="linenos">2232</span></a><span class="sd">            whether or not `image` is given -- unlike `point_grid_plot`,</span>
+</span><span id="element_strain_plot-2233"><a href="#element_strain_plot-2233"><span class="linenos">2233</span></a><span class="sd">            this isn&#39;t sized from `image`&#39;s own shape (see `image`</span>
+</span><span id="element_strain_plot-2234"><a href="#element_strain_plot-2234"><span class="linenos">2234</span></a><span class="sd">            above).</span>
+</span><span id="element_strain_plot-2235"><a href="#element_strain_plot-2235"><span class="linenos">2235</span></a><span class="sd">        path: Output file path for the figure; format is inferred from</span>
+</span><span id="element_strain_plot-2236"><a href="#element_strain_plot-2236"><span class="linenos">2236</span></a><span class="sd">            the extension by matplotlib&#39;s savefig (e.g. `.png`).</span>
+</span><span id="element_strain_plot-2237"><a href="#element_strain_plot-2237"><span class="linenos">2237</span></a><span class="sd">        dpi: Resolution of the saved figure.</span>
+</span><span id="element_strain_plot-2238"><a href="#element_strain_plot-2238"><span class="linenos">2238</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="element_strain_plot-2239"><a href="#element_strain_plot-2239"><span class="linenos">2239</span></a>    <span class="n">gauss_xs</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="p">]</span>
+</span><span id="element_strain_plot-2240"><a href="#element_strain_plot-2240"><span class="linenos">2240</span></a>    <span class="n">gauss_ys</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="p">]</span>
+</span><span id="element_strain_plot-2241"><a href="#element_strain_plot-2241"><span class="linenos">2241</span></a>
+</span><span id="element_strain_plot-2242"><a href="#element_strain_plot-2242"><span class="linenos">2242</span></a>    <span class="c1"># Same figsize whether or not image is given -- not sized from</span>
+</span><span id="element_strain_plot-2243"><a href="#element_strain_plot-2243"><span class="linenos">2243</span></a>    <span class="c1"># image.shape -- matching hdic&#39;s own plot_strain_at_gauss_points,</span>
+</span><span id="element_strain_plot-2244"><a href="#element_strain_plot-2244"><span class="linenos">2244</span></a>    <span class="c1"># which uses one fixed canvas for both calls.</span>
+</span><span id="element_strain_plot-2245"><a href="#element_strain_plot-2245"><span class="linenos">2245</span></a>    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
+</span><span id="element_strain_plot-2246"><a href="#element_strain_plot-2246"><span class="linenos">2246</span></a>
+</span><span id="element_strain_plot-2247"><a href="#element_strain_plot-2247"><span class="linenos">2247</span></a>    <span class="k">if</span> <span class="n">image</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="element_strain_plot-2248"><a href="#element_strain_plot-2248"><span class="linenos">2248</span></a>        <span class="n">image_height</span><span class="p">,</span> <span class="n">image_width</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span>
+</span><span id="element_strain_plot-2249"><a href="#element_strain_plot-2249"><span class="linenos">2249</span></a>        <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
+</span><span id="element_strain_plot-2250"><a href="#element_strain_plot-2250"><span class="linenos">2250</span></a>            <span class="n">image</span><span class="p">,</span>
+</span><span id="element_strain_plot-2251"><a href="#element_strain_plot-2251"><span class="linenos">2251</span></a>            <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">,</span>
+</span><span id="element_strain_plot-2252"><a href="#element_strain_plot-2252"><span class="linenos">2252</span></a>            <span class="n">origin</span><span class="o">=</span><span class="s2">&quot;upper&quot;</span><span class="p">,</span>
+</span><span id="element_strain_plot-2253"><a href="#element_strain_plot-2253"><span class="linenos">2253</span></a>            <span class="n">extent</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">image_width</span><span class="p">,</span> <span class="n">image_height</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+</span><span id="element_strain_plot-2254"><a href="#element_strain_plot-2254"><span class="linenos">2254</span></a>        <span class="p">)</span>
+</span><span id="element_strain_plot-2255"><a href="#element_strain_plot-2255"><span class="linenos">2255</span></a>    <span class="k">elif</span> <span class="ow">not</span> <span class="n">ax</span><span class="o">.</span><span class="n">yaxis_inverted</span><span class="p">():</span>
+</span><span id="element_strain_plot-2256"><a href="#element_strain_plot-2256"><span class="linenos">2256</span></a>        <span class="c1"># No image to establish the y-down orientation via its own</span>
+</span><span id="element_strain_plot-2257"><a href="#element_strain_plot-2257"><span class="linenos">2257</span></a>        <span class="c1"># extent -- invert explicitly, matching hdic&#39;s own conditional</span>
+</span><span id="element_strain_plot-2258"><a href="#element_strain_plot-2258"><span class="linenos">2258</span></a>        <span class="c1"># invert_yaxis() call.</span>
+</span><span id="element_strain_plot-2259"><a href="#element_strain_plot-2259"><span class="linenos">2259</span></a>        <span class="n">ax</span><span class="o">.</span><span class="n">invert_yaxis</span><span class="p">()</span>
+</span><span id="element_strain_plot-2260"><a href="#element_strain_plot-2260"><span class="linenos">2260</span></a>
+</span><span id="element_strain_plot-2261"><a href="#element_strain_plot-2261"><span class="linenos">2261</span></a>    <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+</span><span id="element_strain_plot-2262"><a href="#element_strain_plot-2262"><span class="linenos">2262</span></a>        <span class="n">corners</span> <span class="o">=</span> <span class="p">[</span><span class="n">points</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">element</span><span class="p">]</span>
+</span><span id="element_strain_plot-2263"><a href="#element_strain_plot-2263"><span class="linenos">2263</span></a>        <span class="n">corners</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">corners</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>  <span class="c1"># close the quadrilateral</span>
+</span><span id="element_strain_plot-2264"><a href="#element_strain_plot-2264"><span class="linenos">2264</span></a>        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">x</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corners</span><span class="p">],</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">y</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corners</span><span class="p">],</span> <span class="s2">&quot;k-&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+</span><span id="element_strain_plot-2265"><a href="#element_strain_plot-2265"><span class="linenos">2265</span></a>
+</span><span id="element_strain_plot-2266"><a href="#element_strain_plot-2266"><span class="linenos">2266</span></a>    <span class="k">if</span> <span class="n">show_node_numbers</span><span class="p">:</span>
+</span><span id="element_strain_plot-2267"><a href="#element_strain_plot-2267"><span class="linenos">2267</span></a>        <span class="n">label_outline</span> <span class="o">=</span> <span class="p">[</span><span class="n">patheffects</span><span class="o">.</span><span class="n">withStroke</span><span class="p">(</span><span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">)]</span>
+</span><span id="element_strain_plot-2268"><a href="#element_strain_plot-2268"><span class="linenos">2268</span></a>        <span class="n">index_width</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">2</span>
+</span><span id="element_strain_plot-2269"><a href="#element_strain_plot-2269"><span class="linenos">2269</span></a>        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">point</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">points</span><span class="p">):</span>
+</span><span id="element_strain_plot-2270"><a href="#element_strain_plot-2270"><span class="linenos">2270</span></a>            <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
+</span><span id="element_strain_plot-2271"><a href="#element_strain_plot-2271"><span class="linenos">2271</span></a>                <span class="n">point</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
+</span><span id="element_strain_plot-2272"><a href="#element_strain_plot-2272"><span class="linenos">2272</span></a>                <span class="n">point</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+</span><span id="element_strain_plot-2273"><a href="#element_strain_plot-2273"><span class="linenos">2273</span></a>                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">i</span><span class="si">:</span><span class="s2">0</span><span class="si">{</span><span class="n">index_width</span><span class="si">}</span><span class="s2">d</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+</span><span id="element_strain_plot-2274"><a href="#element_strain_plot-2274"><span class="linenos">2274</span></a>                <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span>
+</span><span id="element_strain_plot-2275"><a href="#element_strain_plot-2275"><span class="linenos">2275</span></a>                <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+</span><span id="element_strain_plot-2276"><a href="#element_strain_plot-2276"><span class="linenos">2276</span></a>                <span class="n">fontweight</span><span class="o">=</span><span class="s2">&quot;bold&quot;</span><span class="p">,</span>
+</span><span id="element_strain_plot-2277"><a href="#element_strain_plot-2277"><span class="linenos">2277</span></a>                <span class="n">ha</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span>
+</span><span id="element_strain_plot-2278"><a href="#element_strain_plot-2278"><span class="linenos">2278</span></a>                <span class="n">va</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span>
+</span><span id="element_strain_plot-2279"><a href="#element_strain_plot-2279"><span class="linenos">2279</span></a>                <span class="n">path_effects</span><span class="o">=</span><span class="n">label_outline</span><span class="p">,</span>
+</span><span id="element_strain_plot-2280"><a href="#element_strain_plot-2280"><span class="linenos">2280</span></a>            <span class="p">)</span>
+</span><span id="element_strain_plot-2281"><a href="#element_strain_plot-2281"><span class="linenos">2281</span></a>
+</span><span id="element_strain_plot-2282"><a href="#element_strain_plot-2282"><span class="linenos">2282</span></a>    <span class="n">scatter</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">gauss_xs</span><span class="p">,</span> <span class="n">gauss_ys</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">values</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+</span><span id="element_strain_plot-2283"><a href="#element_strain_plot-2283"><span class="linenos">2283</span></a>    <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">scatter</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+</span><span id="element_strain_plot-2284"><a href="#element_strain_plot-2284"><span class="linenos">2284</span></a>
+</span><span id="element_strain_plot-2285"><a href="#element_strain_plot-2285"><span class="linenos">2285</span></a>    <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">)</span>  <span class="c1"># aspect-locked 1:1, autoscaled tight to the data --</span>
+</span><span id="element_strain_plot-2286"><a href="#element_strain_plot-2286"><span class="linenos">2286</span></a>    <span class="c1"># matching hdic&#39;s own plt.axis(&quot;image&quot;) exactly, not a manually</span>
+</span><span id="element_strain_plot-2287"><a href="#element_strain_plot-2287"><span class="linenos">2287</span></a>    <span class="c1"># recreated aspect+anchor+xlim/ylim equivalent.</span>
+</span><span id="element_strain_plot-2288"><a href="#element_strain_plot-2288"><span class="linenos">2288</span></a>    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x (pixels)&quot;</span><span class="p">)</span>
+</span><span id="element_strain_plot-2289"><a href="#element_strain_plot-2289"><span class="linenos">2289</span></a>    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y (pixels)&quot;</span><span class="p">)</span>
+</span><span id="element_strain_plot-2290"><a href="#element_strain_plot-2290"><span class="linenos">2290</span></a>
+</span><span id="element_strain_plot-2291"><a href="#element_strain_plot-2291"><span class="linenos">2291</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+</span><span id="element_strain_plot-2292"><a href="#element_strain_plot-2292"><span class="linenos">2292</span></a>    <span class="c1"># No bbox_inches=&quot;tight&quot; here, unlike this module&#39;s other plot</span>
+</span><span id="element_strain_plot-2293"><a href="#element_strain_plot-2293"><span class="linenos">2293</span></a>    <span class="c1"># functions -- matching hdic&#39;s own plot_strain_at_gauss_points, which</span>
+</span><span id="element_strain_plot-2294"><a href="#element_strain_plot-2294"><span class="linenos">2294</span></a>    <span class="c1"># keeps its fixed-size canvas as saved (plt.savefig(..., dpi=300),</span>
+</span><span id="element_strain_plot-2295"><a href="#element_strain_plot-2295"><span class="linenos">2295</span></a>    <span class="c1"># no bbox_inches) rather than cropping to the mesh&#39;s own, generally</span>
+</span><span id="element_strain_plot-2296"><a href="#element_strain_plot-2296"><span class="linenos">2296</span></a>    <span class="c1"># smaller, content bounding box.</span>
+</span><span id="element_strain_plot-2297"><a href="#element_strain_plot-2297"><span class="linenos">2297</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
+</span><span id="element_strain_plot-2298"><a href="#element_strain_plot-2298"><span class="linenos">2298</span></a>    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Save a figure of a Q4 mesh with its Gauss points colored by a scalar value.</p>
+
+<p>Modeled on the reference <code>hdic</code> codebase's
+<code>~/hdic/src/hdic/types/fea_vis.py</code>'s <code>plot_strain_at_gauss_points</code> --
+same two-mode design (with or without a background image), same
+node-number/Gauss-point-scatter/colorbar layout -- adapted to dictk's
+own point/element representation
+(<a href="../grid.html#elements"><code><a href="grid.html#elements">dictk.grid.elements</a></code></a>,
+<a href="../element.html#gauss_point_coordinates"><code><a href="element.html#gauss_point_coordinates">dictk.element.gauss_point_coordinates</a></code></a>).
+Deliberately agnostic to which strain measure (or any other
+per-Gauss-point scalar) produced <code>values</code> -- it only draws what it's
+given, matching
+<a href="#point_grid_plot"><code>point_grid_plot</code></a>/<a href="#point_grid_boxes_plot"><code>point_grid_boxes_plot</code></a>'s
+own "just draws what it's given" design, rather than computing strain
+itself.</p>
+
+<p>Draws each of <code>elements</code>' 4-corner polygon outline from <code>points</code>,
+optionally labels each of <code>points</code> with its own zero-padded index
+(matching <code><a href="#point_grid_plot">point_grid_plot</a></code>'s exact <code>"00"</code>, <code>"01"</code>, ... convention),
+and scatters <code>coordinates</code> colored by <code>values</code> with a colorbar
+labeled <code>label</code>. If <code>image</code> is given, it's drawn as the background
+(e.g. pass the current/deformed image, with <code>points</code>/<code>coordinates</code> in
+that same current configuration, to show the mesh atop what it was
+measured from); otherwise the axes alone are y-inverted to match
+image/pixel convention (y increasing downward), so the two modes
+render in the same visual orientation. The axes are always
+aspect-locked 1:1 (a pixel spans the same rendered length along
+x and y), regardless of <code>figsize</code> or <code>image</code>'s own shape -- so the
+mesh's true proportions are never visually distorted.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>points:</strong>  The mesh's corner node positions, in the same
+configuration <code>coordinates</code> uses (e.g. <code>found</code>, not the
+original reference <code>points</code>, to draw the deformed shape).</li>
+<li><strong>elements:</strong>  Q4 connectivity, e.g. from
+<a href="../grid.html#elements"><code><a href="grid.html#elements">dictk.grid.elements</a></code></a> -- each
+4-tuple indexes into <code>points</code>.</li>
+<li><strong>coordinates:</strong>  One <code>(X, Y)</code> position per Gauss point, e.g. from
+<a href="../element.html#gauss_point_coordinates"><code><a href="element.html#gauss_point_coordinates">dictk.element.gauss_point_coordinates</a></code></a>
+called once per element and concatenated, in the same order
+as <code>values</code>.</li>
+<li><strong>values:</strong>  One scalar per Gauss point, same order and length as
+<code>coordinates</code> -- e.g. a strain tensor's own <code>[0, 0]</code>
+component at each point.</li>
+<li><strong>label:</strong>  Colorbar label, e.g. <code>r"Log Strain, $E_{11}$"</code>.</li>
+<li><strong>image:</strong>  Optional background image (2D grayscale array). Default
+<code>None</code> draws the mesh alone, on a plain y-inverted axes.</li>
+<li><strong>show_node_numbers:</strong>  Whether to label each of <code>points</code> with its own
+zero-padded index.</li>
+<li><strong>cmap:</strong>  Matplotlib colormap for the Gauss-point scatter.</li>
+<li><strong>figsize:</strong>  <code>(width, height)</code> in inches for the saved figure, used
+whether or not <code>image</code> is given -- unlike <code><a href="#point_grid_plot">point_grid_plot</a></code>,
+this isn't sized from <code>image</code>'s own shape (see <code>image</code>
+above).</li>
+<li><strong>path:</strong>  Output file path for the figure; format is inferred from
+the extension by matplotlib's savefig (e.g. <code>.png</code>).</li>
 <li><strong>dpi:</strong>  Resolution of the saved figure.</li>
 </ul>
 </div>

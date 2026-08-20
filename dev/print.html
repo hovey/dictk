@@ -3265,12 +3265,94 @@ element boundaries.</p>
 extrapolate the results to the nodes, and then report the <strong>nodal
 average</strong> from all adjacent elements to create a smooth contour plot.</p>
 <p>For now, let's report the strain at the Gauss points.</p>
-<p><code>dictk</code> doesn't compute strain yet — <a href="getting_started/./finite_element_method.html">Finite Element
-Method</a> covers the Q4 element formulation
-and the deformation gradient <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">F</span></span></span><span class="mopen">(</span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.07778em;">X</span></span></span><span class="mclose">)</span></span></span></span> strain is
-built from, but no Gauss-point or mesh-level machinery exists in the
-codebase to actually evaluate it on tracked points like the twelve
-above. That's the next piece of work this page is waiting on.</p>
+<p><a href="getting_started/../api/dictk/grid.html#elements"><code>dictk.grid.elements</code></a> turns the
+tracked grid's 12 points into 6 Q4 elements, then
+<a href="getting_started/../api/dictk/element.html#gauss_point_log_strains"><code>dictk.element.gauss_point_log_strains</code></a>
+and
+<a href="getting_started/../api/dictk/element.html#gauss_point_coordinates"><code>dictk.element.gauss_point_coordinates</code></a>
+compute each element's 4 Gauss points' logarithmic (Hencky) strain and
+their own global position, in the current (found) configuration.
+Logarithmic strain, not Green-Lagrange, so this matches the <a href="getting_started/simple_stretch.html#verification-against-vic-2d">Verification
+Against VIC-2D</a> section below, which
+reports VIC-2D's own logarithmic/Euler strain:</p>
+<pre><code class="language-python">from dictk.element import gauss_point_coordinates, gauss_point_log_strains
+from dictk.grid import elements
+from dictk.image import element_strain_plot
+
+element_indices = elements(count_x=3, count_y=4)
+values = []
+coordinates = []
+for element in element_indices:
+    reference_corners = [points[i] for i in element]
+    current_corners = [found[i] for i in element]
+    strains = gauss_point_log_strains(
+        reference_points=reference_corners, current_points=current_corners
+    )
+    values.extend(strain[0, 0] for strain in strains)
+    coordinates.extend(gauss_point_coordinates(points=current_corners))
+
+element_strain_plot(
+    points=found,
+    elements=element_indices,
+    coordinates=coordinates,
+    values=values,
+    label=r"Log Strain, $E_{11}$",
+    show_node_numbers=True,
+    path="simple_stretch_strain_gauss_points.png",
+)
+element_strain_plot(
+    points=found,
+    elements=element_indices,
+    coordinates=coordinates,
+    values=values,
+    label=r"Log Strain, $E_{11}$",
+    image=current_image,
+    show_node_numbers=True,
+    path="simple_stretch_strain_on_current.png",
+)
+</code></pre>
+<figure>
+    <img src="getting_started/simple_stretch_strain_gauss_points.png" alt="the 6-element mesh with node numbers 00 through 11 and 4 Gauss points per element, colored by log strain E11, no background image" />
+    <figcaption>The 6-element mesh, node numbers and Gauss points colored by log strain <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</figcaption>
+</figure>
+<figure>
+    <img src="getting_started/simple_stretch_strain_on_current.png" alt="the same mesh and colored Gauss points overlaid on current_image, the stretched astronaut photo" />
+    <figcaption>The same mesh, overlaid on <code>current_image</code>.</figcaption>
+</figure>
+<pre><code class="language-text">Strain Component: E11
+----------------------------------------
+Element  0 | GP (xi=-0.577, eta=-0.577) | E11: 1.980263e-02
+Element  0 | GP (xi=+0.577, eta=-0.577) | E11: 1.980263e-02
+Element  0 | GP (xi=+0.577, eta=+0.577) | E11: 1.980263e-02
+Element  0 | GP (xi=-0.577, eta=+0.577) | E11: 1.980263e-02
+Element  1 | GP (xi=-0.577, eta=-0.577) | E11: 1.980263e-02
+Element  1 | GP (xi=+0.577, eta=-0.577) | E11: 1.980263e-02
+Element  1 | GP (xi=+0.577, eta=+0.577) | E11: 1.980263e-02
+Element  1 | GP (xi=-0.577, eta=+0.577) | E11: 1.980263e-02
+Element  2 | GP (xi=-0.577, eta=-0.577) | E11: 1.980263e-02
+Element  2 | GP (xi=+0.577, eta=-0.577) | E11: 1.980263e-02
+Element  2 | GP (xi=+0.577, eta=+0.577) | E11: 1.980263e-02
+Element  2 | GP (xi=-0.577, eta=+0.577) | E11: 1.980263e-02
+Element  3 | GP (xi=-0.577, eta=-0.577) | E11: 1.980263e-02
+Element  3 | GP (xi=+0.577, eta=-0.577) | E11: 1.980263e-02
+Element  3 | GP (xi=+0.577, eta=+0.577) | E11: 1.980263e-02
+Element  3 | GP (xi=-0.577, eta=+0.577) | E11: 1.980263e-02
+Element  4 | GP (xi=-0.577, eta=-0.577) | E11: 1.980263e-02
+Element  4 | GP (xi=+0.577, eta=-0.577) | E11: 1.980263e-02
+Element  4 | GP (xi=+0.577, eta=+0.577) | E11: 1.980263e-02
+Element  4 | GP (xi=-0.577, eta=+0.577) | E11: 1.980263e-02
+Element  5 | GP (xi=-0.577, eta=-0.577) | E11: 1.980263e-02
+Element  5 | GP (xi=+0.577, eta=-0.577) | E11: 1.980263e-02
+Element  5 | GP (xi=+0.577, eta=+0.577) | E11: 1.980263e-02
+Element  5 | GP (xi=-0.577, eta=+0.577) | E11: 1.980263e-02
+----------------------------------------
+</code></pre>
+<p>All 24 Gauss points report the identical value, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.019803</span></span></span></span>
+— expected here, since <code>factor_x = 1.02</code> is a uniform, axis-aligned
+stretch, a globally affine map that Q4's bilinear interpolation
+reproduces exactly everywhere, not just at element corners. In the
+general case, where the deformation isn't perfectly uniform, each Gauss
+point's strain would differ.</p>
 <h2 id="data-download-1"><a class="header" href="#data-download-1">Data Download</a></h2>
 <p>Every image this page used is downloadable below, as a TIFF. Download
 files individually, or all at once: one compressed zip file bundles
@@ -3374,32 +3456,160 @@ pursuing: running this book's own synthetic datasets through established
 DIC software, and comparing directly against <code>dictk</code>'s own results. This
 page's own <code>factor_x = 1.02</code> stretch was run through
 <a href="https://www.correlatedsolutions.com/vic-2d/">VIC-2D</a> (Correlated
-Solutions, Inc.), independently of <code>dictk</code>. Unlike <a href="getting_started/./multi_point_motion.html#verification-against-vic-2d">Multi-Point
-Motion</a>'s
-comparison, this one isn't against a <code>dictk</code>-computed value —
-<code>dictk</code> doesn't compute strain anywhere on this page yet, only
-displacement — so it's checked directly against the closed-form
-analytical strain a <code>factor_x = 1.02</code> stretch implies instead:</p>
+Solutions, Inc.), independently of <code>dictk</code>. VIC-2D reports logarithmic
+(Euler) strain, so it's compared here against <a href="getting_started/simple_stretch.html#strain">the Strain
+section</a> above's own <code>dictk</code>-computed log strain, not
+Green-Lagrange:</p>
 <figure>
     <a href="getting_started/../verification/simple_stretch_result_vic.png" target="_blank" rel="noopener">
         <img src="getting_started/../verification/simple_stretch_result_vic.png" alt="VIC-2D's measured exx (logarithmic Euler strain) field for the factor_x=1.02 stretch example, a striped noisy pattern averaging around 19900 microstrain, with a horizontal extensometer line annotated E0: 19905.2 microstrain" />
     </a>
     <figcaption>VIC-2D's own measured <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">xx</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> (logarithmic/Euler strain) field for this page's <code>factor_x = 1.02</code> stretch (click to enlarge). The horizontal line is VIC-2D's own extensometer annotation, reading 19905.2 microstrain along that path.</figcaption>
 </figure>
-<p>Across the 2682 subsets VIC-2D correlated successfully (180 more,
-along the image's outer edge, masked out), <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">xx</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> averages
+<p>VIC-2D placed its own subsets on a regular grid, 5 pixels apart in both
+directions — 53x54, 2862 candidate positions across the image. 180 of
+them sit close enough to the image's outer edge that their own
+correlation window would run off-canvas, so VIC-2D masks those out,
+leaving 2682 valid subsets. Across those 2682 subsets, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">xx</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> averages
 19875.8 microstrain — close to, but noisier than,
 <a href="getting_started/./multi_point_motion.html#verification-against-vic-2d">Multi-Point Motion</a>'s
 displacement match, since strain is a spatial derivative of already-noisy
-per-point displacement data, not a directly measured quantity. The
-analytical logarithmic (true/Euler) strain a <code>factor_x = 1.02</code> stretch
-implies is <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">ln</span><span class="mopen">(</span><span class="mord">1.02</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">19802.6</span></span></span></span> microstrain —
-VIC-2D's own mean lands within 0.4% of it.</p>
+per-point displacement data, not a directly measured quantity.</p>
+<p>Three values agree closely: VIC-2D's own measured mean, 19875.8
+microstrain; <code>dictk</code>'s own computed <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> from the Strain section
+above, 19803.0 microstrain (identical at all 24 Gauss points, since
+this page's stretch is exact and uniform); and the analytical
+logarithmic (true/Euler) strain a <code>factor_x = 1.02</code> stretch implies,
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">ln</span><span class="mopen">(</span><span class="mord">1.02</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">19802.6</span></span></span></span> microstrain.</p>
+<p><code>dictk</code>'s own value lands within 0.02% of the analytical one — it's
+derived from the exact-integer tracked positions established earlier
+on this page, not a separately measured quantity, so it agrees almost
+exactly. VIC-2D's own mean, measured from real correlated subsets
+rather than exact tracked points, lands within 0.4% of the same
+analytical value.</p>
 <p>The full, subset-by-subset VIC-2D output —
 <a href="getting_started/../verification/simple_stretch_vic_out.csv"><code>simple_stretch_vic_out.csv</code></a>
 — is available for closer inspection: every subset's position,
 displacement, strain, and correlation quality metrics, not just the
 summary field shown above.</p>
+<h2 id="simple-stretch-revisited"><a class="header" href="#simple-stretch-revisited">Simple Stretch Revisited</a></h2>
+<p>Every point tracked so far on this page has landed on an exact integer
+pixel in the deformed configuration. That only works because of how
+the 12-point grid's own <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> values were chosen. <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord text"><span class="mord">factor</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1.02</span></span></span></span> is <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">51/50</span></span></span></span>. A point's stretched <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> only comes out as a whole
+number when <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> itself is a multiple of 50 — <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">50</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">51/50</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">51</span></span></span></span>,
+exactly, but <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">51</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">51/50</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">52.02</span></span></span></span>, not exactly. The grid's three
+distinct <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> values, 50, 100, and 150, are all multiples of 50. That's
+not a coincidence — it's the same integer-safety check <a href="getting_started/simple_stretch.html#choosing-an-integer-safe-stretch-factor">Choosing an
+Integer-Safe Stretch Factor</a>
+already ran, just not stated in exactly these terms yet.</p>
+<p>A much denser grid doesn't automatically keep that property. Spacing
+points 5 pixels apart, matching VIC-2D's own subset grid, mostly
+lands on <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> values that aren't multiples of 50 — most of those points'
+true stretched position isn't an integer at all, so nothing can land on
+it exactly, no matter how the tracking works.</p>
+<p><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9805em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord text"><span class="mord">factor</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1.0</span></span></span></span> has no such restriction — every <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> stays fixed,
+so <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> spacing is free. That leaves one real lever: keep <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> restricted
+to multiples of 50, and pack the <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> direction as densely as space
+allows. Within this image, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">{</span><span class="mord">50</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">100</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">200</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">250</span><span class="mclose">}</span></span></span></span> — 5
+values, still 50 pixels apart, and (with <code>search_margin_width=48</code>) all
+comfortably clear of the image's own edges. A much larger, still fully
+integer-safe grid follows directly:</p>
+<pre><code class="language-python">from dictk.grid import generate
+
+points = generate(
+    origin=PixelCoordinate(x=50, y=52),
+    count_x=5,
+    count_y=50,
+    spacing_x=50,
+    spacing_y=4,
+)
+</code></pre>
+<p>250 points, x values: [50, 100, 150, 200, 250], y range: 52-248</p>
+<p>Tracked the same way as every other grid on this page:</p>
+<pre><code class="language-python">from dictk.grid import locate
+
+found = locate(
+    reference_image=reference_image,
+    current_image=current_image,
+    reference_points=points,
+    kernel_margin_width=20,
+    kernel_margin_height=20,
+    search_margin_width=48,
+    search_margin_height=52,
+)
+</code></pre>
+<p>250/250 points land on their expected integer pixel exactly</p>
+<p>Every one of them lands exactly, the same as the 12-point grid — this
+grid is 20x larger, entirely by choosing <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> values that stay
+integer-safe, not by luck.</p>
+<p>Strain follows the same recipe as <a href="getting_started/simple_stretch.html#strain">the Strain section</a> above:
+<a href="getting_started/../api/dictk/grid.html#elements"><code>dictk.grid.elements</code></a> for
+connectivity, then
+<a href="getting_started/../api/dictk/element.html#gauss_point_log_strains"><code>dictk.element.gauss_point_log_strains</code></a>
+and
+<a href="getting_started/../api/dictk/element.html#gauss_point_coordinates"><code>dictk.element.gauss_point_coordinates</code></a>
+at each of the resulting 196 elements' Gauss points. Node numbers are
+left off this time — 250 labels would be clutter, not information, at
+this density:</p>
+<pre><code class="language-python">from dictk.element import gauss_point_coordinates, gauss_point_log_strains
+from dictk.grid import elements
+from dictk.image import element_strain_plot
+
+element_indices = elements(count_x=5, count_y=50)
+values = []
+coordinates = []
+for element in element_indices:
+    reference_corners = [points[i] for i in element]
+    current_corners = [found[i] for i in element]
+    strains = gauss_point_log_strains(
+        reference_points=reference_corners, current_points=current_corners
+    )
+    values.extend(strain[0, 0] for strain in strains)
+    coordinates.extend(gauss_point_coordinates(points=current_corners))
+
+element_strain_plot(
+    points=found,
+    elements=element_indices,
+    coordinates=coordinates,
+    values=values,
+    label=r"Log Strain, $E_{11}$",
+    path="simple_stretch_revisited_strain_gauss_points.png",
+)
+element_strain_plot(
+    points=found,
+    elements=element_indices,
+    coordinates=coordinates,
+    values=values,
+    label=r"Log Strain, $E_{11}$",
+    image=current_image,
+    path="simple_stretch_revisited_strain_on_current.png",
+)
+</code></pre>
+<figure>
+    <img src="getting_started/simple_stretch_revisited_strain_gauss_points.png" alt="a much denser 5x50 mesh with 4 Gauss points per element, colored by log strain E11, no node numbers, no background image" />
+    <figcaption>The same log strain <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, at 196 elements instead of 6 -- close enough to continuous to start looking like a real strain field.</figcaption>
+</figure>
+<figure>
+    <img src="getting_started/simple_stretch_revisited_strain_on_current.png" alt="the same dense mesh and colored Gauss points overlaid on current_image, the stretched astronaut photo" />
+    <figcaption>The same dense mesh, overlaid on <code>current_image</code>.</figcaption>
+</figure>
+<p><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is still exactly <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">ln</span><span class="mopen">(</span><span class="mord">1.02</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.019803</span></span></span></span> at all 784
+Gauss points — a uniform stretch is still a uniform stretch,
+regardless of how finely it's sampled. What's new here isn't the
+number, it's that the method now scales cleanly to a grid closer to
+VIC-2D's own density, with no tracking failures anywhere in it.</p>
+<p>Point count was the free variable throughout this section — 250 here,
+chosen for exactness, not for speed. How <code>dictk</code>'s own tracking time
+scales as point count grows much larger, and how that scaling compares
+across sequential, threaded, and multi-process execution, is
+<a href="getting_started/./parallelization.html">Parallelization</a>'s own question, not this one.</p>
+<p>Two things this section deliberately leaves open. Every point here
+still has to land on an exact integer pixel — real displacements
+won't, and recovering those is <a href="getting_started/./path_forward.html#postponed">Path Forward</a>'s
+own Postponed subpixel-accuracy item, not something this section
+attempts. And the timing question just raised — how tracking time
+actually scales once point count grows past 250 — is
+<a href="getting_started/./parallelization.html">Parallelization</a>'s to answer, not this page's.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="recoverable-displacement-range"><a class="header" href="#recoverable-displacement-range">Recoverable Displacement Range</a></h1>
 <p><a href="getting_started/./simple_stretch.html">Simple Stretch</a> raised a natural follow-up
