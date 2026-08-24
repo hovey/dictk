@@ -275,22 +275,22 @@ changes, and by a different amount for each point:</p>
 </code></pre>
 <table>
 <thead>
-<tr><th rowspan="2">Point</th><th colspan="2">Expected <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span></th></tr>
-<tr><th><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> (pixels)</th><th><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> (pixels)</th></tr>
+<tr><th rowspan="2">Point</th><th colspan="2">Reference Configuration <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">Y</span><span class="mclose">)</span></span></span></span></th><th colspan="2">Expected <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span></th></tr>
+<tr><th><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span> (pixels)</th><th><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">Y</span></span></span></span> (pixels)</th><th><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> (pixels)</th><th><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> (pixels)</th></tr>
 </thead>
 <tbody>
-<tr><td>00</td><td>51</td><td>50</td></tr>
-<tr><td>01</td><td>102</td><td>50</td></tr>
-<tr><td>02</td><td>153</td><td>50</td></tr>
-<tr><td>03</td><td>51</td><td>105</td></tr>
-<tr><td>04</td><td>102</td><td>105</td></tr>
-<tr><td>05</td><td>153</td><td>105</td></tr>
-<tr><td>06</td><td>51</td><td>160</td></tr>
-<tr><td>07</td><td>102</td><td>160</td></tr>
-<tr><td>08</td><td>153</td><td>160</td></tr>
-<tr><td>09</td><td>51</td><td>215</td></tr>
-<tr><td>10</td><td>102</td><td>215</td></tr>
-<tr><td>11</td><td>153</td><td>215</td></tr>
+<tr><td>00</td><td>50</td><td>50</td><td>51</td><td>50</td></tr>
+<tr><td>01</td><td>100</td><td>50</td><td>102</td><td>50</td></tr>
+<tr><td>02</td><td>150</td><td>50</td><td>153</td><td>50</td></tr>
+<tr><td>03</td><td>50</td><td>105</td><td>51</td><td>105</td></tr>
+<tr><td>04</td><td>100</td><td>105</td><td>102</td><td>105</td></tr>
+<tr><td>05</td><td>150</td><td>105</td><td>153</td><td>105</td></tr>
+<tr><td>06</td><td>50</td><td>160</td><td>51</td><td>160</td></tr>
+<tr><td>07</td><td>100</td><td>160</td><td>102</td><td>160</td></tr>
+<tr><td>08</td><td>150</td><td>160</td><td>153</td><td>160</td></tr>
+<tr><td>09</td><td>50</td><td>215</td><td>51</td><td>215</td></tr>
+<tr><td>10</td><td>100</td><td>215</td><td>102</td><td>215</td></tr>
+<tr><td>11</td><td>150</td><td>215</td><td>153</td><td>215</td></tr>
 </tbody>
 </table>
 <p>This is a real deformation, not a rigid shift. <a href="./multi_point_motion.html">Multi-Point
@@ -364,6 +364,7 @@ element boundaries.</p>
 extrapolate the results to the nodes, and then report the <strong>nodal
 average</strong> from all adjacent elements to create a smooth contour plot.</p>
 <p>For now, let's report the strain at the Gauss points.</p>
+<h3 id="12-point-sample"><a class="header" href="#12-point-sample">12-Point Sample</a></h3>
 <p><a href="../api/dictk/grid.html#elements"><code>dictk.grid.elements</code></a> turns the
 tracked grid's 12 points into 6 Q4 elements, then
 <a href="../api/dictk/element.html#gauss_point_log_strains"><code>dictk.element.gauss_point_log_strains</code></a>
@@ -371,9 +372,9 @@ and
 <a href="../api/dictk/element.html#gauss_point_coordinates"><code>dictk.element.gauss_point_coordinates</code></a>
 compute each element's 4 Gauss points' logarithmic (Hencky) strain and
 their own global position, in the current (found) configuration.
-Logarithmic strain, not Green-Lagrange, so this matches the <a href="#verification-against-vic-2d">Verification
-Against VIC-2D</a> section below, which
-reports VIC-2D's own logarithmic/Euler strain:</p>
+Logarithmic strain, matching the <a href="#verification-against-vic-2d">Verification Against
+VIC-2D</a> section below, which reports
+VIC-2D's own logarithmic/Euler strain:</p>
 <pre><code class="language-python">from dictk.element import gauss_point_coordinates, gauss_point_log_strains
 from dictk.grid import elements
 from dictk.plot import element_strain_plot
@@ -557,8 +558,7 @@ page's own <code>factor_x = 1.02</code> stretch was run through
 <a href="https://www.correlatedsolutions.com/vic-2d/">VIC-2D</a> (Correlated
 Solutions, Inc.), independently of <code>dictk</code>. VIC-2D reports logarithmic
 (Euler) strain, so it's compared here against <a href="#strain">the Strain
-section</a> above's own <code>dictk</code>-computed log strain, not
-Green-Lagrange:</p>
+section</a> above's own <code>dictk</code>-computed log strain:</p>
 <figure>
     <a href="../verification/simple_stretch_result_vic.png" target="_blank" rel="noopener">
         <img src="../verification/simple_stretch_result_vic.png" alt="VIC-2D's measured exx (logarithmic Euler strain) field for the factor_x=1.02 stretch example, a striped noisy pattern averaging around 19900 microstrain, with a horizontal extensometer line annotated E0: 19905.2 microstrain" />
@@ -606,6 +606,7 @@ points 5 pixels apart, matching VIC-2D's own subset grid, mostly
 lands on <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> values that aren't multiples of 50 — most of those points'
 true stretched position isn't an integer at all, so nothing can land on
 it exactly, no matter how the tracking works.</p>
+<h3 id="250-point-sample"><a class="header" href="#250-point-sample">250-Point Sample</a></h3>
 <p><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9805em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord text"><span class="mord">factor</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1.0</span></span></span></span> has no such restriction — every <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> stays fixed,
 so <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> spacing is free. That leaves one real lever: keep <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> restricted
 to multiples of 50, and pack the <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> direction as densely as space
