@@ -3467,25 +3467,13 @@ pursuing: running this book's own synthetic datasets through established
 DIC software, and comparing directly against <code>dictk</code>'s own results. This
 page's own <code>factor_x = 1.02</code> stretch was run through
 <a href="https://www.correlatedsolutions.com/vic-2d/">VIC-2D</a> (Correlated
-Solutions, Inc.), independently of <code>dictk</code>. VIC-2D reports logarithmic
-(Euler) strain, so it's compared here against <a href="getting_started/simple_stretch.html#strain">the Strain
-section</a> above's own <code>dictk</code>-computed log strain:</p>
-<figure>
-    <a href="getting_started/../verification/simple_stretch_result_vic.png" target="_blank" rel="noopener">
-        <img src="getting_started/../verification/simple_stretch_result_vic.png" alt="VIC-2D's measured exx (logarithmic Euler strain) field for the factor_x=1.02 stretch example, a striped noisy pattern averaging around 19900 microstrain, with a horizontal extensometer line annotated E0: 19905.2 microstrain" />
-    </a>
-    <figcaption>VIC-2D's own measured <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">xx</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> (logarithmic/Euler strain) field for this page's <code>factor_x = 1.02</code> stretch (click to enlarge). The horizontal line is VIC-2D's own extensometer annotation, reading 19905.2 microstrain along that path.</figcaption>
-</figure>
+Solutions, Inc.), independently of <code>dictk</code>.</p>
 <h3 id="2682-point-sample"><a class="header" href="#2682-point-sample">2682-Point Sample</a></h3>
 <p>VIC-2D placed its own subsets on a regular grid, 5 pixels apart in both
 directions — 53x54, 2862 candidate positions across the image. 180 of
 them sit close enough to the image's outer edge that their own
 correlation window would run off-canvas, so VIC-2D masks those out,
-leaving 2682 valid subsets. Across those 2682 subsets, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">xx</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> averages
-19875.8 microstrain — close to, but noisier than,
-<a href="getting_started/./multi_point_motion.html#verification-against-vic-2d">Multi-Point Motion</a>'s
-displacement match, since strain is a spatial derivative of already-noisy
-per-point displacement data, not a directly measured quantity.</p>
+leaving 2682 valid subsets.</p>
 <pre><code class="language-python">from dictk.image import read, PixelCoordinate
 from dictk.grid import generate
 from dictk.plot import point_grid_plot
@@ -3544,6 +3532,19 @@ point_grid_plot(
     <img src="getting_started/simple_stretch_2862_zoom.png" alt="a zoomed 30x30 pixel crop from the top-left corner of astronaut0, showing a 5x5 block of 25 orange dots on the real 5-pixel grid" />
     <figcaption>A 30x30-pixel crop from the top-left corner, showing every one of the 25 grid points that fall inside it -- the same 5px spacing as the full overview above, just at true scale instead of compressed into a 300x300 thumbnail.</figcaption>
 </figure>
+<p>VIC-2D reports logarithmic (Euler) strain, so it's compared here
+against <a href="getting_started/simple_stretch.html#strain">the Strain section</a> above's own <code>dictk</code>-computed log
+strain. Across those 2682 valid subsets, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">xx</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> averages
+19875.8 microstrain — close to, but noisier than,
+<a href="getting_started/./multi_point_motion.html#verification-against-vic-2d">Multi-Point Motion</a>'s
+displacement match, since strain is a spatial derivative of already-noisy
+per-point displacement data, not a directly measured quantity:</p>
+<figure>
+    <a href="getting_started/../verification/simple_stretch_result_vic.png" target="_blank" rel="noopener">
+        <img src="getting_started/../verification/simple_stretch_result_vic.png" alt="VIC-2D's measured exx (logarithmic Euler strain) field for the factor_x=1.02 stretch example, a striped noisy pattern averaging around 19900 microstrain, with a horizontal extensometer line annotated E0: 19905.2 microstrain" />
+    </a>
+    <figcaption>VIC-2D's own measured <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">xx</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> (logarithmic/Euler strain) field for this page's <code>factor_x = 1.02</code> stretch (click to enlarge). The horizontal line is VIC-2D's own extensometer annotation, reading 19905.2 microstrain along that path.</figcaption>
+</figure>
 <p>The full distribution, not just its mean, shows how noisy those 2682
 subsets really are:</p>
 <pre><code class="language-python">import csv
@@ -3586,6 +3587,10 @@ analytical value.</p>
 — is available for closer inspection: every subset's position,
 displacement, strain, and correlation quality metrics, not just the
 summary field shown above.</p>
+<p>VIC-2D sampled this deformation at far higher density than <code>dictk</code>
+has tried. <a href="getting_started/simple_stretch.html#simple-stretch-revisited">Simple Stretch Revisited</a> takes
+that cue next, pushing <code>dictk</code>'s own tracked grid past twelve points
+for the first time.</p>
 <h2 id="simple-stretch-revisited"><a class="header" href="#simple-stretch-revisited">Simple Stretch Revisited</a></h2>
 <p>Every point tracked so far on this page has landed on an exact integer
 pixel in the deformed configuration. That only works because of how
