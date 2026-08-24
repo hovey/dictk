@@ -1,0 +1,353 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>High Point Density - dictk User Guide</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Digital Image Correlation Toolkit">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../docs/userguide/theme/custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">dictk User Guide</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/hovey/dictk" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="high-point-density"><a class="header" href="#high-point-density">High Point Density</a></h1>
+<p><a href="./simple_stretch.html#simple-stretch-revisited">Simple Stretch Revisited</a>
+capped out at 250 points — the most <code>x</code> values that stay integer-safe
+at <code>factor_x = 1.02</code>, within the image's own margins. <a href="./subpixel_accuracy.html">Subpixel
+Accuracy</a> removed that ceiling: once tracking
+doesn't need its answer to be a whole pixel, <code>x</code> doesn't need to be a
+multiple of 50 either. This page pushes all the way to VIC-2D's own
+density — 5 pixels apart, the same 53x54, 2862-point grid <a href="./simple_stretch.html#verification-against-vic-2d">Verification
+Against VIC-2D</a> and
+Subpixel Accuracy both already used.</p>
+<h2 id="tracking-at-full-density"><a class="header" href="#tracking-at-full-density">Tracking at Full Density</a></h2>
+<pre><code class="language-python">from dictk.grid import generate, locate_subpixel
+
+points = generate(
+    origin=PixelCoordinate(x=18, y=16),
+    count_x=53,
+    count_y=54,
+    spacing_x=5,
+    spacing_y=5,
+)
+found = locate_subpixel(
+    reference_image=reference_image,
+    current_image=current_image,
+    reference_points=points,
+    kernel_margin_width=20,
+    kernel_margin_height=20,
+    search_margin_width=48,
+    search_margin_height=52,
+    upsample_factor=10,
+)
+</code></pre>
+<p>2862 points tracked</p>
+<h2 id="strain-at-full-density"><a class="header" href="#strain-at-full-density">Strain at Full Density</a></h2>
+<p>Same recipe as Simple Stretch Revisited: <a href="../api/dictk/grid.html#elements"><code>dictk.grid.elements</code></a>
+for connectivity (2756 elements this time, not 196), then
+<a href="../api/dictk/element.html#gauss_point_log_strains"><code>gauss_point_log_strains</code></a>/<a href="../api/dictk/element.html#gauss_point_coordinates"><code>gauss_point_coordinates</code></a>
+at each of the resulting 11024 Gauss points. Node numbers stay off —
+2862 of them would be unreadable:</p>
+<pre><code class="language-python">from dictk.element import gauss_point_coordinates, gauss_point_log_strains
+from dictk.grid import elements
+from dictk.plot import element_strain_plot
+
+element_indices = elements(count_x=53, count_y=54)
+values = []
+coordinates = []
+for element in element_indices:
+    reference_corners = [points[i] for i in element]
+    current_corners = [found[i] for i in element]
+    strains = gauss_point_log_strains(
+        reference_points=reference_corners, current_points=current_corners
+    )
+    values.extend(strain[0, 0] for strain in strains)
+    coordinates.extend(gauss_point_coordinates(points=current_corners))
+
+element_strain_plot(
+    points=found,
+    elements=element_indices,
+    coordinates=coordinates,
+    values=values,
+    label=r"Log Strain, $E_{11}$",
+    path="high_point_density_strain_gauss_points.png",
+)
+element_strain_plot(
+    points=found,
+    elements=element_indices,
+    coordinates=coordinates,
+    values=values,
+    label=r"Log Strain, $E_{11}$",
+    image=current_image,
+    path="high_point_density_strain_on_current.png",
+)
+</code></pre>
+<figure>
+    <img src="high_point_density_strain_gauss_points.png" alt="a dense 53x54 mesh with 4 Gauss points per element, colored by log strain E11, no node numbers, no background image" />
+    <figcaption>The full 2862-point mesh, colored by log strain <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</figcaption>
+</figure>
+<figure>
+    <img src="high_point_density_strain_on_current.png" alt="the same dense mesh and colored Gauss points overlaid on current_image, the stretched astronaut photo" />
+    <figcaption>The same dense mesh, overlaid on <code>current_image</code>.</figcaption>
+</figure>
+<h2 id="a-real-trade-off-not-a-bug"><a class="header" href="#a-real-trade-off-not-a-bug">A Real Trade-Off, Not a Bug</a></h2>
+<p>2862-point, 5px-spacing mesh: mean <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> = 0.0200 (true value 0.0198), but std = 0.0155, range [-0.0160, 0.0771]</p>
+<p>The mean is accurate. The spread is not small. Unlike Simple Stretch
+Revisited's perfectly uniform result, individual elements here scatter
+well beyond the true <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">ln</span><span class="mopen">(</span><span class="mord">1.02</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.0198</span></span></span></span> value — some report
+negative strain, some report nearly 4 times the true value.</p>
+<p>This isn't a tracking bug. Log strain is, in effect, a finite
+difference: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">Δ</span><span class="mord mathnormal">u</span><span class="mord">/</span><span class="mord mathnormal">L</span></span></span></span>, a displacement difference
+divided by element size <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">L</span></span></span></span>. <a href="./subpixel_accuracy.html">Subpixel Accuracy</a>'s
+own measurement found <code>locate_subpixel</code>'s residual error is small in
+absolute terms — a few hundredths of a pixel, on average — but at 5
+pixels of element spacing, that same absolute error is a much larger
+<em>fraction</em> of <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">L</span></span></span></span> than it was at Simple Stretch Revisited's 50-pixel
+spacing. The smaller the element, the more a fixed amount of tracking
+noise gets amplified into strain noise. Checked directly, not just
+argued:</p>
+<div class="table-wrapper"><table><thead><tr><th>Element spacing</th><th>Mean E11</th><th>Std E11</th></tr></thead><tbody>
+<tr><td>5px</td><td>0.01988</td><td>0.01544</td></tr>
+<tr><td>10px</td><td>0.01997</td><td>0.01247</td></tr>
+<tr><td>20px</td><td>0.02003</td><td>0.00988</td></tr>
+<tr><td>40px</td><td>0.01999</td><td>0.00318</td></tr>
+</tbody></table>
+</div>
+<p>Standard deviation falls as element spacing grows — the same tracking
+noise, spread over a larger <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">L</span></span></span></span>, moves less of the resulting strain.
+This is exactly why VIC-2D and other commercial DIC packages offer a
+<strong>strain window</strong> — averaging displacement over several subsets before
+computing strain, trading spatial resolution for strain precision.
+<code>dictk</code> doesn't implement that averaging yet. This page's own dense
+mesh is accurate on average and honestly noisy point to point, not
+silently smoothed into looking better than the underlying tracking
+supports.</p>
+<p>Point count, tracking accuracy, and now strain precision have all been
+free variables throughout Simple Stretch, Subpixel Accuracy, and this
+page. How <code>dictk</code>'s own tracking time scales as point count grows —
+across sequential, threaded, and multi-process execution — is
+<a href="./parallelization.html">Parallelization</a>'s own question, still not
+attempted here either.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../getting_started/subpixel_accuracy.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../getting_started/path_forward.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../getting_started/subpixel_accuracy.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../getting_started/path_forward.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

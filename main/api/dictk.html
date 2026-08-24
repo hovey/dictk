@@ -49,8 +49,10 @@
                     <li><a href="dictk/rosta.html">rosta</a></li>
                     <li><a href="dictk/cli.html">cli</a></li>
                     <li><a href="dictk/correlation.html">correlation</a></li>
+                    <li><a href="dictk/element.html">element</a></li>
                     <li><a href="dictk/grid.html">grid</a></li>
                     <li><a href="dictk/image.html">image</a></li>
+                    <li><a href="dictk/plot.html">plot</a></li>
                     <li><a href="dictk/translation.html">translation</a></li>
             </ul>
 
@@ -143,10 +145,12 @@ before anything touches disk — and callers who do want a file call
 </span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a>    <span class="c1"># of both.</span>
 </span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>    <span class="s2">&quot;cli&quot;</span><span class="p">,</span>
 </span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>    <span class="s2">&quot;correlation&quot;</span><span class="p">,</span>
-</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>    <span class="s2">&quot;grid&quot;</span><span class="p">,</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>    <span class="s2">&quot;image&quot;</span><span class="p">,</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a>    <span class="s2">&quot;translation&quot;</span><span class="p">,</span>
-</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a><span class="p">]</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>    <span class="s2">&quot;element&quot;</span><span class="p">,</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>    <span class="s2">&quot;grid&quot;</span><span class="p">,</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a>    <span class="s2">&quot;image&quot;</span><span class="p">,</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>    <span class="s2">&quot;plot&quot;</span><span class="p">,</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a>    <span class="s2">&quot;translation&quot;</span><span class="p">,</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a><span class="p">]</span>
 </span></pre></div>
 
 
@@ -162,48 +166,48 @@ before anything touches disk — and callers who do want a file call
 
     </div>
     <a class="headerlink" href="#astronaut"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="astronaut-898"><a href="#astronaut-898"><span class="linenos">898</span></a><span class="k">def</span><span class="w"> </span><span class="nf">astronaut</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-</span><span id="astronaut-899"><a href="#astronaut-899"><span class="linenos">899</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Load a bundled real-world grayscale reference image.</span>
-</span><span id="astronaut-900"><a href="#astronaut-900"><span class="linenos">900</span></a>
-</span><span id="astronaut-901"><a href="#astronaut-901"><span class="linenos">901</span></a><span class="sd">    Same parameters and pixel values as the `dictk astronaut` CLI</span>
-</span><span id="astronaut-902"><a href="#astronaut-902"><span class="linenos">902</span></a><span class="sd">    command, minus the file write — see the `dictk` package docstring for</span>
-</span><span id="astronaut-903"><a href="#astronaut-903"><span class="linenos">903</span></a><span class="sd">    why the API layer stops at the array.</span>
-</span><span id="astronaut-904"><a href="#astronaut-904"><span class="linenos">904</span></a>
-</span><span id="astronaut-905"><a href="#astronaut-905"><span class="linenos">905</span></a><span class="sd">    The source is a NASA portrait of astronaut Eileen Collins, from the</span>
-</span><span id="astronaut-906"><a href="#astronaut-906"><span class="linenos">906</span></a><span class="sd">    NASA Great Images database (&quot;No known copyright restrictions, released</span>
-</span><span id="astronaut-907"><a href="#astronaut-907"><span class="linenos">907</span></a><span class="sd">    into the public domain.&quot;). It&#39;s bundled as a color image and converted</span>
-</span><span id="astronaut-908"><a href="#astronaut-908"><span class="linenos">908</span></a><span class="sd">    with `rgba_to_gray`; unlike `rosta` and `checkerboard`, it isn&#39;t</span>
-</span><span id="astronaut-909"><a href="#astronaut-909"><span class="linenos">909</span></a><span class="sd">    procedurally generated, so `width`/`height` other than the native</span>
-</span><span id="astronaut-910"><a href="#astronaut-910"><span class="linenos">910</span></a><span class="sd">    512x512 resize the source image (via `scipy.ndimage.zoom`) rather than</span>
-</span><span id="astronaut-911"><a href="#astronaut-911"><span class="linenos">911</span></a><span class="sd">    computing a fresh pattern at that size.</span>
-</span><span id="astronaut-912"><a href="#astronaut-912"><span class="linenos">912</span></a>
-</span><span id="astronaut-913"><a href="#astronaut-913"><span class="linenos">913</span></a><span class="sd">    Args:</span>
-</span><span id="astronaut-914"><a href="#astronaut-914"><span class="linenos">914</span></a><span class="sd">        width: Image width in pixels. Must be &gt;= 1.</span>
-</span><span id="astronaut-915"><a href="#astronaut-915"><span class="linenos">915</span></a><span class="sd">        height: Image height in pixels. Must be &gt;= 1.</span>
-</span><span id="astronaut-916"><a href="#astronaut-916"><span class="linenos">916</span></a>
-</span><span id="astronaut-917"><a href="#astronaut-917"><span class="linenos">917</span></a><span class="sd">    Returns:</span>
-</span><span id="astronaut-918"><a href="#astronaut-918"><span class="linenos">918</span></a><span class="sd">        A 2D uint8 array of shape (height, width).</span>
-</span><span id="astronaut-919"><a href="#astronaut-919"><span class="linenos">919</span></a>
-</span><span id="astronaut-920"><a href="#astronaut-920"><span class="linenos">920</span></a><span class="sd">    Raises:</span>
-</span><span id="astronaut-921"><a href="#astronaut-921"><span class="linenos">921</span></a><span class="sd">        ValueError: If width or height is less than 1.</span>
-</span><span id="astronaut-922"><a href="#astronaut-922"><span class="linenos">922</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="astronaut-923"><a href="#astronaut-923"><span class="linenos">923</span></a>    <span class="k">if</span> <span class="n">width</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-</span><span id="astronaut-924"><a href="#astronaut-924"><span class="linenos">924</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;width </span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
-</span><span id="astronaut-925"><a href="#astronaut-925"><span class="linenos">925</span></a>    <span class="k">if</span> <span class="n">height</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-</span><span id="astronaut-926"><a href="#astronaut-926"><span class="linenos">926</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;height </span><span class="si">{</span><span class="n">height</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
-</span><span id="astronaut-927"><a href="#astronaut-927"><span class="linenos">927</span></a>
-</span><span id="astronaut-928"><a href="#astronaut-928"><span class="linenos">928</span></a>    <span class="n">asset_path</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">resources</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="s2">&quot;dictk&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;data&quot;</span> <span class="o">/</span> <span class="s2">&quot;astronaut.png&quot;</span>
-</span><span id="astronaut-929"><a href="#astronaut-929"><span class="linenos">929</span></a>    <span class="k">with</span> <span class="n">importlib</span><span class="o">.</span><span class="n">resources</span><span class="o">.</span><span class="n">as_file</span><span class="p">(</span><span class="n">asset_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">path</span><span class="p">:</span>
-</span><span id="astronaut-930"><a href="#astronaut-930"><span class="linenos">930</span></a>        <span class="n">color</span> <span class="o">=</span> <span class="n">read</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">)</span>
-</span><span id="astronaut-931"><a href="#astronaut-931"><span class="linenos">931</span></a>    <span class="n">gray</span> <span class="o">=</span> <span class="n">rgba_to_gray</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
-</span><span id="astronaut-932"><a href="#astronaut-932"><span class="linenos">932</span></a>
-</span><span id="astronaut-933"><a href="#astronaut-933"><span class="linenos">933</span></a>    <span class="n">native_height</span><span class="p">,</span> <span class="n">native_width</span> <span class="o">=</span> <span class="n">gray</span><span class="o">.</span><span class="n">shape</span>
-</span><span id="astronaut-934"><a href="#astronaut-934"><span class="linenos">934</span></a>    <span class="k">if</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">native_width</span><span class="p">,</span> <span class="n">native_height</span><span class="p">):</span>
-</span><span id="astronaut-935"><a href="#astronaut-935"><span class="linenos">935</span></a>        <span class="k">return</span> <span class="n">gray</span>
-</span><span id="astronaut-936"><a href="#astronaut-936"><span class="linenos">936</span></a>
-</span><span id="astronaut-937"><a href="#astronaut-937"><span class="linenos">937</span></a>    <span class="n">zoom_factors</span> <span class="o">=</span> <span class="p">(</span><span class="n">height</span> <span class="o">/</span> <span class="n">native_height</span><span class="p">,</span> <span class="n">width</span> <span class="o">/</span> <span class="n">native_width</span><span class="p">)</span>
-</span><span id="astronaut-938"><a href="#astronaut-938"><span class="linenos">938</span></a>    <span class="n">resized</span> <span class="o">=</span> <span class="n">zoom</span><span class="p">(</span><span class="n">gray</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="n">zoom_factors</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-</span><span id="astronaut-939"><a href="#astronaut-939"><span class="linenos">939</span></a>    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">resized</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="astronaut-136"><a href="#astronaut-136"><span class="linenos">136</span></a><span class="k">def</span><span class="w"> </span><span class="nf">astronaut</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="astronaut-137"><a href="#astronaut-137"><span class="linenos">137</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Load a bundled real-world grayscale reference image.</span>
+</span><span id="astronaut-138"><a href="#astronaut-138"><span class="linenos">138</span></a>
+</span><span id="astronaut-139"><a href="#astronaut-139"><span class="linenos">139</span></a><span class="sd">    Same parameters and pixel values as the `dictk astronaut` CLI</span>
+</span><span id="astronaut-140"><a href="#astronaut-140"><span class="linenos">140</span></a><span class="sd">    command, minus the file write — see the `dictk` package docstring for</span>
+</span><span id="astronaut-141"><a href="#astronaut-141"><span class="linenos">141</span></a><span class="sd">    why the API layer stops at the array.</span>
+</span><span id="astronaut-142"><a href="#astronaut-142"><span class="linenos">142</span></a>
+</span><span id="astronaut-143"><a href="#astronaut-143"><span class="linenos">143</span></a><span class="sd">    The source is a NASA portrait of astronaut Eileen Collins, from the</span>
+</span><span id="astronaut-144"><a href="#astronaut-144"><span class="linenos">144</span></a><span class="sd">    NASA Great Images database (&quot;No known copyright restrictions, released</span>
+</span><span id="astronaut-145"><a href="#astronaut-145"><span class="linenos">145</span></a><span class="sd">    into the public domain.&quot;). It&#39;s bundled as a color image and converted</span>
+</span><span id="astronaut-146"><a href="#astronaut-146"><span class="linenos">146</span></a><span class="sd">    with `rgba_to_gray`; unlike `rosta` and `checkerboard`, it isn&#39;t</span>
+</span><span id="astronaut-147"><a href="#astronaut-147"><span class="linenos">147</span></a><span class="sd">    procedurally generated, so `width`/`height` other than the native</span>
+</span><span id="astronaut-148"><a href="#astronaut-148"><span class="linenos">148</span></a><span class="sd">    512x512 resize the source image (via `scipy.ndimage.zoom`) rather than</span>
+</span><span id="astronaut-149"><a href="#astronaut-149"><span class="linenos">149</span></a><span class="sd">    computing a fresh pattern at that size.</span>
+</span><span id="astronaut-150"><a href="#astronaut-150"><span class="linenos">150</span></a>
+</span><span id="astronaut-151"><a href="#astronaut-151"><span class="linenos">151</span></a><span class="sd">    Args:</span>
+</span><span id="astronaut-152"><a href="#astronaut-152"><span class="linenos">152</span></a><span class="sd">        width: Image width in pixels. Must be &gt;= 1.</span>
+</span><span id="astronaut-153"><a href="#astronaut-153"><span class="linenos">153</span></a><span class="sd">        height: Image height in pixels. Must be &gt;= 1.</span>
+</span><span id="astronaut-154"><a href="#astronaut-154"><span class="linenos">154</span></a>
+</span><span id="astronaut-155"><a href="#astronaut-155"><span class="linenos">155</span></a><span class="sd">    Returns:</span>
+</span><span id="astronaut-156"><a href="#astronaut-156"><span class="linenos">156</span></a><span class="sd">        A 2D uint8 array of shape (height, width).</span>
+</span><span id="astronaut-157"><a href="#astronaut-157"><span class="linenos">157</span></a>
+</span><span id="astronaut-158"><a href="#astronaut-158"><span class="linenos">158</span></a><span class="sd">    Raises:</span>
+</span><span id="astronaut-159"><a href="#astronaut-159"><span class="linenos">159</span></a><span class="sd">        ValueError: If width or height is less than 1.</span>
+</span><span id="astronaut-160"><a href="#astronaut-160"><span class="linenos">160</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="astronaut-161"><a href="#astronaut-161"><span class="linenos">161</span></a>    <span class="k">if</span> <span class="n">width</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="astronaut-162"><a href="#astronaut-162"><span class="linenos">162</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;width </span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
+</span><span id="astronaut-163"><a href="#astronaut-163"><span class="linenos">163</span></a>    <span class="k">if</span> <span class="n">height</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="astronaut-164"><a href="#astronaut-164"><span class="linenos">164</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;height </span><span class="si">{</span><span class="n">height</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
+</span><span id="astronaut-165"><a href="#astronaut-165"><span class="linenos">165</span></a>
+</span><span id="astronaut-166"><a href="#astronaut-166"><span class="linenos">166</span></a>    <span class="n">asset_path</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">resources</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="s2">&quot;dictk&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;data&quot;</span> <span class="o">/</span> <span class="s2">&quot;astronaut.png&quot;</span>
+</span><span id="astronaut-167"><a href="#astronaut-167"><span class="linenos">167</span></a>    <span class="k">with</span> <span class="n">importlib</span><span class="o">.</span><span class="n">resources</span><span class="o">.</span><span class="n">as_file</span><span class="p">(</span><span class="n">asset_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">path</span><span class="p">:</span>
+</span><span id="astronaut-168"><a href="#astronaut-168"><span class="linenos">168</span></a>        <span class="n">color</span> <span class="o">=</span> <span class="n">read</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">)</span>
+</span><span id="astronaut-169"><a href="#astronaut-169"><span class="linenos">169</span></a>    <span class="n">gray</span> <span class="o">=</span> <span class="n">rgba_to_gray</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+</span><span id="astronaut-170"><a href="#astronaut-170"><span class="linenos">170</span></a>
+</span><span id="astronaut-171"><a href="#astronaut-171"><span class="linenos">171</span></a>    <span class="n">native_height</span><span class="p">,</span> <span class="n">native_width</span> <span class="o">=</span> <span class="n">gray</span><span class="o">.</span><span class="n">shape</span>
+</span><span id="astronaut-172"><a href="#astronaut-172"><span class="linenos">172</span></a>    <span class="k">if</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="n">native_width</span><span class="p">,</span> <span class="n">native_height</span><span class="p">):</span>
+</span><span id="astronaut-173"><a href="#astronaut-173"><span class="linenos">173</span></a>        <span class="k">return</span> <span class="n">gray</span>
+</span><span id="astronaut-174"><a href="#astronaut-174"><span class="linenos">174</span></a>
+</span><span id="astronaut-175"><a href="#astronaut-175"><span class="linenos">175</span></a>    <span class="n">zoom_factors</span> <span class="o">=</span> <span class="p">(</span><span class="n">height</span> <span class="o">/</span> <span class="n">native_height</span><span class="p">,</span> <span class="n">width</span> <span class="o">/</span> <span class="n">native_width</span><span class="p">)</span>
+</span><span id="astronaut-176"><a href="#astronaut-176"><span class="linenos">176</span></a>    <span class="n">resized</span> <span class="o">=</span> <span class="n">zoom</span><span class="p">(</span><span class="n">gray</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="n">zoom_factors</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</span><span id="astronaut-177"><a href="#astronaut-177"><span class="linenos">177</span></a>    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">resized</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -254,39 +258,39 @@ computing a fresh pattern at that size.</p>
 
     </div>
     <a class="headerlink" href="#checkerboard"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="checkerboard-863"><a href="#checkerboard-863"><span class="linenos">863</span></a><span class="k">def</span><span class="w"> </span><span class="nf">checkerboard</span><span class="p">(</span>
-</span><span id="checkerboard-864"><a href="#checkerboard-864"><span class="linenos">864</span></a>    <span class="o">*</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">count_x</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span> <span class="n">count_y</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span>
-</span><span id="checkerboard-865"><a href="#checkerboard-865"><span class="linenos">865</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-</span><span id="checkerboard-866"><a href="#checkerboard-866"><span class="linenos">866</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a black-and-white checkerboard test image.</span>
-</span><span id="checkerboard-867"><a href="#checkerboard-867"><span class="linenos">867</span></a>
-</span><span id="checkerboard-868"><a href="#checkerboard-868"><span class="linenos">868</span></a><span class="sd">    Same parameters and pixel values as the `dictk checkerboard` CLI</span>
-</span><span id="checkerboard-869"><a href="#checkerboard-869"><span class="linenos">869</span></a><span class="sd">    command, minus the file write — see the `dictk` package docstring for</span>
-</span><span id="checkerboard-870"><a href="#checkerboard-870"><span class="linenos">870</span></a><span class="sd">    why the API layer stops at the array. count_x and count_y are named for</span>
-</span><span id="checkerboard-871"><a href="#checkerboard-871"><span class="linenos">871</span></a><span class="sd">    the rectangles they divide the image into, not &quot;squares&quot;: unequal</span>
-</span><span id="checkerboard-872"><a href="#checkerboard-872"><span class="linenos">872</span></a><span class="sd">    counts (or a width/height ratio that doesn&#39;t match count_x/count_y)</span>
-</span><span id="checkerboard-873"><a href="#checkerboard-873"><span class="linenos">873</span></a><span class="sd">    produce rectangular cells, not square ones.</span>
-</span><span id="checkerboard-874"><a href="#checkerboard-874"><span class="linenos">874</span></a>
-</span><span id="checkerboard-875"><a href="#checkerboard-875"><span class="linenos">875</span></a><span class="sd">    Args:</span>
-</span><span id="checkerboard-876"><a href="#checkerboard-876"><span class="linenos">876</span></a><span class="sd">        width: Image width in pixels.</span>
-</span><span id="checkerboard-877"><a href="#checkerboard-877"><span class="linenos">877</span></a><span class="sd">        height: Image height in pixels.</span>
-</span><span id="checkerboard-878"><a href="#checkerboard-878"><span class="linenos">878</span></a><span class="sd">        count_x: Number of rectangles along the width. Must be &gt;= 1.</span>
-</span><span id="checkerboard-879"><a href="#checkerboard-879"><span class="linenos">879</span></a><span class="sd">        count_y: Number of rectangles along the height. Must be &gt;= 1.</span>
-</span><span id="checkerboard-880"><a href="#checkerboard-880"><span class="linenos">880</span></a>
-</span><span id="checkerboard-881"><a href="#checkerboard-881"><span class="linenos">881</span></a><span class="sd">    Returns:</span>
-</span><span id="checkerboard-882"><a href="#checkerboard-882"><span class="linenos">882</span></a><span class="sd">        A 2D uint8 array of shape (height, width) with values 0 or 255.</span>
-</span><span id="checkerboard-883"><a href="#checkerboard-883"><span class="linenos">883</span></a>
-</span><span id="checkerboard-884"><a href="#checkerboard-884"><span class="linenos">884</span></a><span class="sd">    Raises:</span>
-</span><span id="checkerboard-885"><a href="#checkerboard-885"><span class="linenos">885</span></a><span class="sd">        ValueError: If count_x or count_y is less than 1.</span>
-</span><span id="checkerboard-886"><a href="#checkerboard-886"><span class="linenos">886</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="checkerboard-887"><a href="#checkerboard-887"><span class="linenos">887</span></a>    <span class="k">if</span> <span class="n">count_x</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-</span><span id="checkerboard-888"><a href="#checkerboard-888"><span class="linenos">888</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;count_x </span><span class="si">{</span><span class="n">count_x</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
-</span><span id="checkerboard-889"><a href="#checkerboard-889"><span class="linenos">889</span></a>    <span class="k">if</span> <span class="n">count_y</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-</span><span id="checkerboard-890"><a href="#checkerboard-890"><span class="linenos">890</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;count_y </span><span class="si">{</span><span class="n">count_y</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
-</span><span id="checkerboard-891"><a href="#checkerboard-891"><span class="linenos">891</span></a>
-</span><span id="checkerboard-892"><a href="#checkerboard-892"><span class="linenos">892</span></a>    <span class="n">rows</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">height</span><span class="p">)</span> <span class="o">*</span> <span class="n">count_y</span> <span class="o">//</span> <span class="n">height</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span>
-</span><span id="checkerboard-893"><a href="#checkerboard-893"><span class="linenos">893</span></a>    <span class="n">cols</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">width</span><span class="p">)</span> <span class="o">*</span> <span class="n">count_x</span> <span class="o">//</span> <span class="n">width</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span>
-</span><span id="checkerboard-894"><a href="#checkerboard-894"><span class="linenos">894</span></a>    <span class="n">pattern</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_xor</span><span class="p">(</span><span class="n">rows</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">cols</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])</span>
-</span><span id="checkerboard-895"><a href="#checkerboard-895"><span class="linenos">895</span></a>    <span class="k">return</span> <span class="p">(</span><span class="n">pattern</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="checkerboard-101"><a href="#checkerboard-101"><span class="linenos">101</span></a><span class="k">def</span><span class="w"> </span><span class="nf">checkerboard</span><span class="p">(</span>
+</span><span id="checkerboard-102"><a href="#checkerboard-102"><span class="linenos">102</span></a>    <span class="o">*</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">count_x</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span> <span class="n">count_y</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span>
+</span><span id="checkerboard-103"><a href="#checkerboard-103"><span class="linenos">103</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="checkerboard-104"><a href="#checkerboard-104"><span class="linenos">104</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a black-and-white checkerboard test image.</span>
+</span><span id="checkerboard-105"><a href="#checkerboard-105"><span class="linenos">105</span></a>
+</span><span id="checkerboard-106"><a href="#checkerboard-106"><span class="linenos">106</span></a><span class="sd">    Same parameters and pixel values as the `dictk checkerboard` CLI</span>
+</span><span id="checkerboard-107"><a href="#checkerboard-107"><span class="linenos">107</span></a><span class="sd">    command, minus the file write — see the `dictk` package docstring for</span>
+</span><span id="checkerboard-108"><a href="#checkerboard-108"><span class="linenos">108</span></a><span class="sd">    why the API layer stops at the array. count_x and count_y are named for</span>
+</span><span id="checkerboard-109"><a href="#checkerboard-109"><span class="linenos">109</span></a><span class="sd">    the rectangles they divide the image into, not &quot;squares&quot;: unequal</span>
+</span><span id="checkerboard-110"><a href="#checkerboard-110"><span class="linenos">110</span></a><span class="sd">    counts (or a width/height ratio that doesn&#39;t match count_x/count_y)</span>
+</span><span id="checkerboard-111"><a href="#checkerboard-111"><span class="linenos">111</span></a><span class="sd">    produce rectangular cells, not square ones.</span>
+</span><span id="checkerboard-112"><a href="#checkerboard-112"><span class="linenos">112</span></a>
+</span><span id="checkerboard-113"><a href="#checkerboard-113"><span class="linenos">113</span></a><span class="sd">    Args:</span>
+</span><span id="checkerboard-114"><a href="#checkerboard-114"><span class="linenos">114</span></a><span class="sd">        width: Image width in pixels.</span>
+</span><span id="checkerboard-115"><a href="#checkerboard-115"><span class="linenos">115</span></a><span class="sd">        height: Image height in pixels.</span>
+</span><span id="checkerboard-116"><a href="#checkerboard-116"><span class="linenos">116</span></a><span class="sd">        count_x: Number of rectangles along the width. Must be &gt;= 1.</span>
+</span><span id="checkerboard-117"><a href="#checkerboard-117"><span class="linenos">117</span></a><span class="sd">        count_y: Number of rectangles along the height. Must be &gt;= 1.</span>
+</span><span id="checkerboard-118"><a href="#checkerboard-118"><span class="linenos">118</span></a>
+</span><span id="checkerboard-119"><a href="#checkerboard-119"><span class="linenos">119</span></a><span class="sd">    Returns:</span>
+</span><span id="checkerboard-120"><a href="#checkerboard-120"><span class="linenos">120</span></a><span class="sd">        A 2D uint8 array of shape (height, width) with values 0 or 255.</span>
+</span><span id="checkerboard-121"><a href="#checkerboard-121"><span class="linenos">121</span></a>
+</span><span id="checkerboard-122"><a href="#checkerboard-122"><span class="linenos">122</span></a><span class="sd">    Raises:</span>
+</span><span id="checkerboard-123"><a href="#checkerboard-123"><span class="linenos">123</span></a><span class="sd">        ValueError: If count_x or count_y is less than 1.</span>
+</span><span id="checkerboard-124"><a href="#checkerboard-124"><span class="linenos">124</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="checkerboard-125"><a href="#checkerboard-125"><span class="linenos">125</span></a>    <span class="k">if</span> <span class="n">count_x</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="checkerboard-126"><a href="#checkerboard-126"><span class="linenos">126</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;count_x </span><span class="si">{</span><span class="n">count_x</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
+</span><span id="checkerboard-127"><a href="#checkerboard-127"><span class="linenos">127</span></a>    <span class="k">if</span> <span class="n">count_y</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="checkerboard-128"><a href="#checkerboard-128"><span class="linenos">128</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;count_y </span><span class="si">{</span><span class="n">count_y</span><span class="si">}</span><span class="s2"> must be &gt;= 1&quot;</span><span class="p">)</span>
+</span><span id="checkerboard-129"><a href="#checkerboard-129"><span class="linenos">129</span></a>
+</span><span id="checkerboard-130"><a href="#checkerboard-130"><span class="linenos">130</span></a>    <span class="n">rows</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">height</span><span class="p">)</span> <span class="o">*</span> <span class="n">count_y</span> <span class="o">//</span> <span class="n">height</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span>
+</span><span id="checkerboard-131"><a href="#checkerboard-131"><span class="linenos">131</span></a>    <span class="n">cols</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">width</span><span class="p">)</span> <span class="o">*</span> <span class="n">count_x</span> <span class="o">//</span> <span class="n">width</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span>
+</span><span id="checkerboard-132"><a href="#checkerboard-132"><span class="linenos">132</span></a>    <span class="n">pattern</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_xor</span><span class="p">(</span><span class="n">rows</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">cols</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:])</span>
+</span><span id="checkerboard-133"><a href="#checkerboard-133"><span class="linenos">133</span></a>    <span class="k">return</span> <span class="p">(</span><span class="n">pattern</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -410,7 +414,7 @@ layer stops at the array.</p>
                 <section id="__version__">
                     <div class="attr variable">
             <span class="name">__version__</span>        =
-<span class="default_value">&#39;0.1.dev1+g617563f69&#39;</span>
+<span class="default_value">&#39;0.1.dev1+ge49ecf46c&#39;</span>
 
         
     </div>

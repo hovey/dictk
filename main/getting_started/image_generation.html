@@ -402,7 +402,8 @@ white stays white.</li>
 speckle and checkerboard are both roughly bimodal (dark/light), while
 <code>checkerboard0</code> picks up a distinct middle hump from the
 black/white-speckle-on-opposite checkerboard combinations.</p>
-<pre><code class="language-python">from dictk.image import read, histogram_save
+<pre><code class="language-python">from dictk.image import read
+from dictk.plot import histogram_save
 
 speckle = read(path="rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
 checker = read(path="checkerboard_200w_by_200h_8x8.png")
