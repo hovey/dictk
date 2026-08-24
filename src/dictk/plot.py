@@ -1437,6 +1437,9 @@ def point_grid_plot(
     image: np.ndarray,
     points: Sequence[PixelCoordinate],
     color: str = "red",
+    show_node_numbers: bool = True,
+    labels: Sequence[str] | None = None,
+    dot_size: float | None = None,
     figsize: tuple[float, float] | None = None,
     path: Path,
     dpi: int = 300,
@@ -1458,6 +1461,32 @@ def point_grid_plot(
         points: The points to mark, in the image's own pixel reference
             frame. May be empty (an unmarked copy of `image` is saved).
         color: Matplotlib color name for every marker and label.
+        show_node_numbers: Whether to draw the reticle glyph and zero-padded
+            index label described above. Default `True` matches every
+            existing call site's own output exactly. `False` draws only
+            the single-pixel center dot at each point -- a bare position
+            marker with none of the reticle/label clutter, meant for a
+            point count dense enough that a reticle-and-label per point
+            would be unreadable (a few thousand points, not a dozen).
+        labels: Optional label text per point, same length and order as
+            `points`, overriding the default zero-padded `points`-local
+            index. For a `points` list that's already a subset of some
+            larger collection (e.g. every 4th point of a denser grid,
+            picked to space labels legibly), this shows each point's
+            *true* index in that larger collection instead of a
+            re-enumerated `0, 1, 2, ...` that would otherwise misrepresent
+            which points were skipped. Ignored when `show_node_numbers` is
+            `False`.
+        dot_size: Optional matplotlib `markersize` (in points) for the
+            single-pixel center dot at each point's exact location.
+            Default `None` keeps that dot exactly 1 raster pixel wide at
+            `dpi` -- the same on-canvas size the reticle glyph's own
+            center point has always used, appropriate when the reticle
+            (or a label) is doing the actual work of marking a point.
+            With `show_node_numbers=False`, the center dot is the *only*
+            marker drawn, and 1 raster pixel is too faint to see clearly
+            against real image content -- pass a larger value (e.g. `2`
+            or `3`) to make it visible.
         figsize: Optional (width, height) in inches for the saved figure.
             By default the canvas is sized from `image`/`points`' own data
             extent; pass this to override with a fixed size instead.
@@ -1465,7 +1494,15 @@ def point_grid_plot(
             extension by matplotlib's savefig (e.g. .png), not dictk's own
             write/write_svg.
         dpi: Resolution of the saved figure.
+
+    Raises:
+        ValueError: If `labels` is given and its length doesn't match
+            `points`.
     """
+    if labels is not None and len(labels) != len(points):
+        raise ValueError(
+            f"labels has {len(labels)} entries, but points has {len(points)}"
+        )
     image_height, image_width = image.shape
 
     endpoints_x = [point.x for point in points]
@@ -1475,11 +1512,21 @@ def point_grid_plot(
     # directly on top of its own marker -- same convention as point_plot().
     label_offset = max(image_width, image_height) * 0.03
     label_font_size = 12
-    if points:
+    if points and show_node_numbers:
         label_text_height = label_font_size / 72 * _FIGURE_PIXELS_PER_INCH
         # Grow the margin uniformly (not just at the top) so a label above
         # the topmost point still has room, while all four margins match.
-        margin = max(margin, 2 * label_offset + label_text_height)
+        # Capped at half the image's own size: label_text_height is a
+        # fixed absolute constant (a fixed font size, not scaled to image
+        # size), so on a small image/crop it would otherwise dominate the
+        # whole canvas -- e.g. a 25x25px crop would demand a margin nearly
+        # 3x wider than the image itself, mostly blank. The cap trades a
+        # little label headroom on a very small image for a canvas that
+        # still reads as "the image," not "mostly margin." No labels are
+        # drawn at all when show_node_numbers is False, so this margin
+        # isn't needed then either.
+        label_margin = 2 * label_offset + label_text_height
+        margin = max(margin, min(label_margin, max(image_width, image_height) * 0.5))
     x_min = min(0, *endpoints_x, 0) - margin
     x_max = max(image_width, *endpoints_x, image_width) + margin
     y_min = min(0, *endpoints_y, 0) - margin
@@ -1502,18 +1549,24 @@ def point_grid_plot(
     # center, would cross. markeredgewidth=0 is required -- otherwise the
     # default 1pt stroke dominates a marker this small and floors its
     # rendered size at several pixels regardless of markersize.
-    center_dot_size = 72 / dpi
+    center_dot_size = dot_size if dot_size is not None else 72 / dpi
     index_width = len(str(len(points) - 1)) if len(points) > 1 else 2
+    point_labels = (
+        labels
+        if labels is not None
+        else [f"{i:0{index_width}d}" for i in range(len(points))]
+    )
     for i, point in enumerate(points):
-        ax.plot(
-            point.x,
-            point.y,
-            marker=reticle,
-            markerfacecolor="none",
-            markeredgecolor=color,
-            markeredgewidth=0.5,
-            markersize=20,
-        )
+        if show_node_numbers:
+            ax.plot(
+                point.x,
+                point.y,
+                marker=reticle,
+                markerfacecolor="none",
+                markeredgecolor=color,
+                markeredgewidth=0.5,
+                markersize=20,
+            )
         ax.plot(
             point.x,
             point.y,
@@ -1522,15 +1575,16 @@ def point_grid_plot(
             markersize=center_dot_size,
             markeredgewidth=0,
         )
-        ax.text(
-            point.x + label_offset,
-            point.y - label_offset,
-            f"{i:0{index_width}d}",
-            color=color,
-            fontsize=label_font_size,
-            va="bottom",
-            path_effects=label_outline,
-        )
+        if show_node_numbers:
+            ax.text(
+                point.x + label_offset,
+                point.y - label_offset,
+                point_labels[i],
+                color=color,
+                fontsize=label_font_size,
+                va="bottom",
+                path_effects=label_outline,
+            )
 
     ax.set_xlim(x_min, x_max)
     ax.set_ylim(y_max, y_min)  # inverted: image y increases downward

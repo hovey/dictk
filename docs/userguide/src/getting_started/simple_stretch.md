@@ -351,6 +351,8 @@ section](#strain) above's own `dictk`-computed log strain:
     <figcaption>VIC-2D's own measured $e_{xx}$ (logarithmic/Euler strain) field for this page's <code>factor_x = 1.02</code> stretch (click to enlarge). The horizontal line is VIC-2D's own extensometer annotation, reading 19905.2 microstrain along that path.</figcaption>
 </figure>
 
+### 2682-Point Sample
+
 VIC-2D placed its own subsets on a regular grid, 5 pixels apart in both
 directions — 53x54, 2862 candidate positions across the image. 180 of
 them sit close enough to the image's outer edge that their own
@@ -360,6 +362,104 @@ leaving 2682 valid subsets. Across those 2682 subsets, $e_{xx}$ averages
 [Multi-Point Motion](./multi_point_motion.md#verification-against-vic-2d)'s
 displacement match, since strain is a spatial derivative of already-noisy
 per-point displacement data, not a directly measured quantity.
+
+```python
+from dictk.image import read, PixelCoordinate
+from dictk.grid import generate
+from dictk.plot import point_grid_plot
+
+reference_image = read(path="astronaut0.png")
+points = generate(
+    origin=PixelCoordinate(x=18, y=16), count_x=53, count_y=54, spacing_x=5, spacing_y=5
+)
+point_grid_plot(
+    image=reference_image,
+    points=points,
+    color="orange",
+    show_node_numbers=False,
+    dot_size=0.8,
+    path="simple_stretch_2862_overview.png",
+)
+```
+
+<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate; from dictk.grid import generate; from dictk.plot import point_grid_plot; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=18, y=16), count_x=53, count_y=54, spacing_x=5, spacing_y=5); point_grid_plot(image=reference_image, points=points, color='orange', show_node_numbers=False, dot_size=0.8, path='simple_stretch_2862_overview.png'); print('Saved: simple_stretch_2862_overview.png')" -->
+
+<figure>
+    <img src="simple_stretch_2862_overview.png" alt="astronaut0 with 2862 orange dots overlaid in a regular 5-pixel grid across the whole image" />
+    <figcaption>All 2862 candidate subset positions (orange dots, 5px spacing in both directions), overlaid on the reference image.</figcaption>
+</figure>
+
+A zoomed-in corner shows the same 5px grid at true scale:
+
+```python
+from dictk.image import read, PixelCoordinate, subimage
+from dictk.grid import generate
+from dictk.plot import point_grid_plot
+
+reference_image = read(path="astronaut0.png")
+points = generate(
+    origin=PixelCoordinate(x=18, y=16), count_x=53, count_y=54, spacing_x=5, spacing_y=5
+)
+
+crop_origin = PixelCoordinate(x=10, y=8)
+crop_width, crop_height = 30, 30
+cropped = subimage(
+    image=reference_image, origin=crop_origin, width=crop_width, height=crop_height
+)
+local_points = [
+    PixelCoordinate(x=p.x - crop_origin.x, y=p.y - crop_origin.y)
+    for p in points
+    if crop_origin.x <= p.x < crop_origin.x + crop_width
+    and crop_origin.y <= p.y < crop_origin.y + crop_height
+]
+point_grid_plot(
+    image=cropped,
+    points=local_points,
+    color="orange",
+    show_node_numbers=False,
+    dot_size=6,
+    figsize=(4, 4),
+    path="simple_stretch_2862_zoom.png",
+)
+```
+
+<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, subimage; from dictk.grid import generate; from dictk.plot import point_grid_plot; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=18, y=16), count_x=53, count_y=54, spacing_x=5, spacing_y=5); crop_origin = PixelCoordinate(x=10, y=8); crop_width, crop_height = 30, 30; cropped = subimage(image=reference_image, origin=crop_origin, width=crop_width, height=crop_height); local_points = [PixelCoordinate(x=p.x - crop_origin.x, y=p.y - crop_origin.y) for p in points if crop_origin.x <= p.x < crop_origin.x + crop_width and crop_origin.y <= p.y < crop_origin.y + crop_height]; point_grid_plot(image=cropped, points=local_points, color='orange', show_node_numbers=False, dot_size=6, figsize=(4, 4), path='simple_stretch_2862_zoom.png'); print('Saved: simple_stretch_2862_zoom.png')" -->
+
+<figure>
+    <img src="simple_stretch_2862_zoom.png" alt="a zoomed 30x30 pixel crop from the top-left corner of astronaut0, showing a 5x5 block of 25 orange dots on the real 5-pixel grid" />
+    <figcaption>A 30x30-pixel crop from the top-left corner, showing every one of the 25 grid points that fall inside it -- the same 5px spacing as the full overview above, just at true scale instead of compressed into a 300x300 thumbnail.</figcaption>
+</figure>
+
+The full distribution, not just its mean, shows how noisy those 2682
+subsets really are:
+
+```python
+import csv
+import numpy as np
+import matplotlib.pyplot as plt
+
+with open("../verification/simple_stretch_vic_out.csv") as f:
+    rows = [{k.strip(' "'): v for k, v in row.items()} for row in csv.DictReader(f)]
+exx = np.array([float(r["exx"]) * 1e6 for r in rows if float(r["sigma"]) != -1])
+analytical = np.log(1.02) * 1e6
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+fig, ax = plt.subplots(figsize=(7, 4), constrained_layout=True)
+ax.hist(exx, bins=60, color="gray", alpha=0.8)
+ax.axvline(analytical, color="red", linestyle="--", linewidth=1.5)
+ax.set_xlabel(r"Log strain $e_{xx}$ (microstrain)")
+ax.set_ylabel("frequency")
+fig.savefig("simple_stretch_vic_exx_histogram.png", dpi=300)
+```
+
+```text
+<!-- cmdrun python3 -c "import csv; import numpy as np; import matplotlib.pyplot as plt; rows = [{k.strip(' \"'): v for k, v in row.items()} for row in csv.DictReader(open('../verification/simple_stretch_vic_out.csv'))]; exx = np.array([float(r['exx']) * 1e6 for r in rows if float(r['sigma']) != -1]); analytical = np.log(1.02) * 1e6; plt.rcParams.update({'font.family': 'serif', 'mathtext.fontset': 'cm'}); fig, ax = plt.subplots(figsize=(7, 4), constrained_layout=True); ax.hist(exx, bins=60, color='gray', alpha=0.8); ax.axvline(analytical, color='red', linestyle='--', linewidth=1.5); ax.set_xlabel(r'Log strain \$e_{xx}\$ (microstrain)'); ax.set_ylabel('frequency'); fig.savefig('simple_stretch_vic_exx_histogram.png', dpi=300); print('Saved: simple_stretch_vic_exx_histogram.png')" -->
+```
+
+<figure>
+    <img src="simple_stretch_vic_exx_histogram.png" alt="histogram of VIC-2D's 2682 valid e_xx measurements in microstrain, showing several separated clusters rather than one smooth bell curve, spanning roughly 17300 to 23100 microstrain, with a dashed red vertical line at the analytical value near 19803 microstrain landing inside the central cluster" />
+    <figcaption>Distribution of VIC-2D's own $e_{xx}$ across all 2682 valid subsets (gray, 60 bins). The dashed red line marks the analytical value, $e_{xx} = \ln(1.02) \approx 19803$ microstrain. The distribution isn't one smooth bell curve — it separates into several clusters, echoing the striped pattern already visible in the field image above. The analytical line lands inside the central cluster, not at the extremes, but the spread around it is real: individual subsets range from about 17300 to 23100 microstrain, over 5x the true 19803 value's own distance from zero.</figcaption>
+</figure>
 
 Three values agree closely: VIC-2D's own measured mean, 19875.8
 microstrain; `dictk`'s own computed $E_{11}$ from the Strain section

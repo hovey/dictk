@@ -734,6 +734,74 @@ def test_point_grid_plot_empty_points_writes_file(tmp_path: Path):
     assert path.stat().st_size > 0
 
 
+def test_point_grid_plot_without_node_numbers_writes_file(tmp_path: Path):
+    photo = astronaut(width=300, height=300)
+    points = grid_generate(
+        origin=PixelCoordinate(x=50, y=50),
+        count_x=5,
+        count_y=4,
+        spacing_x=45,
+        spacing_y=55,
+    )
+    path = tmp_path / "point_grid_unlabeled.png"
+    point_grid_plot(image=photo, points=points, show_node_numbers=False, path=path)
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_grid_plot_dot_size_writes_file(tmp_path: Path):
+    photo = astronaut(width=300, height=300)
+    points = grid_generate(
+        origin=PixelCoordinate(x=50, y=50),
+        count_x=5,
+        count_y=4,
+        spacing_x=45,
+        spacing_y=55,
+    )
+    path = tmp_path / "point_grid_dot_size.png"
+    point_grid_plot(
+        image=photo,
+        points=points,
+        show_node_numbers=False,
+        dot_size=3,
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_grid_plot_custom_labels_writes_file(tmp_path: Path):
+    photo = astronaut(width=300, height=300)
+    points = grid_generate(
+        origin=PixelCoordinate(x=50, y=50),
+        count_x=2,
+        count_y=2,
+        spacing_x=60,
+        spacing_y=60,
+    )
+    path = tmp_path / "point_grid_custom_labels.png"
+    point_grid_plot(
+        image=photo, points=points, labels=["05", "12", "31", "48"], path=path
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_grid_plot_labels_length_mismatch_raises(tmp_path: Path):
+    photo = astronaut(width=300, height=300)
+    points = grid_generate(
+        origin=PixelCoordinate(x=50, y=50),
+        count_x=2,
+        count_y=2,
+        spacing_x=60,
+        spacing_y=60,
+    )
+    with pytest.raises(ValueError):
+        point_grid_plot(
+            image=photo, points=points, labels=["only one"], path=tmp_path / "out.png"
+        )
+
+
 def _element_strain_plot_inputs():
     points = grid_generate(
         origin=PixelCoordinate(x=50, y=50),
