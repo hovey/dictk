@@ -193,7 +193,8 @@ image gets lighter or darker together, dark areas included. Pushed too
 far, dark regions wash out to a flat gray and highlights clip at pure
 white (255), permanently losing detail.</p>
 <pre><code class="language-python">import dictk
-from dictk.image import brightness, histogram_save, write
+from dictk.image import brightness, write
+from dictk.plot import histogram_save
 
 photo = dictk.astronaut(width=300, height=300)
 write(arr=photo, path="astronaut_original.png")
@@ -229,7 +230,8 @@ histogram outward from its own mean — darks get darker, lights get
 lighter — while the mean itself stays roughly
 where it was.</p>
 <pre><code class="language-python">import dictk
-from dictk.image import contrast, histogram_save, write
+from dictk.image import contrast, write
+from dictk.plot import histogram_save
 
 photo = dictk.astronaut(width=300, height=300)
 

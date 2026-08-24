@@ -202,7 +202,8 @@ uniformly-spaced one. <code>spacing_x</code> and <code>spacing_y</code> are in p
 <p>This page uses <code>astronaut0</code>, the speckle pattern combined with the
 astronaut photograph introduced in <a href="./image_generation.html#speckle--astronaut">Image
 Generation</a>.</p>
-<pre><code class="language-python">from dictk.image import read, PixelCoordinate, point_grid_plot
+<pre><code class="language-python">from dictk.image import read, PixelCoordinate
+from dictk.plot import point_grid_plot
 from dictk.grid import generate
 
 reference_image = read(path="astronaut0.png")
@@ -261,12 +262,12 @@ current_image = translate(arr=reference_image, dx=dx, dy=dy)
 identify it) and a <strong>search area</strong> (the region of <code>current_image</code> searched
 for a match). Before tracking the grid, it helps to see both relative to
 the point spacing.
-<a href="../api/dictk/image.html#point_grid_boxes_plot"><code>dictk.image.point_grid_boxes_plot</code></a>
+<a href="../api/dictk/plot.html#point_grid_boxes_plot"><code>dictk.plot.point_grid_boxes_plot</code></a>
 draws one box type per call, so kernel and search area each get their own
 figure — each point's own box gets its own color and its own legend
 entry (<code>kernel 00</code>, <code>kernel 01</code>, ..., <code>kernel 11</code>), cycling through a
 12-color palette (using matplotlib's Tableau colormap):</p>
-<pre><code class="language-python">from dictk.image import point_grid_boxes_plot
+<pre><code class="language-python">from dictk.plot import point_grid_boxes_plot
 
 point_grid_boxes_plot(
     image=reference_image,
@@ -477,7 +478,7 @@ found = locate(
 <p>Every one of the 12 found positions matches <code>reference_points[i] + (dx, dy)</code> exactly — not approximately, the same exact-integer-pixel guarantee
 <a href="./single_point_motion.html">Single Point Motion</a> established for one point,
 now confirmed across the whole grid at once:</p>
-<pre><code class="language-python">from dictk.image import point_grid_plot
+<pre><code class="language-python">from dictk.plot import point_grid_plot
 
 point_grid_plot(
     image=current_image,

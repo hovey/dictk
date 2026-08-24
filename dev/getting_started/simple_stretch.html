@@ -328,7 +328,7 @@ found = locate(
 10      102,215     102,215    True
 11      153,215     153,215    True
 </code></pre>
-<pre><code class="language-python">from dictk.image import point_grid_plot
+<pre><code class="language-python">from dictk.plot import point_grid_plot
 
 point_grid_plot(
     image=current_image,
@@ -376,7 +376,7 @@ Against VIC-2D</a> section below, which
 reports VIC-2D's own logarithmic/Euler strain:</p>
 <pre><code class="language-python">from dictk.element import gauss_point_coordinates, gauss_point_log_strains
 from dictk.grid import elements
-from dictk.image import element_strain_plot
+from dictk.plot import element_strain_plot
 
 element_indices = elements(count_x=3, count_y=4)
 values = []
@@ -652,7 +652,7 @@ left off this time — 250 labels would be clutter, not information, at
 this density:</p>
 <pre><code class="language-python">from dictk.element import gauss_point_coordinates, gauss_point_log_strains
 from dictk.grid import elements
-from dictk.image import element_strain_plot
+from dictk.plot import element_strain_plot
 
 element_indices = elements(count_x=5, count_y=50)
 values = []

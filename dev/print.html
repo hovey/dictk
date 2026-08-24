@@ -1203,7 +1203,8 @@ white stays white.</li>
 speckle and checkerboard are both roughly bimodal (dark/light), while
 <code>checkerboard0</code> picks up a distinct middle hump from the
 black/white-speckle-on-opposite checkerboard combinations.</p>
-<pre><code class="language-python">from dictk.image import read, histogram_save
+<pre><code class="language-python">from dictk.image import read
+from dictk.plot import histogram_save
 
 speckle = read(path="rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
 checker = read(path="checkerboard_200w_by_200h_8x8.png")
@@ -1262,7 +1263,8 @@ page, is expressed in this frame — one that's always implicitly
 present, even in the left panel below where nothing is drawn to show
 it. <code>astronaut0</code> here is the same reference image created in <a href="getting_started/./image_generation.html#speckle--astronaut">Image
 Generation</a>:</p>
-<pre><code class="language-python">from dictk.image import read, reference_frame_plot
+<pre><code class="language-python">from dictk.image import read
+from dictk.plot import reference_frame_plot
 
 astronaut0 = read(path="astronaut0.png")
 reference_frame_plot(image=astronaut0, path="reference_frame.png")
@@ -1292,25 +1294,26 @@ is a simple <code>(x, y)</code> NamedTuple used for <code>origin</code>.
 <a href="getting_started/../api/dictk/image.html#subimage"><code>dictk.image.subimage</code></a> itself
 returns the cropped array directly, with no file written.</p>
 <p>The examples below use
-<a href="getting_started/../api/dictk/image.html#subimage_comparison_plot"><code>subimage_comparison_plot</code></a>,
+<a href="getting_started/../api/dictk/plot.html#subimage_comparison_plot"><code>subimage_comparison_plot</code></a>,
 which saves a two-panel figure: the left panel shows where the region
 falls relative to the source image (blue/red boxes), and the right panel
 shows the extracted result on its own, in its own local frame
 <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7805em;vertical-align:-0.0972em;"></span><span class="mord mathcal" style="margin-right:0.0593em;">G</span></span></span></span> — sharing the <em>same</em> axis limits as the left panel so the
 two red boxes render at matching scale. It's built from two smaller
 single-panel functions, also available individually:
-<a href="getting_started/../api/dictk/image.html#subimage_bounds_plot"><code>subimage_bounds_plot</code></a>
+<a href="getting_started/../api/dictk/plot.html#subimage_bounds_plot"><code>subimage_bounds_plot</code></a>
 (the left panel alone) and
-<a href="getting_started/../api/dictk/image.html#subimage_plot"><code>subimage_plot</code></a> (the right
+<a href="getting_started/../api/dictk/plot.html#subimage_plot"><code>subimage_plot</code></a> (the right
 panel alone, but zoomed to the subimage's own size rather than sharing
 the source image's scale).</p>
 <h3 id="square-fully-inside"><a class="header" href="#square-fully-inside">Square, fully inside</a></h3>
 <p>An 80x80 square region entirely within <code>astronaut0</code>'s 300x300 bounds.
-<a href="getting_started/../api/dictk/image.html#subimage_comparison_plot"><code>subimage_comparison_plot</code></a>
+<a href="getting_started/../api/dictk/plot.html#subimage_comparison_plot"><code>subimage_comparison_plot</code></a>
 draws both panels side by side, sharing the <em>same</em> axis limits, so the
 red box in the right panel renders at identical scale to the one on the
 left.</p>
-<pre><code class="language-python">from dictk.image import PixelCoordinate, subimage_comparison_plot
+<pre><code class="language-python">from dictk.image import PixelCoordinate
+from dictk.plot import subimage_comparison_plot
 
 origin = PixelCoordinate(x=100, y=40)
 subimage_comparison_plot(image=astronaut0, origin=origin, width=80, height=80, path="subimage_comparison_80w_by_80h_at_100_40.png")
@@ -1324,7 +1327,8 @@ subimage_comparison_plot(image=astronaut0, origin=origin, width=80, height=80, p
 <h3 id="rectangle-fully-inside"><a class="header" href="#rectangle-fully-inside">Rectangle, fully inside</a></h3>
 <p>A 180x70 region — wider than it is tall — also entirely within the
 source image bounds:</p>
-<pre><code class="language-python">from dictk.image import PixelCoordinate, subimage_comparison_plot
+<pre><code class="language-python">from dictk.image import PixelCoordinate
+from dictk.plot import subimage_comparison_plot
 
 origin = PixelCoordinate(x=50, y=200)
 subimage_comparison_plot(image=astronaut0, origin=origin, width=180, height=70, path="subimage_comparison_180w_by_70h_at_50_200.png")
@@ -1339,7 +1343,8 @@ subimage_comparison_plot(image=astronaut0, origin=origin, width=180, height=70, 
 <p>A 120x120 region with a negative origin, straddling the source image's
 top-left corner. <code>subimage</code> fills the part of the region above and to
 the left of the source with black:</p>
-<pre><code class="language-python">from dictk.image import PixelCoordinate, subimage_comparison_plot
+<pre><code class="language-python">from dictk.image import PixelCoordinate
+from dictk.plot import subimage_comparison_plot
 
 origin = PixelCoordinate(x=-20, y=-40)
 subimage_comparison_plot(image=astronaut0, origin=origin, width=120, height=120, path="subimage_comparison_120w_by_120h_at_-20_-40.png")
@@ -1354,7 +1359,8 @@ subimage_comparison_plot(image=astronaut0, origin=origin, width=120, height=120,
 <p>A 40x100 region entirely beyond the source image's bounds — its x-range
 (310 to 350) shares no pixels with the source's (0 to 300), so there is
 no overlap at all and the result is entirely black:</p>
-<pre><code class="language-python">from dictk.image import PixelCoordinate, subimage_comparison_plot
+<pre><code class="language-python">from dictk.image import PixelCoordinate
+from dictk.plot import subimage_comparison_plot
 
 origin = PixelCoordinate(x=310, y=250)
 subimage_comparison_plot(image=astronaut0, origin=origin, width=40, height=100, path="subimage_comparison_40w_by_100h_at_310_250.png")
@@ -1392,7 +1398,8 @@ image gets lighter or darker together, dark areas included. Pushed too
 far, dark regions wash out to a flat gray and highlights clip at pure
 white (255), permanently losing detail.</p>
 <pre><code class="language-python">import dictk
-from dictk.image import brightness, histogram_save, write
+from dictk.image import brightness, write
+from dictk.plot import histogram_save
 
 photo = dictk.astronaut(width=300, height=300)
 write(arr=photo, path="astronaut_original.png")
@@ -1428,7 +1435,8 @@ histogram outward from its own mean — darks get darker, lights get
 lighter — while the mean itself stays roughly
 where it was.</p>
 <pre><code class="language-python">import dictk
-from dictk.image import contrast, histogram_save, write
+from dictk.image import contrast, write
+from dictk.plot import histogram_save
 
 photo = dictk.astronaut(width=300, height=300)
 
@@ -1790,7 +1798,8 @@ solves this problem numerically via DIC.</p>
 with the checkerboard introduced in <a href="getting_started/./image_generation.html#speckle--checkerboard">Image
 Generation</a>.  This will be the
 <code>reference_image</code>, matching <code>locate</code>'s own parameter name:</p>
-<pre><code class="language-python">from dictk.image import read, PixelCoordinate, point_plot, ArrowAnnotation
+<pre><code class="language-python">from dictk.image import read, PixelCoordinate
+from dictk.plot import point_plot, ArrowAnnotation
 
 reference_image = read(path="checkerboard0.png")
 
@@ -1910,7 +1919,7 @@ p1 = PixelCoordinate(x=p0.x + dx, y=p0.y + dy)
 <h2 id="kernel"><a class="header" href="#kernel">Kernel</a></h2>
 <p>From <code>reference_image</code>, extract the kernel surrounding <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6886em;vertical-align:-0.2441em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span></span></span></span>,
 with a 25-pixel margin on every side (50x50 total):</p>
-<pre><code class="language-python">from dictk.image import subimage_comparison_plot
+<pre><code class="language-python">from dictk.plot import subimage_comparison_plot
 
 kernel_margin = 25
 kernel_origin = PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin)
@@ -2031,7 +2040,7 @@ one quantity <code>locate</code> finds via cross-correlation, everything else he
 being known geometry — from <code>found</code> and the boxed equation above, and
 draw the full chain <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9385em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">OS</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.09931em;">F</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.9385em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05764em;">S</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.075em;">S</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mathnormal mtight" style="margin-right:0.13889em;">P</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.01445em;">K</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span></span></span></span> on
 <code>current_image</code>:</p>
-<pre><code class="language-python">from dictk.image import point_plot, ArrowAnnotation, BoxAnnotation, PointAnnotation
+<pre><code class="language-python">from dictk.plot import point_plot, ArrowAnnotation, BoxAnnotation, PointAnnotation
 
 r_sk = PixelCoordinate(
     x=found.x - search_origin.x - kernel_margin,
@@ -2358,7 +2367,7 @@ Range</a>.</li>
 from <a href="getting_started/./correlation_criteria.html">Correlation Criteria</a> — CC, NCC, ZCC, and
 ZNCC — one at a time, in a four-panel composite reproducing a reference
 composite-figure layout used in prior DIC tooling, via
-<a href="getting_started/../api/dictk/image.html#spatial_correlation_quadrant_plot"><code>dictk.image.spatial_correlation_quadrant_plot</code></a>:
+<a href="getting_started/../api/dictk/plot.html#spatial_correlation_quadrant_plot"><code>dictk.plot.spatial_correlation_quadrant_plot</code></a>:
 the search area with the found kernel marked (<strong>Fixed Image</strong>), the kernel
 itself zero-padded to the search area's shape (<strong>Moving Image</strong>), the full
 correlation surface, and a zoomed <strong>Solution Vicinity</strong> around its peak —
@@ -2403,7 +2412,7 @@ Vicinity panel zooms into, so the same circle reappears there too, now
 clipped by that panel's own edges.</p>
 <h2 id="cross-correlation-cc-1"><a class="header" href="#cross-correlation-cc-1">Cross-Correlation (CC)</a></h2>
 <pre><code class="language-python">from dictk.correlation import cc
-from dictk.image import spatial_correlation_quadrant_plot
+from dictk.plot import spatial_correlation_quadrant_plot
 
 spatial_correlation_quadrant_plot(
     kernel=kernel,
@@ -2487,7 +2496,7 @@ domain, via
 <a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> already
 runs internally via <code>skimage.registration.phase_cross_correlation</code>. Unlike
 its spatial-domain siblings, there's only one Fourier-domain flavor here,
-so <a href="getting_started/../api/dictk/image.html#phase_correlation_quadrant_plot"><code>phase_correlation_quadrant_plot</code></a>
+so <a href="getting_started/../api/dictk/plot.html#phase_correlation_quadrant_plot"><code>phase_correlation_quadrant_plot</code></a>
 takes <code>kernel</code>/<code>search</code> directly rather than a pre-computed surface — no
 method to choose, nothing to compute beforehand. It does, however, take
 an optional <code>windowing</code> parameter (see <a href="getting_started/./windowing.html">Windowing</a>): the
@@ -2498,7 +2507,7 @@ is directly comparable rather than just described.</p>
 <p><code>windowing</code> defaults to <code>None</code>, applying no tapering — this reproduces
 exactly what every earlier page in this book that calls
 <code>phase_correlation</code>/<code>locate</code> already does.</p>
-<pre><code class="language-python">from dictk.image import phase_correlation_quadrant_plot
+<pre><code class="language-python">from dictk.plot import phase_correlation_quadrant_plot
 
 phase_correlation_quadrant_plot(
     kernel=kernel,
@@ -2648,7 +2657,8 @@ uniformly-spaced one. <code>spacing_x</code> and <code>spacing_y</code> are in p
 <p>This page uses <code>astronaut0</code>, the speckle pattern combined with the
 astronaut photograph introduced in <a href="getting_started/./image_generation.html#speckle--astronaut">Image
 Generation</a>.</p>
-<pre><code class="language-python">from dictk.image import read, PixelCoordinate, point_grid_plot
+<pre><code class="language-python">from dictk.image import read, PixelCoordinate
+from dictk.plot import point_grid_plot
 from dictk.grid import generate
 
 reference_image = read(path="astronaut0.png")
@@ -2707,12 +2717,12 @@ current_image = translate(arr=reference_image, dx=dx, dy=dy)
 identify it) and a <strong>search area</strong> (the region of <code>current_image</code> searched
 for a match). Before tracking the grid, it helps to see both relative to
 the point spacing.
-<a href="getting_started/../api/dictk/image.html#point_grid_boxes_plot"><code>dictk.image.point_grid_boxes_plot</code></a>
+<a href="getting_started/../api/dictk/plot.html#point_grid_boxes_plot"><code>dictk.plot.point_grid_boxes_plot</code></a>
 draws one box type per call, so kernel and search area each get their own
 figure — each point's own box gets its own color and its own legend
 entry (<code>kernel 00</code>, <code>kernel 01</code>, ..., <code>kernel 11</code>), cycling through a
 12-color palette (using matplotlib's Tableau colormap):</p>
-<pre><code class="language-python">from dictk.image import point_grid_boxes_plot
+<pre><code class="language-python">from dictk.plot import point_grid_boxes_plot
 
 point_grid_boxes_plot(
     image=reference_image,
@@ -2923,7 +2933,7 @@ found = locate(
 <p>Every one of the 12 found positions matches <code>reference_points[i] + (dx, dy)</code> exactly — not approximately, the same exact-integer-pixel guarantee
 <a href="getting_started/./single_point_motion.html">Single Point Motion</a> established for one point,
 now confirmed across the whole grid at once:</p>
-<pre><code class="language-python">from dictk.image import point_grid_plot
+<pre><code class="language-python">from dictk.plot import point_grid_plot
 
 point_grid_plot(
     image=current_image,
@@ -3229,7 +3239,7 @@ found = locate(
 10      102,215     102,215    True
 11      153,215     153,215    True
 </code></pre>
-<pre><code class="language-python">from dictk.image import point_grid_plot
+<pre><code class="language-python">from dictk.plot import point_grid_plot
 
 point_grid_plot(
     image=current_image,
@@ -3277,7 +3287,7 @@ Against VIC-2D</a> section below, which
 reports VIC-2D's own logarithmic/Euler strain:</p>
 <pre><code class="language-python">from dictk.element import gauss_point_coordinates, gauss_point_log_strains
 from dictk.grid import elements
-from dictk.image import element_strain_plot
+from dictk.plot import element_strain_plot
 
 element_indices = elements(count_x=3, count_y=4)
 values = []
@@ -3553,7 +3563,7 @@ left off this time — 250 labels would be clutter, not information, at
 this density:</p>
 <pre><code class="language-python">from dictk.element import gauss_point_coordinates, gauss_point_log_strains
 from dictk.grid import elements
-from dictk.image import element_strain_plot
+from dictk.plot import element_strain_plot
 
 element_indices = elements(count_x=5, count_y=50)
 values = []
@@ -3683,7 +3693,7 @@ confirmed separately. The bug is downstream: <code>locate_uncentered</code>'s
 <code>skimage</code>-based conversion of that surface into a signed shift, which
 misreads the answer only past the cliff. <a href="getting_started/recoverable_displacement_range.html#recoverable_displacement_range_first_sweep_quadrantpy"><code>recoverable_displacement_range_first_sweep_quadrant.py</code></a>
 marks both positions on the same Fixed Image panel
-<a href="getting_started/../api/dictk/image.html#phase_correlation_quadrant_plot"><code>phase_correlation_quadrant_plot</code></a>
+<a href="getting_started/../api/dictk/plot.html#phase_correlation_quadrant_plot"><code>phase_correlation_quadrant_plot</code></a>
 already draws elsewhere in this book -- the surface's own true peak
 (yellow, dashed, unchanged from every other use of that function) and
 where <code>locate_uncentered</code> actually reports the point (magenta). <code>search</code>
@@ -3731,7 +3741,7 @@ above:</p>
 <p><a href="getting_started/recoverable_displacement_range.html#recoverable_displacement_range_fixing_locate_quadrantpy"><code>recoverable_displacement_range_fixing_locate_quadrant.py</code></a>
 draws <code>dx = 31</code> -- the cliff itself -- the same way Seeing the Cliff
 did, but with <code>centered=True</code>:
-<a href="getting_started/../api/dictk/image.html#phase_correlation_quadrant_plot"><code>phase_correlation_quadrant_plot</code></a>
+<a href="getting_started/../api/dictk/plot.html#phase_correlation_quadrant_plot"><code>phase_correlation_quadrant_plot</code></a>
 pads the Moving Image panel's kernel the same way <code>locate</code> now does
 internally, instead of the permanent bottom-right-only padding
 <code>phase_correlation</code> itself always keeps. Compare the two Moving Image
@@ -4356,13 +4366,8 @@ padded array's own width, matching Root Cause's description.
 Runs live on every book build, not from a committed snapshot.
 """
 
-from dictk.image import (
-    PixelCoordinate,
-    phase_correlation_quadrant_plot,
-    read,
-    subimage,
-    translate,
-)
+from dictk.image import PixelCoordinate, read, subimage, translate
+from dictk.plot import phase_correlation_quadrant_plot
 from recoverable_displacement_range_uncentered_demo import locate_uncentered
 
 if __name__ == "__main__":
@@ -4496,13 +4501,8 @@ since the fix is exactly what makes them agree past the old cliff.
 Runs live on every book build, not from a committed snapshot.
 """
 
-from dictk.image import (
-    PixelCoordinate,
-    phase_correlation_quadrant_plot,
-    read,
-    subimage,
-    translate,
-)
+from dictk.image import PixelCoordinate, read, subimage, translate
+from dictk.plot import phase_correlation_quadrant_plot
 from dictk.translation import locate
 
 if __name__ == "__main__":
@@ -5444,7 +5444,7 @@ at each of the resulting 11024 Gauss points. Node numbers stay off —
 2862 of them would be unreadable:</p>
 <pre><code class="language-python">from dictk.element import gauss_point_coordinates, gauss_point_log_strains
 from dictk.grid import elements
-from dictk.image import element_strain_plot
+from dictk.plot import element_strain_plot
 
 element_indices = elements(count_x=53, count_y=54)
 values = []
@@ -5677,6 +5677,25 @@ down to 0.09px at <code>10</code>). Parallelization (9) gains this as its first
 child, 9.1; a second child, 9.2 High Point Density, picking the same
 subpixel tooling up at real density, is the planned next step, not
 started yet.</p>
+<h2 id="2026-08-24"><a class="header" href="#2026-08-24">2026-08-24</a></h2>
+<p><strong>9.2 High Point Density, shipped.</strong> New page, <a href="getting_started/./high_point_density.html">High Point
+Density</a>, closes the 9.1/9.2 pair under
+<a href="getting_started/./parallelization.html">Parallelization</a>. It pushes <code>grid.locate_subpixel</code>
+to VIC-2D's own point density: 2862 points, 5px spacing, 2756 elements.
+No new library code — it composes entirely from already-shipped
+functions, the same way <a href="getting_started/./simple_stretch.html#simple-stretch-revisited">Simple Stretch
+Revisited</a> did.</p>
+<p>A real finding came out of it, verified before writing anything up.
+The strain field isn't clean at this density. Mean E11 still tracks
+the true value closely (0.0199 vs. 0.0198), but individual elements
+scatter widely (std 0.0155, range -0.016 to 0.077). A live 4-point
+spacing sweep (5/10/20/40px) confirmed the mechanism directly: strain
+noise scales with displacement-noise divided by element size, so the
+same small subpixel tracking residual gets amplified more at smaller
+spacing. Std shrinks monotonically across the sweep
+(0.0154/0.0125/0.0099/0.0032). The page names VIC-2D's own
+strain-window averaging as the standard remedy but doesn't implement
+it — that stays open.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="contributing-to-dictk"><a class="header" href="#contributing-to-dictk">Contributing to <code>dictk</code></a></h1>
 <p><code>dictk</code> is developed on <a href="https://github.com/hovey/dictk">GitHub</a> using

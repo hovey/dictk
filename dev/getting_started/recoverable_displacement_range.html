@@ -251,7 +251,7 @@ confirmed separately. The bug is downstream: <code>locate_uncentered</code>'s
 <code>skimage</code>-based conversion of that surface into a signed shift, which
 misreads the answer only past the cliff. <a href="#recoverable_displacement_range_first_sweep_quadrantpy"><code>recoverable_displacement_range_first_sweep_quadrant.py</code></a>
 marks both positions on the same Fixed Image panel
-<a href="../api/dictk/image.html#phase_correlation_quadrant_plot"><code>phase_correlation_quadrant_plot</code></a>
+<a href="../api/dictk/plot.html#phase_correlation_quadrant_plot"><code>phase_correlation_quadrant_plot</code></a>
 already draws elsewhere in this book -- the surface's own true peak
 (yellow, dashed, unchanged from every other use of that function) and
 where <code>locate_uncentered</code> actually reports the point (magenta). <code>search</code>
@@ -299,7 +299,7 @@ above:</p>
 <p><a href="#recoverable_displacement_range_fixing_locate_quadrantpy"><code>recoverable_displacement_range_fixing_locate_quadrant.py</code></a>
 draws <code>dx = 31</code> -- the cliff itself -- the same way Seeing the Cliff
 did, but with <code>centered=True</code>:
-<a href="../api/dictk/image.html#phase_correlation_quadrant_plot"><code>phase_correlation_quadrant_plot</code></a>
+<a href="../api/dictk/plot.html#phase_correlation_quadrant_plot"><code>phase_correlation_quadrant_plot</code></a>
 pads the Moving Image panel's kernel the same way <code>locate</code> now does
 internally, instead of the permanent bottom-right-only padding
 <code>phase_correlation</code> itself always keeps. Compare the two Moving Image
@@ -924,13 +924,8 @@ padded array's own width, matching Root Cause's description.
 Runs live on every book build, not from a committed snapshot.
 """
 
-from dictk.image import (
-    PixelCoordinate,
-    phase_correlation_quadrant_plot,
-    read,
-    subimage,
-    translate,
-)
+from dictk.image import PixelCoordinate, read, subimage, translate
+from dictk.plot import phase_correlation_quadrant_plot
 from recoverable_displacement_range_uncentered_demo import locate_uncentered
 
 if __name__ == "__main__":
@@ -1064,13 +1059,8 @@ since the fix is exactly what makes them agree past the old cliff.
 Runs live on every book build, not from a committed snapshot.
 """
 
-from dictk.image import (
-    PixelCoordinate,
-    phase_correlation_quadrant_plot,
-    read,
-    subimage,
-    translate,
-)
+from dictk.image import PixelCoordinate, read, subimage, translate
+from dictk.plot import phase_correlation_quadrant_plot
 from dictk.translation import locate
 
 if __name__ == "__main__":

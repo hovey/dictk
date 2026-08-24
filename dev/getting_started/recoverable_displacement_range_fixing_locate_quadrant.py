@@ -12,13 +12,8 @@ since the fix is exactly what makes them agree past the old cliff.
 Runs live on every book build, not from a committed snapshot.
 """
 
-from dictk.image import (
-    PixelCoordinate,
-    phase_correlation_quadrant_plot,
-    read,
-    subimage,
-    translate,
-)
+from dictk.image import PixelCoordinate, read, subimage, translate
+from dictk.plot import phase_correlation_quadrant_plot
 from dictk.translation import locate
 
 if __name__ == "__main__":

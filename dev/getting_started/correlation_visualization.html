@@ -185,7 +185,7 @@
 from <a href="./correlation_criteria.html">Correlation Criteria</a> — CC, NCC, ZCC, and
 ZNCC — one at a time, in a four-panel composite reproducing a reference
 composite-figure layout used in prior DIC tooling, via
-<a href="../api/dictk/image.html#spatial_correlation_quadrant_plot"><code>dictk.image.spatial_correlation_quadrant_plot</code></a>:
+<a href="../api/dictk/plot.html#spatial_correlation_quadrant_plot"><code>dictk.plot.spatial_correlation_quadrant_plot</code></a>:
 the search area with the found kernel marked (<strong>Fixed Image</strong>), the kernel
 itself zero-padded to the search area's shape (<strong>Moving Image</strong>), the full
 correlation surface, and a zoomed <strong>Solution Vicinity</strong> around its peak —
@@ -230,7 +230,7 @@ Vicinity panel zooms into, so the same circle reappears there too, now
 clipped by that panel's own edges.</p>
 <h2 id="cross-correlation-cc"><a class="header" href="#cross-correlation-cc">Cross-Correlation (CC)</a></h2>
 <pre><code class="language-python">from dictk.correlation import cc
-from dictk.image import spatial_correlation_quadrant_plot
+from dictk.plot import spatial_correlation_quadrant_plot
 
 spatial_correlation_quadrant_plot(
     kernel=kernel,
@@ -314,7 +314,7 @@ domain, via
 <a href="../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> already
 runs internally via <code>skimage.registration.phase_cross_correlation</code>. Unlike
 its spatial-domain siblings, there's only one Fourier-domain flavor here,
-so <a href="../api/dictk/image.html#phase_correlation_quadrant_plot"><code>phase_correlation_quadrant_plot</code></a>
+so <a href="../api/dictk/plot.html#phase_correlation_quadrant_plot"><code>phase_correlation_quadrant_plot</code></a>
 takes <code>kernel</code>/<code>search</code> directly rather than a pre-computed surface — no
 method to choose, nothing to compute beforehand. It does, however, take
 an optional <code>windowing</code> parameter (see <a href="./windowing.html">Windowing</a>): the
@@ -325,7 +325,7 @@ is directly comparable rather than just described.</p>
 <p><code>windowing</code> defaults to <code>None</code>, applying no tapering — this reproduces
 exactly what every earlier page in this book that calls
 <code>phase_correlation</code>/<code>locate</code> already does.</p>
-<pre><code class="language-python">from dictk.image import phase_correlation_quadrant_plot
+<pre><code class="language-python">from dictk.plot import phase_correlation_quadrant_plot
 
 phase_correlation_quadrant_plot(
     kernel=kernel,

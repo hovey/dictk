@@ -211,7 +211,8 @@ solves this problem numerically via DIC.</p>
 with the checkerboard introduced in <a href="./image_generation.html#speckle--checkerboard">Image
 Generation</a>.  This will be the
 <code>reference_image</code>, matching <code>locate</code>'s own parameter name:</p>
-<pre><code class="language-python">from dictk.image import read, PixelCoordinate, point_plot, ArrowAnnotation
+<pre><code class="language-python">from dictk.image import read, PixelCoordinate
+from dictk.plot import point_plot, ArrowAnnotation
 
 reference_image = read(path="checkerboard0.png")
 
