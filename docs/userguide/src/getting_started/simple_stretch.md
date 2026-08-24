@@ -94,7 +94,7 @@ expected = [
 ]
 ```
 
-<!-- cmdrun python3 -c "from dictk.image import PixelCoordinate; from dictk.grid import generate; points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); factor_x = 1.02; expected = [PixelCoordinate(x=int(p.x * factor_x), y=p.y) for p in points]; print('<table>'); print('<thead>'); print('<tr><th rowspan=\"2\">Point</th><th colspan=\"2\">Expected \$(x, y)\$</th></tr>'); print('<tr><th>\$x\$ (pixels)</th><th>\$y\$ (pixels)</th></tr>'); print('</thead>'); print('<tbody>'); [print(f'<tr><td>{i:02d}</td><td>{e.x}</td><td>{e.y}</td></tr>') for i, e in enumerate(expected)]; print('</tbody>'); print('</table>')" -->
+<!-- cmdrun python3 -c "from dictk.image import PixelCoordinate; from dictk.grid import generate; points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); factor_x = 1.02; expected = [PixelCoordinate(x=int(p.x * factor_x), y=p.y) for p in points]; print('<table>'); print('<thead>'); print('<tr><th rowspan=\"2\">Point</th><th colspan=\"2\">Reference Configuration \$(X, Y)\$</th><th colspan=\"2\">Expected \$(x, y)\$</th></tr>'); print('<tr><th>\$X\$ (pixels)</th><th>\$Y\$ (pixels)</th><th>\$x\$ (pixels)</th><th>\$y\$ (pixels)</th></tr>'); print('</thead>'); print('<tbody>'); [print(f'<tr><td>{i:02d}</td><td>{p.x}</td><td>{p.y}</td><td>{e.x}</td><td>{e.y}</td></tr>') for i, (p, e) in enumerate(zip(points, expected))]; print('</tbody>'); print('</table>')" -->
 
 This is a real deformation, not a rigid shift. [Multi-Point
 Motion](./multi_point_motion.md) moved every point by the same $(\delta x,
@@ -174,6 +174,8 @@ average** from all adjacent elements to create a smooth contour plot.
 
 For now, let's report the strain at the Gauss points.
 
+### 12-Point Sample
+
 [`dictk.grid.elements`](../api/dictk/grid.html#elements) turns the
 tracked grid's 12 points into 6 Q4 elements, then
 [`dictk.element.gauss_point_log_strains`](../api/dictk/element.html#gauss_point_log_strains)
@@ -181,9 +183,9 @@ and
 [`dictk.element.gauss_point_coordinates`](../api/dictk/element.html#gauss_point_coordinates)
 compute each element's 4 Gauss points' logarithmic (Hencky) strain and
 their own global position, in the current (found) configuration.
-Logarithmic strain, not Green-Lagrange, so this matches the [Verification
-Against VIC-2D](#verification-against-vic-2d) section below, which
-reports VIC-2D's own logarithmic/Euler strain:
+Logarithmic strain, matching the [Verification Against
+VIC-2D](#verification-against-vic-2d) section below, which reports
+VIC-2D's own logarithmic/Euler strain:
 
 ```python
 from dictk.element import gauss_point_coordinates, gauss_point_log_strains
@@ -340,8 +342,7 @@ page's own `factor_x = 1.02` stretch was run through
 [VIC-2D](https://www.correlatedsolutions.com/vic-2d/) (Correlated
 Solutions, Inc.), independently of `dictk`. VIC-2D reports logarithmic
 (Euler) strain, so it's compared here against [the Strain
-section](#strain) above's own `dictk`-computed log strain, not
-Green-Lagrange:
+section](#strain) above's own `dictk`-computed log strain:
 
 <figure>
     <a href="../verification/simple_stretch_result_vic.png" target="_blank" rel="noopener">
@@ -398,6 +399,8 @@ points 5 pixels apart, matching VIC-2D's own subset grid, mostly
 lands on $x$ values that aren't multiples of 50 — most of those points'
 true stretched position isn't an integer at all, so nothing can land on
 it exactly, no matter how the tracking works.
+
+### 250-Point Sample
 
 $\text{factor}_y = 1.0$ has no such restriction — every $y$ stays fixed,
 so $y$ spacing is free. That leaves one real lever: keep $x$ restricted
