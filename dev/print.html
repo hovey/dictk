@@ -3476,6 +3476,7 @@ section</a> above's own <code>dictk</code>-computed log strain:</p>
     </a>
     <figcaption>VIC-2D's own measured <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">xx</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> (logarithmic/Euler strain) field for this page's <code>factor_x = 1.02</code> stretch (click to enlarge). The horizontal line is VIC-2D's own extensometer annotation, reading 19905.2 microstrain along that path.</figcaption>
 </figure>
+<h3 id="2682-point-sample"><a class="header" href="#2682-point-sample">2682-Point Sample</a></h3>
 <p>VIC-2D placed its own subsets on a regular grid, 5 pixels apart in both
 directions — 53x54, 2862 candidate positions across the image. 180 of
 them sit close enough to the image's outer edge that their own
@@ -3485,6 +3486,89 @@ leaving 2682 valid subsets. Across those 2682 subsets, <span class="katex"><span
 <a href="getting_started/./multi_point_motion.html#verification-against-vic-2d">Multi-Point Motion</a>'s
 displacement match, since strain is a spatial derivative of already-noisy
 per-point displacement data, not a directly measured quantity.</p>
+<pre><code class="language-python">from dictk.image import read, PixelCoordinate
+from dictk.grid import generate
+from dictk.plot import point_grid_plot
+
+reference_image = read(path="astronaut0.png")
+points = generate(
+    origin=PixelCoordinate(x=18, y=16), count_x=53, count_y=54, spacing_x=5, spacing_y=5
+)
+point_grid_plot(
+    image=reference_image,
+    points=points,
+    color="orange",
+    show_node_numbers=False,
+    dot_size=0.8,
+    path="simple_stretch_2862_overview.png",
+)
+</code></pre>
+<p>Saved: simple_stretch_2862_overview.png</p>
+<figure>
+    <img src="getting_started/simple_stretch_2862_overview.png" alt="astronaut0 with 2862 orange dots overlaid in a regular 5-pixel grid across the whole image" />
+    <figcaption>All 2862 candidate subset positions (orange dots, 5px spacing in both directions), overlaid on the reference image.</figcaption>
+</figure>
+<p>A zoomed-in corner shows the same 5px grid at true scale:</p>
+<pre><code class="language-python">from dictk.image import read, PixelCoordinate, subimage
+from dictk.grid import generate
+from dictk.plot import point_grid_plot
+
+reference_image = read(path="astronaut0.png")
+points = generate(
+    origin=PixelCoordinate(x=18, y=16), count_x=53, count_y=54, spacing_x=5, spacing_y=5
+)
+
+crop_origin = PixelCoordinate(x=10, y=8)
+crop_width, crop_height = 30, 30
+cropped = subimage(
+    image=reference_image, origin=crop_origin, width=crop_width, height=crop_height
+)
+local_points = [
+    PixelCoordinate(x=p.x - crop_origin.x, y=p.y - crop_origin.y)
+    for p in points
+    if crop_origin.x &lt;= p.x &lt; crop_origin.x + crop_width
+    and crop_origin.y &lt;= p.y &lt; crop_origin.y + crop_height
+]
+point_grid_plot(
+    image=cropped,
+    points=local_points,
+    color="orange",
+    show_node_numbers=False,
+    dot_size=6,
+    figsize=(4, 4),
+    path="simple_stretch_2862_zoom.png",
+)
+</code></pre>
+<p>Saved: simple_stretch_2862_zoom.png</p>
+<figure>
+    <img src="getting_started/simple_stretch_2862_zoom.png" alt="a zoomed 30x30 pixel crop from the top-left corner of astronaut0, showing a 5x5 block of 25 orange dots on the real 5-pixel grid" />
+    <figcaption>A 30x30-pixel crop from the top-left corner, showing every one of the 25 grid points that fall inside it -- the same 5px spacing as the full overview above, just at true scale instead of compressed into a 300x300 thumbnail.</figcaption>
+</figure>
+<p>The full distribution, not just its mean, shows how noisy those 2682
+subsets really are:</p>
+<pre><code class="language-python">import csv
+import numpy as np
+import matplotlib.pyplot as plt
+
+with open("../verification/simple_stretch_vic_out.csv") as f:
+    rows = [{k.strip(' "'): v for k, v in row.items()} for row in csv.DictReader(f)]
+exx = np.array([float(r["exx"]) * 1e6 for r in rows if float(r["sigma"]) != -1])
+analytical = np.log(1.02) * 1e6
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+fig, ax = plt.subplots(figsize=(7, 4), constrained_layout=True)
+ax.hist(exx, bins=60, color="gray", alpha=0.8)
+ax.axvline(analytical, color="red", linestyle="--", linewidth=1.5)
+ax.set_xlabel(r"Log strain $e_{xx}$ (microstrain)")
+ax.set_ylabel("frequency")
+fig.savefig("simple_stretch_vic_exx_histogram.png", dpi=300)
+</code></pre>
+<pre><code class="language-text">Saved: simple_stretch_vic_exx_histogram.png
+</code></pre>
+<figure>
+    <img src="getting_started/simple_stretch_vic_exx_histogram.png" alt="histogram of VIC-2D's 2682 valid e_xx measurements in microstrain, showing several separated clusters rather than one smooth bell curve, spanning roughly 17300 to 23100 microstrain, with a dashed red vertical line at the analytical value near 19803 microstrain landing inside the central cluster" />
+    <figcaption>Distribution of VIC-2D's own <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">xx</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> across all 2682 valid subsets (gray, 60 bins). The dashed red line marks the analytical value, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">xx</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">ln</span><span class="mopen">(</span><span class="mord">1.02</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">19803</span></span></span></span> microstrain. The distribution isn't one smooth bell curve — it separates into several clusters, echoing the striped pattern already visible in the field image above. The analytical line lands inside the central cluster, not at the extremes, but the spread around it is real: individual subsets range from about 17300 to 23100 microstrain, over 5x the true 19803 value's own distance from zero.</figcaption>
+</figure>
 <p>Three values agree closely: VIC-2D's own measured mean, 19875.8
 microstrain; <code>dictk</code>'s own computed <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> from the Strain section
 above, 19803.0 microstrain (identical at all 24 Gauss points, since
