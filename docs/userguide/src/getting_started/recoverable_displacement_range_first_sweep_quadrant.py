@@ -16,13 +16,8 @@ padded array's own width, matching Root Cause's description.
 Runs live on every book build, not from a committed snapshot.
 """
 
-from dictk.image import (
-    PixelCoordinate,
-    phase_correlation_quadrant_plot,
-    read,
-    subimage,
-    translate,
-)
+from dictk.image import PixelCoordinate, read, subimage, translate
+from dictk.plot import phase_correlation_quadrant_plot
 from recoverable_displacement_range_uncentered_demo import locate_uncentered
 
 if __name__ == "__main__":

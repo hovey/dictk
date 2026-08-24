@@ -26,7 +26,8 @@ astronaut photograph introduced in [Image
 Generation](./image_generation.md#speckle--astronaut).
 
 ```python
-from dictk.image import read, PixelCoordinate, point_grid_plot
+from dictk.image import read, PixelCoordinate
+from dictk.plot import point_grid_plot
 from dictk.grid import generate
 
 reference_image = read(path="astronaut0.png")
@@ -48,7 +49,7 @@ point_grid_plot(
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, point_grid_plot; from dictk.grid import generate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); point_grid_plot(image=reference_image, points=points, color='orange', figsize=(6.4, 4.8), path='multi_point_motion_grid.png'); print('Saved: multi_point_motion_grid.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate; from dictk.plot import point_grid_plot; from dictk.grid import generate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); point_grid_plot(image=reference_image, points=points, color='orange', figsize=(6.4, 4.8), path='multi_point_motion_grid.png'); print('Saved: multi_point_motion_grid.png')" -->
 ```
 
 <figure>
@@ -75,14 +76,14 @@ Every point will need a **kernel** (the patch of `reference_image` used to
 identify it) and a **search area** (the region of `current_image` searched
 for a match). Before tracking the grid, it helps to see both relative to
 the point spacing.
-[`dictk.image.point_grid_boxes_plot`](../api/dictk/image.html#point_grid_boxes_plot)
+[`dictk.plot.point_grid_boxes_plot`](../api/dictk/plot.html#point_grid_boxes_plot)
 draws one box type per call, so kernel and search area each get their own
 figure — each point's own box gets its own color and its own legend
 entry (`kernel 00`, `kernel 01`, ..., `kernel 11`), cycling through a
 12-color palette (using matplotlib's Tableau colormap):
 
 ```python
-from dictk.image import point_grid_boxes_plot
+from dictk.plot import point_grid_boxes_plot
 
 point_grid_boxes_plot(
     image=reference_image,
@@ -96,7 +97,7 @@ point_grid_boxes_plot(
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, point_grid_boxes_plot; from dictk.grid import generate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); point_grid_boxes_plot(image=reference_image, points=points, margin_width=20, margin_height=20, label_prefix='kernel', figsize=(6.4, 4.8), path='multi_point_motion_kernels.png'); print('Saved: multi_point_motion_kernels.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate; from dictk.plot import point_grid_boxes_plot; from dictk.grid import generate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); point_grid_boxes_plot(image=reference_image, points=points, margin_width=20, margin_height=20, label_prefix='kernel', figsize=(6.4, 4.8), path='multi_point_motion_kernels.png'); print('Saved: multi_point_motion_kernels.png')" -->
 ```
 
 <figure>
@@ -122,7 +123,7 @@ point_grid_boxes_plot(
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, point_grid_boxes_plot; from dictk.grid import generate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); dx, dy = -6, 8; current_image = translate(arr=reference_image, dx=dx, dy=dy); point_grid_boxes_plot(image=current_image, points=points, margin_width=48, margin_height=52, label_prefix='search area', figsize=(6.4, 4.8), path='multi_point_motion_search.png'); print('Saved: multi_point_motion_search.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate; from dictk.plot import point_grid_boxes_plot; from dictk.grid import generate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); dx, dy = -6, 8; current_image = translate(arr=reference_image, dx=dx, dy=dy); point_grid_boxes_plot(image=current_image, points=points, margin_width=48, margin_height=52, label_prefix='search area', figsize=(6.4, 4.8), path='multi_point_motion_search.png'); print('Saved: multi_point_motion_search.png')" -->
 ```
 
 <figure>
@@ -314,7 +315,7 @@ dy)` exactly — not approximately, the same exact-integer-pixel guarantee
 now confirmed across the whole grid at once:
 
 ```python
-from dictk.image import point_grid_plot
+from dictk.plot import point_grid_plot
 
 point_grid_plot(
     image=current_image,
@@ -326,7 +327,7 @@ point_grid_plot(
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, point_grid_plot; from dictk.grid import generate, locate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); dx, dy = -6, 8; current_image = translate(arr=reference_image, dx=dx, dy=dy); found = locate(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=20, kernel_margin_height=20, search_margin_width=48, search_margin_height=52); point_grid_plot(image=current_image, points=found, color='orange', figsize=(6.4, 4.8), path='multi_point_motion_found.png'); print('Saved: multi_point_motion_found.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate; from dictk.plot import point_grid_plot; from dictk.grid import generate, locate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); dx, dy = -6, 8; current_image = translate(arr=reference_image, dx=dx, dy=dy); found = locate(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=20, kernel_margin_height=20, search_margin_width=48, search_margin_height=52); point_grid_plot(image=current_image, points=found, color='orange', figsize=(6.4, 4.8), path='multi_point_motion_found.png'); print('Saved: multi_point_motion_found.png')" -->
 ```
 
 <figure>

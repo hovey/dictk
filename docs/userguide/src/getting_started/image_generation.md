@@ -234,7 +234,8 @@ speckle and checkerboard are both roughly bimodal (dark/light), while
 black/white-speckle-on-opposite checkerboard combinations.
 
 ```python
-from dictk.image import read, histogram_save
+from dictk.image import read
+from dictk.plot import histogram_save
 
 speckle = read(path="rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png")
 checker = read(path="checkerboard_200w_by_200h_8x8.png")
@@ -246,7 +247,7 @@ histogram_save(arr=checkerboard0, path="checkerboard0_histogram.png")
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, histogram_save; histogram_save(arr=read(path='rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png'), path='rosta_histogram.png'); histogram_save(arr=read(path='checkerboard_200w_by_200h_8x8.png'), path='checkerboard_histogram.png'); histogram_save(arr=read(path='checkerboard0.png'), path='checkerboard0_histogram.png'); print('Saved histograms: rosta_histogram.png, checkerboard_histogram.png, checkerboard0_histogram.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read; from dictk.plot import histogram_save; histogram_save(arr=read(path='rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png'), path='rosta_histogram.png'); histogram_save(arr=read(path='checkerboard_200w_by_200h_8x8.png'), path='checkerboard_histogram.png'); histogram_save(arr=read(path='checkerboard0.png'), path='checkerboard0_histogram.png'); print('Saved histograms: rosta_histogram.png, checkerboard_histogram.png, checkerboard0_histogram.png')" -->
 ```
 
 rosta | checkerboard | checkerboard0

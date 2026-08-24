@@ -54,7 +54,7 @@ From `reference_image`, extract the kernel surrounding $\boldsymbol{p}_0$,
 with a 25-pixel margin on every side (50x50 total):
 
 ```python
-from dictk.image import subimage_comparison_plot
+from dictk.plot import subimage_comparison_plot
 
 kernel_margin = 25
 kernel_origin = PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin)
@@ -76,7 +76,7 @@ subimage_comparison_plot(
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, subimage_comparison_plot; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); kernel_margin = 25; kernel_origin = PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin); subimage_comparison_plot(image=reference_image, origin=kernel_origin, width=2 * kernel_margin, height=2 * kernel_margin, point=p0, point_color='orange', point_label='\$P\$', subimage_label='kernel', color='green', origin_label='\$K\$', source_origin_label='\$O\$', figsize=(6.4, 4.8), path='single_point_motion_kernel.png'); print('Saved: single_point_motion_kernel.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate; from dictk.plot import subimage_comparison_plot; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); kernel_margin = 25; kernel_origin = PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin); subimage_comparison_plot(image=reference_image, origin=kernel_origin, width=2 * kernel_margin, height=2 * kernel_margin, point=p0, point_color='orange', point_label='\$P\$', subimage_label='kernel', color='green', origin_label='\$K\$', source_origin_label='\$O\$', figsize=(6.4, 4.8), path='single_point_motion_kernel.png'); print('Saved: single_point_motion_kernel.png')" -->
 ```
 
 <figure>
@@ -121,7 +121,7 @@ subimage_comparison_plot(
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, subimage_comparison_plot; reference_image = read(path='checkerboard0.png'); current_image = translate(arr=reference_image, dx=-6, dy=8); p0 = PixelCoordinate(x=100, y=75); search_margin = 50; search_center = p0; search_origin = PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin); subimage_comparison_plot(image=current_image, origin=search_origin, width=2 * search_margin, height=2 * search_margin, subimage_label='search area', origin_label='\$S\$', source_origin_label='\$O\$', figsize=(6.4, 4.8), path='single_point_motion_search.png'); print('Saved: single_point_motion_search.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate; from dictk.plot import subimage_comparison_plot; reference_image = read(path='checkerboard0.png'); current_image = translate(arr=reference_image, dx=-6, dy=8); p0 = PixelCoordinate(x=100, y=75); search_margin = 50; search_center = p0; search_origin = PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin); subimage_comparison_plot(image=current_image, origin=search_origin, width=2 * search_margin, height=2 * search_margin, subimage_label='search area', origin_label='\$S\$', source_origin_label='\$O\$', figsize=(6.4, 4.8), path='single_point_motion_search.png'); print('Saved: single_point_motion_search.png')" -->
 ```
 
 <figure>
@@ -218,7 +218,7 @@ draw the full chain $\boldsymbol{r}_{OS/\mathcal{F}} +
 `current_image`:
 
 ```python
-from dictk.image import point_plot, ArrowAnnotation, BoxAnnotation, PointAnnotation
+from dictk.plot import point_plot, ArrowAnnotation, BoxAnnotation, PointAnnotation
 
 r_sk = PixelCoordinate(
     x=found.x - search_origin.x - kernel_margin,
@@ -291,7 +291,7 @@ point_plot(
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, point_plot, ArrowAnnotation, BoxAnnotation, PointAnnotation; from dictk.translation import locate; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; search_margin = 50; search_center = p0; search_origin = PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin); found = locate(reference_image=reference_image, current_image=current_image, reference_point=p0, search_center=search_center, kernel_margin_width=kernel_margin, kernel_margin_height=kernel_margin, search_margin_width=search_margin, search_margin_height=search_margin); r_sk = PixelCoordinate(x=found.x - search_origin.x - kernel_margin, y=found.y - search_origin.y - kernel_margin); kernel_found_origin = PixelCoordinate(x=search_origin.x + r_sk.x, y=search_origin.y + r_sk.y); image_height, image_width = current_image.shape; point_plot(image=current_image, boxes=[BoxAnnotation(origin=PixelCoordinate(x=0, y=0), width=image_width, height=image_height, color='blue', label='source image'), BoxAnnotation(origin=search_origin, width=2 * search_margin, height=2 * search_margin, color='red', label='search area'), BoxAnnotation(origin=kernel_found_origin, width=2 * kernel_margin, height=2 * kernel_margin, color='green', label='kernel')], points=[PointAnnotation(position=PixelCoordinate(x=0, y=0), label='\$O\$', color='blue'), PointAnnotation(position=search_origin, label='\$S\$', color='red'), PointAnnotation(position=kernel_found_origin, label='\$K\$', color='green'), PointAnnotation(position=found, label='\$P\$', color='black')], arrows=[ArrowAnnotation(tail=PixelCoordinate(x=0, y=0), head=found, color='cyan', label=r\"\$\boldsymbol{r}_{OP'/\mathcal{F}}\$\"), ArrowAnnotation(tail=PixelCoordinate(x=0, y=0), head=search_origin, color='blue', label=r'\$\boldsymbol{r}_{OS/\mathcal{F}}\$: search area origin'), ArrowAnnotation(tail=search_origin, head=kernel_found_origin, color='red', label=r'\$\boldsymbol{r}_{SK/\mathcal{S}}\$: kernel found in search area'), ArrowAnnotation(tail=kernel_found_origin, head=found, color='green', label=r'\$\boldsymbol{r}_{KP/\mathcal{K}}\$: point within kernel')], figsize=(6.4, 4.8), path='single_point_motion_solution_vectors.png'); print('Saved: single_point_motion_solution_vectors.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate; from dictk.plot import point_plot, ArrowAnnotation, BoxAnnotation, PointAnnotation; from dictk.translation import locate; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); kernel_margin = 25; search_margin = 50; search_center = p0; search_origin = PixelCoordinate(x=search_center.x - search_margin, y=search_center.y - search_margin); found = locate(reference_image=reference_image, current_image=current_image, reference_point=p0, search_center=search_center, kernel_margin_width=kernel_margin, kernel_margin_height=kernel_margin, search_margin_width=search_margin, search_margin_height=search_margin); r_sk = PixelCoordinate(x=found.x - search_origin.x - kernel_margin, y=found.y - search_origin.y - kernel_margin); kernel_found_origin = PixelCoordinate(x=search_origin.x + r_sk.x, y=search_origin.y + r_sk.y); image_height, image_width = current_image.shape; point_plot(image=current_image, boxes=[BoxAnnotation(origin=PixelCoordinate(x=0, y=0), width=image_width, height=image_height, color='blue', label='source image'), BoxAnnotation(origin=search_origin, width=2 * search_margin, height=2 * search_margin, color='red', label='search area'), BoxAnnotation(origin=kernel_found_origin, width=2 * kernel_margin, height=2 * kernel_margin, color='green', label='kernel')], points=[PointAnnotation(position=PixelCoordinate(x=0, y=0), label='\$O\$', color='blue'), PointAnnotation(position=search_origin, label='\$S\$', color='red'), PointAnnotation(position=kernel_found_origin, label='\$K\$', color='green'), PointAnnotation(position=found, label='\$P\$', color='black')], arrows=[ArrowAnnotation(tail=PixelCoordinate(x=0, y=0), head=found, color='cyan', label=r\"\$\boldsymbol{r}_{OP'/\mathcal{F}}\$\"), ArrowAnnotation(tail=PixelCoordinate(x=0, y=0), head=search_origin, color='blue', label=r'\$\boldsymbol{r}_{OS/\mathcal{F}}\$: search area origin'), ArrowAnnotation(tail=search_origin, head=kernel_found_origin, color='red', label=r'\$\boldsymbol{r}_{SK/\mathcal{S}}\$: kernel found in search area'), ArrowAnnotation(tail=kernel_found_origin, head=found, color='green', label=r'\$\boldsymbol{r}_{KP/\mathcal{K}}\$: point within kernel')], figsize=(6.4, 4.8), path='single_point_motion_solution_vectors.png'); print('Saved: single_point_motion_solution_vectors.png')" -->
 ```
 
 <figure>

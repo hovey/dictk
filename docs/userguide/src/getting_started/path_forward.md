@@ -165,3 +165,25 @@ down to 0.09px at `10`). Parallelization (9) gains this as its first
 child, 9.1; a second child, 9.2 High Point Density, picking the same
 subpixel tooling up at real density, is the planned next step, not
 started yet.
+
+## 2026-08-24
+
+**9.2 High Point Density, shipped.** New page, [High Point
+Density](./high_point_density.md), closes the 9.1/9.2 pair under
+[Parallelization](./parallelization.md). It pushes `grid.locate_subpixel`
+to VIC-2D's own point density: 2862 points, 5px spacing, 2756 elements.
+No new library code — it composes entirely from already-shipped
+functions, the same way [Simple Stretch
+Revisited](./simple_stretch.md#simple-stretch-revisited) did.
+
+A real finding came out of it, verified before writing anything up.
+The strain field isn't clean at this density. Mean E11 still tracks
+the true value closely (0.0199 vs. 0.0198), but individual elements
+scatter widely (std 0.0155, range -0.016 to 0.077). A live 4-point
+spacing sweep (5/10/20/40px) confirmed the mechanism directly: strain
+noise scales with displacement-noise divided by element size, so the
+same small subpixel tracking residual gets amplified more at smaller
+spacing. Std shrinks monotonically across the sweep
+(0.0154/0.0125/0.0099/0.0032). The page names VIC-2D's own
+strain-window averaging as the standard remedy but doesn't implement
+it — that stays open.

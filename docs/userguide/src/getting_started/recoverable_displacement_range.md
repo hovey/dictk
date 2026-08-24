@@ -62,7 +62,7 @@ confirmed separately. The bug is downstream: `locate_uncentered`'s
 `skimage`-based conversion of that surface into a signed shift, which
 misreads the answer only past the cliff. [`recoverable_displacement_range_first_sweep_quadrant.py`](#recoverable_displacement_range_first_sweep_quadrantpy)
 marks both positions on the same Fixed Image panel
-[`phase_correlation_quadrant_plot`](../api/dictk/image.html#phase_correlation_quadrant_plot)
+[`phase_correlation_quadrant_plot`](../api/dictk/plot.html#phase_correlation_quadrant_plot)
 already draws elsewhere in this book -- the surface's own true peak
 (yellow, dashed, unchanged from every other use of that function) and
 where `locate_uncentered` actually reports the point (magenta). `search`
@@ -100,7 +100,7 @@ Every row matches now, cliff included.
 [`recoverable_displacement_range_fixing_locate_quadrant.py`](#recoverable_displacement_range_fixing_locate_quadrantpy)
 draws `dx = 31` -- the cliff itself -- the same way Seeing the Cliff
 did, but with `centered=True`:
-[`phase_correlation_quadrant_plot`](../api/dictk/image.html#phase_correlation_quadrant_plot)
+[`phase_correlation_quadrant_plot`](../api/dictk/plot.html#phase_correlation_quadrant_plot)
 pads the Moving Image panel's kernel the same way `locate` now does
 internally, instead of the permanent bottom-right-only padding
 `phase_correlation` itself always keeps. Compare the two Moving Image

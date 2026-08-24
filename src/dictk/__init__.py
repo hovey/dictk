@@ -43,5 +43,6 @@ __all__ = [
     "element",
     "grid",
     "image",
+    "plot",
     "translation",
 ]

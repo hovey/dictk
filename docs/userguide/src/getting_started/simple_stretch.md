@@ -128,7 +128,7 @@ found = locate(
 ```
 
 ```python
-from dictk.image import point_grid_plot
+from dictk.plot import point_grid_plot
 
 point_grid_plot(
     image=current_image,
@@ -140,7 +140,7 @@ point_grid_plot(
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, stretch, point_grid_plot; from dictk.grid import generate, locate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); factor_x = 1.02; current_image = stretch(arr=reference_image, factor_x=factor_x); found = locate(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=20, kernel_margin_height=20, search_margin_width=48, search_margin_height=52); point_grid_plot(image=current_image, points=found, color='orange', figsize=(6.4, 4.8), path='simple_stretch_current.png'); print('Saved: simple_stretch_current.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, stretch; from dictk.plot import point_grid_plot; from dictk.grid import generate, locate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); factor_x = 1.02; current_image = stretch(arr=reference_image, factor_x=factor_x); found = locate(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=20, kernel_margin_height=20, search_margin_width=48, search_margin_height=52); point_grid_plot(image=current_image, points=found, color='orange', figsize=(6.4, 4.8), path='simple_stretch_current.png'); print('Saved: simple_stretch_current.png')" -->
 ```
 
 <figure>
@@ -188,7 +188,7 @@ reports VIC-2D's own logarithmic/Euler strain:
 ```python
 from dictk.element import gauss_point_coordinates, gauss_point_log_strains
 from dictk.grid import elements
-from dictk.image import element_strain_plot
+from dictk.plot import element_strain_plot
 
 element_indices = elements(count_x=3, count_y=4)
 values = []
@@ -223,7 +223,7 @@ element_strain_plot(
 )
 ```
 
-<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, stretch, element_strain_plot; from dictk.grid import generate, locate, elements; from dictk.element import gauss_point_coordinates, gauss_point_log_strains; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); factor_x = 1.02; current_image = stretch(arr=reference_image, factor_x=factor_x); found = locate(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=20, kernel_margin_height=20, search_margin_width=48, search_margin_height=52); element_indices = elements(count_x=3, count_y=4); values, coordinates = [], []; [ (values.extend(strain[0, 0] for strain in gauss_point_log_strains(reference_points=[points[i] for i in element], current_points=[found[i] for i in element])), coordinates.extend(gauss_point_coordinates(points=[found[i] for i in element]))) for element in element_indices ]; element_strain_plot(points=found, elements=element_indices, coordinates=coordinates, values=values, label=r'Log Strain, \$E_{11}\$', show_node_numbers=True, path='simple_stretch_strain_gauss_points.png'); element_strain_plot(points=found, elements=element_indices, coordinates=coordinates, values=values, label=r'Log Strain, \$E_{11}\$', image=current_image, show_node_numbers=True, path='simple_stretch_strain_on_current.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, stretch; from dictk.plot import element_strain_plot; from dictk.grid import generate, locate, elements; from dictk.element import gauss_point_coordinates, gauss_point_log_strains; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); factor_x = 1.02; current_image = stretch(arr=reference_image, factor_x=factor_x); found = locate(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=20, kernel_margin_height=20, search_margin_width=48, search_margin_height=52); element_indices = elements(count_x=3, count_y=4); values, coordinates = [], []; [ (values.extend(strain[0, 0] for strain in gauss_point_log_strains(reference_points=[points[i] for i in element], current_points=[found[i] for i in element])), coordinates.extend(gauss_point_coordinates(points=[found[i] for i in element]))) for element in element_indices ]; element_strain_plot(points=found, elements=element_indices, coordinates=coordinates, values=values, label=r'Log Strain, \$E_{11}\$', show_node_numbers=True, path='simple_stretch_strain_gauss_points.png'); element_strain_plot(points=found, elements=element_indices, coordinates=coordinates, values=values, label=r'Log Strain, \$E_{11}\$', image=current_image, show_node_numbers=True, path='simple_stretch_strain_on_current.png')" -->
 
 <figure>
     <img src="simple_stretch_strain_gauss_points.png" alt="the 6-element mesh with node numbers 00 through 11 and 4 Gauss points per element, colored by log strain E11, no background image" />
@@ -456,7 +456,7 @@ this density:
 ```python
 from dictk.element import gauss_point_coordinates, gauss_point_log_strains
 from dictk.grid import elements
-from dictk.image import element_strain_plot
+from dictk.plot import element_strain_plot
 
 element_indices = elements(count_x=5, count_y=50)
 values = []
@@ -489,7 +489,7 @@ element_strain_plot(
 )
 ```
 
-<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, stretch, element_strain_plot; from dictk.grid import generate, locate, elements; from dictk.element import gauss_point_coordinates, gauss_point_log_strains; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=52), count_x=5, count_y=50, spacing_x=50, spacing_y=4); factor_x = 1.02; current_image = stretch(arr=reference_image, factor_x=factor_x); found = locate(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=20, kernel_margin_height=20, search_margin_width=48, search_margin_height=52); element_indices = elements(count_x=5, count_y=50); values, coordinates = [], []; [ (values.extend(strain[0, 0] for strain in gauss_point_log_strains(reference_points=[points[i] for i in element], current_points=[found[i] for i in element])), coordinates.extend(gauss_point_coordinates(points=[found[i] for i in element]))) for element in element_indices ]; element_strain_plot(points=found, elements=element_indices, coordinates=coordinates, values=values, label=r'Log Strain, \$E_{11}\$', path='simple_stretch_revisited_strain_gauss_points.png'); element_strain_plot(points=found, elements=element_indices, coordinates=coordinates, values=values, label=r'Log Strain, \$E_{11}\$', image=current_image, path='simple_stretch_revisited_strain_on_current.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, stretch; from dictk.plot import element_strain_plot; from dictk.grid import generate, locate, elements; from dictk.element import gauss_point_coordinates, gauss_point_log_strains; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=52), count_x=5, count_y=50, spacing_x=50, spacing_y=4); factor_x = 1.02; current_image = stretch(arr=reference_image, factor_x=factor_x); found = locate(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=20, kernel_margin_height=20, search_margin_width=48, search_margin_height=52); element_indices = elements(count_x=5, count_y=50); values, coordinates = [], []; [ (values.extend(strain[0, 0] for strain in gauss_point_log_strains(reference_points=[points[i] for i in element], current_points=[found[i] for i in element])), coordinates.extend(gauss_point_coordinates(points=[found[i] for i in element]))) for element in element_indices ]; element_strain_plot(points=found, elements=element_indices, coordinates=coordinates, values=values, label=r'Log Strain, \$E_{11}\$', path='simple_stretch_revisited_strain_gauss_points.png'); element_strain_plot(points=found, elements=element_indices, coordinates=coordinates, values=values, label=r'Log Strain, \$E_{11}\$', image=current_image, path='simple_stretch_revisited_strain_on_current.png')" -->
 
 <figure>
     <img src="simple_stretch_revisited_strain_gauss_points.png" alt="a much denser 5x50 mesh with 4 Gauss points per element, colored by log strain E11, no node numbers, no background image" />

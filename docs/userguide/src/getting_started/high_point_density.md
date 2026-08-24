@@ -47,7 +47,7 @@ at each of the resulting 11024 Gauss points. Node numbers stay off —
 ```python
 from dictk.element import gauss_point_coordinates, gauss_point_log_strains
 from dictk.grid import elements
-from dictk.image import element_strain_plot
+from dictk.plot import element_strain_plot
 
 element_indices = elements(count_x=53, count_y=54)
 values = []
@@ -80,7 +80,7 @@ element_strain_plot(
 )
 ```
 
-<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, stretch, element_strain_plot; from dictk.grid import generate, locate_subpixel, elements; from dictk.element import gauss_point_coordinates, gauss_point_log_strains; reference_image = read(path='astronaut0.png'); factor_x = 1.02; current_image = stretch(arr=reference_image, factor_x=factor_x); points = generate(origin=PixelCoordinate(x=18, y=16), count_x=53, count_y=54, spacing_x=5, spacing_y=5); found = locate_subpixel(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=20, kernel_margin_height=20, search_margin_width=48, search_margin_height=52, upsample_factor=10); element_indices = elements(count_x=53, count_y=54); values, coordinates = [], []; [ (values.extend(strain[0, 0] for strain in gauss_point_log_strains(reference_points=[points[i] for i in element], current_points=[found[i] for i in element])), coordinates.extend(gauss_point_coordinates(points=[found[i] for i in element]))) for element in element_indices ]; element_strain_plot(points=found, elements=element_indices, coordinates=coordinates, values=values, label=r'Log Strain, \$E_{11}\$', path='high_point_density_strain_gauss_points.png'); element_strain_plot(points=found, elements=element_indices, coordinates=coordinates, values=values, label=r'Log Strain, \$E_{11}\$', image=current_image, path='high_point_density_strain_on_current.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, stretch; from dictk.plot import element_strain_plot; from dictk.grid import generate, locate_subpixel, elements; from dictk.element import gauss_point_coordinates, gauss_point_log_strains; reference_image = read(path='astronaut0.png'); factor_x = 1.02; current_image = stretch(arr=reference_image, factor_x=factor_x); points = generate(origin=PixelCoordinate(x=18, y=16), count_x=53, count_y=54, spacing_x=5, spacing_y=5); found = locate_subpixel(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=20, kernel_margin_height=20, search_margin_width=48, search_margin_height=52, upsample_factor=10); element_indices = elements(count_x=53, count_y=54); values, coordinates = [], []; [ (values.extend(strain[0, 0] for strain in gauss_point_log_strains(reference_points=[points[i] for i in element], current_points=[found[i] for i in element])), coordinates.extend(gauss_point_coordinates(points=[found[i] for i in element]))) for element in element_indices ]; element_strain_plot(points=found, elements=element_indices, coordinates=coordinates, values=values, label=r'Log Strain, \$E_{11}\$', path='high_point_density_strain_gauss_points.png'); element_strain_plot(points=found, elements=element_indices, coordinates=coordinates, values=values, label=r'Log Strain, \$E_{11}\$', image=current_image, path='high_point_density_strain_on_current.png')" -->
 
 <figure>
     <img src="high_point_density_strain_gauss_points.png" alt="a dense 53x54 mesh with 4 Gauss points per element, colored by log strain E11, no node numbers, no background image" />
