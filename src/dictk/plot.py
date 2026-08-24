@@ -1440,6 +1440,10 @@ def point_grid_plot(
     show_node_numbers: bool = True,
     labels: Sequence[str] | None = None,
     dot_size: float | None = None,
+    origin: PixelCoordinate = PixelCoordinate(x=0, y=0),
+    circle_center: PixelCoordinate | None = None,
+    circle_radius: float | None = None,
+    circle_linewidth: float = 1.5,
     figsize: tuple[float, float] | None = None,
     path: Path,
     dpi: int = 300,
@@ -1458,8 +1462,9 @@ def point_grid_plot(
 
     Args:
         image: Source 2D grayscale image array.
-        points: The points to mark, in the image's own pixel reference
-            frame. May be empty (an unmarked copy of `image` is saved).
+        points: The points to mark, in the same reference frame as
+            `origin` (by default, `image`'s own frame -- see `origin`
+            below). May be empty (an unmarked copy of `image` is saved).
         color: Matplotlib color name for every marker and label.
         show_node_numbers: Whether to draw the reticle glyph and zero-padded
             index label described above. Default `True` matches every
@@ -1487,6 +1492,37 @@ def point_grid_plot(
             marker drawn, and 1 raster pixel is too faint to see clearly
             against real image content -- pass a larger value (e.g. `2`
             or `3`) to make it visible.
+        origin: Where `image`'s own top-left corner sits in `points`'
+            reference frame. Default `PixelCoordinate(x=0, y=0)` means
+            `image` and `points` already share one frame -- every
+            existing call site's own behavior, unchanged. Pass `image`'s
+            true position (e.g. [`subimage`](./image.html#subimage)'s own
+            `origin` argument) when `image` is a crop of some larger
+            image and `points` are still expressed in that larger
+            image's coordinates: the axes then read in the *larger*
+            image's own numbers, not `image`'s local `0`-based ones, so
+            the same point reads identically whether it's plotted here
+            or in a figure of the uncropped image.
+        circle_center: Optional center, in the same reference frame as
+            `points`, of a red circle outline drawn on top of the image
+            -- same style as
+            [`spatial_correlation_quadrant_plot`](#spatial_correlation_quadrant_plot)'s
+            own Solution Vicinity marker. Meant to visually tie a figure
+            of one region back to a figure of a wider region it was
+            cropped from: draw the same `circle_center`/`circle_radius`
+            in both, and pick the radius to match the *narrower*
+            figure's own extent (e.g. half its width) -- there, the
+            circle exactly touches all four edges; in the wider figure,
+            it appears as a normal circle marking exactly the region
+            the narrower one shows. Must be given together with
+            `circle_radius`.
+        circle_radius: Radius, in the same units as `points`' own
+            coordinates, of the circle described above. Must be given
+            together with `circle_center`.
+        circle_linewidth: Matplotlib `linewidth` for the circle outline
+            above. Default `1.5` matches
+            [`spatial_correlation_quadrant_plot`](#spatial_correlation_quadrant_plot)'s
+            own circle exactly. Ignored when `circle_center` is `None`.
         figsize: Optional (width, height) in inches for the saved figure.
             By default the canvas is sized from `image`/`points`' own data
             extent; pass this to override with a fixed size instead.
@@ -1497,13 +1533,18 @@ def point_grid_plot(
 
     Raises:
         ValueError: If `labels` is given and its length doesn't match
-            `points`.
+            `points`, or if exactly one of `circle_center`/`circle_radius`
+            is given without the other.
     """
+    if (circle_center is None) != (circle_radius is None):
+        raise ValueError("circle_center and circle_radius must be given together")
     if labels is not None and len(labels) != len(points):
         raise ValueError(
             f"labels has {len(labels)} entries, but points has {len(points)}"
         )
     image_height, image_width = image.shape
+    image_left, image_top = origin.x, origin.y
+    image_right, image_bottom = origin.x + image_width, origin.y + image_height
 
     endpoints_x = [point.x for point in points]
     endpoints_y = [point.y for point in points]
@@ -1527,10 +1568,10 @@ def point_grid_plot(
         # isn't needed then either.
         label_margin = 2 * label_offset + label_text_height
         margin = max(margin, min(label_margin, max(image_width, image_height) * 0.5))
-    x_min = min(0, *endpoints_x, 0) - margin
-    x_max = max(image_width, *endpoints_x, image_width) + margin
-    y_min = min(0, *endpoints_y, 0) - margin
-    y_max = max(image_height, *endpoints_y, image_height) + margin
+    x_min = min(image_left, *endpoints_x, image_left) - margin
+    x_max = max(image_right, *endpoints_x, image_right) + margin
+    y_min = min(image_top, *endpoints_y, image_top) - margin
+    y_max = max(image_bottom, *endpoints_y, image_bottom) + margin
     label_outline = [patheffects.withStroke(linewidth=1, foreground="white")]
 
     if figsize is None:
@@ -1540,8 +1581,21 @@ def point_grid_plot(
         )
     fig, ax = plt.subplots(figsize=figsize)
     ax.imshow(
-        image, cmap="gray", origin="upper", extent=(0, image_width, image_height, 0)
+        image,
+        cmap="gray",
+        origin="upper",
+        extent=(image_left, image_right, image_bottom, image_top),
     )
+    if circle_center is not None:
+        ax.add_patch(
+            patches.Circle(
+                (circle_center.x, circle_center.y),
+                radius=circle_radius,
+                edgecolor="red",
+                facecolor="none",
+                linewidth=circle_linewidth,
+            )
+        )
 
     reticle = _reticle_marker_path()
     # A single-raster-pixel dot at each point's exact location: where the

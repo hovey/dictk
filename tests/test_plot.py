@@ -802,6 +802,91 @@ def test_point_grid_plot_labels_length_mismatch_raises(tmp_path: Path):
         )
 
 
+def test_point_grid_plot_origin_writes_file(tmp_path: Path):
+    # A crop of `photo`, with `points` left in `photo`'s own global frame
+    # (not translated to the crop's local 0-based coordinates) -- origin
+    # tells point_grid_plot where that crop sits, so the saved figure's
+    # own axes read in photo's global numbers, matching a full-image
+    # figure of the same points exactly.
+    photo = astronaut(width=300, height=300)
+    points = grid_generate(
+        origin=PixelCoordinate(x=50, y=50),
+        count_x=5,
+        count_y=4,
+        spacing_x=45,
+        spacing_y=55,
+    )
+    crop_origin = PixelCoordinate(x=40, y=40)
+    cropped = subimage(image=photo, origin=crop_origin, width=60, height=60)
+    path = tmp_path / "point_grid_origin.png"
+    point_grid_plot(
+        image=cropped,
+        points=points,
+        origin=crop_origin,
+        show_node_numbers=False,
+        dot_size=3,
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_grid_plot_circle_writes_file(tmp_path: Path):
+    photo = astronaut(width=300, height=300)
+    points = grid_generate(
+        origin=PixelCoordinate(x=50, y=50),
+        count_x=5,
+        count_y=4,
+        spacing_x=45,
+        spacing_y=55,
+    )
+    path = tmp_path / "point_grid_circle.png"
+    point_grid_plot(
+        image=photo,
+        points=points,
+        show_node_numbers=False,
+        circle_center=PixelCoordinate(x=150, y=150),
+        circle_radius=40,
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_grid_plot_circle_center_without_radius_raises(tmp_path: Path):
+    photo = astronaut(width=300, height=300)
+    with pytest.raises(ValueError):
+        point_grid_plot(
+            image=photo,
+            points=[],
+            circle_center=PixelCoordinate(x=150, y=150),
+            path=tmp_path / "out.png",
+        )
+
+
+def test_point_grid_plot_circle_radius_without_center_raises(tmp_path: Path):
+    photo = astronaut(width=300, height=300)
+    with pytest.raises(ValueError):
+        point_grid_plot(
+            image=photo, points=[], circle_radius=40, path=tmp_path / "out.png"
+        )
+
+
+def test_point_grid_plot_circle_linewidth_writes_file(tmp_path: Path):
+    photo = astronaut(width=300, height=300)
+    path = tmp_path / "point_grid_circle_linewidth.png"
+    point_grid_plot(
+        image=photo,
+        points=[],
+        circle_center=PixelCoordinate(x=150, y=150),
+        circle_radius=40,
+        circle_linewidth=0.8,
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
 def _element_strain_plot_inputs():
     points = grid_generate(
         origin=PixelCoordinate(x=50, y=50),
