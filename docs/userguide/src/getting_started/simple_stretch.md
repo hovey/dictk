@@ -340,16 +340,7 @@ pursuing: running this book's own synthetic datasets through established
 DIC software, and comparing directly against `dictk`'s own results. This
 page's own `factor_x = 1.02` stretch was run through
 [VIC-2D](https://www.correlatedsolutions.com/vic-2d/) (Correlated
-Solutions, Inc.), independently of `dictk`. VIC-2D reports logarithmic
-(Euler) strain, so it's compared here against [the Strain
-section](#strain) above's own `dictk`-computed log strain:
-
-<figure>
-    <a href="../verification/simple_stretch_result_vic.png" target="_blank" rel="noopener">
-        <img src="../verification/simple_stretch_result_vic.png" alt="VIC-2D's measured exx (logarithmic Euler strain) field for the factor_x=1.02 stretch example, a striped noisy pattern averaging around 19900 microstrain, with a horizontal extensometer line annotated E0: 19905.2 microstrain" />
-    </a>
-    <figcaption>VIC-2D's own measured $e_{xx}$ (logarithmic/Euler strain) field for this page's <code>factor_x = 1.02</code> stretch (click to enlarge). The horizontal line is VIC-2D's own extensometer annotation, reading 19905.2 microstrain along that path.</figcaption>
-</figure>
+Solutions, Inc.), independently of `dictk`.
 
 ### 2682-Point Sample
 
@@ -357,11 +348,7 @@ VIC-2D placed its own subsets on a regular grid, 5 pixels apart in both
 directions — 53x54, 2862 candidate positions across the image. 180 of
 them sit close enough to the image's outer edge that their own
 correlation window would run off-canvas, so VIC-2D masks those out,
-leaving 2682 valid subsets. Across those 2682 subsets, $e_{xx}$ averages
-19875.8 microstrain — close to, but noisier than,
-[Multi-Point Motion](./multi_point_motion.md#verification-against-vic-2d)'s
-displacement match, since strain is a spatial derivative of already-noisy
-per-point displacement data, not a directly measured quantity.
+leaving 2682 valid subsets.
 
 ```python
 from dictk.image import read, PixelCoordinate
@@ -430,6 +417,21 @@ point_grid_plot(
     <figcaption>A 30x30-pixel crop from the top-left corner, showing every one of the 25 grid points that fall inside it -- the same 5px spacing as the full overview above, just at true scale instead of compressed into a 300x300 thumbnail.</figcaption>
 </figure>
 
+VIC-2D reports logarithmic (Euler) strain, so it's compared here
+against [the Strain section](#strain) above's own `dictk`-computed log
+strain. Across those 2682 valid subsets, $e_{xx}$ averages
+19875.8 microstrain — close to, but noisier than,
+[Multi-Point Motion](./multi_point_motion.md#verification-against-vic-2d)'s
+displacement match, since strain is a spatial derivative of already-noisy
+per-point displacement data, not a directly measured quantity:
+
+<figure>
+    <a href="../verification/simple_stretch_result_vic.png" target="_blank" rel="noopener">
+        <img src="../verification/simple_stretch_result_vic.png" alt="VIC-2D's measured exx (logarithmic Euler strain) field for the factor_x=1.02 stretch example, a striped noisy pattern averaging around 19900 microstrain, with a horizontal extensometer line annotated E0: 19905.2 microstrain" />
+    </a>
+    <figcaption>VIC-2D's own measured $e_{xx}$ (logarithmic/Euler strain) field for this page's <code>factor_x = 1.02</code> stretch (click to enlarge). The horizontal line is VIC-2D's own extensometer annotation, reading 19905.2 microstrain along that path.</figcaption>
+</figure>
+
 The full distribution, not just its mean, shows how noisy those 2682
 subsets really are:
 
@@ -480,6 +482,11 @@ The full, subset-by-subset VIC-2D output —
 — is available for closer inspection: every subset's position,
 displacement, strain, and correlation quality metrics, not just the
 summary field shown above.
+
+VIC-2D sampled this deformation at far higher density than `dictk`
+has tried. [Simple Stretch Revisited](#simple-stretch-revisited) takes
+that cue next, pushing `dictk`'s own tracked grid past twelve points
+for the first time.
 
 ## Simple Stretch Revisited
 
