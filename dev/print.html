@@ -3482,21 +3482,36 @@ reference_image = read(path="astronaut0.png")
 points = generate(
     origin=PixelCoordinate(x=18, y=16), count_x=53, count_y=54, spacing_x=5, spacing_y=5
 )
+
+# Marks exactly the region the zoomed-in figure below crops to -- same
+# center and radius drawn there too, where it exactly touches all four
+# edges of that figure's own extent.
+crop_origin = PixelCoordinate(x=10, y=8)
+crop_width, crop_height = 30, 30
+circle_center = PixelCoordinate(
+    x=crop_origin.x + crop_width // 2, y=crop_origin.y + crop_height // 2
+)
+circle_radius = crop_width / 2
+
 point_grid_plot(
     image=reference_image,
     points=points,
     color="orange",
     show_node_numbers=False,
     dot_size=0.8,
+    circle_center=circle_center,
+    circle_radius=circle_radius,
+    circle_linewidth=0.8,
     path="simple_stretch_2862_overview.png",
 )
 </code></pre>
 <p>Saved: simple_stretch_2862_overview.png</p>
 <figure>
-    <img src="getting_started/simple_stretch_2862_overview.png" alt="astronaut0 with 2862 orange dots overlaid in a regular 5-pixel grid across the whole image" />
-    <figcaption>All 2862 candidate subset positions (orange dots, 5px spacing in both directions), overlaid on the reference image.</figcaption>
+    <img src="getting_started/simple_stretch_2862_overview.png" alt="astronaut0 with 2862 orange dots overlaid in a regular 5-pixel grid across the whole image, and a red circle near the top-left corner marking the region the next figure zooms into" />
+    <figcaption>All 2862 candidate subset positions (orange dots, 5px spacing in both directions), overlaid on the reference image. The red circle marks the region the zoomed-in figure below crops to.</figcaption>
 </figure>
-<p>A zoomed-in corner shows the same 5px grid at true scale:</p>
+<p>A zoomed-in corner shows the same 5px grid at true scale, the same red
+circle now exactly touching all four edges of the crop:</p>
 <pre><code class="language-python">from dictk.image import read, PixelCoordinate, subimage
 from dictk.grid import generate
 from dictk.plot import point_grid_plot
@@ -3508,29 +3523,43 @@ points = generate(
 
 crop_origin = PixelCoordinate(x=10, y=8)
 crop_width, crop_height = 30, 30
+circle_center = PixelCoordinate(
+    x=crop_origin.x + crop_width // 2, y=crop_origin.y + crop_height // 2
+)
+circle_radius = crop_width / 2
+
 cropped = subimage(
     image=reference_image, origin=crop_origin, width=crop_width, height=crop_height
 )
-local_points = [
-    PixelCoordinate(x=p.x - crop_origin.x, y=p.y - crop_origin.y)
+# points stays in the full image's own frame -- origin=crop_origin tells
+# point_grid_plot where cropped sits within it, so the saved figure's
+# axes read astronaut0's own pixel numbers, not the crop's local 0-based
+# ones. The same point (and the same circle) reads identically here and
+# in the overview above.
+sample_points = [
+    p
     for p in points
     if crop_origin.x &lt;= p.x &lt; crop_origin.x + crop_width
     and crop_origin.y &lt;= p.y &lt; crop_origin.y + crop_height
 ]
 point_grid_plot(
     image=cropped,
-    points=local_points,
+    points=sample_points,
+    origin=crop_origin,
     color="orange",
     show_node_numbers=False,
     dot_size=6,
+    circle_center=circle_center,
+    circle_radius=circle_radius,
+    circle_linewidth=0.8,
     figsize=(4, 4),
     path="simple_stretch_2862_zoom.png",
 )
 </code></pre>
 <p>Saved: simple_stretch_2862_zoom.png</p>
 <figure>
-    <img src="getting_started/simple_stretch_2862_zoom.png" alt="a zoomed 30x30 pixel crop from the top-left corner of astronaut0, showing a 5x5 block of 25 orange dots on the real 5-pixel grid" />
-    <figcaption>A 30x30-pixel crop from the top-left corner, showing every one of the 25 grid points that fall inside it -- the same 5px spacing as the full overview above, just at true scale instead of compressed into a 300x300 thumbnail.</figcaption>
+    <img src="getting_started/simple_stretch_2862_zoom.png" alt="a zoomed 30x30 pixel crop from the top-left corner of astronaut0, showing a 5x5 block of 25 orange dots on the real 5-pixel grid, axes labeled 10 to 40 matching the full image's own coordinates, with a red circle exactly touching all four edges of the crop" />
+    <figcaption>A 30x30-pixel crop from the top-left corner (image coordinates 10-40 in both directions), showing every one of the 25 grid points that fall inside it -- the same 5px spacing as the full overview above, just at true scale instead of compressed into a 300x300 thumbnail. The axes read <code>astronaut0</code>'s own pixel coordinates, not the crop's local 0-based ones, so a point here reads identically in the overview above -- e.g. the top-left point is <code>(18, 16)</code> in both figures. The same red circle marked in the overview above appears here too, now exactly touching all four edges of this figure's own extent -- the same visual correspondence <a href="getting_started/./correlation_visualization.html">Correlation Visualization</a>'s Solution Vicinity panel uses.</figcaption>
 </figure>
 <p>VIC-2D reports logarithmic (Euler) strain, so it's compared here
 against <a href="getting_started/simple_stretch.html#strain">the Strain section</a> above's own <code>dictk</code>-computed log
