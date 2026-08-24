@@ -4,7 +4,7 @@ import numpy as np
 from skimage.registration import phase_cross_correlation
 
 from dictk.correlation import WindowingMethod, _kernel_pad, _window
-from dictk.image import PixelCoordinate, subimage
+from dictk.image import PixelCoordinate, SubpixelCoordinate, subimage
 
 
 def locate(
@@ -196,4 +196,142 @@ def locate(
     return PixelCoordinate(
         x=search_origin.x + int(shift[1]) + kernel_margin_width + pad_before_width,
         y=search_origin.y + int(shift[0]) + kernel_margin_height + pad_before_height,
+    )
+
+
+def locate_subpixel(
+    *,
+    reference_image: np.ndarray,
+    current_image: np.ndarray,
+    reference_point: PixelCoordinate,
+    search_center: PixelCoordinate,
+    kernel_margin_width: int,
+    kernel_margin_height: int,
+    search_margin_width: int,
+    search_margin_height: int,
+    windowing: WindowingMethod | None = None,
+    upsample_factor: int = 100,
+) -> SubpixelCoordinate:
+    """The subpixel-accurate sibling of [`locate`](#locate): recovers a
+    fractional position instead of rounding it away.
+
+    Same kernel/search extraction, windowing, and centered padding as
+    `locate` -- deliberately a separate function, not a parameter added
+    to it, so `locate`'s own return type (`PixelCoordinate`, always
+    `int`) never changes shape based on an argument. `locate` truncates
+    `phase_cross_correlation`'s shift to the nearest whole pixel with
+    `int()`; this function instead requests a refined, generally
+    fractional shift from `phase_cross_correlation` itself
+    (`upsample_factor`) and returns it directly, undiscarded.
+
+    `upsample_factor` does not "fix" `locate`'s own exact-integer
+    matching in the way it might sound like it should: if the true
+    displacement genuinely isn't an integer (a stretch's own resampling
+    can easily make this true even for an otherwise-integer-pixel
+    target -- see [Subpixel
+    Accuracy](../getting_started/subpixel_accuracy.html)), no amount of
+    refinement makes `locate`'s truncated answer correct, because
+    `locate`'s question ("which integer pixel?") isn't the right one to
+    ask anymore. What subpixel refinement *does* reliably improve is how
+    close the returned position lands to the true, generally fractional,
+    target -- a different, and for a real (non-integer) displacement, a
+    more honest question.
+
+    Args:
+        reference_image: The reference (undeformed) 2D grayscale image.
+        current_image: The current (deformed) 2D grayscale image.
+        reference_point: The point's fixed, known position, in
+            `reference_image`'s pixel reference frame.
+        search_center: Where to center the search area, in
+            `current_image`'s pixel reference frame -- see `locate`'s
+            own docstring for the full explanation of this parameter.
+        kernel_margin_width: Half the kernel's width, in pixels. Must
+            be >= 1.
+        kernel_margin_height: Half the kernel's height, in pixels. Must
+            be >= 1.
+        search_margin_width: Half the search area's width, in pixels.
+            Must be greater than `kernel_margin_width`.
+        search_margin_height: Half the search area's height, in pixels.
+            Must be greater than `kernel_margin_height`.
+        windowing: Passed straight through to
+            [`dictk.correlation.window`](./correlation.html#window),
+            same as `locate`'s own `windowing` parameter.
+        upsample_factor: Passed straight through to
+            `skimage.registration.phase_cross_correlation`'s own
+            `upsample_factor` -- images are registered to within
+            `1 / upsample_factor` of a pixel. Default `100`, matching
+            the point past which [Subpixel
+            Accuracy](../getting_started/subpixel_accuracy.html) found
+            diminishing returns (`10` was already close to `100`'s own
+            accuracy in that measurement). Must be >= 1.
+
+    Returns:
+        The point's location, in `current_image`'s pixel reference
+        frame, generally fractional.
+
+    Raises:
+        ValueError: If `kernel_margin_width` or `kernel_margin_height` is
+            less than 1, either `search_margin_width`/
+            `search_margin_height` is not greater than its kernel
+            counterpart, or `upsample_factor` is less than 1.
+    """
+    if kernel_margin_width < 1:
+        raise ValueError(f"kernel_margin_width {kernel_margin_width} must be >= 1")
+    if kernel_margin_height < 1:
+        raise ValueError(f"kernel_margin_height {kernel_margin_height} must be >= 1")
+    if search_margin_width <= kernel_margin_width:
+        raise ValueError(
+            f"search_margin_width {search_margin_width} must be greater than "
+            f"kernel_margin_width {kernel_margin_width}"
+        )
+    if search_margin_height <= kernel_margin_height:
+        raise ValueError(
+            f"search_margin_height {search_margin_height} must be greater than "
+            f"kernel_margin_height {kernel_margin_height}"
+        )
+    if upsample_factor < 1:
+        raise ValueError(f"upsample_factor {upsample_factor} must be >= 1")
+
+    kernel_width = 2 * kernel_margin_width
+    kernel_height = 2 * kernel_margin_height
+    search_width = 2 * search_margin_width
+    search_height = 2 * search_margin_height
+
+    kernel_origin = PixelCoordinate(
+        x=reference_point.x - kernel_margin_width,
+        y=reference_point.y - kernel_margin_height,
+    )
+    kernel = subimage(
+        image=reference_image,
+        origin=kernel_origin,
+        width=kernel_width,
+        height=kernel_height,
+    )
+
+    search_origin = PixelCoordinate(
+        x=search_center.x - search_margin_width,
+        y=search_center.y - search_margin_height,
+    )
+    search = subimage(
+        image=current_image,
+        origin=search_origin,
+        width=search_width,
+        height=search_height,
+    )
+
+    kernel, search = _window(kernel=kernel, search=search, windowing=windowing)
+    kernel_padded, pad_before_height, pad_before_width = _kernel_pad(
+        kernel=kernel, shape=search.shape, centered=True
+    )
+
+    shift, _error, _phasediff = phase_cross_correlation(
+        reference_image=search,
+        moving_image=kernel_padded,
+        normalization="phase",
+        upsample_factor=upsample_factor,
+    )
+
+    return SubpixelCoordinate(
+        x=search_origin.x + shift[1] + kernel_margin_width + pad_before_width,
+        y=search_origin.y + shift[0] + kernel_margin_height + pad_before_height,
     )

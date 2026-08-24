@@ -72,8 +72,8 @@ The mapping between global coordinates $(X, Y)$ and local coordinates is introdu
 $$
 \boldsymbol{X}(\boldsymbol{\xi}) = 
 \begin{Bmatrix}
-x(\xi, \eta) \\
-y(\xi, \eta)
+X(\xi, \eta) \\
+Y(\xi, \eta)
 \end{Bmatrix}
 = \sum_{a=1}^{4} N_a(\boldsymbol{\xi}) \boldsymbol{X}_a
 = \sum_{a=1}^{4} N_a(\xi, \eta)

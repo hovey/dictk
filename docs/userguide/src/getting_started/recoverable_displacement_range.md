@@ -9,10 +9,130 @@ fixed. This page chronicles how.
 
 ## The First Sweep
 
-Reuse [Point Grid](./multi_point_motion.md#point-grid)'s 12 points and
-sweep `factor_x` upward, sizing `search_margin_width` per factor so it
-always comfortably contains the largest point's displacement — wide
-enough that "the window was too small" can't explain a failure:
+The rest of this page traces a real, silent bug in `locate`: the kernel
+content it correlates against gets padded asymmetrically, capping how
+far a point can move and still be found. Here it is, directly. A point
+at $(150, 150)$ px, a 60x60 px kernel (`kernel_margin = 30`), moved by
+a series of `dx` values, tracked with a deliberately pre-fix version of
+`locate`.
+[`locate_uncentered`](#recoverable_displacement_range_uncentered_demopy) —
+introduced properly, with the reasoning behind it, in [Isolating the
+Real Variable](#isolating-the-real-variable) below — reproduces exactly
+the padding this page's real, shipped `locate` no longer has. The fixed
+version wouldn't reproduce this collapse at all:
+
+```python
+from dictk.image import PixelCoordinate, read, translate
+from recoverable_displacement_range_uncentered_demo import locate_uncentered
+
+reference_image = read(path="astronaut0.png")
+p0 = PixelCoordinate(x=150, y=150)
+kernel_margin = 30
+search_margin = 150  # generous -- per Root Cause, size won't help here --
+# and exactly half of astronaut0's 300px canvas, so the search reads the
+# whole image with no extraction margin of its own
+
+for dx in [0, 10, 20, 25, 29, 30, 31, 35, 40, 50]:
+    current_image = translate(arr=reference_image, dx=dx, dy=0)
+    expected = PixelCoordinate(x=p0.x + dx, y=p0.y)
+    found = locate_uncentered(reference_image, current_image, p0, p0, kernel_margin, search_margin)
+    print(f"dx={dx}  expected={expected}  found={found}  match={found == expected}")
+```
+
+`expected`/`found` below appear in two reference frames side by side:
+`current_image`'s own absolute frame (what `locate_uncentered` actually
+returns, same as the code above), and the local frame of `search`
+itself -- labeled "Fixed Image, frame $\mathcal{S}$", matching [Seeing
+the Cliff](#seeing-the-cliff)'s quadrant figures just below exactly.
+`expected` there always equals the correlation surface's own true peak
+(that section's yellow box); `found` always equals what
+`locate_uncentered` actually reports (its magenta box):
+
+<!-- cmdrun python3 recoverable_displacement_range_first_sweep.py -->
+
+A sharp cliff, right at `dx = kernel_margin + 1`. `search_margin = 150`
+— five times `kernel_margin` — makes no difference past that point at
+all. The rest of this page explains why, and fixes it.
+
+### Seeing the Cliff
+
+The correlation surface behind this is never actually wrong -- its own
+peak lands at the correct position for both `dx = 30` and `dx = 31`,
+confirmed separately. The bug is downstream: `locate_uncentered`'s
+`skimage`-based conversion of that surface into a signed shift, which
+misreads the answer only past the cliff. [`recoverable_displacement_range_first_sweep_quadrant.py`](#recoverable_displacement_range_first_sweep_quadrantpy)
+marks both positions on the same Fixed Image panel
+[`phase_correlation_quadrant_plot`](../api/dictk/plot.html#phase_correlation_quadrant_plot)
+already draws elsewhere in this book -- the surface's own true peak
+(yellow, dashed, unchanged from every other use of that function) and
+where `locate_uncentered` actually reports the point (magenta). `search`
+here reads the entire `astronaut0` canvas -- `search_margin = 150` is
+exactly half its 300px width -- so the extraction itself adds no black
+margin of its own; the only black left is `dx`'s own left-side gap from
+shifting the image right:
+
+<!-- cmdrun python3 recoverable_displacement_range_first_sweep_quadrant.py -->
+
+<figure>
+    <img src="recoverable_displacement_range_first_sweep_quadrant_dx30.png" alt="Phase correlation quadrant plot for dx=30: a 30px black margin on the left edge, exactly matching dx, with no black margin on the right; the yellow dashed correlation-surface-peak box and the dotted magenta locate_uncentered box coincide exactly, both correctly on the visible search image" />
+    <figcaption><code>dx = 30</code>: the black margin on the left is exactly 30px wide -- <code>dx</code> itself, visible directly, not just computed. The two boxes coincide: <code>locate_uncentered</code> reports the same position the surface actually peaks at.</figcaption>
+</figure>
+
+<figure>
+    <img src="recoverable_displacement_range_first_sweep_quadrant_dx31.png" alt="Phase correlation quadrant plot for dx=31: the yellow dashed correlation-surface-peak box sits correctly on the visible search image, but the dotted magenta locate_uncentered box sits entirely outside it, in the blank margin to the left" />
+    <figcaption><code>dx = 31</code>: the yellow box still marks the surface's true (correct) peak. The magenta box -- where <code>locate_uncentered</code> actually reports the point -- lands entirely outside the visible search frame, off by exactly the padded array's own width.</figcaption>
+</figure>
+
+### Fixing `locate`
+
+[`recoverable_displacement_range_fixing_locate.py`](#recoverable_displacement_range_fixing_locatepy)
+(full source at the bottom of this page) re-runs The First Sweep's
+exact scenario and `dx` values against the real, shipped
+[`dictk.translation.locate`](../api/dictk/translation.html#locate) --
+not `locate_uncentered` -- before this page walks through why the fix
+was needed. Same two reference frames as The First Sweep's own table
+above:
+
+<!-- cmdrun python3 recoverable_displacement_range_fixing_locate.py -->
+
+Every row matches now, cliff included.
+
+[`recoverable_displacement_range_fixing_locate_quadrant.py`](#recoverable_displacement_range_fixing_locate_quadrantpy)
+draws `dx = 31` -- the cliff itself -- the same way Seeing the Cliff
+did, but with `centered=True`:
+[`phase_correlation_quadrant_plot`](../api/dictk/plot.html#phase_correlation_quadrant_plot)
+pads the Moving Image panel's kernel the same way `locate` now does
+internally, instead of the permanent bottom-right-only padding
+`phase_correlation` itself always keeps. Compare the two Moving Image
+panels directly: [Seeing the Cliff's `dx = 31`
+figure](#seeing-the-cliff) shows the kernel's content pinned to the
+top-left corner of an otherwise-black canvas; this one shows the exact
+same content centered within it, black on all four sides evenly. That
+single difference is the entire fix:
+
+<!-- cmdrun python3 recoverable_displacement_range_fixing_locate_quadrant.py -->
+
+<figure>
+    <img src="recoverable_displacement_range_fixing_locate_quadrant_dx31.png" alt="Phase correlation quadrant plot for dx=31 with the fixed locate: the Moving Image panel shows the kernel's content centered within the padded canvas, black margins even on all four sides, unlike the pre-fix figure's top-left-anchored content; the yellow dashed correlation-surface-peak box and the dotted magenta locate box coincide exactly on the Fixed Image panel" />
+    <figcaption><code>dx = 31</code>, post-fix. The Moving Image panel's kernel content is centered, not pinned to the top-left corner -- compare directly against <a href="#seeing-the-cliff">Seeing the Cliff's <code>dx = 31</code> figure</a> above. On the Fixed Image panel, the two boxes coincide again: <code>locate</code> now reports the same position the surface actually peaks at, past the old cliff.</figcaption>
+</figure>
+
+The rest of this page takes a step back and walks through the
+investigation in full -- the hypotheses that turned out not to explain
+it, the confound that had to be set aside, isolating the real variable,
+and exactly why the kernel's padding needed to be centered to fix this.
+
+## The Original Stretch Question
+
+That cliff is the real bug this page fixes, but it isn't how the
+investigation actually started. It began from a different angle:
+[Simple Stretch](./simple_stretch.md)'s own question, how far can
+`astronaut0` be stretched, or compressed, before `locate` stops finding
+the exact expected position? Reuse [Point
+Grid](./multi_point_motion.md#point-grid)'s 12 points and sweep
+`factor_x` upward, sizing `search_margin_width` per factor so it always
+comfortably contains the largest point's displacement — wide enough
+that "the window was too small" can't explain a failure:
 
 ```python
 from dictk.image import read, stretch, PixelCoordinate
@@ -45,9 +165,17 @@ Matching collapses almost immediately — well before 20% stretch. That's
 surprising: at this book's own 40-pixel kernel scale, a real
 degradation-driven failure shouldn't set in this early.
 
+This table already runs against `locate`'s real, fixed version — it's
+live, re-run on every book build. [Path
+Forward](./path_forward.md#2026-08-14) already checked whether the fix
+above changed it, and it doesn't: `search_margin_width` here is always
+sized larger than the true displacement, so this sweep never actually
+hits the cliff bug The First Sweep demonstrated. Something else
+explains this particular collapse.
+
 ## Two Hypotheses, Both Ruled Out
 
-Two mechanisms seemed likely going in.
+Two mechanisms seemed possible: [blur](#hypothesis-1-blur) or [canvas exit](#hypothesis-2-canvas-exit).
 
 ### Hypothesis 1: Blur
 
@@ -360,4 +488,22 @@ follow-up work, not resolved here.
 
 ```python
 <!-- cmdrun cat recoverable_displacement_range_the_fix_cliff.py -->
+```
+
+### `recoverable_displacement_range_first_sweep_quadrant.py`
+
+```python
+<!-- cmdrun cat recoverable_displacement_range_first_sweep_quadrant.py -->
+```
+
+### `recoverable_displacement_range_fixing_locate.py`
+
+```python
+<!-- cmdrun cat recoverable_displacement_range_fixing_locate.py -->
+```
+
+### `recoverable_displacement_range_fixing_locate_quadrant.py`
+
+```python
+<!-- cmdrun cat recoverable_displacement_range_fixing_locate_quadrant.py -->
 ```

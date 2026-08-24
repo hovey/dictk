@@ -95,13 +95,95 @@ Noted, not being pursued right now:
 * **Heaviside DIC and XFEM** — enriching the correlation itself to
   detect and locate a discontinuity, not just generating test images
   that contain one (see above).
-* **Subpixel accuracy (upsampling).** Every worked example in this book
-  is deliberately built around a known, exact-integer-pixel ground
-  truth (see [Single Point
-  Motion](./single_point_motion.md#current-configuration-and-displacement)),
-  so `dictk`'s correlation results have never needed anything past
-  whole-pixel accuracy. `skimage.registration.phase_cross_correlation`
-  already supports an `upsample_factor` parameter for sub-pixel
-  registration; `dictk` doesn't expose it yet. Real, non-synthetic
-  displacements won't land on exact pixels, so this becomes necessary
-  once the book moves past known-integer test cases.
+* **`grid.locate()` windowing demo.** `windowing` has only ever been
+  demonstrated directly on
+  [`dictk.correlation.phase_correlation`](../api/dictk/correlation.html#phase_correlation)
+  (see [Correlation
+  Visualization](./correlation_visualization.md#phase-correlation)).
+  Every
+  `grid.locate()` call across the book so far (Multi-Point Motion,
+  Simple Stretch, Recoverable Displacement Range, Pure Rotation,
+  Parallelization) leaves `windowing` at its default `None` — the one
+  parameter of `grid.locate`'s own signature with no live worked
+  example yet.
+
+## 2026-08-18
+
+**Pure Rotation: The First Sweep.** New page, [Pure
+Rotation](./pure_rotation.md), starts checking direction 3 above
+empirically. Its First Sweep reuses [Point
+Grid](./multi_point_motion.md#point-grid)'s 12-point grid and sweeps
+`rotate`'s angle, sizing `search_margin` generously at every step so
+window size can't be the limiting factor — the same approach
+[Recoverable Displacement
+Range](./recoverable_displacement_range.md#the-first-sweep) used.
+Matching collapses even faster than that page's stretch sweep did: well
+under half the points still match by 2 degrees, none by 8 degrees. The
+likely cause, already named in this page's own direction-3 note above,
+isn't confirmed yet — a large enough rotation turns a kernel's own
+content around a point, not just moves it, and a translation-only
+search can't follow that. Checking that hypothesis directly is the next
+step here, not started yet.
+
+**Pure Rotation: hypothesis confirmed.** Same page, new [Confirming the
+Content-Rotation
+Hypothesis](./pure_rotation.md#confirming-the-content-rotation-hypothesis)
+section. Two direct checks: handing `locate` the exact true search
+center instead of a generous margin barely changes the collapse,
+ruling out search mechanics; and a plain `zncc` similarity score
+between the reference kernel and the true-aligned current-image patch
+(no search at all) falls off steeply with angle, confirming the real
+cause is content, not search. One thing this doesn't separate out yet:
+`rotate` shares `stretch`'s bilinear interpolation, and [Recoverable
+Displacement
+Range](./recoverable_displacement_range.md#an-interpolation-confound-set-aside)
+already found interpolation blur alone can look similar — genuine
+geometric content rotation and interpolation blur are likely both
+compounding here. Telling them apart is the next open step, not
+started.
+
+## 2026-08-20
+
+**Postponed subpixel accuracy item, resolved.** [Simple Stretch
+Revisited](./simple_stretch.md#simple-stretch-revisited) found the
+concrete trigger this Postponed item's own wording anticipated: at
+`factor_x = 1.02`, only points whose `x` is a multiple of 50 land on
+an integer pixel in the deformed configuration. A denser grid mostly
+doesn't. New [Subpixel
+Accuracy](./subpixel_accuracy.md) page: `dictk.translation.locate_subpixel`
+and `dictk.grid.locate_subpixel`, exposing
+`phase_cross_correlation`'s own `upsample_factor` — separate functions
+from `locate`/`grid.locate`, not a parameter added to them, returning
+a new `dictk.image.SubpixelCoordinate` (float `x`/`y`) instead of
+`PixelCoordinate`. Measured directly against VIC-2D's own 2862-point
+grid: `upsample_factor` doesn't make `locate`'s truncated integer
+answer more often correct (the true target usually isn't an integer at
+that density, so no refinement changes that) — but it substantially
+improves how close the tracked position lands to the true, generally
+fractional, target (mean absolute error 0.26px at `upsample_factor=1`,
+down to 0.09px at `10`). Parallelization (9) gains this as its first
+child, 9.1; a second child, 9.2 High Point Density, picking the same
+subpixel tooling up at real density, is the planned next step, not
+started yet.
+
+## 2026-08-24
+
+**9.2 High Point Density, shipped.** New page, [High Point
+Density](./high_point_density.md), closes the 9.1/9.2 pair under
+[Parallelization](./parallelization.md). It pushes `grid.locate_subpixel`
+to VIC-2D's own point density: 2862 points, 5px spacing, 2756 elements.
+No new library code — it composes entirely from already-shipped
+functions, the same way [Simple Stretch
+Revisited](./simple_stretch.md#simple-stretch-revisited) did.
+
+A real finding came out of it, verified before writing anything up.
+The strain field isn't clean at this density. Mean E11 still tracks
+the true value closely (0.0199 vs. 0.0198), but individual elements
+scatter widely (std 0.0155, range -0.016 to 0.077). A live 4-point
+spacing sweep (5/10/20/40px) confirmed the mechanism directly: strain
+noise scales with displacement-noise divided by element size, so the
+same small subpixel tracking residual gets amplified more at smaller
+spacing. Std shrinks monotonically across the sweep
+(0.0154/0.0125/0.0099/0.0032). The page names VIC-2D's own
+strain-window averaging as the standard remedy but doesn't implement
+it — that stays open.

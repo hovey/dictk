@@ -37,7 +37,8 @@ Generation](./image_generation.md#speckle--checkerboard).  This will be the
 `reference_image`, matching `locate`'s own parameter name:
 
 ```python
-from dictk.image import read, PixelCoordinate, point_plot, ArrowAnnotation
+from dictk.image import read, PixelCoordinate
+from dictk.plot import point_plot, ArrowAnnotation
 
 reference_image = read(path="checkerboard0.png")
 
@@ -55,7 +56,7 @@ point_plot(
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, point_plot, ArrowAnnotation; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); point_plot(image=reference_image, arrows=[ArrowAnnotation(tail=PixelCoordinate(x=0, y=0), head=p0, color='orange', label=r'\$\\boldsymbol{p}_0\$')], figsize=(6.4, 4.8), path='single_point_motion_p0.png'); print('Saved: single_point_motion_p0.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate; from dictk.plot import point_plot, ArrowAnnotation; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); point_plot(image=reference_image, arrows=[ArrowAnnotation(tail=PixelCoordinate(x=0, y=0), head=p0, color='orange', label=r'\$\\boldsymbol{p}_0\$')], figsize=(6.4, 4.8), path='single_point_motion_p0.png'); print('Saved: single_point_motion_p0.png')" -->
 ```
 
 <figure>
@@ -110,7 +111,7 @@ point_plot(
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate, point_plot, ArrowAnnotation; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); p1 = PixelCoordinate(x=p0.x - 6, y=p0.y + 8); point_plot(image=current_image, arrows=[ArrowAnnotation(tail=PixelCoordinate(x=0, y=0), head=p0, color='orange', label=r'\$\\boldsymbol{p}_0\$'), ArrowAnnotation(tail=PixelCoordinate(x=0, y=0), head=p1, color='cyan', label=r'\$\\boldsymbol{p}_1\$'), ArrowAnnotation(tail=p0, head=p1, color='magenta', label=r'\$\delta \\boldsymbol{p}\$')], figsize=(6.4, 4.8), path='single_point_motion_p1_displacement.png'); print('Saved: single_point_motion_p1_displacement.png')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate; from dictk.plot import point_plot, ArrowAnnotation; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); current_image = translate(arr=reference_image, dx=-6, dy=8); p1 = PixelCoordinate(x=p0.x - 6, y=p0.y + 8); point_plot(image=current_image, arrows=[ArrowAnnotation(tail=PixelCoordinate(x=0, y=0), head=p0, color='orange', label=r'\$\\boldsymbol{p}_0\$'), ArrowAnnotation(tail=PixelCoordinate(x=0, y=0), head=p1, color='cyan', label=r'\$\\boldsymbol{p}_1\$'), ArrowAnnotation(tail=p0, head=p1, color='magenta', label=r'\$\delta \\boldsymbol{p}\$')], figsize=(6.4, 4.8), path='single_point_motion_p1_displacement.png'); print('Saved: single_point_motion_p1_displacement.png')" -->
 ```
 
 <figure>

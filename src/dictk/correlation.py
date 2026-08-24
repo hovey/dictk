@@ -390,6 +390,7 @@ def phase_correlation(
     kernel: np.ndarray,
     search: np.ndarray,
     windowing: WindowingMethod | None = None,
+    centered: bool = False,
 ) -> np.ndarray:
     r"""Phase correlation surface of `kernel` against `search`, via FFT.
 
@@ -450,13 +451,31 @@ def phase_correlation(
             is windowed first, then zero-padded, so the padding stays
             outside the tapered region. Default `None` applies no
             windowing, matching this function's original behavior exactly.
+        centered: Passed straight through to
+            [`_kernel_pad`](#_kernel_pad)'s own `centered` parameter.
+            Default `False` keeps this function's permanent, original
+            bottom-right-only padding -- backward compatible with every
+            peak position already published in Correlation Visualization,
+            as described above -- regardless of what `dictk.translation.locate`
+            does internally. `True` centers `kernel`'s content instead,
+            matching `locate`'s own convention exactly, for a caller that
+            explicitly wants this function's surface to agree with
+            `locate`'s answer past the range where the two conventions
+            diverge (see [Recoverable Displacement
+            Range](../getting_started/recoverable_displacement_range.html)).
+            The raw `argmax` convention documented below only holds for
+            the default; with `centered=True`, the true match position is
+            the raw `argmax` plus `_kernel_pad`'s own returned
+            `pad_before_height`/`pad_before_width`, wrapped modulo
+            `search`'s own shape.
 
     Returns:
         A 2D float64 array the same shape as `search` (unlike
         `cc`/`ncc`/`zcc`/`zncc`'s smaller "valid" shape, since nothing
         here excludes any candidate offset). Entry `[dy, dx]` is
         $C_{\mathrm{phase}}$ with `kernel`'s top-left corner at offset
-        `(dx, dy)` in `search`'s local frame.
+        `(dx, dy)` in `search`'s local frame (`centered=False`) -- see
+        `centered` above for the `centered=True` convention instead.
 
     Raises:
         ValueError: If either array is not 2D, or `search` is smaller than
@@ -465,7 +484,7 @@ def phase_correlation(
     kernel, search = _prepare(kernel=kernel, search=search)
     kernel, search = _window(kernel=kernel, search=search, windowing=windowing)
     kernel_padded, _pad_before_height, _pad_before_width = _kernel_pad(
-        kernel=kernel, shape=search.shape
+        kernel=kernel, shape=search.shape, centered=centered
     )
 
     search_freq = np.fft.fft2(search)
