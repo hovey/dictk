@@ -94,7 +94,7 @@ expected = [
 ]
 ```
 
-<!-- cmdrun python3 -c "from dictk.image import PixelCoordinate; from dictk.grid import generate; points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); factor_x = 1.02; expected = [PixelCoordinate(x=int(p.x * factor_x), y=p.y) for p in points]; print('<table>'); print('<thead>'); print('<tr><th rowspan=\"2\">Point</th><th colspan=\"2\">Reference Configuration \$(X, Y)\$</th><th colspan=\"2\">Expected \$(x, y)\$</th></tr>'); print('<tr><th>\$X\$ (pixels)</th><th>\$Y\$ (pixels)</th><th>\$x\$ (pixels)</th><th>\$y\$ (pixels)</th></tr>'); print('</thead>'); print('<tbody>'); [print(f'<tr><td>{i:02d}</td><td>{p.x}</td><td>{p.y}</td><td>{e.x}</td><td>{e.y}</td></tr>') for i, (p, e) in enumerate(zip(points, expected))]; print('</tbody>'); print('</table>')" -->
+<!-- cmdrun python3 -c "from dictk.image import PixelCoordinate; from dictk.grid import generate; points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); factor_x = 1.02; expected = [PixelCoordinate(x=int(p.x * factor_x), y=p.y) for p in points]; print('<table>'); print('<thead>'); print('<tr><th rowspan=\"2\">Point</th><th colspan=\"2\">Reference Configuration \$(X, Y)\$</th><th colspan=\"2\">Expected \$(x, y)\$</th></tr>'); print('<tr><th>\$X\$ (pixels)</th><th>\$Y\$ (pixels)</th><th>\$x\$ (pixels)</th><th>\$y\$ (pixels)</th></tr>'); print('</thead>'); print('<tbody>'); [print(f'<tr><td>{i:02d}</td><td style=\"text-align: right;\">{p.x}</td><td style=\"text-align: right;\">{p.y}</td><td style=\"text-align: right;\">{e.x}</td><td style=\"text-align: right;\">{e.y}</td></tr>') for i, (p, e) in enumerate(zip(points, expected))]; print('</tbody>'); print('</table>')" -->
 
 This is a real deformation, not a rigid shift. [Multi-Point
 Motion](./multi_point_motion.md) moved every point by the same $(\delta x,
@@ -344,7 +344,8 @@ Solutions, Inc.), independently of `dictk`.
 
 ### 2682-Point Sample
 
-VIC-2D placed its own subsets on a regular grid, 5 pixels apart in both
+VIC-2D placed its own kernels (each kernel sized `25 x 25` px) on a regular grid,
+5 pixels apart in both
 directions — 53x54, 2862 candidate positions across the image. 180 of
 them sit close enough to the image's outer edge that their own
 correlation window would run off-canvas, so VIC-2D masks those out,
