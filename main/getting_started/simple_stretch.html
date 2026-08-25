@@ -279,18 +279,18 @@ changes, and by a different amount for each point:</p>
 <tr><th><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span> (pixels)</th><th><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">Y</span></span></span></span> (pixels)</th><th><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> (pixels)</th><th><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span> (pixels)</th></tr>
 </thead>
 <tbody>
-<tr><td>00</td><td>50</td><td>50</td><td>51</td><td>50</td></tr>
-<tr><td>01</td><td>100</td><td>50</td><td>102</td><td>50</td></tr>
-<tr><td>02</td><td>150</td><td>50</td><td>153</td><td>50</td></tr>
-<tr><td>03</td><td>50</td><td>105</td><td>51</td><td>105</td></tr>
-<tr><td>04</td><td>100</td><td>105</td><td>102</td><td>105</td></tr>
-<tr><td>05</td><td>150</td><td>105</td><td>153</td><td>105</td></tr>
-<tr><td>06</td><td>50</td><td>160</td><td>51</td><td>160</td></tr>
-<tr><td>07</td><td>100</td><td>160</td><td>102</td><td>160</td></tr>
-<tr><td>08</td><td>150</td><td>160</td><td>153</td><td>160</td></tr>
-<tr><td>09</td><td>50</td><td>215</td><td>51</td><td>215</td></tr>
-<tr><td>10</td><td>100</td><td>215</td><td>102</td><td>215</td></tr>
-<tr><td>11</td><td>150</td><td>215</td><td>153</td><td>215</td></tr>
+<tr><td>00</td><td style="text-align: right;">50</td><td style="text-align: right;">50</td><td style="text-align: right;">51</td><td style="text-align: right;">50</td></tr>
+<tr><td>01</td><td style="text-align: right;">100</td><td style="text-align: right;">50</td><td style="text-align: right;">102</td><td style="text-align: right;">50</td></tr>
+<tr><td>02</td><td style="text-align: right;">150</td><td style="text-align: right;">50</td><td style="text-align: right;">153</td><td style="text-align: right;">50</td></tr>
+<tr><td>03</td><td style="text-align: right;">50</td><td style="text-align: right;">105</td><td style="text-align: right;">51</td><td style="text-align: right;">105</td></tr>
+<tr><td>04</td><td style="text-align: right;">100</td><td style="text-align: right;">105</td><td style="text-align: right;">102</td><td style="text-align: right;">105</td></tr>
+<tr><td>05</td><td style="text-align: right;">150</td><td style="text-align: right;">105</td><td style="text-align: right;">153</td><td style="text-align: right;">105</td></tr>
+<tr><td>06</td><td style="text-align: right;">50</td><td style="text-align: right;">160</td><td style="text-align: right;">51</td><td style="text-align: right;">160</td></tr>
+<tr><td>07</td><td style="text-align: right;">100</td><td style="text-align: right;">160</td><td style="text-align: right;">102</td><td style="text-align: right;">160</td></tr>
+<tr><td>08</td><td style="text-align: right;">150</td><td style="text-align: right;">160</td><td style="text-align: right;">153</td><td style="text-align: right;">160</td></tr>
+<tr><td>09</td><td style="text-align: right;">50</td><td style="text-align: right;">215</td><td style="text-align: right;">51</td><td style="text-align: right;">215</td></tr>
+<tr><td>10</td><td style="text-align: right;">100</td><td style="text-align: right;">215</td><td style="text-align: right;">102</td><td style="text-align: right;">215</td></tr>
+<tr><td>11</td><td style="text-align: right;">150</td><td style="text-align: right;">215</td><td style="text-align: right;">153</td><td style="text-align: right;">215</td></tr>
 </tbody>
 </table>
 <p>This is a real deformation, not a rigid shift. <a href="./multi_point_motion.html">Multi-Point
@@ -558,7 +558,8 @@ page's own <code>factor_x = 1.02</code> stretch was run through
 <a href="https://www.correlatedsolutions.com/vic-2d/">VIC-2D</a> (Correlated
 Solutions, Inc.), independently of <code>dictk</code>.</p>
 <h3 id="2682-point-sample"><a class="header" href="#2682-point-sample">2682-Point Sample</a></h3>
-<p>VIC-2D placed its own subsets on a regular grid, 5 pixels apart in both
+<p>VIC-2D placed its own kernels (each kernel sized <code>25 x 25</code> px) on a regular grid,
+5 pixels apart in both
 directions — 53x54, 2862 candidate positions across the image. 180 of
 them sit close enough to the image's outer edge that their own
 correlation window would run off-canvas, so VIC-2D masks those out,
