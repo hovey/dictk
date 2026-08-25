@@ -9,161 +9,96 @@ points will serve as the **nodes** of a finite element mesh.
 This page shows how to track many points simultaneously, and motivates the
 connection to the **Finite Element Method (FEM)**.
 
-## Point Grid
+## Commercial DIC Context
 
-A **grid** is an ordered, sequential collection of points, arranged in a rectilinear
-pattern. 
-The function [`dictk.grid.generate`](../api/dictk/grid.html#generate) creates
-a grid that spans some number of points along $x$ and along $y$,
-with some spacing between adjacent points along each axis.
-The count of points along $x$ and along $y$ need not be equal, and the
-spacing along $x$ and along $y$ need not be equal either. The grid is a
-general rectangular collection of points, not necessarily a square or
-uniformly-spaced one. `spacing_x` and `spacing_y` are in pixels.
+Commercial DIC software sets up a measurement in a specific order, and
+it runs opposite to order presented on this page.
+The reversal is a deliberate choice because we have not yet introduced
+[**subpixel accuracy**](./subpixel_accuracy.md).  After subpixel accuracy is
+discussed, `dictk` will follow the same order used by commerical DIC software,
+described next:
 
-This page uses `astronaut0`, the speckle pattern combined with the
-astronaut photograph introduced in [Image
-Generation](./image_generation.md#speckle--astronaut).
+**Kernel size comes first.** A kernel must contain enough distinctive
+texture to correlate reliably.  An image will contain features (e.g., a speckle pattern feature such as a corner or edge).
+The goal is to get enough (but not too many) pixels to describe a feature. 
+Too few pixels cause the kernel contents to be ambiguous.
+Too many pixels cause the kernel to be saturated with pixels that do not
+participate in the feature, resulting in poor-to-no correlation.  Too many
+pixels also can also increase computational cost beyond what is necessary for a
+successful correlation.
 
-```python
-from dictk.image import read, PixelCoordinate
-from dictk.plot import point_grid_plot
-from dictk.grid import generate
+Ultimately, the size of the kernel is based on the speckle pattern's own
+feature size and the camera's resolution, which dictates the number of pixels
+per unit length present in the image.
 
-reference_image = read(path="astronaut0.png")
+**Point spacing comes second.** Once kernel size is fixed, point spacing
+(where to place each kernel center) follows from it.
 
-points = generate(
-    origin=PixelCoordinate(x=50, y=50),
-    count_x=3,
-    count_y=4,
-    spacing_x=50,
-    spacing_y=55,
-)
-point_grid_plot(
-    image=reference_image,
-    points=points,
-    color="orange",
-    figsize=(6.4, 4.8),
-    path="multi_point_motion_grid.png",
-)
-```
+* Some practitioners deliberately overlap neighboring
+kernels: A common convention is 50-75% overlap. So spacing works out
+to roughly a quarter to a half of the kernel's own side length — to
+oversample the field for a smoother reconstruction.
+* Others keep
+kernels non-overlapping, so each point's own measurement stays
+independent of its neighbors': No two points ever look at the same
+underlying pixels.
 
-```text
-<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate; from dictk.plot import point_grid_plot; from dictk.grid import generate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); point_grid_plot(image=reference_image, points=points, color='orange', figsize=(6.4, 4.8), path='multi_point_motion_grid.png'); print('Saved: multi_point_motion_grid.png')" -->
-```
+Either way, the same tradeoff governs the choice:
+Too close, and neighboring kernels duplicate each other's content; too
+far apart, and the measurement undersamples the field.
 
-<figure>
-    <img src="multi_point_motion_grid.png" alt="reference image astronaut0 with a 3x4 grid of 12 numbered points overlaid in orange, labeled 00 through 11 in row-major order" />
-    <figcaption>Reference image <code>astronaut0</code> with a 3x4 grid of 12 points (<code>count_x=3</code>, <code>count_y=4</code>), spaced 50 pixels apart along $x$ and 55 pixels apart along $y$ (<code>spacing_x=50</code>, <code>spacing_y=55</code>), labeled 00-11 in row-major order (top-left to bottom-right).</figcaption>
-</figure>
+**The point grid becomes FEA nodes afterward, not before.** Once
+tracking finishes, the resulting grid of measured points is what gets
+used as finite-element nodes. The mapping between DIC points and mesh
+points can be direct or indirect.  Direct build a mesh directly from the
+DIC point cloud.  Indirect uses the point cloud as an interpolation basis
+for a separately designed mesh.
+The FE mesh's density inherits the kernel-and-spacing
+choice for the correlation.
 
-The reference coordinates $(X, Y)$ in pixels for each point follow:
+Let's continue with this example with a rather *large* choice for a pixel
+size.  Let `kernel_margin_width=20` pixel and `kernel_margin_height=20 ` pixel.
+The kernel's side length is twice its margin: $2 \times 20
+= 40$ pixels.
+This kernel is enough to contain plenty of distinctive texture
+on `astronaut0`'s uniformly-speckled, synthetic surface,
+where no single location demands special care over another. 
+Heuristically, we typically use kernel sizes of `25 x 25` pixel, up to
+`35 x 35` pixel (considerably smaller than the `40 x 40` pixel used in this
+example).
 
-<!-- cmdrun python3 -c "from dictk.image import PixelCoordinate; from dictk.grid import generate; points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); print('<table>'); print('<thead>'); print('<tr><th rowspan=\"2\">Point</th><th colspan=\"2\">Reference Configuration \$(X, Y)\$</th></tr>'); print('<tr><th>\$X\$ (pixels)</th><th>\$Y\$ (pixels)</th></tr>'); print('</thead>'); print('<tbody>'); [print(f'<tr><td>{i:02d}</td><td>{p.x}</td><td>{p.y}</td></tr>') for i, p in enumerate(points)]; print('</tbody>'); print('</table>')" -->
+A common rule of thumb (no hard requirement behind it) is to keep a
+kernel's own side length comfortably inside the point spacing —
+the geometric floor for zero overlap is exact: with an isotropic
+kernel (`kernel_margin_width=kernel_margin_height`), two neighboring
+kernels start overlapping once the kernel's own full side length
+exceeds the spacing between their center points. For this example, 
+spacing has to reach
+at least 40 pixels in both directions to clear that floor; right at
+exactly 40 pixels, neighboring kernels would touch with zero gap
+between them.
 
-`dx, dy = -6, 8` is the same known rigid-body displacement that [Single Point
-Motion](./single_point_motion.md#current-configuration-and-displacement)
-gave `checkerboard0`. Applying it to `astronaut0` produces `current_image`:
+For now, we choose a point spacing not based on kernel size, but on
+locations that, given a prescribed stretch factor, will land exactly on
+an integer location in the deformed configuration.  We need integer
+positions for now because we have not yet introduced [subpixel accuracy](./subpixel_accuracy.md).
 
-```python
-from dictk.image import translate
+Let `spacing_x=50` px, `spacing_y=55` px be the point spacing for
+this page's example, keeping kernels non-overlapping (the second
+convention named above) — both comfortably above that 40-pixel floor:
+a 10-pixel gap in $x$ and a 15-pixel gap in $y$, so every kernel's own
+boundary will read as visibly separate from its neighbors', not merely
+non-overlapping.
 
-dx, dy = -6, 8
-current_image = translate(arr=reference_image, dx=dx, dy=dy)
-```
-
-Every point will need a **kernel** (the patch of `reference_image` used to
-identify it) and a **search area** (the region of `current_image` searched
-for a match). Before tracking the grid, it helps to see both relative to
-the point spacing.
-[`dictk.plot.point_grid_boxes_plot`](../api/dictk/plot.html#point_grid_boxes_plot)
-draws one box type per call, so kernel and search area each get their own
-figure — each point's own box gets its own color and its own legend
-entry (`kernel 00`, `kernel 01`, ..., `kernel 11`), cycling through a
-12-color palette (using matplotlib's Tableau colormap):
-
-```python
-from dictk.plot import point_grid_boxes_plot
-
-point_grid_boxes_plot(
-    image=reference_image,
-    points=points,
-    margin_width=20,
-    margin_height=20,
-    label_prefix="kernel",
-    figsize=(6.4, 4.8),
-    path="multi_point_motion_kernels.png",
-)
-```
-
-```text
-<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate; from dictk.plot import point_grid_boxes_plot; from dictk.grid import generate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); point_grid_boxes_plot(image=reference_image, points=points, margin_width=20, margin_height=20, label_prefix='kernel', figsize=(6.4, 4.8), path='multi_point_motion_kernels.png'); print('Saved: multi_point_motion_kernels.png')" -->
-```
+The following figure illustrates point spacing in the context the kernel's size:
 
 <figure>
-    <img src="multi_point_motion_kernels.png" alt="reference image astronaut0 with each of the 12 points' kernel boxes overlaid, each in its own color, labeled kernel 00 through kernel 11" />
-    <figcaption>Every point's kernel, each in its own color (<code>margin_width=20</code>, <code>margin_height=20</code>).</figcaption>
+    <img src="multi_point_motion_spacing.png" alt="two green 40x40 pixel kernel boxes centered on points 00 and 01, 50 pixels apart, with a third point 02 shown for context; dimension arrows show 40 px across each kernel, 50 px between point centers, and 10 px in the gap between the two kernels' facing edges" />
+    <figcaption>Points 00 and 01, 50 pixels apart, each with its own 40x40 kernel (green). The 10-pixel gap between the two boxes is exactly $50 - 40$ — the point spacing minus the kernel's own full side length, with nothing left over to round away.</figcaption>
 </figure>
 
-The kernel comes from `reference_image`. The search area comes from
-`current_image` instead — still centered on each point's *reference*
-position (`search_centers` defaults to `reference_points`), since the
-point's true displacement is exactly what tracking is trying to find:
-
-```python
-point_grid_boxes_plot(
-    image=current_image,
-    points=points,
-    margin_width=48,
-    margin_height=52,
-    label_prefix="search area",
-    figsize=(6.4, 4.8),
-    path="multi_point_motion_search.png",
-)
-```
-
-```text
-<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate; from dictk.plot import point_grid_boxes_plot; from dictk.grid import generate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); dx, dy = -6, 8; current_image = translate(arr=reference_image, dx=dx, dy=dy); point_grid_boxes_plot(image=current_image, points=points, margin_width=48, margin_height=52, label_prefix='search area', figsize=(6.4, 4.8), path='multi_point_motion_search.png'); print('Saved: multi_point_motion_search.png')" -->
-```
-
-<figure>
-    <img src="multi_point_motion_search.png" alt="current image astronaut0, shifted by (-6, 8) pixels, with each of the 12 points' search-area boxes overlaid, each in its own color, labeled search area 00 through search area 11" />
-    <figcaption>Every point's search area, each in its own color (<code>margin_width=48</code>, <code>margin_height=52</code>), drawn on <code>current_image</code> — the region actually searched — and still centered on each point's reference position.</figcaption>
-</figure>
-
-## Tracking the Grid
-
-Choosing a kernel size relative to point spacing is a tradeoff: a kernel
-needs to be large enough to contain enough distinctive texture to locate
-reliably, but small enough that neighboring kernels don't just duplicate
-each other's content.
-
-A common rule of thumb (with no hard requirement
-behind it) is to space points roughly half a kernel's side length apart.
-A kernel's full side length is twice its margin, so `kernel_margin_width`
-and `kernel_margin_height` are themselves already exactly half that side
-length — meaning the **rule of thumb** reduces to a simple comparison: **each
-margin should be close to the point spacing itself**, without exceeding it (past
-that point, neighboring kernels start overlapping).
-
-The point spacing above is 50 pixels in $x$ and 55 pixels in $y$
-(`spacing_x=50`, `spacing_y=55`). Keeping the kernel isotropic (a single
-margin for both axes, `kernel_margin_width=kernel_margin_height`) means
-the *smaller* of the two spacings is the binding constraint: a margin
-greater than 25 pixels would overlap its $x$-neighbor, since $2 \times 25 = 50$ is
-already the full spacing in $x$. That value, 25, is therefore the largest isotropic
-margin with zero overlap — but right at that ceiling, adjacent kernels
-touch exactly, sharing a boundary with no gap at all. 
-
-The kernel figure
-above backs off from that ceiling on purpose: `kernel_margin_width=20`,
-`kernel_margin_height=20`, leaving a clear 10-pixel gap in $x$ and a
-15-pixel gap in $y$, comfortably inside the no-overlap ceiling in both
-directions, so every kernel's own boundary reads as visibly separate from
-its neighbors', not merely non-overlapping.
-
-The two numbers side by side make the relationship exact, not just
-described:
+<details>
+<summary>Show the figure-generating code</summary>
 
 ```python
 import matplotlib.pyplot as plt
@@ -239,9 +174,127 @@ fig.savefig("multi_point_motion_spacing.png", dpi=300)
 <!-- cmdrun python3 -c "import matplotlib.pyplot as plt; import matplotlib.patches as patches; from dictk.image import PixelCoordinate; p0, p1, p2 = PixelCoordinate(x=50, y=50), PixelCoordinate(x=100, y=50), PixelCoordinate(x=150, y=50); kernel_margin = 20; plt.rcParams.update({'font.family': 'serif', 'mathtext.fontset': 'cm'}); fig, ax = plt.subplots(figsize=(7, 3.2), constrained_layout=True); [ (ax.plot(p.x, p.y, 'o', color='black', markersize=4), ax.annotate(label, (p.x, p.y), textcoords='offset points', xytext=(6, 6), fontsize=8)) for p, label in [(p0, '00'), (p1, '01'), (p2, '02')] ]; [ax.add_patch(patches.Rectangle((p.x - kernel_margin, p.y - kernel_margin), 2 * kernel_margin, 2 * kernel_margin, edgecolor='green', facecolor='none', linewidth=1.5)) for p in (p0, p1)]; box_top = p0.y - kernel_margin; box_bottom = p0.y + kernel_margin; dim_y = box_bottom + 8; [ax.plot([p.x, p.x], [p.y + 3, dim_y], color='gray', linestyle='--', linewidth=0.8) for p in (p0, p1)]; ax.annotate('', xy=(p0.x, dim_y), xytext=(p1.x, dim_y), arrowprops=dict(arrowstyle='<->', color='black', shrinkA=0, shrinkB=0)); ax.text((p0.x + p1.x) / 2, (box_bottom + dim_y) / 2, '50 px', ha='center', va='center', fontsize=9); top_y = box_top - 10; ax.annotate('', xy=(p0.x - kernel_margin, top_y), xytext=(p0.x + kernel_margin, top_y), arrowprops=dict(arrowstyle='<->', color='green', shrinkA=0, shrinkB=0)); ax.text(p0.x, top_y - 4, '40 px', ha='center', va='bottom', fontsize=8, color='green'); gap_y = box_top - 2; ax.annotate('', xy=(p0.x + kernel_margin, gap_y), xytext=(p1.x - kernel_margin, gap_y), arrowprops=dict(arrowstyle='<->', color='tab:red', shrinkA=0, shrinkB=0)); ax.text(p0.x + kernel_margin + (p1.x - kernel_margin - (p0.x + kernel_margin)) / 2, gap_y - 4, '10 px', ha='center', va='bottom', fontsize=7, color='tab:red'); ax.set_xlim(15, 175); ax.set_ylim(84, 8); xticks = list(range(20, 161, 10)); ax.set_xticks(xticks); ax.set_xticklabels([str(v) if v in (50, 100, 150) else '' for v in xticks]); yticks = list(range(20, 81, 10)); ax.set_yticks(yticks); ax.set_yticklabels([str(v) if v in (30, 50, 70) else '' for v in yticks]); ax.set_xlabel('x (pixels)'); ax.set_ylabel('y (pixels)'); ax.set_aspect('equal'); fig.savefig('multi_point_motion_spacing.png', dpi=300); print('Saved: multi_point_motion_spacing.png')" -->
 ```
 
+</details>
+
+With kernel size and the point spacing it implies both settled, the
+point grid can be generated next.
+
+## Point Grid
+
+A **grid** is an ordered, sequential collection of points, arranged in a rectilinear
+pattern. 
+The function [`dictk.grid.generate`](../api/dictk/grid.html#generate) creates
+a grid that spans some number of points along $x$ and along $y$,
+with some spacing between adjacent points along each axis.
+The count of points along $x$ and along $y$ need not be equal, and the
+spacing along $x$ and along $y$ need not be equal either. The grid is a
+general rectangular collection of points, not necessarily a square or
+uniformly-spaced one. `spacing_x` and `spacing_y` are in pixels.
+
+This page uses `astronaut0`, the speckle pattern combined with the
+astronaut photograph introduced in [Image
+Generation](./image_generation.md#speckle--astronaut).
+
+```python
+from dictk.image import read, PixelCoordinate
+from dictk.plot import point_grid_plot
+from dictk.grid import generate
+
+reference_image = read(path="astronaut0.png")
+
+points = generate(
+    origin=PixelCoordinate(x=50, y=50),
+    count_x=3,
+    count_y=4,
+    spacing_x=50,
+    spacing_y=55,
+)
+point_grid_plot(
+    image=reference_image,
+    points=points,
+    color="orange",
+    figsize=(6.4, 4.8),
+    path="multi_point_motion_grid.png",
+)
+```
+
+```text
+<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate; from dictk.plot import point_grid_plot; from dictk.grid import generate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); point_grid_plot(image=reference_image, points=points, color='orange', figsize=(6.4, 4.8), path='multi_point_motion_grid.png'); print('Saved: multi_point_motion_grid.png')" -->
+```
+
 <figure>
-    <img src="multi_point_motion_spacing.png" alt="two green 40x40 pixel kernel boxes centered on points 00 and 01, 50 pixels apart, with a third point 02 shown for context; dimension arrows show 40 px across each kernel, 50 px between point centers, and 10 px in the gap between the two kernels' facing edges" />
-    <figcaption>Points 00 and 01, 50 pixels apart, each with its own 40x40 kernel (green). The 10-pixel gap between the two boxes is exactly $50 - 40$ — the point spacing minus the kernel's own full side length, with nothing left over to round away.</figcaption>
+    <img src="multi_point_motion_grid.png" alt="reference image astronaut0 with a 3x4 grid of 12 numbered points overlaid in orange, labeled 00 through 11 in row-major order" />
+    <figcaption>Reference image <code>astronaut0</code> with a 3x4 grid of 12 points (<code>count_x=3</code>, <code>count_y=4</code>), spaced 50 pixels apart along $x$ and 55 pixels apart along $y$ (<code>spacing_x=50</code>, <code>spacing_y=55</code>), labeled 00-11 in row-major order (top-left to bottom-right).</figcaption>
+</figure>
+
+The reference coordinates $(X, Y)$ in pixels for each point follow:
+
+<!-- cmdrun python3 -c "from dictk.image import PixelCoordinate; from dictk.grid import generate; points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); print('<table>'); print('<thead>'); print('<tr><th rowspan=\"2\">Point</th><th colspan=\"2\">Reference Configuration \$(X, Y)\$</th></tr>'); print('<tr><th>\$X\$ (pixels)</th><th>\$Y\$ (pixels)</th></tr>'); print('</thead>'); print('<tbody>'); [print(f'<tr><td>{i:02d}</td><td style=\"text-align: right;\">{p.x}</td><td style=\"text-align: right;\">{p.y}</td></tr>') for i, p in enumerate(points)]; print('</tbody>'); print('</table>')" -->
+
+```python
+from dictk.image import translate
+
+dx, dy = -6, 8
+current_image = translate(arr=reference_image, dx=dx, dy=dy)
+```
+
+## Tracking the Grid
+
+Every point's own kernel and search area, using the kernel size chosen
+above, look like this.
+[`dictk.plot.point_grid_boxes_plot`](../api/dictk/plot.html#point_grid_boxes_plot)
+draws one box type per call, so kernel and search area each get their own
+figure — each point's own box gets its own color and its own legend
+entry (`kernel 00`, `kernel 01`, ..., `kernel 11`), cycling through a
+12-color palette (using matplotlib's Tableau colormap):
+
+```python
+from dictk.plot import point_grid_boxes_plot
+
+point_grid_boxes_plot(
+    image=reference_image,
+    points=points,
+    margin_width=20,
+    margin_height=20,
+    label_prefix="kernel",
+    figsize=(6.4, 4.8),
+    path="multi_point_motion_kernels.png",
+)
+```
+
+```text
+<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate; from dictk.plot import point_grid_boxes_plot; from dictk.grid import generate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); point_grid_boxes_plot(image=reference_image, points=points, margin_width=20, margin_height=20, label_prefix='kernel', figsize=(6.4, 4.8), path='multi_point_motion_kernels.png'); print('Saved: multi_point_motion_kernels.png')" -->
+```
+
+<figure>
+    <img src="multi_point_motion_kernels.png" alt="reference image astronaut0 with each of the 12 points' kernel boxes overlaid, each in its own color, labeled kernel 00 through kernel 11" />
+    <figcaption>Every point's kernel, each in its own color (<code>margin_width=20</code>, <code>margin_height=20</code>).</figcaption>
+</figure>
+
+The kernel comes from `reference_image`. The search area comes from
+`current_image` instead — still centered on each point's *reference*
+position (`search_centers` defaults to `reference_points`), since the
+point's true displacement is exactly what tracking is trying to find:
+
+```python
+point_grid_boxes_plot(
+    image=current_image,
+    points=points,
+    margin_width=48,
+    margin_height=52,
+    label_prefix="search area",
+    figsize=(6.4, 4.8),
+    path="multi_point_motion_search.png",
+)
+```
+
+```text
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate; from dictk.plot import point_grid_boxes_plot; from dictk.grid import generate; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); dx, dy = -6, 8; current_image = translate(arr=reference_image, dx=dx, dy=dy); point_grid_boxes_plot(image=current_image, points=points, margin_width=48, margin_height=52, label_prefix='search area', figsize=(6.4, 4.8), path='multi_point_motion_search.png'); print('Saved: multi_point_motion_search.png')" -->
+```
+
+<figure>
+    <img src="multi_point_motion_search.png" alt="current image astronaut0, shifted by (-6, 8) pixels, with each of the 12 points' search-area boxes overlaid, each in its own color, labeled search area 00 through search area 11" />
+    <figcaption>Every point's search area, each in its own color (<code>margin_width=48</code>, <code>margin_height=52</code>), drawn on <code>current_image</code> — the region actually searched — and still centered on each point's reference position.</figcaption>
 </figure>
 
 Nothing requires the kernel to be isotropic — `dictk` supports an
@@ -393,7 +446,7 @@ write(arr=current_image, path="astronaut1.tiff")
 ### Kernels
 
 Every point's kernel, extracted from `reference_image` — the same 12
-boxes shown in [Point Grid](#point-grid) (`kernel_margin_width=20`,
+boxes shown in [Tracking the Grid](#tracking-the-grid) (`kernel_margin_width=20`,
 `kernel_margin_height=20`, 40x40 pixels each):
 
 ```python
@@ -412,7 +465,7 @@ for i, point in enumerate(points):
 
 Every point's search area, extracted from `current_image` — not
 `reference_image`, since a search area is always a region of the current
-image (see [Point Grid](#point-grid)). The same 12 boxes shown there
+image (see [Tracking the Grid](#tracking-the-grid)). The same 12 boxes shown there
 (`search_margin_width=48`, `search_margin_height=52`, 96x104 pixels
 each), still centered on each point's *reference* position:
 

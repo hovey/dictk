@@ -9,7 +9,7 @@ Grid](./multi_point_motion.md#tracking-the-grid), tracks every one of its
 12 points to its current position — exactly the per-node displacement
 data a mesh needs to represent how an object deformed.
 
-[Tracking the Grid](./multi_point_motion.md#tracking-the-grid) also
+[Kernel Size First](./multi_point_motion.md#kernel-size-first) also
 covers the kernel-size-versus-point-spacing tradeoff involved in getting
 that per-node data reliably — the same considerations apply whether the
 points come from a toy grid or a real mesh.
