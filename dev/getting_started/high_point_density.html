@@ -191,6 +191,27 @@ density — 5 pixels apart, the same 53x54, 2862-point grid <a href="./simple_st
 Against VIC-2D</a> and
 Subpixel Accuracy both already used.</p>
 <h2 id="tracking-at-full-density"><a class="header" href="#tracking-at-full-density">Tracking at Full Density</a></h2>
+<p><a href="./simple_stretch.html#verification-against-vic-2d">Verification Against VIC-2D</a>
+noted VIC-2D's own kernel size: <code>25 x 25</code> px. Earlier pages' tracking
+calls all used a much larger, generously-sized kernel and search area,
+never tuned to match. Here, matching VIC-2D's own geometry is the point,
+so <code>kernel_margin_width</code>/<code>kernel_margin_height</code> target VIC-2D's <code>25 x 25</code> as closely as a whole-pixel margin allows.</p>
+<p>The closest whole-pixel match, <code>kernel_margin = 12</code> (a <code>24 x 24</code> px
+kernel), was tried first and rejected: checked directly against each
+point's own known true position, it produced real mismatches at several
+points — not sub-pixel noise, but tracking landing several pixels from
+the right answer entirely. A <code>24 x 24</code> px window is apparently too
+small, at this image's own speckle density, to always contain enough
+distinctive texture for a unique correlation match. <code>kernel_margin = 13</code>
+(<code>26 x 26</code> px, one pixel larger than VIC-2D's own kernel) tracks cleanly
+— zero mismatches across all 2862 points. VIC-2D's own search area size
+isn't published; <code>search_margin = 25</code> (a generous <code>50 x 50</code> px) is
+chosen for headroom, not to match an unknown number. One more change
+from earlier pages: <code>upsample_factor = 100</code>, not <a href="./subpixel_accuracy.html#measuring-the-difference">Subpixel
+Accuracy</a>'s own <code>10</code> —
+<a href="#distribution-across-the-full-mesh">Distribution Across the Full Mesh</a>
+below explains why this page needs the finer value even though that one
+didn't:</p>
 <pre><code class="language-python">from dictk.grid import generate, locate_subpixel
 
 points = generate(
@@ -204,11 +225,11 @@ found = locate_subpixel(
     reference_image=reference_image,
     current_image=current_image,
     reference_points=points,
-    kernel_margin_width=20,
-    kernel_margin_height=20,
-    search_margin_width=48,
-    search_margin_height=52,
-    upsample_factor=10,
+    kernel_margin_width=13,
+    kernel_margin_height=13,
+    search_margin_width=25,
+    search_margin_height=25,
+    upsample_factor=100,
 )
 </code></pre>
 <p>2862 points tracked</p>
@@ -217,7 +238,17 @@ found = locate_subpixel(
 for connectivity (2756 elements this time, not 196), then
 <a href="../api/dictk/element.html#gauss_point_log_strains"><code>gauss_point_log_strains</code></a>/<a href="../api/dictk/element.html#gauss_point_coordinates"><code>gauss_point_coordinates</code></a>
 at each of the resulting 11024 Gauss points. Node numbers stay off —
-2862 of them would be unreadable:</p>
+2862 of them would be unreadable. <code>element_strain_plot</code>'s default
+marker size (<code>s=150</code>) was sized for sparse meshes; at 5px point
+spacing it draws neighboring Gauss points as one solid overlapping
+mass, not a legible field. <code>dot_size=6</code> keeps individual markers from
+overlapping, and <code>marker="s"</code> (square, not the default circle) tiles
+them edge to edge with no gaps — circles, even sized to just touch,
+leave small diamond-shaped gaps at their corners, since tangent circles
+never fully cover a plane. <code>show_mesh_lines=False</code> drops the element
+outlines too — at this density the black grid lines fight the colored
+points for attention without adding information, and the tiled squares
+already read as a continuous field on their own:</p>
 <pre><code class="language-python">from dictk.element import gauss_point_coordinates, gauss_point_log_strains
 from dictk.grid import elements
 from dictk.plot import element_strain_plot
@@ -240,6 +271,9 @@ element_strain_plot(
     coordinates=coordinates,
     values=values,
     label=r"Log Strain, $E_{11}$",
+    dot_size=6,
+    marker="s",
+    show_mesh_lines=False,
     path="high_point_density_strain_gauss_points.png",
 )
 element_strain_plot(
@@ -248,24 +282,107 @@ element_strain_plot(
     coordinates=coordinates,
     values=values,
     label=r"Log Strain, $E_{11}$",
+    dot_size=6,
+    marker="s",
+    show_mesh_lines=False,
     image=current_image,
     path="high_point_density_strain_on_current.png",
 )
 </code></pre>
 <figure>
-    <img src="high_point_density_strain_gauss_points.png" alt="a dense 53x54 mesh with 4 Gauss points per element, colored by log strain E11, no node numbers, no background image" />
-    <figcaption>The full 2862-point mesh, colored by log strain <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</figcaption>
+    <img src="high_point_density_strain_gauss_points.png" alt="a dense field of small colored dots at 53x54 point density, colored by log strain E11, no mesh outline, no node numbers, no background image, reading as a continuous field with visible vertical striations" />
+    <figcaption>The full 2862-point mesh's 11024 Gauss points, colored by log strain <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</figcaption>
 </figure>
 <figure>
-    <img src="high_point_density_strain_on_current.png" alt="the same dense mesh and colored Gauss points overlaid on current_image, the stretched astronaut photo" />
-    <figcaption>The same dense mesh, overlaid on <code>current_image</code>.</figcaption>
+    <img src="high_point_density_strain_on_current.png" alt="the same dense field of colored dots overlaid on current_image, the stretched astronaut photo, no mesh outline" />
+    <figcaption>The same Gauss points, overlaid on <code>current_image</code>.</figcaption>
 </figure>
+<p><a href="./simple_stretch.html#verification-against-vic-2d">Verification Against VIC-2D</a>'s
+own field image has a fixed colorbar, <code>17560</code> to <code>22360</code> microstrain —
+and its own particular 16-band color scale, not a generic rainbow.
+Sampled directly from that image's own legend (not approximated by a
+built-in colormap name), the same 16 colors, forced onto <code>dictk</code>'s own
+field at the same <code>vmin</code>/<code>vmax</code>, make the two directly comparable:</p>
+<figure>
+    <div style="display: flex; gap: 1em;">
+        <a href="../verification/simple_stretch_result_vic.png" target="_blank" rel="noopener" style="flex: 1 1 0; min-width: 0;">
+            <img src="../verification/simple_stretch_result_vic.png" alt="VIC-2D's measured exx field, colorbar 17560 to 22360 microstrain, a striped pattern in VIC-2D's own 16-band magenta-blue-cyan-green-yellow-orange-red color scale" style="width: 100%;" />
+        </a>
+        <a href="high_point_density_strain_vic_colorbar.png" target="_blank" rel="noopener" style="flex: 1 1 0; min-width: 0;">
+            <img src="high_point_density_strain_vic_colorbar.png" alt="dictk's own E11 field forced onto the same 17560-22360 microstrain range and VIC-2D's own extracted 16-band colormap, mostly saturated solid magenta and solid red with only scattered patches of the in-between colors, vertical striations still visible through the clipping" style="width: 100%;" />
+        </a>
+    </div>
+    <figcaption>The same comparison as above, forced onto VIC-2D's own
+    colorbar (left, VIC-2D's <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">xx</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>; right, <code>dictk</code>'s own
+    <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>; both `17560`-`22360` microstrain, both VIC-2D's own
+    16-band color scale, sampled directly from its own legend). Most of
+    <code>dictk</code>'s own field falls outside that range entirely —
+    only 9.5% of its 11024 Gauss points land inside `[17560, 22360]`;
+    52.9% are below it (solid magenta, clipped to the scale's own
+    floor) and 37.7% are above it (solid red, clipped to the ceiling).
+    The vertical striations survive the clipping — visible as bands of
+    solid red against solid magenta — but the color variety VIC-2D's
+    own field shows is gone, since almost none of <code>dictk</code>'s
+    own values actually sit inside the narrow band VIC-2D's field
+    stays within.</figcaption>
+</figure>
+<details>
+<summary>Show the figure-generating code</summary>
+<pre><code class="language-python">from dictk.plot import element_strain_plot
+from matplotlib.colors import ListedColormap
+import numpy as np
+
+# Sampled directly from VIC-2D's own colorbar image -- its own 16
+# discrete color bands, magenta (low) to red (high), not a generic
+# rainbow colormap standing in for it.
+vic2d_colors = [
+    (0.8314, 0.0000, 1.0000),
+    (0.5176, 0.0000, 1.0000),
+    (0.1843, 0.0000, 1.0000),
+    (0.0000, 0.1333, 1.0000),
+    (0.0000, 0.4510, 1.0000),
+    (0.0000, 0.7843, 1.0000),
+    (0.0000, 1.0000, 0.8980),
+    (0.0000, 1.0000, 0.5843),
+    (0.0000, 1.0000, 0.2510),
+    (0.0667, 1.0000, 0.0000),
+    (0.3843, 1.0000, 0.0000),
+    (0.7176, 1.0000, 0.0000),
+    (1.0000, 0.9686, 0.0000),
+    (1.0000, 0.6510, 0.0000),
+    (1.0000, 0.3176, 0.0000),
+    (1.0000, 0.0000, 0.0000),
+]
+vic2d_cmap = ListedColormap(vic2d_colors)
+
+micro_values = np.array(values) * 1e6
+
+element_strain_plot(
+    points=found,
+    elements=element_indices,
+    coordinates=coordinates,
+    values=micro_values,
+    label=r"Log Strain, $E_{11}$ (microstrain)",
+    image=current_image,
+    dot_size=6,
+    marker="s",
+    show_mesh_lines=False,
+    cmap=vic2d_cmap,
+    vmin=17560,
+    vmax=22360,
+    figsize=(6.9, 6.0),
+    path="high_point_density_strain_vic_colorbar.png",
+)
+</code></pre>
+<pre><code class="language-text">Saved: high_point_density_strain_vic_colorbar.png
+</code></pre>
+</details>
 <h2 id="a-real-trade-off-not-a-bug"><a class="header" href="#a-real-trade-off-not-a-bug">A Real Trade-Off, Not a Bug</a></h2>
-<p>2862-point, 5px-spacing mesh: mean <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> = 0.0200 (true value 0.0198), but std = 0.0155, range [-0.0160, 0.0771]</p>
-<p>The mean is accurate. The spread is not small. Unlike Simple Stretch
-Revisited's perfectly uniform result, individual elements here scatter
-well beyond the true <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">ln</span><span class="mopen">(</span><span class="mord">1.02</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.0198</span></span></span></span> value — some report
-negative strain, some report nearly 4 times the true value.</p>
+<p>2862-point, 5px-spacing mesh: mean <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> = 0.0205 (true value is <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">ln</span><span class="mopen">(</span><span class="mord">1.02</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.0198</span></span></span></span>), but std = 0.0165, range [-0.0164, 0.1061]</p>
+<p>The mean is close but not exact. The spread is not small. Unlike Simple
+Stretch Revisited's perfectly uniform result, individual elements here
+scatter well beyond the true <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">ln</span><span class="mopen">(</span><span class="mord">1.02</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.0198</span></span></span></span> value — some
+report negative strain, some report more than 5 times the true value.</p>
 <p>This isn't a tracking bug. Log strain is, in effect, a finite
 difference: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">Δ</span><span class="mord mathnormal">u</span><span class="mord">/</span><span class="mord mathnormal">L</span></span></span></span>, a displacement difference
 divided by element size <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">L</span></span></span></span>. <a href="./subpixel_accuracy.html">Subpixel Accuracy</a>'s
@@ -277,10 +394,10 @@ spacing. The smaller the element, the more a fixed amount of tracking
 noise gets amplified into strain noise. Checked directly, not just
 argued:</p>
 <div class="table-wrapper"><table><thead><tr><th>Element spacing</th><th>Mean E11</th><th>Std E11</th></tr></thead><tbody>
-<tr><td>5px</td><td>0.01988</td><td>0.01544</td></tr>
-<tr><td>10px</td><td>0.01997</td><td>0.01247</td></tr>
-<tr><td>20px</td><td>0.02003</td><td>0.00988</td></tr>
-<tr><td>40px</td><td>0.01999</td><td>0.00318</td></tr>
+<tr><td>5px</td><td>0.02012</td><td>0.01653</td></tr>
+<tr><td>10px</td><td>0.01968</td><td>0.01268</td></tr>
+<tr><td>20px</td><td>0.01982</td><td>0.00997</td></tr>
+<tr><td>40px</td><td>0.01980</td><td>0.00347</td></tr>
 </tbody></table>
 </div>
 <p>Standard deviation falls as element spacing grows — the same tracking
@@ -292,6 +409,88 @@ computing strain, trading spatial resolution for strain precision.
 mesh is accurate on average and honestly noisy point to point, not
 silently smoothed into looking better than the underlying tracking
 supports.</p>
+<h2 id="distribution-across-the-full-mesh"><a class="header" href="#distribution-across-the-full-mesh">Distribution Across the Full Mesh</a></h2>
+<p>The mean/std/range summary above collapses the 11024 Gauss point
+numbers into four.
+The full distribution, the same way
+<a href="./simple_stretch.html#verification-against-vic-2d">Verification Against VIC-2D</a>
+plotted one for VIC-2D's own 2682 measurements, shows more:</p>
+<pre><code class="language-python">import numpy as np
+import matplotlib.pyplot as plt
+
+micro = np.array(values) * 1e6
+analytical = np.log(factor_x) * 1e6
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+fig, ax = plt.subplots(figsize=(7, 4), constrained_layout=True)
+ax.hist(micro, bins=60, color="gray", alpha=0.8)
+ax.axvline(analytical, color="red", linestyle="--", linewidth=1.5)
+ax.set_xlabel(r"Log strain $E_{11}$ (microstrain)")
+ax.set_ylabel("frequency")
+fig.savefig("high_point_density_strain_histogram.png", dpi=300)
+</code></pre>
+<p>Saved: high_point_density_strain_histogram.png</p>
+<figure>
+    <img src="high_point_density_strain_histogram.png" alt="histogram of dictk's own 11024 Gauss-point E11 measurements in microstrain, a single smooth right-skewed peak just left of the analytical value, with a long tail toward high positive strain and a sharper cutoff on the negative side, spanning roughly -16400 to 106100 microstrain, with a dashed red vertical line at the analytical value near 19803 microstrain landing just past the peak" />
+    <figcaption>Distribution of <code>dictk</code>'s own <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> across all 11024 Gauss points at full VIC-2D density (gray, 60 bins). The dashed red line marks the same analytical value as <a href="./simple_stretch.html#verification-against-vic-2d">Verification Against VIC-2D</a>'s own histogram, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">ln</span><span class="mopen">(</span><span class="mord">1.02</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">19803</span></span></span></span> microstrain. Unlike that page's multi-clustered distribution, this one is a single smooth, right-skewed peak — but a much wider one: individual Gauss points range from about -16400 to 106100 microstrain, over 21 times VIC-2D's own roughly 17300-23100 microstrain spread.</figcaption>
+</figure>
+<p><code>dictk</code>'s own mean, 20464.3 microstrain, is close to VIC-2D's own
+measured mean, 19875.8 microstrain, but not as close as
+<a href="./simple_stretch.html#verification-against-vic-2d">Verification Against VIC-2D</a>'s
+earlier comparison found. That page's <code>dictk</code> value came from exact,
+integer-pixel tracked positions on a 12-point sample; it landed within
+0.02% of the analytical <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">ln</span><span class="mopen">(</span><span class="mord">1.02</span><span class="mclose">)</span></span></span></span>. This page's <code>dictk</code> value comes
+from real subpixel-tracked positions on all 2862 points — the same
+kind of measurement VIC-2D itself makes — and lands 3.3% from the
+analytical value, noisier than VIC-2D's own 0.4%. Averaging over more
+points doesn't fix this: the histogram's long right tail, not evenly
+spread noise, is what pulls the mean away from the true value.</p>
+<p>One methodological detail behind this figure is worth stating plainly.
+At <code>upsample_factor = 10</code> — <a href="./subpixel_accuracy.html#measuring-the-difference">Subpixel Accuracy</a>'s
+own choice, adequate there — this same histogram doesn't look like the
+smooth curve above. It separates into sharp, evenly-spaced spikes,
+roughly 20000 microstrain apart. That spacing isn't a coincidence:
+<code>upsample_factor = 10</code> resolves displacement to steps of <code>0.1</code> px, and
+<code>0.1 / 5 = 0.02</code>, or 20000 microstrain, at this mesh's own 5px element
+spacing — exactly the gap between spikes. The clusters are an artifact
+of how finely displacement gets quantized, not a real feature of the
+tracked field. <code>upsample_factor = 100</code> shrinks that same step to 2000
+microstrain, well under the histogram's own bin width, and the spikes
+disappear into the smooth distribution shown above. Mean and std barely
+move between the two (std actually falls slightly, from 17776 to 16531
+microstrain) — the real spread was already present at
+<code>upsample_factor = 10</code>; only its artificially blocky <em>shape</em> needed the
+finer value to go away. Subpixel Accuracy uses this same 5px grid and
+the same <code>10</code>, without hitting this problem, because it only ever
+measures raw displacement error directly — it never divides by an
+element size. This page does, computing strain as <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">Δ</span><span class="mord mathnormal">u</span><span class="mord">/</span><span class="mord mathnormal">L</span></span></span></span>, and
+dividing by a small <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">L</span></span></span></span> turns a small, fixed quantization step into a
+large one. That's the actual reason <code>upsample_factor</code> needed to change
+here and not there — not point density, but what gets computed from
+the tracked positions afterward.</p>
+<p>That leaves a real question: why does a genuine, non-artifactual spread
+show up in both tools, when each measured the exact same noiseless
+synthetic deformation? <a href="#a-real-trade-off-not-a-bug">A Real Trade-Off, Not a
+Bug</a> above already covered half of it:
+strain amplifies whatever tracking error already exists. The other half
+is why tracking error exists at all, for both tools. <code>dictk</code>'s
+<code>locate_subpixel</code> and VIC-2D's own optimizer are both correlation-based
+subpixel estimators. Each locates a peak in a similarity surface built
+from real image content, not a value handed to it directly. How sharply
+that peak is defined depends on how much distinctive texture falls
+inside the kernel at that particular location. Strong, varied speckle
+contrast pins the peak precisely. A locally flatter or more repetitive
+patch leaves it ambiguous, and the estimated position drifts toward
+whichever direction the ambiguity favors. That drift is a deterministic
+function of local image content, not a random draw — exactly why the
+field figure above shows <em>structured</em> striations instead of uniform
+static, and why this page's own histogram leans right instead of
+sitting symmetric around the true value. It's also consistent with part
+of why <code>dictk</code>'s own spread grew on this page: matching VIC-2D's own
+small <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">26</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">26</span></span></span></span> px kernel, instead of earlier pages' generously
+oversized ones, means averaging over less independent texture per
+point. Some of that extra spread is the expected cost of matching
+VIC-2D's own geometry, not a shortcoming unique to <code>dictk</code>.</p>
 <p>Point count, tracking accuracy, and now strain precision have all been
 free variables throughout Simple Stretch, Subpixel Accuracy, and this
 page. How <code>dictk</code>'s own tracking time scales as point count grows —
