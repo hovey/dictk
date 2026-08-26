@@ -8,6 +8,7 @@ import numpy as np
 from matplotlib import patches
 from matplotlib import patheffects
 from matplotlib import pyplot as plt
+from matplotlib.colors import Colormap
 from matplotlib.path import Path as MarkerPath
 
 from dictk.correlation import WindowingMethod, _kernel_pad, phase_correlation, window
@@ -1658,7 +1659,12 @@ def element_strain_plot(
     label: str,
     image: np.ndarray | None = None,
     show_node_numbers: bool = False,
-    cmap: str = "viridis",
+    show_mesh_lines: bool = True,
+    cmap: str | Colormap = "viridis",
+    dot_size: float = 150,
+    marker: str = "o",
+    vmin: float | None = None,
+    vmax: float | None = None,
     figsize: tuple[float, float] = (10.0, 5.0),
     path: Path,
     dpi: int = 300,
@@ -1679,8 +1685,9 @@ def element_strain_plot(
     own "just draws what it's given" design, rather than computing strain
     itself.
 
-    Draws each of `elements`' 4-corner polygon outline from `points`,
-    optionally labels each of `points` with its own zero-padded index
+    Draws each of `elements`' 4-corner polygon outline from `points`
+    (optionally, see `show_mesh_lines`), optionally labels each of
+    `points` with its own zero-padded index
     (matching `point_grid_plot`'s exact `"00"`, `"01"`, ... convention),
     and scatters `coordinates` colored by `values` with a colorbar
     labeled `label`. If `image` is given, it's drawn as the background
@@ -1718,7 +1725,39 @@ def element_strain_plot(
             `None` draws the mesh alone, on a plain y-inverted axes.
         show_node_numbers: Whether to label each of `points` with its own
             zero-padded index.
-        cmap: Matplotlib colormap for the Gauss-point scatter.
+        show_mesh_lines: Whether to draw each element's own 4-corner
+            outline. Default `True`. At high point density the mesh
+            lines add visual clutter without much information -- a
+            dense enough scatter (see `dot_size`) already reads as a
+            field on its own; `False` drops the outlines so the
+            colored points aren't fighting a grid of black lines for
+            attention.
+        cmap: Matplotlib colormap for the Gauss-point scatter -- either
+            a name (e.g. `"viridis"`) or a `Colormap` instance (e.g.
+            `matplotlib.colors.ListedColormap`, for a custom or
+            externally-matched palette).
+        dot_size: Marker size (matplotlib `scatter`'s own `s`) for each
+            Gauss point. Default `150` suits sparse meshes; a dense mesh
+            with points only a few pixels apart needs a smaller value, or
+            neighboring markers overlap into a solid mass instead of a
+            legible field.
+        marker: Matplotlib marker style for each Gauss point. Default
+            `"o"` (circle). On a regular grid dense enough that
+            neighboring markers touch, circles leave small diamond-
+            shaped gaps at their corners (tangent circles never fully
+            tile a plane) -- `"s"` (square), sized and axis-aligned with
+            the grid, tiles edge to edge with no gaps, reading as a
+            genuinely continuous field rather than a field of dots.
+        vmin: Optional fixed lower bound for the color scale. Default
+            `None` auto-scales from `values`' own min, matching every
+            existing call. Set alongside `vmax` to pin the colorbar to a
+            specific range -- e.g. matching an external tool's own
+            colorbar exactly, for a direct visual comparison between two
+            figures that wouldn't otherwise share a color scale. Values
+            outside `[vmin, vmax]` still plot, just clipped to the
+            scale's own end colors, the same way matplotlib always
+            handles an explicit `vmin`/`vmax`.
+        vmax: Optional fixed upper bound for the color scale; see `vmin`.
         figsize: `(width, height)` in inches for the saved figure, used
             whether or not `image` is given -- unlike `point_grid_plot`,
             this isn't sized from `image`'s own shape (see `image`
@@ -1749,10 +1788,11 @@ def element_strain_plot(
         # invert_yaxis() call.
         ax.invert_yaxis()
 
-    for element in elements:
-        corners = [points[i] for i in element]
-        corners.append(corners[0])  # close the quadrilateral
-        ax.plot([c.x for c in corners], [c.y for c in corners], "k-", alpha=0.3)
+    if show_mesh_lines:
+        for element in elements:
+            corners = [points[i] for i in element]
+            corners.append(corners[0])  # close the quadrilateral
+            ax.plot([c.x for c in corners], [c.y for c in corners], "k-", alpha=0.3)
 
     if show_node_numbers:
         label_outline = [patheffects.withStroke(linewidth=1, foreground="white")]
@@ -1770,7 +1810,16 @@ def element_strain_plot(
                 path_effects=label_outline,
             )
 
-    scatter = ax.scatter(gauss_xs, gauss_ys, c=values, cmap=cmap, s=150)
+    scatter = ax.scatter(
+        gauss_xs,
+        gauss_ys,
+        c=values,
+        cmap=cmap,
+        s=dot_size,
+        marker=marker,
+        vmin=vmin,
+        vmax=vmax,
+    )
     fig.colorbar(scatter, ax=ax, label=label)
 
     ax.axis("image")  # aspect-locked 1:1, autoscaled tight to the data --

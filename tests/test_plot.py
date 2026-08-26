@@ -2,6 +2,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from matplotlib.colors import ListedColormap
 
 from dictk.correlation import WindowingMethod, _kernel_pad, cc, phase_correlation, zncc
 from dictk.grid import elements as grid_elements
@@ -953,6 +954,87 @@ def test_element_strain_plot_show_node_numbers_writes_file(tmp_path: Path):
         values=values,
         label="Log Strain, E11",
         show_node_numbers=True,
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_element_strain_plot_show_mesh_lines_false_writes_file(tmp_path: Path):
+    points, element_indices, coordinates, values = _element_strain_plot_inputs()
+    path = tmp_path / "element_strain_no_mesh_lines.png"
+    element_strain_plot(
+        points=points,
+        elements=element_indices,
+        coordinates=coordinates,
+        values=values,
+        label="Log Strain, E11",
+        show_mesh_lines=False,
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_element_strain_plot_accepts_colormap_instance(tmp_path: Path):
+    points, element_indices, coordinates, values = _element_strain_plot_inputs()
+    path = tmp_path / "element_strain_custom_cmap.png"
+    element_strain_plot(
+        points=points,
+        elements=element_indices,
+        coordinates=coordinates,
+        values=values,
+        label="Log Strain, E11",
+        cmap=ListedColormap(["red", "green", "blue"]),
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_element_strain_plot_marker_writes_file(tmp_path: Path):
+    points, element_indices, coordinates, values = _element_strain_plot_inputs()
+    path = tmp_path / "element_strain_square_marker.png"
+    element_strain_plot(
+        points=points,
+        elements=element_indices,
+        coordinates=coordinates,
+        values=values,
+        label="Log Strain, E11",
+        marker="s",
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_element_strain_plot_vmin_vmax_writes_file(tmp_path: Path):
+    points, element_indices, coordinates, values = _element_strain_plot_inputs()
+    path = tmp_path / "element_strain_vmin_vmax.png"
+    element_strain_plot(
+        points=points,
+        elements=element_indices,
+        coordinates=coordinates,
+        values=values,
+        label="Log Strain, E11",
+        vmin=0.0,
+        vmax=1.0,
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_element_strain_plot_dot_size_writes_file(tmp_path: Path):
+    points, element_indices, coordinates, values = _element_strain_plot_inputs()
+    path = tmp_path / "element_strain_dot_size.png"
+    element_strain_plot(
+        points=points,
+        elements=element_indices,
+        coordinates=coordinates,
+        values=values,
+        label="Log Strain, E11",
+        dot_size=15,
         path=path,
     )
     assert path.exists()

@@ -187,3 +187,66 @@ spacing. Std shrinks monotonically across the sweep
 (0.0154/0.0125/0.0099/0.0032). The page names VIC-2D's own
 strain-window averaging as the standard remedy but doesn't implement
 it — that stays open.
+
+## 2026-08-25
+
+**High Point Density retuned to VIC-2D's real geometry, plus a
+quantization finding.** [High Point Density](./high_point_density.md)'s
+tracking call used a much larger kernel/search area than VIC-2D's own
+`25 x 25` px subset — leftover from earlier pages, never tuned to
+match. `kernel_margin = 12` (the closest whole-pixel match) was tried
+first and rejected: checked directly against known true positions, it
+produced real multi-pixel mismatches at a handful of points, not just
+subpixel noise. `kernel_margin = 13` (`26 x 26` px) tracks cleanly,
+zero mismatches across all 2862 points; `search_margin = 25` gives
+generous headroom.
+
+A second, unplanned finding came out of building the page's new
+strain histogram (the `dictk`-side counterpart to [Verification
+Against VIC-2D](./simple_stretch.md#verification-against-vic-2d)'s
+own VIC-2D histogram). At `upsample_factor = 10` — Subpixel Accuracy's
+own choice — the histogram wasn't a smooth spread; it separated into
+sharp spikes exactly 20000 microstrain apart. Checked directly: `0.1`px
+(the displacement quantization step at `upsample_factor = 10`) divided
+by this mesh's own 5px element spacing is exactly `0.02`, i.e. 20000
+microstrain — the artifact was `upsample_factor` itself, invisible in
+Subpixel Accuracy's own raw-displacement measurement but amplified into
+visible banding once divided by a small element size to get strain.
+`upsample_factor = 100` removes the banding; mean and std barely move
+(std 17776 → 16531 microstrain), confirming the real spread was already
+there and only its blocky shape was artificial.
+
+With both fixed, the real numbers: mean $E_{11}$ = 20464.3 microstrain
+vs. the analytical 19802.6 (3.3% off, worse than VIC-2D's own 0.4%);
+std 16531 microstrain; range -16446 to 106134 microstrain, over 21x
+VIC-2D's own roughly 5800-microstrain-wide spread. The page's own
+closing analysis ties this to kernel size directly: matching VIC-2D's
+small subset, instead of earlier pages' generously oversized kernels,
+trades away some of the noise-averaging a bigger kernel provides — part
+of `dictk`'s own extra spread here is the expected cost of matching
+VIC-2D's geometry, not a `dictk`-specific shortcoming.
+
+A new figure places the two fields side by side, both forced onto
+VIC-2D's own fixed colorbar (`17560`-`22360` microstrain) — not an
+approximate rainbow,
+but VIC-2D's own particular 16-band palette, sampled pixel-by-pixel
+from its own legend image and rebuilt as a `matplotlib` `ListedColormap`.
+Forced onto that same narrow range, only 9.5% of `dictk`'s own 11024
+Gauss points land inside it; 52.9% clip to the floor, 37.7% to the
+ceiling — visual, not just numeric, confirmation of how much wider
+`dictk`'s own spread is. The figure's own `figsize` is tuned
+(`(6.9, 6.0)`) to match VIC-2D's screenshot's own aspect ratio, so the
+two panels align in height in the page's side-by-side flex layout.
+
+[`element_strain_plot`](../api/dictk/plot.html#element_strain_plot)
+gained four new keyword-only parameters this session, each
+default-preserving for every existing caller: `dot_size` (default
+`150`), `vmin`/`vmax` (fixed color-scale bounds, for the VIC-2D
+comparison above), `show_mesh_lines` (default `True`), and `marker`
+(default `"o"`) — `cmap` also widened to accept a `Colormap` instance,
+not just a name, for the extracted VIC-2D palette. All three of this
+page's dense figures now use `dot_size=6`, `marker="s"`, and
+`show_mesh_lines=False`: square markers tile a regular grid edge to
+edge with no gaps, where circles — even sized to just touch — leave
+small diamond-shaped gaps at their own tangent points; mesh lines add
+clutter without information at this density. 348 tests (343 + 5 new).
