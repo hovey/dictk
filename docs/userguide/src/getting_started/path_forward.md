@@ -250,3 +250,39 @@ page's dense figures now use `dot_size=6`, `marker="s"`, and
 edge with no gaps, where circles — even sized to just touch — leave
 small diamond-shaped gaps at their own tangent points; mesh lines add
 clutter without information at this density. 348 tests (343 + 5 new).
+
+## 2026-08-26
+
+[High Point Density](../getting_started/high_point_density.html)'s own
+closing gap — how `dictk`'s tracking time scales as point count grows,
+across sequential, threaded, and multi-process execution — is answered
+by a new page, [Timing at
+Scale](../getting_started/timing_at_scale.html) (Parallelization's new
+`9.3` child). It set out looking for this M1 Pro machine's genuine RAM
+ceiling: grow a pure-`rosta` reference image (no `astronaut`, avoiding
+any bicubic-upsampling artifact) along a geometric ladder, tracking the
+real `grid.locate_subpixel` pipeline at each size until 32GB of RAM ran
+out.
+
+It never did. `sysctl vm.swapusage` was checked directly throughout the
+entire multi-hour run and never once reported nonzero swap use, even as
+peak RSS climbed to 11.5GB at the largest tier reached (10204px,
+3,229,209 points). What actually stopped the ladder was this script's
+own 1800-second (30-minute) per-tier timeout — a genuine compute-time wall, found
+by raising that timeout once (240s → 1800s, after the first pass showed
+processes and sequential both dying to it well before any memory
+pressure) and hitting it again anyway. `threads` reached the furthest
+(996,004 points, 861.5s) before also timing out at the next tier.
+`processes` died earliest (1750px) for an unrelated, real reason: its
+own `ProcessPoolExecutor.map()` re-pickles `dictk.grid.locate`'s bound
+`reference_image`/`current_image` once per task, not once per worker —
+confirmed directly in source, and directly observed as ~50% single-core
+utilization on a retry, not eight processes computing in parallel.
+
+This documents, with real numbers, the "documented CPU bottleneck" this
+page's own GPU direction (below) has been gated on since it was first
+written: reaching a million tracked points took `threads` 14.4 minutes
+on 10 cores; a real problem at this page's own north-star scale (a
+billion correlations) extrapolates to weeks on this same hardware. 348
+tests (unchanged — docs-only, plus a new standalone benchmark script,
+same precedent as `parallelization_bench.py`).
