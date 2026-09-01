@@ -286,3 +286,109 @@ on 10 cores; a real problem at this page's own north-star scale (a
 billion correlations) extrapolates to weeks on this same hardware. 348
 tests (unchanged — docs-only, plus a new standalone benchmark script,
 same precedent as `parallelization_bench.py`).
+
+## 2026-09-01
+
+**9.4 Parallelism with PyTorch, shipped.** New page,
+[Parallelism with PyTorch](./parallelism_pytorch.md), Parallelization's
+fourth child. It reruns [Timing at Scale](./timing_at_scale.md)'s own
+ladder — same image sizes, same point grids, same 26x26 kernel, same
+per-size search areas, same machine — on a batched PyTorch correlation
+instead of one `grid.locate_subpixel` call per point. Docs-only plus a
+standalone benchmark script, matching 9.3's own precedent. 348 tests
+unchanged. `pyproject.toml` deliberately untouched: CI runs
+`uv sync --all-extras`, so a `torch` extra would install PyTorch on
+every CI run for a script CI never executes.
+
+This continues work Andrew Polonsky and Chad Hovey started in the
+private `hdic` codebase in 2025, and the page attributes it directly.
+That work established the grouped-`conv2d` batching trick (stack N
+search areas as channels, N kernels as N groups, `groups=N` so kernel
+`i` sees window `i` only), measured it on a Windows CUDA machine, and
+recorded the decision "torch implementation, then CUDA implementation"
+on 2025-09-23. It left three gaps. 9.4 closes two: it runs on Apple
+silicon, which `hdic`'s own correlation module refused to do via a hard
+`RuntimeError("...does not run on macOS")` that was simply false; and it
+refines peaks to subpixel, which that implementation never did. The FFT
+gap stays open, and is now the named next step.
+
+**A real prerequisite fix to 9.3.** [Timing at
+Scale](./timing_at_scale.md#finding-the-ceiling) stated `kernel_margin=13`
+and said `search_margin` varies per tier, but never gave pixel
+dimensions. Adding them surfaced something that page never said: the
+kernel is fixed at 26x26 at every tier, but the search area grows from
+48x48 to 420x420, because `factor_x=1.02` displaces a far edge further
+in a bigger image. Search pixels therefore grow 76x across the ladder,
+so 9.3's cost curve is not a pure point-count curve — it measures point
+count and per-correlation size growing together. Doesn't invalidate any
+9.3 finding (all three executors saw identical geometry), but it
+explains part of the slope, and 9.4 could not describe its own tensor
+shapes without it.
+
+**The headline result, and the caveat under it.** The Apple GPU (MPS,
+Metal Performance Shaders) wins at every size. It completed 10204px —
+3,229,209 points in 2,334.7s — which 9.3's `threads` attempted and could
+not finish. At the largest size both pages measured (5669px, 996,004
+points) it runs 3.4x faster than `threads`: 3,884 points/s against
+1,156, which turns 9.3's own "roughly 1.4 weeks for a billion
+correlations" into roughly 3 days. Real, and not enough — a billion is
+Path Forward's entry-level target, not its ceiling.
+
+The speedup is not constant, and the shape of it is the finding. It
+climbs to 15.7x at 29,584 points, then falls to 3.4x at 996,004. Point
+count only ever increased, so batching can't explain the decline. The
+growing search area can, and the CPU column proves it directly.
+
+**Polonsky's cusp, located.** His 2025-04-15 email said the team was
+"right on the cusp of whether or not doing the FFT for cross-correlation
+will be faster than brute force sliding dot product," and never resolved
+it. 9.4 resolves it, because `torch` CPU and 9.3's `threads` run on the
+same ten cores and differ only in algorithm. At a 74x74 search area,
+`torch` CPU wins 7.8s to 16.9s. At 102x102 they tie, 53.4s to 58.6s. At
+156x156 the FFT wins 215.2s to 512.7s. On this machine, at a 26x26
+kernel, **the cusp sits near a 100x100 pixel search area.** Below it,
+brute force wins; above it, the FFT does.
+
+Which reframes 9.4's own GPU result: the GPU is running the *losing*
+algorithm at these search areas and still beats ten CPU cores. Nobody
+has yet combined the better hardware with the better algorithm. That
+combination — a batched `torch.fft` phase correlation, the same
+algorithm 9.1-9.3 already use, on the devices 9.4 already measures — is
+the obvious next step and is not started.
+
+**Subpixel came out better than expected.** A three-point parabolic fit
+on the correlation surface `conv2d` already returns gives 0.0369px mean
+absolute error against analytical truth, against
+`grid.locate_subpixel`'s own 0.0925px at `upsample_factor=100` on the
+same 2,809 points. 2.5x more accurate, for a small fraction of the
+correlation's cost. Peak locking is present but mild (fractional-part
+bins 330/338/258/219/280/265/210/257/313/339 against a flat 280).
+Integer positions agree with `grid.locate` on 98.7% of points, and every
+one of the 37 disagreements has a true fractional part between 0.460 and
+0.560 — the half-pixel boundary where rounding is genuinely ambiguous,
+not an error. MPS matched CPU digit for digit; float32 cost nothing
+measurable.
+
+**A prediction the measurement contradicted.** 9.4 retired 9.3's
+1800-second wall clock and replaced it with a caught out-of-memory error
+as the primary stop, reasoning that search areas are chunkable but the
+two resident images are not, so the unchunkable part would eventually
+fail. It never did. Both devices stopped on the secondary rule instead —
+a predicted-cost gate, extrapolating each size from the previous size's
+measured rate. At the largest size attempted, the two images occupied
+0.83GB of Metal's 26.8GB budget, about 3%; peak host RSS reached 13.9GB
+of 32GB. Same conclusion 9.3 reached, for the same reason: compute time
+is the wall, memory is not. The OOM arithmetic still holds at around
+59508px; this ladder just never gets there, because that size's
+arithmetic outruns any reasonable wait.
+
+**Two bugs found by testing rather than assuming.** Forcing an
+out-of-memory on purpose revealed that Metal reports it two different
+ways, and only one says "out of memory" — a single tensor past Metal's
+per-buffer ceiling raises `Invalid buffer size: 3013.73 GiB` instead.
+Trusting the first message would have turned a real memory finding into
+an unexplained crash. Separately, a first version of the benchmark
+re-uploaded both full images to the device once per chunk rather than
+once per size (26 redundant 40MB uploads at 3149px), which inflated
+measured extraction cost; partial results were discarded and the ladder
+re-run after the fix. Both are recorded in the script's own docstrings.

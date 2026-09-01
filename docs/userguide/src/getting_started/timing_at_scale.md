@@ -150,6 +150,23 @@ silently undershoot the true displacement at every larger tier. So
 each tier computes its own margin from its own maximum displacement
 instead.
 
+That makes the two halves of the geometry behave differently across
+the ladder. Here is what each tier actually tracks, read directly from
+`grid_params` in the script below:
+
+<!-- cmdrun python3 -c "import csv, timing_at_scale_bench as b; widths = sorted(set(int(r['width']) for r in csv.DictReader(open('timing_at_scale_bench.csv')))); td = lambda v: f'<td style=\"text-align: right;\">{v}</td>'; print('<table>'); print('<thead><tr><th>Width (px)</th><th>Points</th><th>Kernel</th><th>Search area</th><th>Max displacement</th></tr></thead>'); print('<tbody>'); [print('<tr>' + td(w) + td(f'{c*c:,}') + td(f'{2*b.KERNEL_MARGIN}x{2*b.KERNEL_MARGIN}') + td(f'{2*s}x{2*s}') + td(f'{(o + (c-1)*b.SPACING) * (b.FACTOR_X - 1.0):.1f}px') + '</tr>') for w in widths for o, c, s in [b.grid_params(w)]]; print('</tbody>'); print('</table>')" -->
+
+The kernel is fixed. Every tier correlates the same 26x26 pixels. The
+search area is not fixed. It grows from 48x48 to 420x420, because the
+displacement it has to contain grows with the image. That is 76 times
+more search pixels at the top of the ladder than at the bottom.
+
+So the tracking curve below is not a pure point-count curve. Point
+count and per-correlation size grow together, and the plot's x-axis
+only shows the first of the two. This doesn't affect any comparison
+between executors — all three see identical geometry at every tier —
+but it does explain part of how steeply the curve climbs.
+
 Each `(width, executor)` combination runs in its own isolated
 subprocess, with its own 1800-second (30-minute) wall-clock budget. A controlling
 loop launches each one; nothing runs in-process. Deliberately pushing
