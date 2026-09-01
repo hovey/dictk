@@ -292,6 +292,30 @@ cannot stay fixed the way it did there, though. At a constant
 silently undershoot the true displacement at every larger tier. So
 each tier computes its own margin from its own maximum displacement
 instead.</p>
+<p>That makes the two halves of the geometry behave differently across
+the ladder. Here is what each tier actually tracks, read directly from
+<code>grid_params</code> in the script below:</p>
+<table>
+<thead><tr><th>Width (px)</th><th>Points</th><th>Kernel</th><th>Search area</th><th>Max displacement</th></tr></thead>
+<tbody>
+<tr><td style="text-align: right;">300</td><td style="text-align: right;">2,809</td><td style="text-align: right;">26x26</td><td style="text-align: right;">48x48</td><td style="text-align: right;">5.6px</td></tr>
+<tr><td style="text-align: right;">540</td><td style="text-align: right;">9,216</td><td style="text-align: right;">26x26</td><td style="text-align: right;">58x58</td><td style="text-align: right;">10.1px</td></tr>
+<tr><td style="text-align: right;">972</td><td style="text-align: right;">29,584</td><td style="text-align: right;">26x26</td><td style="text-align: right;">74x74</td><td style="text-align: right;">18.3px</td></tr>
+<tr><td style="text-align: right;">1750</td><td style="text-align: right;">95,481</td><td style="text-align: right;">26x26</td><td style="text-align: right;">102x102</td><td style="text-align: right;">32.9px</td></tr>
+<tr><td style="text-align: right;">3149</td><td style="text-align: right;">308,025</td><td style="text-align: right;">26x26</td><td style="text-align: right;">156x156</td><td style="text-align: right;">59.2px</td></tr>
+<tr><td style="text-align: right;">5669</td><td style="text-align: right;">996,004</td><td style="text-align: right;">26x26</td><td style="text-align: right;">250x250</td><td style="text-align: right;">106.5px</td></tr>
+<tr><td style="text-align: right;">10204</td><td style="text-align: right;">3,229,209</td><td style="text-align: right;">26x26</td><td style="text-align: right;">420x420</td><td style="text-align: right;">191.8px</td></tr>
+</tbody>
+</table>
+<p>The kernel is fixed. Every tier correlates the same 26x26 pixels. The
+search area is not fixed. It grows from 48x48 to 420x420, because the
+displacement it has to contain grows with the image. That is 76 times
+more search pixels at the top of the ladder than at the bottom.</p>
+<p>So the tracking curve below is not a pure point-count curve. Point
+count and per-correlation size grow together, and the plot's x-axis
+only shows the first of the two. This doesn't affect any comparison
+between executors — all three see identical geometry at every tier —
+but it does explain part of how steeply the curve climbs.</p>
 <p>Each <code>(width, executor)</code> combination runs in its own isolated
 subprocess, with its own 1800-second (30-minute) wall-clock budget. A controlling
 loop launches each one; nothing runs in-process. Deliberately pushing
@@ -852,7 +876,7 @@ if __name__ == "__main__":
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../getting_started/path_forward.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../getting_started/parallelism_pytorch.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -866,7 +890,7 @@ if __name__ == "__main__":
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../getting_started/path_forward.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../getting_started/parallelism_pytorch.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

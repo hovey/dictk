@@ -6004,6 +6004,30 @@ cannot stay fixed the way it did there, though. At a constant
 silently undershoot the true displacement at every larger tier. So
 each tier computes its own margin from its own maximum displacement
 instead.</p>
+<p>That makes the two halves of the geometry behave differently across
+the ladder. Here is what each tier actually tracks, read directly from
+<code>grid_params</code> in the script below:</p>
+<table>
+<thead><tr><th>Width (px)</th><th>Points</th><th>Kernel</th><th>Search area</th><th>Max displacement</th></tr></thead>
+<tbody>
+<tr><td style="text-align: right;">300</td><td style="text-align: right;">2,809</td><td style="text-align: right;">26x26</td><td style="text-align: right;">48x48</td><td style="text-align: right;">5.6px</td></tr>
+<tr><td style="text-align: right;">540</td><td style="text-align: right;">9,216</td><td style="text-align: right;">26x26</td><td style="text-align: right;">58x58</td><td style="text-align: right;">10.1px</td></tr>
+<tr><td style="text-align: right;">972</td><td style="text-align: right;">29,584</td><td style="text-align: right;">26x26</td><td style="text-align: right;">74x74</td><td style="text-align: right;">18.3px</td></tr>
+<tr><td style="text-align: right;">1750</td><td style="text-align: right;">95,481</td><td style="text-align: right;">26x26</td><td style="text-align: right;">102x102</td><td style="text-align: right;">32.9px</td></tr>
+<tr><td style="text-align: right;">3149</td><td style="text-align: right;">308,025</td><td style="text-align: right;">26x26</td><td style="text-align: right;">156x156</td><td style="text-align: right;">59.2px</td></tr>
+<tr><td style="text-align: right;">5669</td><td style="text-align: right;">996,004</td><td style="text-align: right;">26x26</td><td style="text-align: right;">250x250</td><td style="text-align: right;">106.5px</td></tr>
+<tr><td style="text-align: right;">10204</td><td style="text-align: right;">3,229,209</td><td style="text-align: right;">26x26</td><td style="text-align: right;">420x420</td><td style="text-align: right;">191.8px</td></tr>
+</tbody>
+</table>
+<p>The kernel is fixed. Every tier correlates the same 26x26 pixels. The
+search area is not fixed. It grows from 48x48 to 420x420, because the
+displacement it has to contain grows with the image. That is 76 times
+more search pixels at the top of the ladder than at the bottom.</p>
+<p>So the tracking curve below is not a pure point-count curve. Point
+count and per-correlation size grow together, and the plot's x-axis
+only shows the first of the two. This doesn't affect any comparison
+between executors — all three see identical geometry at every tier —
+but it does explain part of how steeply the curve climbs.</p>
 <p>Each <code>(width, executor)</code> combination runs in its own isolated
 subprocess, with its own 1800-second (30-minute) wall-clock budget. A controlling
 loop launches each one; nothing runs in-process. Deliberately pushing
@@ -6556,6 +6580,1574 @@ if __name__ == "__main__":
         plot_summary()
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="parallelism-with-pytorch"><a class="header" href="#parallelism-with-pytorch">Parallelism with PyTorch</a></h1>
+<p><a href="getting_started/./timing_at_scale.html">Timing at Scale</a> found a wall. Tracking a million
+points took 14.4 minutes on ten cores. A billion correlations, the scale
+<a href="getting_started/./path_forward.html">Path Forward</a> names as the real target, extrapolates
+to roughly 1.4 weeks on the same machine. No amount of additional
+CPU-side tuning closes a gap that size.</p>
+<p>That page also found <em>why</em>. Every point ran its own separate correlation
+call, and each call carried its own Python-level overhead: a function
+call, a pair of array slices, an FFT plan, an object constructed for the
+result. At a few hundred points that overhead disappears into the noise.
+At a million points it <em>is</em> the cost.</p>
+<p>This page changes the shape of the work rather than the amount. Instead of a million small correlations, it runs a small number of very
+large ones. Thousands of points get correlated in a single call. No Python
+loop runs between them. It reruns <a href="getting_started/./timing_at_scale.html">Timing at Scale</a>'s
+own ladder that way, on the same machine and at the same geometry. The
+two sets of numbers then sit side by side.</p>
+<h2 id="test-machine-1"><a class="header" href="#test-machine-1">Test Machine</a></h2>
+<p>Every number here depends on the hardware that produced it. Same machine
+<a href="getting_started/./timing_at_scale.html">Timing at Scale</a> used:</p>
+<ul>
+<li><strong>Apple MacBook Pro (14-inch, 2021), model <code>MacBookPro18,3</code>, Apple M1
+Pro chip, 10 CPU cores (8 Performance + 2 Efficiency), 32GB unified
+memory, macOS 26.6.2.</strong></li>
+</ul>
+<p>The M1 Pro also carries an integrated GPU, which every prior page in this
+book has left completely unused.</p>
+<h2 id="where-this-came-from"><a class="header" href="#where-this-came-from">Where This Came From</a></h2>
+<p>This page continues work that started elsewhere, and the credit belongs
+where it started.</p>
+<p>Andrew Polonsky and Chad Hovey investigated exactly this question in
+2025, in a separate private codebase. The direction came out of a
+discussion Polonsky had with a colleague at the Naval Research
+Laboratory, written up in an email dated 2025-04-15:</p>
+<blockquote>
+<p>Really thought pytorch may be the likely way to go for us, which
+already optimizes stuff for GPU [...] Depending on our subset size, we
+are right on the cusp of whether or not doing the FFT for
+cross-correlation will be faster than brute force sliding dot product.</p>
+</blockquote>
+<p>Three conclusions from that discussion shaped everything after it.
+Numba works well for CPU work but is the wrong tool for a GPU. Writing
+raw GPU code portably is painful enough that the NRL colleague resorted
+to hand-written OpenCL. And PyTorch already solves the portability
+problem, because it runs the same code on a CUDA card, on an Apple GPU,
+or on a plain CPU.</p>
+<p>A team meeting on 2025-09-23 recorded the decision in one line: <em>"torch
+implementation, then CUDA implementation."</em></p>
+<p>The implementation that followed established the batching trick this
+page's next section describes, and measured it on a Windows machine with
+an NVIDIA card. Those measurements used a 35x35 pixel kernel inside a
+120x120 pixel search window:</p>
+<div class="table-wrapper"><table><thead><tr><th>Correlations</th><th>PyTorch GPU</th><th>PyTorch CPU</th><th>NumPy CPU</th></tr></thead><tbody>
+<tr><td>1,000</td><td>0.044 s</td><td>0.836 s</td><td>1.47 s</td></tr>
+<tr><td>50,000</td><td>3.09 s</td><td>40.8 s</td><td>73.6 s</td></tr>
+</tbody></table>
+</div>
+<p>Two things stand out in that table. The GPU beat NumPy by 24x at 50,000
+correlations. And the correlation itself stopped being the expensive
+part: building the tensors took 16.3 seconds and checking the answers
+took 12.1 seconds, against 3.09 seconds of actual computation. That
+finding shows up again on this page, at a different scale, on different
+hardware.</p>
+<p>That earlier work also left three gaps. It never implemented an FFT
+version, despite the email above naming one. It never refined a peak to
+subpixel accuracy. And it never ran on macOS at all — the correlation
+module opened with a hard refusal:</p>
+<pre><code class="language-python">if platform.system() != "Darwin":
+    import torch
+else:
+    raise RuntimeError("This module requires PyTorch, which does not run on macOS.")
+</code></pre>
+<p>That claim is false. PyTorch runs on macOS, and has supported Apple GPUs
+since 2022. A sibling file in the same codebase already contained
+working Apple GPU device selection. The two files were never reconciled,
+so the module that actually did the correlation stayed locked out of the
+machine its author used every day.</p>
+<p>This page closes two of those three gaps: it runs on Apple silicon, and
+it refines to subpixel. The FFT version stays open.</p>
+<h2 id="kernels-search-windows-and-names"><a class="header" href="#kernels-search-windows-and-names">Kernels, Search Windows, and Names</a></h2>
+<p>Two vocabularies collide here, so it is worth settling them once.</p>
+<p>This book has used <em>kernel</em> and <em>search area</em> since <a href="getting_started/./cross_correlation.html">Cross
+Correlation</a>. Commercial DIC software, and the
+earlier work above, use different words for the same two things:</p>
+<div class="table-wrapper"><table><thead><tr><th>This book</th><th>VIC-2D and the earlier work</th><th>What it is</th></tr></thead><tbody>
+<tr><td>kernel</td><td>subset</td><td>The small patch cut from the reference image, the thing being located</td></tr>
+<tr><td>search area</td><td>area of interest, or <em>aoi</em></td><td>The larger region of the current image to look inside</td></tr>
+</tbody></table>
+</div>
+<p>They are the same two arrays. A <em>subset</em> is a kernel. An <em>aoi</em> is a
+search area. The code below uses this book's names; the tensor shapes
+quoted from the earlier work use its own.</p>
+<h2 id="one-call-n-correlations"><a class="header" href="#one-call-n-correlations">One Call, N Correlations</a></h2>
+<p>Here is the trick.</p>
+<p><code>conv2d</code> slides a small array over a larger one and reports how well
+they match at every position. That is one correlation. To get N
+correlations, the naive approach calls it N times in a Python loop, which
+reintroduces exactly the per-call overhead this page exists to remove.</p>
+<p>The way out is to stack the work so a single call does all of it.
+<code>conv2d</code> accepts a <em>batch</em> of images with multiple <em>channels</em>, and a set
+of filters. By default it applies every filter to every channel, which
+would compute an N x N cross product — every kernel against every search
+area. That is both wrong and N times too much work.</p>
+<p>The <code>groups</code> argument fixes it. Setting <code>groups=N</code> splits N input
+channels into N independent groups of one. Kernel <code>i</code> then sees search
+area <code>i</code>, and nothing else:</p>
+<pre><code class="language-python"># search areas: (1, N, S, S)   N search areas, stacked as CHANNELS
+# kernels:      (N, 1, K, K)   N kernels, one per group
+# output:       (1, N, S-K+1, S-K+1)
+surfaces = F.conv2d(search_areas, kernels, groups=N)
+</code></pre>
+<p>Read the shapes carefully, because they are not the obvious ones. The
+batch dimension holds a single element. The <em>channel</em> dimension carries
+the N correlations. That deliberate misuse of the two dimensions is what
+lets one call do N independent correlations.</p>
+<p>At this book's own geometry, tracking 2,809 points in a 300 pixel image,
+the shapes come out as <code>(1, 2809, 48, 48)</code> for the search areas,
+<code>(2809, 1, 26, 26)</code> for the kernels, and <code>(1, 2809, 23, 23)</code> for the
+output. Every one of those 2,809 correlations happens inside a single
+<code>conv2d</code> call.</p>
+<p>One convenient accident makes this work without any correction.
+Mathematical convolution flips the kernel before sliding it; correlation
+does not. Despite its name, <code>conv2d</code> does not flip. It already computes
+cross-correlation, which is exactly what tracking a point needs.</p>
+<h2 id="what-conv2d-actually-computes"><a class="header" href="#what-conv2d-actually-computes">What <code>conv2d</code> Actually Computes</a></h2>
+<p>The shapes above say what goes in and what comes out. They say nothing
+about how, and the how turns out to matter for reading this page's
+results.</p>
+<p><code>F.conv2d</code> is not one algorithm. It is a dispatch. PyTorch hands the problem to a vendor library: oneDNN on a CPU, cuDNN on
+an NVIDIA card, MPSGraph on an Apple GPU. That library then picks an
+implementation based on the shapes it was given. The usual pick lowers the convolution
+into a matrix multiply, an approach called implicit GEMM, so it lands on
+decades of tuned linear-algebra work.</p>
+<p>That is a <strong>sliding dot product</strong>, restructured. It is not an FFT.</p>
+<p>cuDNN does carry FFT-based algorithms and can select them, but typically
+for kernels much larger than the 26x26 one this page uses. So in
+practice, on the shapes here, the answer is: brute force, executed
+extremely well.</p>
+<p>Which lands this page on a specific side of the tradeoff that email
+named. A direct sliding correlation costs roughly <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>, where <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span>
+counts search-area pixels and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> the kernel's side. An FFT-based one
+costs roughly <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span>. The earlier work's own estimate put the FFT
+about 300 times ahead for a 35² kernel in a 120² window.</p>
+<p>So every CPU measurement in <a href="getting_started/./subpixel_accuracy.html">Subpixel Accuracy</a>,
+<a href="getting_started/./high_point_density.html">High Point Density</a> and <a href="getting_started/./timing_at_scale.html">Timing at
+Scale</a> came from the FFT side of that cusp. Every
+measurement on this page comes from the brute-force side. Comparing them
+changes two things at once: the execution engine, and the algorithm.
+Keep that in view when reading the table below. A speedup here is not
+purely a GPU result.</p>
+<p>One more detail worth naming. Setting <code>groups=N</code> over N channels makes
+this a <em>depthwise</em> convolution — the same pattern that appears in
+mobile-optimized neural networks. Vendor libraries treat depthwise
+convolution as a special case with its own dedicated routines, separate
+from the ones dense convolution uses. Whether that helps or hurts at
+these shapes is a measurable question, not an assumable one.</p>
+<h2 id="choosing-a-device"><a class="header" href="#choosing-a-device">Choosing a Device</a></h2>
+<p>PyTorch runs the same code on three kinds of hardware. Picking one is a
+short ladder, best to worst:</p>
+<pre><code class="language-python">if torch.cuda.is_available():
+    device, sync = torch.device("cuda"), torch.cuda.synchronize
+elif torch.backends.mps.is_available():
+    device, sync = torch.device("mps"), torch.mps.synchronize
+else:
+    device, sync = torch.device("cpu"), lambda: None
+</code></pre>
+<p><strong>MPS</strong> stands for <strong>Metal Performance Shaders</strong>. It is Apple's framework
+for offloading matrix operations and tensor math onto the GPU built into
+Apple silicon — the M1, M2, M3 and M4 families. It is native, and it
+requires an Apple silicon Mac. It is fast for two reasons: the GPU runs
+enormous numbers of operations in parallel, and Apple's unified memory
+gives it very high bandwidth to work against.</p>
+<p>Unified memory has a second consequence worth stating before any number
+gets compared across machines. On this laptop, the CPU and the GPU share
+one physical pool of memory. Moving an array to the GPU does not copy it across a bus. On a discrete
+NVIDIA card it does, because host and device hold genuinely separate
+memory. So transfer costs on this machine are not the transfer costs on
+that one. A speedup measured here does not carry over to a CUDA result.</p>
+<p>Two practical constraints follow from the device choice.</p>
+<p><strong>Apple GPUs do not support float64.</strong> Every tensor downcasts to float32.
+This book's images are 8-bit to begin with, so the input loses nothing.
+The correlation arithmetic does run at lower precision than the CPU path
+uses. Whether that costs accuracy is measured below rather than assumed.</p>
+<p><strong>GPU work is queued, not immediate.</strong> A call returns as soon as the work
+is submitted, long before it finishes. Timing it without a <code>sync()</code> call
+measures how fast the queue accepts work — a number that looks
+spectacular and means nothing. Every timing on this page brackets its own
+synchronize call.</p>
+<p>One thing this page's benchmark deliberately does <em>not</em> do: fall back to
+the CPU when a requested device is missing. The earlier work fell back
+with a printed warning, which is how a CPU measurement ends up labeled as
+a GPU one. A missing device here stops the run and says so.</p>
+<h2 id="batching-against-device-memory"><a class="header" href="#batching-against-device-memory">Batching Against Device Memory</a></h2>
+<p>Stacking N search areas into one tensor raises a question <a href="getting_started/./timing_at_scale.html">Timing at
+Scale</a> never had to ask. How much memory does that tensor take?</p>
+<p>One search area holds <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span> float32 values. At the 300 pixel image size,
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">48</span></span></span></span>, so that is 48 x 48 x 4 bytes, about 9 KB. Small. But
+<a href="getting_started/./timing_at_scale.html#finding-the-ceiling">Timing at Scale</a> grows the
+search area along with the image, because a 2% stretch displaces a far
+edge further in a bigger picture. By the 10204 pixel size, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">420</span></span></span></span>, and
+one search area costs 420 x 420 x 4 bytes, about 706 KB.</p>
+<p>Multiply by point count and the totals stop being comfortable:</p>
+<table>
+<thead><tr><th>Width (px)</th><th>Points</th><th>Search area</th><th>All search areas at once</th><th>Both images, resident</th></tr></thead>
+<tbody>
+<tr><td style="text-align: right;">300</td><td style="text-align: right;">2,809</td><td style="text-align: right;">48x48</td><td style="text-align: right;">0.0 GB</td><td style="text-align: right;">0.00 GB</td></tr>
+<tr><td style="text-align: right;">540</td><td style="text-align: right;">9,216</td><td style="text-align: right;">58x58</td><td style="text-align: right;">0.1 GB</td><td style="text-align: right;">0.00 GB</td></tr>
+<tr><td style="text-align: right;">972</td><td style="text-align: right;">29,584</td><td style="text-align: right;">74x74</td><td style="text-align: right;">0.6 GB</td><td style="text-align: right;">0.01 GB</td></tr>
+<tr><td style="text-align: right;">1750</td><td style="text-align: right;">95,481</td><td style="text-align: right;">102x102</td><td style="text-align: right;">4.0 GB</td><td style="text-align: right;">0.02 GB</td></tr>
+<tr><td style="text-align: right;">3149</td><td style="text-align: right;">308,025</td><td style="text-align: right;">156x156</td><td style="text-align: right;">30.0 GB</td><td style="text-align: right;">0.08 GB</td></tr>
+<tr><td style="text-align: right;">5669</td><td style="text-align: right;">996,004</td><td style="text-align: right;">250x250</td><td style="text-align: right;">249.0 GB</td><td style="text-align: right;">0.26 GB</td></tr>
+<tr><td style="text-align: right;">10204</td><td style="text-align: right;">3,229,209</td><td style="text-align: right;">420x420</td><td style="text-align: right;">2,278.5 GB</td><td style="text-align: right;">0.83 GB</td></tr>
+<tr><td style="text-align: right;">18367</td><td style="text-align: right;">10,452,289</td><td style="text-align: right;">728x728</td><td style="text-align: right;">22,158.2 GB</td><td style="text-align: right;">2.70 GB</td></tr>
+<tr><td style="text-align: right;">33060</td><td style="text-align: right;">33,860,761</td><td style="text-align: right;">1280x1280</td><td style="text-align: right;">221,909.9 GB</td><td style="text-align: right;">8.74 GB</td></tr>
+<tr><td style="text-align: right;">59508</td><td style="text-align: right;">109,704,676</td><td style="text-align: right;">2274x2274</td><td style="text-align: right;">2,269,164.9 GB</td><td style="text-align: right;">28.33 GB</td></tr>
+</tbody>
+</table>
+<p>This machine has 32 GB, and Apple's Metal layer will admit only about
+26.8 GB of it as a working set. So materializing every search area at
+once stops being possible somewhere between the 1750 pixel and 5669 pixel
+sizes.</p>
+<p>The fix is to process points in <strong>chunks</strong>. Take a few thousand points,
+build their tensors, correlate them, keep the answers, free the tensors,
+move on. Chunk size becomes this page's own new variable, the way
+<code>max_workers</code> was <a href="getting_started/./parallelization.html">Parallelization</a>'s. A larger
+chunk spreads each call's fixed cost over more correlations. A smaller
+chunk keeps the batch inside memory. The benchmark below sizes each chunk
+to fit a stated 4 GB budget and reports what it chose.</p>
+<p>Chunking also exposes something wasteful. At 5 pixel point spacing and a
+250 pixel search area, two neighboring points' search areas overlap
+almost completely. Materializing both copies nearly every pixel twice,
+and across a whole grid the same pixels get copied hundreds of times
+over. The correlation needs those copies laid out contiguously, so the
+waste buys something real. But it explains why the extraction step
+below costs what it does.</p>
+<p>That waste is also the reason the last column above matters separately
+from the fourth. <strong>Search areas are chunkable; the two full images are
+not.</strong> Both images stay resident for an entire size, because every chunk
+cuts its windows out of them. Chunking can shrink everything except
+those two arrays — which is exactly what makes this page's stopping rule
+work, below.</p>
+<h2 id="subpixel-from-a-correlation-surface"><a class="header" href="#subpixel-from-a-correlation-surface">Subpixel from a Correlation Surface</a></h2>
+<p><code>conv2d</code> returns the whole correlation surface, not just its peak. That
+surface is more informative than the single best-matching integer
+position, and it makes subpixel accuracy nearly free.</p>
+<p>The true peak almost never lands exactly on a sample. Fitting a parabola
+through the best sample and its two neighbors recovers where it actually
+sits:</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.03785em;">δ</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.0074em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">2</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:2.2547em;vertical-align:-0.8943em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3603em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">2</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2083em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8943em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<p>applied independently along each axis. It costs one gather of each peak's
+immediate neighborhood, then arithmetic. It batches exactly the way the
+correlation does.</p>
+<p>This closes one of the three gaps the earlier work left open. That
+implementation stopped at the integer peak and never refined it.</p>
+<p>Parabolic fitting carries a known bias called <strong>peak locking</strong>: it pulls
+estimates slightly toward whole-pixel positions. Rather than assert how
+large that bias is, this page measures it. Every point's true destination
+is known exactly — a point at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> lands at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1.02</span><span class="mord mathnormal">x</span></span></span></span> — so both the error
+and the bias can be checked directly against truth. Those results appear
+in the next section.</p>
+<h2 id="checking-the-answer-before-timing-it"><a class="header" href="#checking-the-answer-before-timing-it">Checking the Answer Before Timing It</a></h2>
+<p>A fast wrong answer is worthless. Before any timing on this page, the
+batched correlation gets checked two ways at the 300 pixel size, on every
+device.</p>
+<p><strong>Does it find the same integer positions
+<a href="getting_started/../api/dictk/grid.html#locate"><code>dictk.grid.locate</code></a> finds?</strong> Not quite,
+and the gap is instructive. It agrees on 2,772 of 2,809 points, 98.7%.
+Every one of the 37 disagreements is off by exactly one pixel in <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and
+zero in <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>.</p>
+<p>Those 37 are not errors. Checking where they fall: every disagreeing
+point has a true destination whose fractional part lies between 0.460 and
+0.560, averaging 0.503. They sit on the half-pixel boundary, where
+rounding to a whole number is genuinely ambiguous. Phase correlation and
+a sliding dot product break that tie differently. Measured against true
+positions rather than against each other, the batched result is
+marginally <em>closer</em>: 0.2598 pixels of mean absolute error against
+<code>locate</code>'s 0.2606.</p>
+<p><strong>How close does the refined position land?</strong> Mean absolute error against
+analytical truth, at the same 2,809 points:</p>
+<div class="table-wrapper"><table><thead><tr><th>Method</th><th>Mean absolute error</th></tr></thead><tbody>
+<tr><td><code>grid.locate_subpixel</code>, <code>upsample_factor=100</code></td><td>0.0925 px</td></tr>
+<tr><td>Batched <code>conv2d</code>, parabolic refinement</td><td>0.0369 px</td></tr>
+</tbody></table>
+</div>
+<p>The parabolic fit is 2.5 times more accurate than the upsampled-DFT
+refinement <a href="getting_started/./subpixel_accuracy.html">Subpixel Accuracy</a> introduced, and it
+costs a small fraction of the correlation it rides on. That result was
+not expected. It is worth stating plainly that these are two different
+refinement mechanisms measured against the same truth, not a bug in
+either.</p>
+<p>Peak locking does show up, mildly. Binning the refined positions'
+fractional parts into ten bins gives 330, 338, 258, 219, 280, 265, 210,
+257, 313, 339 — against 280 per bin if the spread were flat. The bias
+pulls toward whole pixels, by roughly 20% excess in the outer bins. It is
+real, it is visible, and it is small enough that the method still beats
+the alternative above by a wide margin.</p>
+<p>The Apple GPU produces results identical to the CPU, digit for digit, at
+every one of those 2,809 points. float32 costs nothing measurable here.</p>
+<h2 id="the-same-ladder-on-pytorch"><a class="header" href="#the-same-ladder-on-pytorch">The Same Ladder, on PyTorch</a></h2>
+<p>Same image sizes, same point grids, same kernel, same search areas,
+same machine. The only change is what runs the correlation.
+<a href="getting_started/./timing_at_scale.html">Timing at Scale</a>'s own threaded column sits
+alongside, because it was that page's fastest CPU result:</p>
+<table>
+<thead><tr><th>Width (px)</th><th>Points</th><th>Search area</th><th>threads (9.3)</th><th>torch CPU</th><th>torch MPS</th><th>MPS speedup</th></tr></thead>
+<tbody>
+<tr><td style="text-align: right;">300</td><td style="text-align: right;">2,809</td><td style="text-align: right;">48x48</td><td style="text-align: right;">1.5s</td><td style="text-align: right;">0.3s</td><td style="text-align: right;">0.2s</td><td style="text-align: right;">6.2x</td></tr>
+<tr><td style="text-align: right;">540</td><td style="text-align: right;">9,216</td><td style="text-align: right;">58x58</td><td style="text-align: right;">4.9s</td><td style="text-align: right;">1.4s</td><td style="text-align: right;">0.5s</td><td style="text-align: right;">9.3x</td></tr>
+<tr><td style="text-align: right;">972</td><td style="text-align: right;">29,584</td><td style="text-align: right;">74x74</td><td style="text-align: right;">16.9s</td><td style="text-align: right;">7.8s</td><td style="text-align: right;">1.1s</td><td style="text-align: right;">15.7x</td></tr>
+<tr><td style="text-align: right;">1750</td><td style="text-align: right;">95,481</td><td style="text-align: right;">102x102</td><td style="text-align: right;">58.6s</td><td style="text-align: right;">53.4s</td><td style="text-align: right;">4.8s</td><td style="text-align: right;">12.1x</td></tr>
+<tr><td style="text-align: right;">3149</td><td style="text-align: right;">308,025</td><td style="text-align: right;">156x156</td><td style="text-align: right;">215.2s</td><td style="text-align: right;">512.7s</td><td style="text-align: right;">34.6s</td><td style="text-align: right;">6.2x</td></tr>
+<tr><td style="text-align: right;">5669</td><td style="text-align: right;">996,004</td><td style="text-align: right;">250x250</td><td style="text-align: right;">861.5s</td><td style="text-align: right;">—</td><td style="text-align: right;">256.5s</td><td style="text-align: right;">3.4x</td></tr>
+<tr><td style="text-align: right;">10204</td><td style="text-align: right;">3,229,209</td><td style="text-align: right;">420x420</td><td style="text-align: right;">—</td><td style="text-align: right;">—</td><td style="text-align: right;">39 min</td><td style="text-align: right;">—</td></tr>
+<tr><td style="text-align: right;">18367</td><td style="text-align: right;">10,452,289</td><td style="text-align: right;">728x728</td><td style="text-align: right;">—</td><td style="text-align: right;">—</td><td style="text-align: right;">—</td><td style="text-align: right;">—</td></tr>
+</tbody>
+</table>
+<figure>
+    <img src="getting_started/parallelism_pytorch_bench.png" alt="two log-log panels: left compares tracking cost against point count, with Timing at Scale's sequential, threads and processes as dashed lines and this page's torch CPU and torch MPS as solid lines; torch MPS runs lowest at every point count, while torch CPU starts below that page's threads line and crosses above it near 100,000 points; right breaks each size's time into upload, extract, correlate and refine, showing correlate highest and upload and refine lowest throughout" />
+    <figcaption>Left: batched PyTorch against <a href="getting_started/./timing_at_scale.html">Timing at Scale</a>'s own three executors, same geometry, same machine. Right: where each size's time actually goes, split into uploading the images, extracting search areas, correlating them, and refining the peaks.</figcaption>
+</figure>
+<p>The Apple GPU wins at every size, but not by a constant factor. The way
+that factor moves is the most interesting thing in the table.</p>
+<p>It climbs first. 6.2x at 2,809 points, 9.3x at 9,216, peaking at 15.7x
+at 29,584 points. That is batching paying off exactly as expected: more
+correlations per call, the same fixed cost spread thinner.</p>
+<p>Then it falls. 12.1x, then 6.2x, then 3.4x at 996,004 points. Point
+count kept growing the whole time, so batching cannot explain the
+decline. The search area explains it.</p>
+<h2 id="the-cusp-measured"><a class="header" href="#the-cusp-measured">The Cusp, Measured</a></h2>
+<p>Look at the <code>torch CPU</code> column against the <code>threads</code> column beside it.
+Both run on the same ten cores. They differ only in algorithm.</p>
+<p>At 29,584 points, with a 74x74 search area, torch CPU takes 7.8 seconds
+against 16.9. The sliding dot product wins, better than two to one.</p>
+<p>At 95,481 points, with a 102x102 search area, they are 53.4 against
+58.6. A tie.</p>
+<p>At 308,025 points, with a 156x156 search area, torch CPU takes 512.7
+seconds against 215.2. The FFT wins, better than two to one, in the
+other direction.</p>
+<p>That crossover is the thing Polonsky's 2025 email predicted without
+being able to locate:</p>
+<blockquote>
+<p>Depending on our subset size, we are right on the cusp of whether or
+not doing the FFT for cross-correlation will be faster than brute force
+sliding dot product.</p>
+</blockquote>
+<p>On this machine, at this book's 26x26 kernel, the cusp sits near a
+100x100 pixel search area. Below it, brute force wins. Above it, the FFT
+wins. The complexity argument in <em>What <code>conv2d</code> Actually Computes</em>
+predicts exactly this shape: direct correlation costs <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> and
+grows with the search area, while an FFT costs <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span> and barely
+notices.</p>
+<p>This also explains the Apple GPU's shrinking lead. The GPU is running
+the losing algorithm. Its hardware advantage is large enough to stay
+ahead anyway, but it is spending that advantage fighting an algorithm
+that scales worse. At 996,004 points it is still 3.4x faster than ten
+CPU cores, while doing asymptotically more work to get there.</p>
+<p>Which reframes what this page found. The result is not "the GPU is 3.4x
+faster." It is that a GPU running the <em>wrong</em> algorithm still beats ten
+CPU cores running the right one. Nobody has combined the two yet.</p>
+<h2 id="where-the-time-goes"><a class="header" href="#where-the-time-goes">Where the Time Goes</a></h2>
+<p>Splitting each size into its four stages answers the question hdic's own
+measurements raised, where building tensors cost five times what the
+correlation cost:</p>
+<table>
+<thead><tr><th>Width (px)</th><th>Points</th><th>upload</th><th>extract</th><th>correlate</th><th>refine</th></tr></thead>
+<tbody>
+<tr><td style="text-align: right;">300</td><td style="text-align: right;">2,809</td><td style="text-align: right;">0.00s (2%)</td><td style="text-align: right;">0.15s (65%)</td><td style="text-align: right;">0.06s (25%)</td><td style="text-align: right;">0.01s (4%)</td></tr>
+<tr><td style="text-align: right;">540</td><td style="text-align: right;">9,216</td><td style="text-align: right;">0.01s (1%)</td><td style="text-align: right;">0.18s (33%)</td><td style="text-align: right;">0.33s (62%)</td><td style="text-align: right;">0.01s (2%)</td></tr>
+<tr><td style="text-align: right;">972</td><td style="text-align: right;">29,584</td><td style="text-align: right;">0.01s (1%)</td><td style="text-align: right;">0.32s (29%)</td><td style="text-align: right;">0.71s (65%)</td><td style="text-align: right;">0.01s (1%)</td></tr>
+<tr><td style="text-align: right;">1750</td><td style="text-align: right;">95,481</td><td style="text-align: right;">0.05s (1%)</td><td style="text-align: right;">1.28s (26%)</td><td style="text-align: right;">3.34s (69%)</td><td style="text-align: right;">0.03s (1%)</td></tr>
+<tr><td style="text-align: right;">3149</td><td style="text-align: right;">308,025</td><td style="text-align: right;">0.09s (0%)</td><td style="text-align: right;">8.77s (25%)</td><td style="text-align: right;">24.49s (71%)</td><td style="text-align: right;">0.10s (0%)</td></tr>
+<tr><td style="text-align: right;">5669</td><td style="text-align: right;">996,004</td><td style="text-align: right;">0.22s (0%)</td><td style="text-align: right;">70.25s (27%)</td><td style="text-align: right;">175.54s (68%)</td><td style="text-align: right;">0.93s (0%)</td></tr>
+<tr><td style="text-align: right;">10204</td><td style="text-align: right;">3,229,209</td><td style="text-align: right;">0.66s (0%)</td><td style="text-align: right;">644.73s (28%)</td><td style="text-align: right;">1589.20s (68%)</td><td style="text-align: right;">9.33s (0%)</td></tr>
+</tbody>
+</table>
+<p>Extraction is not the bottleneck here, and that is worth stating clearly
+because the earlier work found the opposite. Two differences explain it.
+That implementation rebuilt its tensors from NumPy on every batch,
+crossing the host boundary each time. This one uploads both images once
+per size, then cuts every window straight out of device memory. That fix
+came from catching this script doing the slow thing first, and measuring
+the difference.</p>
+<p>Refinement costs almost nothing, which was the hope. Getting subpixel
+accuracy out of a surface <code>conv2d</code> already computed is close to free.</p>
+<h2 id="knowing-when-to-stop"><a class="header" href="#knowing-when-to-stop">Knowing When to Stop</a></h2>
+<p><a href="getting_started/./timing_at_scale.html">Timing at Scale</a> stopped each run with a
+1800-second wall clock. That was the right tool there, and it is the
+wrong tool here.</p>
+<p>macOS does not raise a catchable error when a process exhausts host
+memory. It swaps, or the kernel kills the process outright. There is no
+exception to catch, so a clock was the only reliable stop available.</p>
+<p>A GPU is different. It raises a real, catchable Python exception when it
+runs out of device memory. So this page retires the clock and stops on
+two conditions instead, neither of which is an arbitrary time limit.</p>
+<p><strong>First, a caught out-of-memory error.</strong> This works because of the
+asymmetry the memory section already named. Chunking can shrink every
+per-point tensor, so chunking alone never runs out. The two full images
+cannot be chunked — both stay resident for an entire size. That
+unchunkable part is what eventually fails. Before each size, the
+benchmark computes what those two images will need and compares it
+against what the device will admit. Then it attempts the size anyway, and
+catches whatever actually happens. A prediction earns its place only if
+the measurement gets a chance to contradict it.</p>
+<p>Finding the right exception took a deliberate test rather than an
+assumption. Apple's Metal layer reports running out of memory in more
+than one way, and only one of them uses the phrase "out of memory". An
+allocation past the remaining budget raises <code>MPS backend out of memory</code>.
+A single tensor past Metal's per-buffer ceiling raises <code>Invalid buffer size: 3013.73 GiB</code> instead, which never says "memory" at all. Forcing
+both conditions on purpose, at a small size, revealed the second one.
+Trusting the first message to be the only one would have turned a real
+memory finding into an unexplained crash.</p>
+<p><strong>Second, a predicted-cost gate.</strong> Compute grows faster than memory here,
+so the ladder becomes impractical before it becomes impossible. Each size
+predicts its own cost from the previous size's <em>measured</em> rate, counting
+both point count and per-correlation size. A prediction past one hour
+stops that device, and the prediction gets recorded along with the
+measurement it came from.</p>
+<p>That is not a new idea on this page.
+<a href="getting_started/./timing_at_scale.html#where-it-breaks">Timing at Scale</a> already reasoned
+this way twice: it stopped a run deliberately once its cause was
+understood, and it extrapolated a measured rate out to 1.4 weeks rather
+than spending 1.4 weeks confirming it. The change here is making that
+reasoning the rule up front, instead of a judgment call afterward.</p>
+<p>A wall-clock watchdog does still exist, set at four hours. Its only job
+is to stop an unattended overnight run from hanging forever on a wedged
+GPU driver. It sits far past anything the cost gate would allow. So if it ever
+fires, that is a harness problem to investigate, not a finding about
+scaling. There, the timeout <em>was</em> the finding. Here it must never be.</p>
+<h2 id="where-it-breaks-1"><a class="header" href="#where-it-breaks-1">Where It Breaks</a></h2>
+<p>Neither device ran out of memory. Not once, at any size.</p>
+<p>That is worth stating bluntly, because this page was built expecting the
+opposite. The stopping rules above put a caught out-of-memory error
+first, and worked out in advance which size should trigger it. The
+measurement contradicted the prediction. The cost gate fired first, on
+both devices, and the memory wall was never reached.</p>
+<p>The numbers are not close. At the largest size either device attempted,
+the two resident images occupied 0.83 GB of Metal's 26.8 GB budget —
+about 3%. Peak host memory across the entire run reached 13.9 GB of 32.
+The prediction that images would eventually stop fitting is still
+arithmetically correct, at a size around 59508 pixels. This ladder simply
+never gets there, because the arithmetic to process such a size takes
+longer than anyone would wait.</p>
+<p><strong><code>cpu</code> stopped at 5669 pixels.</strong> Its own measured rate at 3149 pixels
+predicted 4,890 seconds for the next size, past the one-hour budget. The
+prediction was recorded rather than run.</p>
+<p><strong><code>mps</code> went two sizes further.</strong> It completed 10204 pixels — 3,229,209
+points in 2,334.7 seconds — then predicted 23,937 seconds for 18367
+pixels and stopped.</p>
+<p>That 10204 pixel size is the interesting one.
+<a href="getting_started/./timing_at_scale.html#where-it-breaks">Timing at Scale</a> attempted exactly
+it, with threads, and could not finish it. The Apple GPU completed it in
+39 minutes.</p>
+<h3 id="throughput-rises-then-falls"><a class="header" href="#throughput-rises-then-falls">Throughput Rises, Then Falls</a></h3>
+<p>Points tracked per second, at each size <code>mps</code> completed:</p>
+<table>
+<thead><tr><th>Width (px)</th><th>Search area</th><th>Points</th><th>Seconds</th><th>Points/second</th><th>1e9 points would take</th></tr></thead>
+<tbody>
+<tr><td style="text-align: right;">300</td><td style="text-align: right;">48x48</td><td style="text-align: right;">2,809</td><td style="text-align: right;">0.2</td><td style="text-align: right;">11,868</td><td style="text-align: right;">23 h</td></tr>
+<tr><td style="text-align: right;">540</td><td style="text-align: right;">58x58</td><td style="text-align: right;">9,216</td><td style="text-align: right;">0.5</td><td style="text-align: right;">17,415</td><td style="text-align: right;">16 h</td></tr>
+<tr><td style="text-align: right;">972</td><td style="text-align: right;">74x74</td><td style="text-align: right;">29,584</td><td style="text-align: right;">1.1</td><td style="text-align: right;">27,374</td><td style="text-align: right;">10 h</td></tr>
+<tr><td style="text-align: right;">1750</td><td style="text-align: right;">102x102</td><td style="text-align: right;">95,481</td><td style="text-align: right;">4.8</td><td style="text-align: right;">19,723</td><td style="text-align: right;">14 h</td></tr>
+<tr><td style="text-align: right;">3149</td><td style="text-align: right;">156x156</td><td style="text-align: right;">308,025</td><td style="text-align: right;">34.6</td><td style="text-align: right;">8,890</td><td style="text-align: right;">31 h</td></tr>
+<tr><td style="text-align: right;">5669</td><td style="text-align: right;">250x250</td><td style="text-align: right;">996,004</td><td style="text-align: right;">256.5</td><td style="text-align: right;">3,884</td><td style="text-align: right;">72 h</td></tr>
+<tr><td style="text-align: right;">10204</td><td style="text-align: right;">420x420</td><td style="text-align: right;">3,229,209</td><td style="text-align: right;">2,334.7</td><td style="text-align: right;">1,383</td><td style="text-align: right;">201 h</td></tr>
+</tbody>
+</table>
+<p>Throughput climbs to 27,374 points per second at 29,584 points, then
+falls away steadily. By the largest size it has dropped to 1,383, a
+twentyfold decline.</p>
+<p>Point count is not the cause. Point count only ever increased. The search area is the cause. The CPU comparison already showed why: a
+sliding dot product's work grows with the area it slides over, and this
+ladder grows that area at every rung.</p>
+<p>Which makes the last column read as a warning rather than a forecast.
+"How long would a billion correlations take" has no single answer here.
+It is 10 hours at a 74x74 search area and 201 hours at a 420x420 one,
+using the same hardware, the same code, and the same algorithm. Search
+area, not point count, is what decides.</p>
+<p>Against <a href="getting_started/./timing_at_scale.html">Timing at Scale</a>'s own closing
+extrapolation, measured at the same 996,004-point size: threads managed
+1,156 points per second, which is where that page's estimate of roughly
+1.4 weeks for a billion came from. The Apple GPU manages 3,884 at the
+same size. Same problem, same machine, about 3 days instead of 10.</p>
+<p>That is a real improvement and it is not enough. A billion correlations
+is <a href="getting_started/./path_forward.html">Path Forward</a>'s entry-level target, not its
+ceiling. Three days of continuous computation for the smallest
+interesting problem still rules out the tens of billions that page names
+as realistic.</p>
+<p>The encouraging part is where the remaining headroom sits. This page
+spent its entire GPU advantage running the algorithm that
+<a href="getting_started/parallelism_pytorch.html#the-cusp-measured">the cusp measurement above</a> shows is the wrong one
+at these search areas. Nothing here has yet combined the better hardware
+with the better algorithm.</p>
+<h2 id="cuda-pending"><a class="header" href="#cuda-pending">CUDA, Pending</a></h2>
+<p>This page has no NVIDIA results.</p>
+<p>The machine to run them on exists: a Windows workstation with a CUDA
+card, the same one that produced the 2025 measurements quoted at the top
+of this page. Access to it is pending, so the CUDA column below stays
+empty rather than estimated.</p>
+<p>The benchmark already supports it. <code>device_select</code> resolves <code>cuda</code> first
+when a CUDA device is visible, and every timing already brackets the
+correct per-device synchronize call. Running this page's ladder there
+requires no code change — only the machine.</p>
+<p>Two things are worth knowing in advance about how that comparison will
+read. The unified memory point above means transfer costs will differ
+structurally, not just in magnitude. And cuDNN chooses among more
+convolution algorithms than Metal does, including FFT-based ones. So the
+dispatch question in <em>What <code>conv2d</code> Actually Computes</em> may resolve
+differently there.</p>
+<h2 id="what-comes-next"><a class="header" href="#what-comes-next">What Comes Next</a></h2>
+<p>The FFT gap is still open, and it is now the obvious next step.</p>
+<p>Every correlation on this page is a sliding dot product. Every CPU correlation in <a href="getting_started/./subpixel_accuracy.html">Subpixel Accuracy</a>,
+<a href="getting_started/./high_point_density.html">High Point Density</a> and <a href="getting_started/./timing_at_scale.html">Timing at
+Scale</a> is an FFT. Those are the two sides of the cusp Polonsky's 2025 email named. This book
+has now measured each side on different hardware. That is exactly the
+comparison that cannot settle the question.</p>
+<p>A batched <code>torch.fft</code> phase correlation would settle it. It would run the
+<em>same</em> algorithm the three pages above already use, on the <em>same</em> devices
+this page already measures. That makes the comparison engine-for-engine,
+instead of across two variables at once. It would also reuse this page's chunking,
+its device selection, and its stopping rules unchanged.</p>
+<p>That work is not started.</p>
+<h2 id="parallelism_pytorch_benchpy"><a class="header" href="#parallelism_pytorch_benchpy"><code>parallelism_pytorch_bench.py</code></a></h2>
+<pre><code class="language-python">"""Parallelism with PyTorch: rerun Timing at Scale's own ladder on a
+batched PyTorch correlation, on this machine (Apple M1 Pro, 32GB RAM,
+10 cores -- see parallelism_pytorch.md's own Test Machine section),
+across every device this machine offers.
+
+Timing at Scale (9.3) tracked one point per `dictk.grid.locate_subpixel`
+call, and every call ran its own FFT. This script replaces that inner
+loop entirely. It stacks many search windows into one tensor, many
+kernels into another, and correlates all of them in a single
+`F.conv2d` call -- the grouped-convolution trick hdic's own
+`xcorr_pytorch.py` established (see parallelism_pytorch.md for the
+attribution and the shape derivation).
+
+Not part of the dictk package -- a standalone, one-time measurement
+script, matching timing_at_scale_bench.py's and parallelization_bench.py's
+own precedent. Its output (parallelism_pytorch_bench.csv,
+parallelism_pytorch_bench.png) is committed alongside it rather than
+regenerated on every book build.
+
+dictk itself does not depend on PyTorch, and this script does not change
+that. It guards its own imports and exits with a message rather than a
+traceback when torch is missing. See torch_require below.
+
+Geometry is imported from timing_at_scale_bench, never redefined here.
+Same kernel margin, same stretch factor, same origin fraction, same
+spacing, same rosta parameters, same geometric ladder. A number this
+script produces is only comparable to 9.3's if the geometry underneath
+it is identical, so it is taken from 9.3's own module rather than
+copied.
+
+Stopping rules (read before changing the ladder): 9.3's own 1800-second
+per-tier wall clock is NOT reused. macOS gives no catchable MemoryError,
+so 9.3 had no better option. A GPU does: it raises a real, catchable
+out-of-memory exception. This script therefore stops on three
+conditions, in priority order --
+
+  1. A caught out-of-memory error. Search windows are chunkable, so
+     chunking alone never runs out. The two full images are not
+     chunkable; both stay resident for the whole size. That unchunkable
+     residency is what eventually fails, and _memory_predict reports the
+     prediction before each size so the measurement can confirm or
+     contradict it.
+  2. The predicted-cost gate. Compute grows faster than memory here, so
+     the ladder turns impractical before it turns impossible. Each size
+     predicts its own cost from the PREVIOUS size's measured throughput.
+     A prediction past COST_BUDGET_S stops that device, and the
+     prediction is written to the CSV with the throughput it came from.
+  3. WATCHDOG_S, a harness safety net only. It exists so an unattended
+     run cannot hang forever on a wedged GPU driver. It is set far past
+     anything the cost gate would allow. If it ever fires, that is a
+     harness problem to investigate, not a finding about scaling --
+     unlike 9.3, where the timeout WAS the finding.
+
+Must be a real module, not `python3 -c` -- the controller re-invokes
+this same file as a subprocess per (width, device).
+
+Re-run with: python3 parallelism_pytorch_bench.py
+Run the correctness gates alone:
+    python3 parallelism_pytorch_bench.py --check
+Re-run a single (width, device) directly:
+    python3 parallelism_pytorch_bench.py --worker 3149 mps
+"""
+
+import csv
+import os
+import platform
+import resource
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from dictk.grid import generate, locate, locate_subpixel
+from dictk.image import PixelCoordinate, stretch
+from dictk.rosta import rosta
+
+# Geometry comes from 9.3's own module, never redefined here -- see the
+# module docstring for why. Importing it also keeps this script honest if
+# 9.3's ladder is ever retuned: both pages move together, or neither does.
+import timing_at_scale_bench as bench
+
+CSV_PATH = Path(__file__).parent / "parallelism_pytorch_bench.csv"
+PNG_PATH = Path(__file__).parent / "parallelism_pytorch_bench.png"
+TIMING_CSV = Path(__file__).parent / "timing_at_scale_bench.csv"
+
+DEVICES = ("cpu", "mps", "cuda")
+
+# Chunk budget, in GB of device allocation per batch. Deliberately well
+# under this machine's own ~26.8GB MPS working set: the two full images
+# stay resident for the whole size on top of whatever a chunk holds, and
+# a chunk allocates its windows, its correlation surfaces, and its
+# kernels all at once. 4GB leaves room for all of that at every size the
+# ladder reaches.
+CHUNK_BUDGET_GB = 4.0
+
+# Predicted-cost gate. A size whose predicted wall time exceeds this,
+# extrapolated from the previous size's own measured throughput, is not
+# attempted -- the prediction is recorded instead. One hour is a
+# deliberate choice, not a tuned constant: it is long enough that every
+# size the ladder can actually finish gets measured, and short enough
+# that the two sizes past this machine's practical limit (roughly 10
+# hours and 104 hours of arithmetic, by the FLOP estimate on the page)
+# are reported rather than run.
+COST_BUDGET_S = 3600.0
+
+# Harness safety net ONLY -- see the module docstring's own stopping-rules
+# note. This must never be the reason a result is reported. Four hours is
+# far past COST_BUDGET_S, so a size that fires this one has hung rather
+# than merely run long.
+WATCHDOG_S = 4 * 3600
+
+
+def torch_require():
+    """Imports torch, or exits with a message instead of a traceback.
+
+    dictk does not depend on PyTorch. This script does. A missing
+    install is an ordinary, expected situation for someone reading the
+    book, so it gets an explanation rather than an ImportError.
+    """
+    try:
+        import torch
+        import torch.nn.functional as functional
+    except ImportError:
+        print(
+            "PyTorch is required to run this benchmark, and is not installed.\n"
+            "\n"
+            "dictk itself does not depend on PyTorch. This standalone\n"
+            "benchmark script does, and it is the only thing in the book\n"
+            "that does.\n"
+            "\n"
+            "Install it with:\n"
+            "    uv pip install torch\n"
+            "\n"
+            "Platform-specific builds (CUDA, ROCm, CPU-only):\n"
+            "    https://pytorch.org/get-started/locally/",
+            file=sys.stderr,
+        )
+        raise SystemExit(1)
+    return torch, functional
+
+
+def device_select(*, prefer: str):
+    """Resolves `prefer` to a real torch device, or exits explaining why
+    it cannot.
+
+    Returns `(device, sync)`. `sync` blocks until queued work on that
+    device has actually finished. GPU work is submitted asynchronously,
+    so a timer that doesn't call it measures queue submission rather
+    than computation.
+
+    This never silently falls back to CPU. hdic's own xcorr_pytorch.py
+    fell back with a printed warning, which is how a CPU measurement
+    ends up labeled as a GPU one. A results table that mislabels its own
+    device is worse than a missing row.
+    """
+    torch, _ = torch_require()
+
+    available = ["cpu"]
+    if torch.backends.mps.is_available():
+        available.append("mps")
+    if torch.cuda.is_available():
+        available.append("cuda")
+
+    if prefer not in available:
+        if prefer == "mps":
+            why = (
+                "this machine is not Apple silicon, or this torch build\n"
+                "  has no Metal support"
+                if not torch.backends.mps.is_built()
+                else "torch was built with Metal support, but no MPS device\n"
+                "  is available here"
+            )
+        elif prefer == "cuda":
+            why = "no CUDA device is visible to torch on this machine"
+        else:
+            why = "unrecognized device name"
+        print(
+            f"Device '{prefer}' was requested and is not available.\n"
+            f"  Reason: {why}\n"
+            f"  This machine offers: {', '.join(available)}\n"
+            f"  Platform: {platform.platform()}\n"
+            f"  torch: {torch.__version__}\n"
+            "\n"
+            "Not falling back to another device -- a timing labeled with\n"
+            "the wrong device would corrupt this benchmark's own results.",
+            file=sys.stderr,
+        )
+        raise SystemExit(2)
+
+    device = torch.device(prefer)
+    if prefer == "cuda":
+        sync = torch.cuda.synchronize
+    elif prefer == "mps":
+        sync = torch.mps.synchronize
+    else:
+
+        def sync():
+            return None
+
+    return device, sync
+
+
+def device_budget_gb(*, prefer: str) -&gt; float:
+    """How much memory this device will admit, in GB.
+
+    MPS reports a recommended working set rather than the full unified
+    pool -- Metal will refuse allocations past it even though the host
+    has more RAM installed. CUDA reports its own card's total. CPU falls
+    back to installed system memory.
+    """
+    torch, _ = torch_require()
+    if prefer == "mps":
+        return torch.mps.recommended_max_memory() / 1e9
+    if prefer == "cuda":
+        return torch.cuda.mem_get_info()[1] / 1e9
+    if platform.system() == "Darwin":
+        out = subprocess.run(
+            ["sysctl", "-n", "hw.memsize"], capture_output=True, text=True, check=True
+        )
+        return int(out.stdout.strip()) / 1e9
+    return os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES") / 1e9
+
+
+def bytes_per_point(*, search: int, kernel: int) -&gt; int:
+    """Device bytes one point costs inside a chunk, as float32.
+
+    Three allocations, not one: its search window, the correlation
+    surface that window produces, and its kernel. The surface is nearly
+    as large as the window itself, so counting only the window
+    underestimates a chunk by roughly half.
+    """
+    out = search - kernel + 1
+    return 4 * (search * search + out * out + kernel * kernel)
+
+
+def chunk_size_for(*, search: int, kernel: int, budget_gb: float) -&gt; int:
+    """Largest point count whose chunk fits `budget_gb`."""
+    return max(1, int(budget_gb * 1e9 // bytes_per_point(search=search, kernel=kernel)))
+
+
+def image_resident_gb(*, width: int) -&gt; float:
+    """Device GB the two full images occupy, as float32.
+
+    This is the part of the problem chunking cannot shrink. Both images
+    stay resident for an entire size, because every chunk extracts its
+    windows from them. When this alone exceeds the device budget, the
+    size is impossible at any chunk size.
+    """
+    return 2 * width * width * 4 / 1e9
+
+
+def _peak_rss_gb() -&gt; float:
+    """Peak resident set size so far, in GB. macOS reports ru_maxrss in
+    bytes; Linux reports it in KB."""
+    raw = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    return raw / 1e9 if platform.system() == "Darwin" else raw * 1024 / 1e9
+
+
+def _append_row(
+    *,
+    width: int,
+    points: int,
+    device: str,
+    chunk: int,
+    stage: str,
+    seconds: float,
+    peak_rss_gb: float,
+    note: str = "",
+) -&gt; None:
+    """Appends and flushes one CSV row immediately -- not batched -- so a
+    later crash loses nothing already measured. Same approach 9.3 used,
+    for the same reason."""
+    is_new = not CSV_PATH.exists()
+    with open(CSV_PATH, "a", newline="") as f:
+        writer = csv.writer(f)
+        if is_new:
+            writer.writerow(
+                [
+                    "width",
+                    "points",
+                    "device",
+                    "chunk",
+                    "stage",
+                    "seconds",
+                    "peak_rss_gb",
+                    "note",
+                ]
+            )
+        writer.writerow(
+            [
+                width,
+                points,
+                device,
+                chunk,
+                stage,
+                f"{seconds:.6f}",
+                f"{peak_rss_gb:.4f}",
+                note,
+            ]
+        )
+        f.flush()
+        os.fsync(f.fileno())
+
+
+def images_build(*, width: int) -&gt; tuple[np.ndarray, np.ndarray]:
+    """Reference and current image at this size, exactly as 9.3 built
+    them: pure rosta speckle, rescaled dot size, 2% stretch in x."""
+    dot_size, smoothness = bench.rosta_params_for(width)
+    reference_image = rosta(
+        width=width,
+        height=width,
+        dot_size=dot_size,
+        smoothness=smoothness,
+        density=bench.DENSITY,
+    )
+    current_image = stretch(arr=reference_image, factor_x=bench.FACTOR_X)
+    return reference_image, current_image
+
+
+def image_upload(*, image: np.ndarray, pad: int, device):
+    """Uploads one image to the device, padded, as float32. Once.
+
+    This is the allocation the memory section of parallelism_pytorch.md
+    calls unchunkable. It is deliberately hoisted out of the chunk loop:
+    a first version of this script rebuilt it inside `windows_extract`,
+    which re-converted and re-uploaded the entire image twice per chunk.
+    At the 3149px size that is 26 redundant uploads of a 40MB array, and
+    it inflated the measured extraction cost by a wide margin. Build it
+    once per size, index it many times.
+
+    `pad` zero-fills a border wide enough that a window straddling an
+    edge reads zeros rather than wrapping or raising. That matches
+    `dictk.image.subimage`, which zero-fills outside the image, so a
+    point near a border tracks the same way here as it does everywhere
+    else in this book.
+    """
+    torch, functional = torch_require()
+    return functional.pad(
+        torch.from_numpy(np.ascontiguousarray(image)).to(torch.float32),
+        (pad, pad, pad, pad),
+    ).to(device)
+
+
+def windows_extract(*, resident, origins_x, origins_y, size: int, pad: int):
+    """Stacks one `size` x `size` window per origin into a single
+    `(N, size, size)` tensor, cut from an already-resident padded image.
+
+    The gather is advanced indexing, not a Python loop. This is the step
+    that allocates a chunk's largest tensor, and on real DIC geometry it
+    copies heavily overlapping data -- neighboring windows at 5px spacing
+    share almost every pixel.
+    """
+    torch, _ = torch_require()
+    device = resident.device
+    rows = (origins_y + pad).reshape(-1, 1) + torch.arange(size, device=device)
+    cols = (origins_x + pad).reshape(-1, 1) + torch.arange(size, device=device)
+    return resident[rows[:, :, None], cols[:, None, :]]
+
+
+def batch_correlate(*, kernels, windows):
+    """Correlates each kernel against its own search window, in one call.
+
+    Shapes, for N points, a `K` x `K` kernel and an `S` x `S` search
+    window:
+
+        windows -&gt; (1, N, S, S)   N windows stacked as CHANNELS
+        kernels -&gt; (N, 1, K, K)   N kernels as N separate groups
+        output  -&gt; (1, N, S-K+1, S-K+1)
+
+    `groups=N` is the load-bearing argument. It splits the N input
+    channels into N groups of one, so kernel `i` sees window `i` and
+    nothing else. Without it, conv2d would compute the full N x N cross
+    product -- every kernel against every window -- which is both wrong
+    and N times more work.
+
+    `conv2d` is already cross-correlation. It does not flip the kernel
+    the way a mathematical convolution does, so no flip is needed here.
+
+    Both inputs are normalized to zero mean and unit standard deviation
+    beforehand, once per window and once per kernel. That is hdic's own
+    approach, and it makes a plain correlation behave like ZNCC. It is
+    an approximation: true ZNCC recomputes local statistics at every
+    sliding position, which costs two more conv2d passes. See
+    parallelism_pytorch.md for what that approximation measurably costs.
+    """
+    _, functional = torch_require()
+    kernels = (kernels - kernels.mean((1, 2), keepdim=True)) / kernels.std(
+        (1, 2), keepdim=True
+    ).clamp_min(1e-12)
+    windows = (windows - windows.mean((1, 2), keepdim=True)) / windows.std(
+        (1, 2), keepdim=True
+    ).clamp_min(1e-12)
+    return functional.conv2d(
+        windows.unsqueeze(0), kernels.unsqueeze(1), groups=windows.shape[0]
+    )[0]
+
+
+def peaks_locate(*, surfaces):
+    """Integer peak of every correlation surface, as `(rows, cols)`."""
+    flat = surfaces.reshape(surfaces.shape[0], -1).argmax(dim=1)
+    width = surfaces.shape[-1]
+    return flat // width, flat % width
+
+
+def peak_refine(*, surfaces, rows, cols):
+    """Fractional offset of each peak, by a three-point parabolic fit.
+
+    conv2d returns the whole correlation surface, not just its peak. The
+    peak's true position is generally between samples, and fitting a
+    parabola through the peak and its two neighbours recovers where:
+
+        delta = 0.5 * (C[-1] - C[+1]) / (C[-1] - 2 C[0] + C[+1])
+
+    applied independently per axis. One gather of each peak's
+    neighbourhood, then arithmetic -- it batches exactly like the
+    correlation does, and costs a small fraction of it.
+
+    A parabolic fit exhibits peak locking: it pulls estimates slightly
+    toward integer positions. parallelism_pytorch.md measures that bias
+    directly rather than assuming its size.
+
+    Peaks on a surface's own border have no neighbour on one side. Those
+    are clamped inward, which biases them, but a peak on the border
+    already means the search area was too small for that point.
+    """
+    torch, _ = torch_require()
+    height, width = surfaces.shape[-2], surfaces.shape[-1]
+    rows_in = rows.clamp(1, height - 2)
+    cols_in = cols.clamp(1, width - 2)
+    index = torch.arange(surfaces.shape[0], device=surfaces.device)
+
+    def at(row_offset, col_offset):
+        return surfaces[index, rows_in + row_offset, cols_in + col_offset]
+
+    def delta(minus, center, plus):
+        denominator = minus - 2 * center + plus
+        return torch.where(
+            denominator.abs() &lt; 1e-12,
+            torch.zeros_like(denominator),
+            0.5 * (minus - plus) / denominator,
+        )
+
+    center = at(0, 0)
+    return (
+        delta(at(-1, 0), center, at(1, 0)),
+        delta(at(0, -1), center, at(0, 1)),
+    )
+
+
+def track_batched(
+    *,
+    reference_image: np.ndarray,
+    current_image: np.ndarray,
+    points,
+    kernel_margin: int,
+    search_margin: int,
+    device_name: str,
+    chunk: int,
+    refine: bool = True,
+):
+    """Tracks every point through batched correlation, one chunk at a time.
+
+    Returns `(xs, ys, timings)`. `timings` splits the work into `upload`,
+    `extract`, `correlate` and `refine`. `upload` happens once per size;
+    the other three are summed across chunks. That split is the point:
+    the earlier work's own measurements found tensor creation costing five
+    times what the correlation cost, and a single total would have hidden
+    it completely.
+    """
+    torch, _ = torch_require()
+    device, sync = device_select(prefer=device_name)
+
+    kernel = 2 * kernel_margin
+    search = 2 * search_margin
+    xs = np.empty(len(points), dtype=np.float64)
+    ys = np.empty(len(points), dtype=np.float64)
+    timings = {"upload": 0.0, "extract": 0.0, "correlate": 0.0, "refine": 0.0}
+
+    # Both images go to the device once, before any chunk runs. See
+    # image_upload's own docstring for what building them per chunk
+    # cost instead.
+    sync()
+    mark = time.perf_counter()
+    reference_resident = image_upload(image=reference_image, pad=search, device=device)
+    current_resident = image_upload(image=current_image, pad=search, device=device)
+    points_x = torch.tensor([p.x for p in points], device=device)
+    points_y = torch.tensor([p.y for p in points], device=device)
+    sync()
+    timings["upload"] += time.perf_counter() - mark
+
+    for start in range(0, len(points), chunk):
+        stop = min(start + chunk, len(points))
+        chunk_x = points_x[start:stop]
+        chunk_y = points_y[start:stop]
+
+        sync()
+        mark = time.perf_counter()
+        kernels = windows_extract(
+            resident=reference_resident,
+            origins_x=chunk_x - kernel_margin,
+            origins_y=chunk_y - kernel_margin,
+            size=kernel,
+            pad=search,
+        )
+        windows = windows_extract(
+            resident=current_resident,
+            origins_x=chunk_x - search_margin,
+            origins_y=chunk_y - search_margin,
+            size=search,
+            pad=search,
+        )
+        sync()
+        timings["extract"] += time.perf_counter() - mark
+
+        mark = time.perf_counter()
+        surfaces = batch_correlate(kernels=kernels, windows=windows)
+        rows, cols = peaks_locate(surfaces=surfaces)
+        sync()
+        timings["correlate"] += time.perf_counter() - mark
+
+        mark = time.perf_counter()
+        if refine:
+            row_delta, col_delta = peak_refine(surfaces=surfaces, rows=rows, cols=cols)
+        else:
+            row_delta = torch.zeros_like(rows, dtype=torch.float32)
+            col_delta = torch.zeros_like(cols, dtype=torch.float32)
+        found_x = (chunk_x - search_margin + cols + kernel_margin) + col_delta
+        found_y = (chunk_y - search_margin + rows + kernel_margin) + row_delta
+        sync()
+        timings["refine"] += time.perf_counter() - mark
+
+        xs[start:stop] = found_x.to("cpu").numpy()
+        ys[start:stop] = found_y.to("cpu").numpy()
+
+        del kernels, windows, surfaces
+        if device_name == "mps":
+            torch.mps.empty_cache()
+        elif device_name == "cuda":
+            torch.cuda.empty_cache()
+
+    return xs, ys, timings
+
+
+# Metal reports running out of memory in more than one way, and only one
+# of them says "out of memory". A request past the allocator's remaining
+# budget raises "MPS backend out of memory (MPS allocated: ..., max
+# allowed: ...)". A single tensor past Metal's own per-buffer ceiling
+# raises "Invalid buffer size: 3013.73 GiB" instead, which never uses the
+# phrase at all. Both mean the same thing here -- the device would not
+# give us the memory -- so both belong in this list. Found by deliberately
+# forcing an oversized allocation rather than by trusting the first
+# message to be the only one.
+_OUT_OF_MEMORY_PHRASES = (
+    "out of memory",
+    "invalid buffer size",
+    "can't allocate memory",
+)
+
+
+def _is_out_of_memory(error: BaseException) -&gt; bool:
+    """Whether `error` is a device out-of-memory report.
+
+    CUDA raises a dedicated class. Metal raises a plain RuntimeError
+    whose message names the condition, so on that backend the message
+    text is the only signal available.
+    """
+    torch, _ = torch_require()
+    if isinstance(error, getattr(torch, "OutOfMemoryError", ())):
+        return True
+    if not isinstance(error, RuntimeError):
+        return False
+    message = str(error).lower()
+    return any(phrase in message for phrase in _OUT_OF_MEMORY_PHRASES)
+
+
+def checks_run(*, width: int = bench.BASE_WIDTH) -&gt; None:
+    """Correctness gates. These run before any timing is trusted.
+
+    Two questions, kept separate. Does the batched correlation find the
+    same integer positions dictk.grid.locate already finds? And how close
+    does the refined position land to the analytically known truth,
+    compared with dictk.grid.locate_subpixel?
+    """
+    torch, _ = torch_require()
+    reference_image, current_image = images_build(width=width)
+    origin, count, search_margin = bench.grid_params(width)
+    kernel_margin = bench.KERNEL_MARGIN
+    points = generate(
+        origin=PixelCoordinate(x=origin, y=origin),
+        count_x=count,
+        count_y=count,
+        spacing_x=bench.SPACING,
+        spacing_y=bench.SPACING,
+    )
+    truth_x = np.array([p.x for p in points], dtype=np.float64) * bench.FACTOR_X
+
+    integer = locate(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_points=points,
+        kernel_margin_width=kernel_margin,
+        kernel_margin_height=kernel_margin,
+        search_margin_width=search_margin,
+        search_margin_height=search_margin,
+    )
+    subpixel = locate_subpixel(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_points=points,
+        kernel_margin_width=kernel_margin,
+        kernel_margin_height=kernel_margin,
+        search_margin_width=search_margin,
+        search_margin_height=search_margin,
+        upsample_factor=bench.UPSAMPLE_FACTOR,
+    )
+    locate_x = np.array([p.x for p in integer], dtype=np.float64)
+    locate_y = np.array([p.y for p in integer], dtype=np.float64)
+    subpixel_x = np.array([p.x for p in subpixel], dtype=np.float64)
+
+    chunk = chunk_size_for(
+        search=2 * search_margin,
+        kernel=2 * kernel_margin,
+        budget_gb=CHUNK_BUDGET_GB,
+    )
+
+    print(f"Correctness gates at width={width}, {len(points):,} points")
+    print(
+        f"  kernel {2 * kernel_margin}x{2 * kernel_margin}, "
+        f"search {2 * search_margin}x{2 * search_margin}, chunk {chunk:,}"
+    )
+    print(
+        f"  grid.locate_subpixel MAE vs truth: "
+        f"{np.abs(subpixel_x - truth_x).mean():.4f} px"
+    )
+
+    for device_name in DEVICES:
+        try:
+            device_select(prefer=device_name)
+        except SystemExit:
+            print(f"  {device_name}: unavailable, skipped")
+            continue
+
+        integer_x, integer_y, _ = track_batched(
+            reference_image=reference_image,
+            current_image=current_image,
+            points=points,
+            kernel_margin=kernel_margin,
+            search_margin=search_margin,
+            device_name=device_name,
+            chunk=chunk,
+            refine=False,
+        )
+        agree = int(((integer_x == locate_x) &amp; (integer_y == locate_y)).sum())
+        disagree = integer_x != locate_x
+        fractional = np.abs(truth_x - np.floor(truth_x))
+
+        refined_x, _, _ = track_batched(
+            reference_image=reference_image,
+            current_image=current_image,
+            points=points,
+            kernel_margin=kernel_margin,
+            search_margin=search_margin,
+            device_name=device_name,
+            chunk=chunk,
+            refine=True,
+        )
+        error = np.abs(refined_x - truth_x)
+        parts = refined_x - np.floor(refined_x)
+        histogram, _ = np.histogram(parts, bins=10, range=(0.0, 1.0))
+
+        print(f"  {device_name}:")
+        print(
+            f"    integer agreement with grid.locate: {agree:,}/{len(points):,} "
+            f"({100 * agree / len(points):.1f}%)"
+        )
+        if disagree.any():
+            print(
+                f"    disagreeing points' true fractional part: "
+                f"{fractional[disagree].min():.3f}..{fractional[disagree].max():.3f} "
+                f"(mean {fractional[disagree].mean():.3f})"
+            )
+        print(f"    refined MAE vs truth: {error.mean():.4f} px")
+        print(
+            f"    fractional-part histogram (flat would be "
+            f"{len(points) // 10:,} each): {histogram.tolist()}"
+        )
+
+
+def work_units(*, width: int) -&gt; float:
+    """Multiply-accumulates one size costs, as a scaling proxy.
+
+    Point count alone is the wrong predictor here. 9.3's ladder grows the
+    search area alongside the point count, because a 2% stretch displaces
+    a far edge further in a larger image (see Timing at Scale's own
+    geometry table). Work per point therefore grows too. This counts
+    both: output positions per point, times kernel pixels, times points.
+    """
+    _, count, search_margin = bench.grid_params(width)
+    kernel = 2 * bench.KERNEL_MARGIN
+    outputs = (2 * search_margin - kernel + 1) ** 2
+    return float(count * count) * outputs * kernel * kernel
+
+
+def size_run(*, width: int, device_name: str) -&gt; None:
+    """Runs one (width, device) rung and appends its rows.
+
+    Records the memory prediction first, then attempts the size anyway.
+    A prediction only earns its place if the measurement gets a chance to
+    contradict it.
+    """
+    device_select(prefer=device_name)
+    budget = device_budget_gb(prefer=device_name)
+    resident = image_resident_gb(width=width)
+    origin, count, search_margin = bench.grid_params(width)
+    points_total = count * count
+    chunk = chunk_size_for(
+        search=2 * search_margin,
+        kernel=2 * bench.KERNEL_MARGIN,
+        budget_gb=CHUNK_BUDGET_GB,
+    )
+
+    _append_row(
+        width=width,
+        points=points_total,
+        device=device_name,
+        chunk=chunk,
+        stage="predict_memory",
+        seconds=float("nan"),
+        peak_rss_gb=_peak_rss_gb(),
+        note=f"images {resident:.2f}GB of {budget:.2f}GB budget"
+        + (" EXCEEDS" if resident &gt; budget else ""),
+    )
+
+    mark = time.perf_counter()
+    reference_image, current_image = images_build(width=width)
+    _append_row(
+        width=width,
+        points=0,
+        device=device_name,
+        chunk=chunk,
+        stage="images",
+        seconds=time.perf_counter() - mark,
+        peak_rss_gb=_peak_rss_gb(),
+    )
+
+    points = generate(
+        origin=PixelCoordinate(x=origin, y=origin),
+        count_x=count,
+        count_y=count,
+        spacing_x=bench.SPACING,
+        spacing_y=bench.SPACING,
+    )
+
+    mark = time.perf_counter()
+    try:
+        found_x, _, timings = track_batched(
+            reference_image=reference_image,
+            current_image=current_image,
+            points=points,
+            kernel_margin=bench.KERNEL_MARGIN,
+            search_margin=search_margin,
+            device_name=device_name,
+            chunk=chunk,
+        )
+    except Exception as error:  # noqa: BLE001 -- re-raised below unless OOM
+        if not _is_out_of_memory(error):
+            raise
+        _append_row(
+            width=width,
+            points=points_total,
+            device=device_name,
+            chunk=chunk,
+            stage="FAILED_oom",
+            seconds=time.perf_counter() - mark,
+            peak_rss_gb=_peak_rss_gb(),
+            note=str(error).replace("\n", " ")[:300],
+        )
+        print(f"  {device_name} @{width}px: OUT OF MEMORY (caught)")
+        raise SystemExit(3)
+
+    elapsed = time.perf_counter() - mark
+    for stage, seconds in timings.items():
+        _append_row(
+            width=width,
+            points=points_total,
+            device=device_name,
+            chunk=chunk,
+            stage=stage,
+            seconds=seconds,
+            peak_rss_gb=_peak_rss_gb(),
+        )
+    _append_row(
+        width=width,
+        points=points_total,
+        device=device_name,
+        chunk=chunk,
+        stage="total",
+        seconds=elapsed,
+        peak_rss_gb=_peak_rss_gb(),
+        note=f"{points_total / elapsed:,.0f} points/s",
+    )
+
+    # Same sampled spot-check 9.3 used. A wrong search margin shows up
+    # here before it shows up as a confusing shape in the timing plot.
+    true_x = np.array([p.x for p in points], dtype=np.float64) * bench.FACTOR_X
+    sample = np.random.default_rng(0).choice(
+        len(points), size=min(50, len(points)), replace=False
+    )
+    worst = float(np.abs(found_x[sample] - true_x[sample]).max())
+    if worst &gt; 1.0:
+        print(
+            f"WARNING width={width} device={device_name}: sampled max tracking "
+            f"error {worst:.2f}px -- search_margin may be too small here",
+            file=sys.stderr,
+        )
+
+
+def _measured() -&gt; dict[tuple[int, str], float]:
+    """Every (width, device) total already measured, from the CSV."""
+    if not CSV_PATH.exists():
+        return {}
+    with open(CSV_PATH) as f:
+        return {
+            (int(r["width"]), r["device"]): float(r["seconds"])
+            for r in csv.DictReader(f)
+            if r["stage"] == "total"
+        }
+
+
+def ladder_run() -&gt; None:
+    """Walks every device up the ladder, stopping each one on its own terms."""
+    torch_require()
+    measured = _measured()
+
+    available = []
+    for device_name in DEVICES:
+        try:
+            device_select(prefer=device_name)
+        except SystemExit:
+            print(f"Skipping {device_name}: not available on this machine")
+            continue
+        available.append(device_name)
+
+    for device_name in available:
+        budget = device_budget_gb(prefer=device_name)
+        print(f"=== {device_name} (budget {budget:.1f}GB) ===")
+        for width in bench._widths():
+            _, count, _ = bench.grid_params(width)
+            points_total = count * count
+
+            if (width, device_name) in measured:
+                print(f"  {width}px: already measured, skipping")
+                continue
+
+            # Stop 2: predicted-cost gate, from the previous size's own
+            # measured rate on this same device. Reported, not run.
+            previous = [w for w in bench._widths() if (w, device_name) in measured]
+            if previous:
+                last = previous[-1]
+                rate = work_units(width=last) / measured[(last, device_name)]
+                predicted = work_units(width=width) / rate
+                if predicted &gt; COST_BUDGET_S:
+                    note = (
+                        f"predicted {predicted:,.0f}s from {last}px rate "
+                        f"({measured[(last, device_name)]:.1f}s), "
+                        f"budget {COST_BUDGET_S:,.0f}s"
+                    )
+                    print(f"  {width}px: COST GATE -- {note}")
+                    _append_row(
+                        width=width,
+                        points=points_total,
+                        device=device_name,
+                        chunk=0,
+                        stage="STOPPED_cost_gate",
+                        seconds=predicted,
+                        peak_rss_gb=float("nan"),
+                        note=note,
+                    )
+                    break
+
+            try:
+                result = subprocess.run(
+                    [sys.executable, __file__, "--worker", str(width), device_name],
+                    timeout=WATCHDOG_S,
+                    capture_output=True,
+                    text=True,
+                )
+            except subprocess.TimeoutExpired:
+                # Harness event, not a scaling finding -- see the module
+                # docstring. Reaching this means something hung.
+                print(f"  {width}px: WATCHDOG FIRED after {WATCHDOG_S}s -- investigate")
+                _append_row(
+                    width=width,
+                    points=points_total,
+                    device=device_name,
+                    chunk=0,
+                    stage="HARNESS_watchdog",
+                    seconds=float(WATCHDOG_S),
+                    peak_rss_gb=float("nan"),
+                    note="harness event, not a scaling result",
+                )
+                break
+
+            if result.returncode != 0:
+                print(f"  {width}px: stopped (returncode={result.returncode})")
+                if result.stdout.strip():
+                    print("   ", result.stdout.strip().splitlines()[-1])
+                if result.returncode != 3:
+                    print(result.stderr[-800:])
+                    _append_row(
+                        width=width,
+                        points=points_total,
+                        device=device_name,
+                        chunk=0,
+                        stage=f"FAILED_returncode_{result.returncode}",
+                        seconds=float("nan"),
+                        peak_rss_gb=float("nan"),
+                        note=result.stderr.strip().splitlines()[-1][:200]
+                        if result.stderr.strip()
+                        else "",
+                    )
+                break
+
+            measured = _measured()
+            print(f"  {width}px: {measured[(width, device_name)]:.1f}s")
+            if result.stderr.strip():
+                print(f"    stderr: {result.stderr.strip()[-300:]}")
+
+    print(f"Wrote {CSV_PATH}")
+
+
+def summary_plot() -&gt; None:
+    """Two panels: this page's devices against 9.3's own executors, and
+    where each size's time actually goes."""
+    with open(CSV_PATH) as f:
+        rows = list(csv.DictReader(f))
+
+    figure, (ax_compare, ax_split) = plt.subplots(
+        1, 2, figsize=(11, 4.5), constrained_layout=True
+    )
+
+    # Left: 9.3's committed CPU series, then this page's torch series on
+    # the same axes. Comparing them is the whole point of the page.
+    if TIMING_CSV.exists():
+        with open(TIMING_CSV) as f:
+            legacy = list(csv.DictReader(f))
+        for stage, color, marker in [
+            ("sequential", "tab:gray", "o"),
+            ("threads", "tab:blue", "s"),
+            ("processes", "tab:orange", "D"),
+        ]:
+            xs = [int(r["points"]) for r in legacy if r["stage"] == stage]
+            ys = [float(r["seconds"]) for r in legacy if r["stage"] == stage]
+            if xs:
+                ax_compare.plot(
+                    xs,
+                    ys,
+                    marker=marker,
+                    color=color,
+                    linestyle="--",
+                    alpha=0.55,
+                    label=f"9.3 {stage}",
+                )
+
+    for device_name, color, marker in [
+        ("cpu", "tab:red", "o"),
+        ("mps", "tab:green", "s"),
+        ("cuda", "tab:purple", "D"),
+    ]:
+        pairs = sorted(
+            (int(r["points"]), float(r["seconds"]))
+            for r in rows
+            if r["stage"] == "total" and r["device"] == device_name
+        )
+        if pairs:
+            ax_compare.plot(
+                [p for p, _ in pairs],
+                [s for _, s in pairs],
+                marker=marker,
+                color=color,
+                label=f"torch {device_name}",
+            )
+
+    ax_compare.set_xscale("log")
+    ax_compare.set_yscale("log")
+    ax_compare.set_xlabel("points (= correlations)")
+    ax_compare.set_ylabel("seconds")
+    ax_compare.set_title("Tracking cost: batched torch vs. 9.3's executors")
+    ax_compare.legend(fontsize=7)
+
+    # Right: where the time goes. hdic found extraction dominating its
+    # own correlation five to one; this panel is what makes that visible
+    # rather than hidden inside one total.
+    for stage, color, marker in [
+        ("upload", "tab:olive", "v"),
+        ("extract", "tab:brown", "o"),
+        ("correlate", "tab:cyan", "s"),
+        ("refine", "tab:pink", "^"),
+    ]:
+        for device_name, style in (("cpu", "--"), ("mps", "-")):
+            pairs = sorted(
+                (int(r["points"]), float(r["seconds"]))
+                for r in rows
+                if r["stage"] == stage and r["device"] == device_name
+            )
+            if pairs:
+                ax_split.plot(
+                    [p for p, _ in pairs],
+                    [s for _, s in pairs],
+                    marker=marker,
+                    color=color,
+                    linestyle=style,
+                    label=f"{device_name} {stage}",
+                )
+    ax_split.set_xscale("log")
+    ax_split.set_yscale("log")
+    ax_split.set_xlabel("points (= correlations)")
+    ax_split.set_ylabel("seconds")
+    ax_split.set_title("Where the time goes (solid mps, dashed cpu)")
+    ax_split.legend(fontsize=7, ncol=2)
+
+    stops = [
+        f"{r['device']} @{r['width']}px: {r['stage'].split('_', 1)[-1]}"
+        for r in rows
+        if r["stage"].startswith(("STOPPED_", "FAILED_", "HARNESS_"))
+    ]
+    if stops:
+        figure.suptitle("Ladder stopped: " + "; ".join(stops), fontsize=9, wrap=True)
+
+    figure.savefig(PNG_PATH, dpi=300)
+    plt.close(figure)
+    print(f"Wrote {PNG_PATH}")
+
+
+if __name__ == "__main__":
+    if len(sys.argv) == 4 and sys.argv[1] == "--worker":
+        size_run(width=int(sys.argv[2]), device_name=sys.argv[3])
+    elif len(sys.argv) == 2 and sys.argv[1] == "--check":
+        checks_run()
+    else:
+        ladder_run()
+        summary_plot()
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="path-forward"><a class="header" href="#path-forward">Path Forward</a></h1>
 <p>This page is a running log, not a tutorial. It records forward-looking
 notes as they come up — open questions, scale targets, directions worth
@@ -6818,6 +8410,101 @@ on 10 cores; a real problem at this page's own north-star scale (a
 billion correlations) extrapolates to weeks on this same hardware. 348
 tests (unchanged — docs-only, plus a new standalone benchmark script,
 same precedent as <code>parallelization_bench.py</code>).</p>
+<h2 id="2026-09-01"><a class="header" href="#2026-09-01">2026-09-01</a></h2>
+<p><strong>9.4 Parallelism with PyTorch, shipped.</strong> New page,
+<a href="getting_started/./parallelism_pytorch.html">Parallelism with PyTorch</a>, Parallelization's
+fourth child. It reruns <a href="getting_started/./timing_at_scale.html">Timing at Scale</a>'s own
+ladder — same image sizes, same point grids, same 26x26 kernel, same
+per-size search areas, same machine — on a batched PyTorch correlation
+instead of one <code>grid.locate_subpixel</code> call per point. Docs-only plus a
+standalone benchmark script, matching 9.3's own precedent. 348 tests
+unchanged. <code>pyproject.toml</code> deliberately untouched: CI runs
+<code>uv sync --all-extras</code>, so a <code>torch</code> extra would install PyTorch on
+every CI run for a script CI never executes.</p>
+<p>This continues work Andrew Polonsky and Chad Hovey started in the
+private <code>hdic</code> codebase in 2025, and the page attributes it directly.
+That work established the grouped-<code>conv2d</code> batching trick (stack N
+search areas as channels, N kernels as N groups, <code>groups=N</code> so kernel
+<code>i</code> sees window <code>i</code> only), measured it on a Windows CUDA machine, and
+recorded the decision "torch implementation, then CUDA implementation"
+on 2025-09-23. It left three gaps. 9.4 closes two: it runs on Apple
+silicon, which <code>hdic</code>'s own correlation module refused to do via a hard
+<code>RuntimeError("...does not run on macOS")</code> that was simply false; and it
+refines peaks to subpixel, which that implementation never did. The FFT
+gap stays open, and is now the named next step.</p>
+<p><strong>A real prerequisite fix to 9.3.</strong> <a href="getting_started/./timing_at_scale.html#finding-the-ceiling">Timing at
+Scale</a> stated <code>kernel_margin=13</code>
+and said <code>search_margin</code> varies per tier, but never gave pixel
+dimensions. Adding them surfaced something that page never said: the
+kernel is fixed at 26x26 at every tier, but the search area grows from
+48x48 to 420x420, because <code>factor_x=1.02</code> displaces a far edge further
+in a bigger image. Search pixels therefore grow 76x across the ladder,
+so 9.3's cost curve is not a pure point-count curve — it measures point
+count and per-correlation size growing together. Doesn't invalidate any
+9.3 finding (all three executors saw identical geometry), but it
+explains part of the slope, and 9.4 could not describe its own tensor
+shapes without it.</p>
+<p><strong>The headline result, and the caveat under it.</strong> The Apple GPU (MPS,
+Metal Performance Shaders) wins at every size. It completed 10204px —
+3,229,209 points in 2,334.7s — which 9.3's <code>threads</code> attempted and could
+not finish. At the largest size both pages measured (5669px, 996,004
+points) it runs 3.4x faster than <code>threads</code>: 3,884 points/s against
+1,156, which turns 9.3's own "roughly 1.4 weeks for a billion
+correlations" into roughly 3 days. Real, and not enough — a billion is
+Path Forward's entry-level target, not its ceiling.</p>
+<p>The speedup is not constant, and the shape of it is the finding. It
+climbs to 15.7x at 29,584 points, then falls to 3.4x at 996,004. Point
+count only ever increased, so batching can't explain the decline. The
+growing search area can, and the CPU column proves it directly.</p>
+<p><strong>Polonsky's cusp, located.</strong> His 2025-04-15 email said the team was
+"right on the cusp of whether or not doing the FFT for cross-correlation
+will be faster than brute force sliding dot product," and never resolved
+it. 9.4 resolves it, because <code>torch</code> CPU and 9.3's <code>threads</code> run on the
+same ten cores and differ only in algorithm. At a 74x74 search area,
+<code>torch</code> CPU wins 7.8s to 16.9s. At 102x102 they tie, 53.4s to 58.6s. At
+156x156 the FFT wins 215.2s to 512.7s. On this machine, at a 26x26
+kernel, <strong>the cusp sits near a 100x100 pixel search area.</strong> Below it,
+brute force wins; above it, the FFT does.</p>
+<p>Which reframes 9.4's own GPU result: the GPU is running the <em>losing</em>
+algorithm at these search areas and still beats ten CPU cores. Nobody
+has yet combined the better hardware with the better algorithm. That
+combination — a batched <code>torch.fft</code> phase correlation, the same
+algorithm 9.1-9.3 already use, on the devices 9.4 already measures — is
+the obvious next step and is not started.</p>
+<p><strong>Subpixel came out better than expected.</strong> A three-point parabolic fit
+on the correlation surface <code>conv2d</code> already returns gives 0.0369px mean
+absolute error against analytical truth, against
+<code>grid.locate_subpixel</code>'s own 0.0925px at <code>upsample_factor=100</code> on the
+same 2,809 points. 2.5x more accurate, for a small fraction of the
+correlation's cost. Peak locking is present but mild (fractional-part
+bins 330/338/258/219/280/265/210/257/313/339 against a flat 280).
+Integer positions agree with <code>grid.locate</code> on 98.7% of points, and every
+one of the 37 disagreements has a true fractional part between 0.460 and
+0.560 — the half-pixel boundary where rounding is genuinely ambiguous,
+not an error. MPS matched CPU digit for digit; float32 cost nothing
+measurable.</p>
+<p><strong>A prediction the measurement contradicted.</strong> 9.4 retired 9.3's
+1800-second wall clock and replaced it with a caught out-of-memory error
+as the primary stop, reasoning that search areas are chunkable but the
+two resident images are not, so the unchunkable part would eventually
+fail. It never did. Both devices stopped on the secondary rule instead —
+a predicted-cost gate, extrapolating each size from the previous size's
+measured rate. At the largest size attempted, the two images occupied
+0.83GB of Metal's 26.8GB budget, about 3%; peak host RSS reached 13.9GB
+of 32GB. Same conclusion 9.3 reached, for the same reason: compute time
+is the wall, memory is not. The OOM arithmetic still holds at around
+59508px; this ladder just never gets there, because that size's
+arithmetic outruns any reasonable wait.</p>
+<p><strong>Two bugs found by testing rather than assuming.</strong> Forcing an
+out-of-memory on purpose revealed that Metal reports it two different
+ways, and only one says "out of memory" — a single tensor past Metal's
+per-buffer ceiling raises <code>Invalid buffer size: 3013.73 GiB</code> instead.
+Trusting the first message would have turned a real memory finding into
+an unexplained crash. Separately, a first version of the benchmark
+re-uploaded both full images to the device once per chunk rather than
+once per size (26 redundant 40MB uploads at 3149px), which inflated
+measured extraction cost; partial results were discarded and the ladder
+re-run after the fix. Both are recorded in the script's own docstrings.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="contributing-to-dictk"><a class="header" href="#contributing-to-dictk">Contributing to <code>dictk</code></a></h1>
 <p><code>dictk</code> is developed on <a href="https://github.com/hovey/dictk">GitHub</a> using
