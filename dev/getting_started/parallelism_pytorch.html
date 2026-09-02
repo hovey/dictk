@@ -189,51 +189,50 @@ CPU-side tuning closes a gap that size.</p>
 <p>That page also found <em>why</em>. Every point ran its own separate correlation
 call, and each call carried its own Python-level overhead: a function
 call, a pair of array slices, an FFT plan, an object constructed for the
-result. At a few hundred points that overhead disappears into the noise.
-At a million points it <em>is</em> the cost.</p>
-<p>This page changes the shape of the work rather than the amount. Instead of a million small correlations, it runs a small number of very
-large ones. Thousands of points get correlated in a single call. No Python
+result. When correlating just a few hundred points, that overhead
+disappears into the noise, seemingly costing nothing.  However, then correlating
+a million points, the overhead bloats up the cost significantly.</p>
+<p>This page changes the shape of the work rather than the amount. Instead of running
+a million small correlations, it runs a small number of very
+large correlations. Thousands of points get correlated in a single call. No Python
 loop runs between them. It reruns <a href="./timing_at_scale.html">Timing at Scale</a>'s
-own ladder that way, on the same machine and at the same geometry. The
-two sets of numbers then sit side by side.</p>
+own ladder that way, on the same machine and the same geometry. The
+two sets of numbers can then be compared.</p>
 <h2 id="test-machine"><a class="header" href="#test-machine">Test Machine</a></h2>
 <p>Every number here depends on the hardware that produced it. Same machine
 <a href="./timing_at_scale.html">Timing at Scale</a> used:</p>
 <ul>
 <li><strong>Apple MacBook Pro (14-inch, 2021), model <code>MacBookPro18,3</code>, Apple M1
 Pro chip, 10 CPU cores (8 Performance + 2 Efficiency), 32GB unified
-memory, macOS 26.6.2.</strong></li>
+memory, macOS 26.6.2.</strong>  (The operating system was recently updated to 26.6.2.)</li>
 </ul>
 <p>The M1 Pro also carries an integrated GPU, which every prior page in this
 book has left completely unused.</p>
 <h2 id="where-this-came-from"><a class="header" href="#where-this-came-from">Where This Came From</a></h2>
-<p>This page continues work that started elsewhere, and the credit belongs
-where it started.</p>
-<p>Andrew Polonsky and Chad Hovey investigated exactly this question in
-2025, in a separate private codebase. The direction came out of a
-discussion Polonsky had with a colleague at the Naval Research
-Laboratory, written up in an email dated 2025-04-15:</p>
+<p>This page continues work that Andrew Polonsky had with a colleague at the Naval
+Research laboratory, email dated 2025-04-15.  A summary of that discussion:</p>
 <blockquote>
-<p>Really thought pytorch may be the likely way to go for us, which
-already optimizes stuff for GPU [...] Depending on our subset size, we
-are right on the cusp of whether or not doing the FFT for
-cross-correlation will be faster than brute force sliding dot product.</p>
+<p>Pytorch may be the likely implementation strategy. Pytorch
+already optimizes math used in correlations for the GPU.
+Depending on the subset (kernel) size, we
+are right on the cusp of whether or not the FFT approach for
+cross-correlation will be faster than the brute force sliding dot product approach.</p>
 </blockquote>
-<p>Three conclusions from that discussion shaped everything after it.
-Numba works well for CPU work but is the wrong tool for a GPU. Writing
-raw GPU code portably is painful enough that the NRL colleague resorted
-to hand-written OpenCL. And PyTorch already solves the portability
-problem, because it runs the same code on a CUDA card, on an Apple GPU,
-or on a plain CPU.</p>
+<p>Three conclusions from that discussion shaped everything after it.</p>
+<ul>
+<li>Numba works well for CPU work but is the wrong tool for a GPU.</li>
+<li>Writing raw GPU code in a portable manner is painful enough that the NRL colleague resorted to hand-written OpenCL.</li>
+<li>PyTorch already solves the portability problem, because it runs the same code on a CUDA card, on an Apple GPU, or on a plain CPU.</li>
+</ul>
 <p>A team meeting on 2025-09-23 recorded the decision in one line: <em>"torch
 implementation, then CUDA implementation."</em></p>
 <p>The implementation that followed established the batching trick this
 page's next section describes, and measured it on a Windows machine with
 an NVIDIA card. Those measurements used a 35x35 pixel kernel inside a
 120x120 pixel search window:</p>
-<div class="table-wrapper"><table><thead><tr><th>Correlations</th><th>PyTorch GPU</th><th>PyTorch CPU</th><th>NumPy CPU</th></tr></thead><tbody>
-<tr><td>1,000</td><td>0.044 s</td><td>0.836 s</td><td>1.47 s</td></tr>
-<tr><td>50,000</td><td>3.09 s</td><td>40.8 s</td><td>73.6 s</td></tr>
+<div class="table-wrapper"><table><thead><tr><th style="text-align: right">Correlations</th><th style="text-align: right">PyTorch GPU</th><th style="text-align: right">PyTorch CPU</th><th style="text-align: right">NumPy CPU</th></tr></thead><tbody>
+<tr><td style="text-align: right">1,000</td><td style="text-align: right">0.044 s</td><td style="text-align: right">0.836 s</td><td style="text-align: right">1.47 s</td></tr>
+<tr><td style="text-align: right">50,000</td><td style="text-align: right">3.09 s</td><td style="text-align: right">40.8 s</td><td style="text-align: right">73.6 s</td></tr>
 </tbody></table>
 </div>
 <p>Two things stand out in that table. The GPU beat NumPy by 24x at 50,000
@@ -243,26 +242,22 @@ took 12.1 seconds, against 3.09 seconds of actual computation. That
 finding shows up again on this page, at a different scale, on different
 hardware.</p>
 <p>That earlier work also left three gaps. It never implemented an FFT
-version, despite the email above naming one. It never refined a peak to
-subpixel accuracy. And it never ran on macOS at all — the correlation
-module opened with a hard refusal:</p>
+version. It never refined a peak to subpixel accuracy.
+And it never ran on macOS at all — the correlation module opened with a hard refusal:</p>
 <pre><code class="language-python">if platform.system() != "Darwin":
     import torch
 else:
     raise RuntimeError("This module requires PyTorch, which does not run on macOS.")
 </code></pre>
-<p>That claim is false. PyTorch runs on macOS, and has supported Apple GPUs
-since 2022. A sibling file in the same codebase already contained
-working Apple GPU device selection. The two files were never reconciled,
-so the module that actually did the correlation stayed locked out of the
-machine its author used every day.</p>
+<p><strong>That claim is false.</strong> PyTorch runs on macOS, and has supported Apple GPUs
+since 2022.</p>
 <p>This page closes two of those three gaps: it runs on Apple silicon, and
 it refines to subpixel. The FFT version stays open.</p>
 <h2 id="kernels-search-windows-and-names"><a class="header" href="#kernels-search-windows-and-names">Kernels, Search Windows, and Names</a></h2>
-<p>Two vocabularies collide here, so it is worth settling them once.</p>
+<p>Two vocabularies collide here, so it is worth harmonizing them.</p>
 <p>This book has used <em>kernel</em> and <em>search area</em> since <a href="./cross_correlation.html">Cross
-Correlation</a>. Commercial DIC software, and the
-earlier work above, use different words for the same two things:</p>
+Correlation</a>. Commercial DIC software and the
+earlier work above use different words for the same two things:</p>
 <div class="table-wrapper"><table><thead><tr><th>This book</th><th>VIC-2D and the earlier work</th><th>What it is</th></tr></thead><tbody>
 <tr><td>kernel</td><td>subset</td><td>The small patch cut from the reference image, the thing being located</td></tr>
 <tr><td>search area</td><td>area of interest, or <em>aoi</em></td><td>The larger region of the current image to look inside</td></tr>
@@ -276,7 +271,7 @@ quoted from the earlier work use its own.</p>
 <p><code>conv2d</code> slides a small array over a larger one and reports how well
 they match at every position. That is one correlation. To get N
 correlations, the naive approach calls it N times in a Python loop, which
-reintroduces exactly the per-call overhead this page exists to remove.</p>
+reintroduces exactly the per-call overhead this page seeks to remove.</p>
 <p>The way out is to stack the work so a single call does all of it.
 <code>conv2d</code> accepts a <em>batch</em> of images with multiple <em>channels</em>, and a set
 of filters. By default it applies every filter to every channel, which
@@ -284,7 +279,13 @@ would compute an N x N cross product — every kernel against every search
 area. That is both wrong and N times too much work.</p>
 <p>The <code>groups</code> argument fixes it. Setting <code>groups=N</code> splits N input
 channels into N independent groups of one. Kernel <code>i</code> then sees search
-area <code>i</code>, and nothing else:</p>
+area <code>i</code>, and nothing else.</p>
+<p>Three symbols carry through the rest of this page:</p>
+<ul>
+<li><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span> is the point count, one correlation each.</li>
+<li><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span></span></span></span> is the kernel's side, in pixels.</li>
+<li><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span> is the search area's side, also in pixels.</li>
+</ul>
 <pre><code class="language-python"># search areas: (1, N, S, S)   N search areas, stacked as CHANNELS
 # kernels:      (N, 1, K, K)   N kernels, one per group
 # output:       (1, N, S-K+1, S-K+1)
@@ -294,11 +295,27 @@ surfaces = F.conv2d(search_areas, kernels, groups=N)
 batch dimension holds a single element. The <em>channel</em> dimension carries
 the N correlations. That deliberate misuse of the two dimensions is what
 lets one call do N independent correlations.</p>
-<p>At this book's own geometry, tracking 2,809 points in a 300 pixel image,
-the shapes come out as <code>(1, 2809, 48, 48)</code> for the search areas,
-<code>(2809, 1, 26, 26)</code> for the kernels, and <code>(1, 2809, 23, 23)</code> for the
-output. Every one of those 2,809 correlations happens inside a single
-<code>conv2d</code> call.</p>
+<p>For this book's own example geometry, tracking 2,809 points in a 300 pixel image
+results in the following shapes:</p>
+<ul>
+<li><code>(1, 2809, 48, 48)</code> for the search areas,</li>
+<li><code>(2809, 1, 26, 26)</code> for the kernels, and</li>
+<li><code>(1, 2809, 23, 23)</code> for the output.</li>
+</ul>
+<p>Every one of those 2,809 correlations happens inside a <em>single</em> <code>conv2d</code> call.</p>
+<p>To be precise about what that geometry is: a 300 x 300 pixel <code>rosta</code>
+speckle image, with a square 53 x 53 grid of points at 5 pixel spacing,
+giving 2,809 points.</p>
+<p><a href="./simple_stretch.html#2682-point-sample">Simple Stretch</a> sets up something
+very similar, and illustrates it. It uses a 300 x 300 pixel <code>astronaut</code>
+image, with a 53 x 54 grid at the same 5 pixel spacing, giving 2,862
+points — one row more than this page uses. That page counts 2,682 in its
+own heading, not 2,862, because VIC-2D masks out the 180 positions whose
+correlation window would run off the edge of the image. The grid is still
+2,862 points; 2,682 of them survive the mask.</p>
+<p>Its figures are the closest picture of what this density looks like: the
+whole grid drawn over the reference image, then a true-scale zoom into
+one corner where the individual points finally separate.</p>
 <p>One convenient accident makes this work without any correction.
 Mathematical convolution flips the kernel before sliding it; correlation
 does not. Despite its name, <code>conv2d</code> does not flip. It already computes
@@ -321,8 +338,8 @@ extremely well.</p>
 named. A direct sliding correlation costs roughly <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>, where <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span>
 counts search-area pixels and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> the kernel's side. An FFT-based one
 costs roughly <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span>. The earlier work's own estimate put the FFT
-about 300 times ahead for a 35² kernel in a 120² window.</p>
-<p>So every CPU measurement in <a href="./subpixel_accuracy.html">Subpixel Accuracy</a>,
+about 300 times ahead for a <code>35 x 35</code> pixel kernel in a <code>120 x 120</code> pixel window.</p>
+<p>Every CPU measurement in <a href="./subpixel_accuracy.html">Subpixel Accuracy</a>,
 <a href="./high_point_density.html">High Point Density</a> and <a href="./timing_at_scale.html">Timing at
 Scale</a> came from the FFT side of that cusp. Every
 measurement on this page comes from the brute-force side. Comparing them
@@ -339,12 +356,26 @@ these shapes is a measurable question, not an assumable one.</p>
 <p>PyTorch runs the same code on three kinds of hardware. Picking one is a
 short ladder, best to worst:</p>
 <pre><code class="language-python">if torch.cuda.is_available():
+    # NVIDIA GPU. Linux and Windows only -- Apple dropped NVIDIA support
+    # years ago, so this branch never fires on a Mac.
     device, sync = torch.device("cuda"), torch.cuda.synchronize
 elif torch.backends.mps.is_available():
+    # Apple GPU, via Metal Performance Shaders. macOS ONLY, and only on
+    # Apple silicon (M1 and later). Never available on Linux or Windows,
+    # and not on an Intel Mac either.
     device, sync = torch.device("mps"), torch.mps.synchronize
 else:
+    # Every platform has this one. Always available, always correct,
+    # never the fastest.
     device, sync = torch.device("cpu"), lambda: None
 </code></pre>
+<p>Note what that ordering implies. <strong>No single machine can take the first
+two branches.</strong> A CUDA card and an Apple GPU are mutually exclusive in
+practice, so this is not really a preference ranking — it is a portability
+ladder. The same source runs on a Linux workstation, a Windows box, and
+this laptop, and each one lands on whichever accelerator it actually has.
+That portability is the whole reason the 2025-04-15 email above landed on
+PyTorch rather than hand-written GPU code.</p>
 <p><strong>MPS</strong> stands for <strong>Metal Performance Shaders</strong>. It is Apple's framework
 for offloading matrix operations and tensor math onto the GPU built into
 Apple silicon — the M1, M2, M3 and M4 families. It is native, and it
@@ -374,26 +405,27 @@ a GPU one. A missing device here stops the run and says so.</p>
 <h2 id="batching-against-device-memory"><a class="header" href="#batching-against-device-memory">Batching Against Device Memory</a></h2>
 <p>Stacking N search areas into one tensor raises a question <a href="./timing_at_scale.html">Timing at
 Scale</a> never had to ask. How much memory does that tensor take?</p>
-<p>One search area holds <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span> float32 values. At the 300 pixel image size,
-<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">48</span></span></span></span>, so that is 48 x 48 x 4 bytes, about 9 KB. Small. But
+<p>One search area is <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span></span></span></span> pixels on a side, so it holds <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span> float32
+values. At the 300 pixel image size, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">48</span></span></span></span>, so that is 48 x 48 x 4
+bytes, about 9 KB. Small. But
 <a href="./timing_at_scale.html#finding-the-ceiling">Timing at Scale</a> grows the
 search area along with the image, because a 2% stretch displaces a far
 edge further in a bigger picture. By the 10204 pixel size, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">420</span></span></span></span>, and
 one search area costs 420 x 420 x 4 bytes, about 706 KB.</p>
 <p>Multiply by point count and the totals stop being comfortable:</p>
 <table>
-<thead><tr><th>Width (px)</th><th>Points</th><th>Search area</th><th>All search areas at once</th><th>Both images, resident</th></tr></thead>
+<thead><tr><th>Width (px)</th><th>Points</th><th>Search area (px)</th><th>All search areas at once (GB)</th><th>Both images, resident (GB)</th></tr></thead>
 <tbody>
-<tr><td style="text-align: right;">300</td><td style="text-align: right;">2,809</td><td style="text-align: right;">48x48</td><td style="text-align: right;">0.0 GB</td><td style="text-align: right;">0.00 GB</td></tr>
-<tr><td style="text-align: right;">540</td><td style="text-align: right;">9,216</td><td style="text-align: right;">58x58</td><td style="text-align: right;">0.1 GB</td><td style="text-align: right;">0.00 GB</td></tr>
-<tr><td style="text-align: right;">972</td><td style="text-align: right;">29,584</td><td style="text-align: right;">74x74</td><td style="text-align: right;">0.6 GB</td><td style="text-align: right;">0.01 GB</td></tr>
-<tr><td style="text-align: right;">1750</td><td style="text-align: right;">95,481</td><td style="text-align: right;">102x102</td><td style="text-align: right;">4.0 GB</td><td style="text-align: right;">0.02 GB</td></tr>
-<tr><td style="text-align: right;">3149</td><td style="text-align: right;">308,025</td><td style="text-align: right;">156x156</td><td style="text-align: right;">30.0 GB</td><td style="text-align: right;">0.08 GB</td></tr>
-<tr><td style="text-align: right;">5669</td><td style="text-align: right;">996,004</td><td style="text-align: right;">250x250</td><td style="text-align: right;">249.0 GB</td><td style="text-align: right;">0.26 GB</td></tr>
-<tr><td style="text-align: right;">10204</td><td style="text-align: right;">3,229,209</td><td style="text-align: right;">420x420</td><td style="text-align: right;">2,278.5 GB</td><td style="text-align: right;">0.83 GB</td></tr>
-<tr><td style="text-align: right;">18367</td><td style="text-align: right;">10,452,289</td><td style="text-align: right;">728x728</td><td style="text-align: right;">22,158.2 GB</td><td style="text-align: right;">2.70 GB</td></tr>
-<tr><td style="text-align: right;">33060</td><td style="text-align: right;">33,860,761</td><td style="text-align: right;">1280x1280</td><td style="text-align: right;">221,909.9 GB</td><td style="text-align: right;">8.74 GB</td></tr>
-<tr><td style="text-align: right;">59508</td><td style="text-align: right;">109,704,676</td><td style="text-align: right;">2274x2274</td><td style="text-align: right;">2,269,164.9 GB</td><td style="text-align: right;">28.33 GB</td></tr>
+<tr><td style="text-align: right;">300</td><td style="text-align: right;">2,809</td><td style="text-align: right;">48x48</td><td style="text-align: right;">0.0</td><td style="text-align: right;">0.00</td></tr>
+<tr><td style="text-align: right;">540</td><td style="text-align: right;">9,216</td><td style="text-align: right;">58x58</td><td style="text-align: right;">0.1</td><td style="text-align: right;">0.00</td></tr>
+<tr><td style="text-align: right;">972</td><td style="text-align: right;">29,584</td><td style="text-align: right;">74x74</td><td style="text-align: right;">0.6</td><td style="text-align: right;">0.01</td></tr>
+<tr><td style="text-align: right;">1750</td><td style="text-align: right;">95,481</td><td style="text-align: right;">102x102</td><td style="text-align: right;">4.0</td><td style="text-align: right;">0.02</td></tr>
+<tr><td style="text-align: right;">3149</td><td style="text-align: right;">308,025</td><td style="text-align: right;">156x156</td><td style="text-align: right;">30.0</td><td style="text-align: right;">0.08</td></tr>
+<tr><td style="text-align: right;">5669</td><td style="text-align: right;">996,004</td><td style="text-align: right;">250x250</td><td style="text-align: right;">249.0</td><td style="text-align: right;">0.26</td></tr>
+<tr><td style="text-align: right;">10204</td><td style="text-align: right;">3,229,209</td><td style="text-align: right;">420x420</td><td style="text-align: right;">2,278.5</td><td style="text-align: right;">0.83</td></tr>
+<tr><td style="text-align: right;">18367</td><td style="text-align: right;">10,452,289</td><td style="text-align: right;">728x728</td><td style="text-align: right;">22,158.2</td><td style="text-align: right;">2.70</td></tr>
+<tr><td style="text-align: right;">33060</td><td style="text-align: right;">33,860,761</td><td style="text-align: right;">1280x1280</td><td style="text-align: right;">221,909.9</td><td style="text-align: right;">8.74</td></tr>
+<tr><td style="text-align: right;">59508</td><td style="text-align: right;">109,704,676</td><td style="text-align: right;">2274x2274</td><td style="text-align: right;">2,269,164.9</td><td style="text-align: right;">28.33</td></tr>
 </tbody>
 </table>
 <p>This machine has 32 GB, and Apple's Metal layer will admit only about
@@ -480,21 +512,30 @@ every one of those 2,809 points. float32 costs nothing measurable here.</p>
 <h2 id="the-same-ladder-on-pytorch"><a class="header" href="#the-same-ladder-on-pytorch">The Same Ladder, on PyTorch</a></h2>
 <p>Same image sizes, same point grids, same kernel, same search areas,
 same machine. The only change is what runs the correlation.
-<a href="./timing_at_scale.html">Timing at Scale</a>'s own threaded column sits
-alongside, because it was that page's fastest CPU result:</p>
+The <code>threads</code> column is carried over from <a href="./timing_at_scale.html">Timing at
+Scale</a>, unchanged. It was that page's fastest CPU
+result, so it is the number worth beating:</p>
 <table>
-<thead><tr><th>Width (px)</th><th>Points</th><th>Search area</th><th>threads (9.3)</th><th>torch CPU</th><th>torch MPS</th><th>MPS speedup</th></tr></thead>
+<thead><tr><th>Width (px)</th><th>Points</th><th>Search area (px)</th><th>threads,<br>Timing at Scale</th><th>torch CPU</th><th>torch MPS</th><th>MPS speedup<br>vs threads</th></tr></thead>
 <tbody>
 <tr><td style="text-align: right;">300</td><td style="text-align: right;">2,809</td><td style="text-align: right;">48x48</td><td style="text-align: right;">1.5s</td><td style="text-align: right;">0.3s</td><td style="text-align: right;">0.2s</td><td style="text-align: right;">6.2x</td></tr>
 <tr><td style="text-align: right;">540</td><td style="text-align: right;">9,216</td><td style="text-align: right;">58x58</td><td style="text-align: right;">4.9s</td><td style="text-align: right;">1.4s</td><td style="text-align: right;">0.5s</td><td style="text-align: right;">9.3x</td></tr>
 <tr><td style="text-align: right;">972</td><td style="text-align: right;">29,584</td><td style="text-align: right;">74x74</td><td style="text-align: right;">16.9s</td><td style="text-align: right;">7.8s</td><td style="text-align: right;">1.1s</td><td style="text-align: right;">15.7x</td></tr>
 <tr><td style="text-align: right;">1750</td><td style="text-align: right;">95,481</td><td style="text-align: right;">102x102</td><td style="text-align: right;">58.6s</td><td style="text-align: right;">53.4s</td><td style="text-align: right;">4.8s</td><td style="text-align: right;">12.1x</td></tr>
 <tr><td style="text-align: right;">3149</td><td style="text-align: right;">308,025</td><td style="text-align: right;">156x156</td><td style="text-align: right;">215.2s</td><td style="text-align: right;">512.7s</td><td style="text-align: right;">34.6s</td><td style="text-align: right;">6.2x</td></tr>
-<tr><td style="text-align: right;">5669</td><td style="text-align: right;">996,004</td><td style="text-align: right;">250x250</td><td style="text-align: right;">861.5s</td><td style="text-align: right;">—</td><td style="text-align: right;">256.5s</td><td style="text-align: right;">3.4x</td></tr>
-<tr><td style="text-align: right;">10204</td><td style="text-align: right;">3,229,209</td><td style="text-align: right;">420x420</td><td style="text-align: right;">—</td><td style="text-align: right;">—</td><td style="text-align: right;">39 min</td><td style="text-align: right;">—</td></tr>
-<tr><td style="text-align: right;">18367</td><td style="text-align: right;">10,452,289</td><td style="text-align: right;">728x728</td><td style="text-align: right;">—</td><td style="text-align: right;">—</td><td style="text-align: right;">—</td><td style="text-align: right;">—</td></tr>
+<tr><td style="text-align: right;">5669</td><td style="text-align: right;">996,004</td><td style="text-align: right;">250x250</td><td style="text-align: right;">861.5s</td><td style="text-align: right;">cost gate</td><td style="text-align: right;">256.5s</td><td style="text-align: right;">3.4x</td></tr>
+<tr><td style="text-align: right;">10204</td><td style="text-align: right;">3,229,209</td><td style="text-align: right;">420x420</td><td style="text-align: right;">timeout</td><td style="text-align: right;">not run</td><td style="text-align: right;">39 min</td><td style="text-align: right;">—</td></tr>
+<tr><td style="text-align: right;">18367</td><td style="text-align: right;">10,452,289</td><td style="text-align: right;">728x728</td><td style="text-align: right;">not run</td><td style="text-align: right;">not run</td><td style="text-align: right;">cost gate</td><td style="text-align: right;">—</td></tr>
 </tbody>
 </table>
+<p>Three of those cells report a stop rather than a time. <strong>cost gate</strong> means
+this page's own predicted-cost rule declined to run that size, explained
+in <a href="#knowing-when-to-stop">Knowing When to Stop</a> below. <strong>timeout</strong> means
+<a href="./timing_at_scale.html">Timing at Scale</a>'s own 1800-second budget expired
+before that run finished. <strong>not run</strong> means the ladder never reached that
+size, because the device had already stopped one rung earlier. The
+remaining dash, in the speedup column, marks a ratio with no denominator
+to compute it from.</p>
 <figure>
     <img src="parallelism_pytorch_bench.png" alt="two log-log panels: left compares tracking cost against point count, with Timing at Scale's sequential, threads and processes as dashed lines and this page's torch CPU and torch MPS as solid lines; torch MPS runs lowest at every point count, while torch CPU starts below that page's threads line and crosses above it near 100,000 points; right breaks each size's time into upload, extract, correlate and refine, showing correlate highest and upload and refine lowest throughout" />
     <figcaption>Left: batched PyTorch against <a href="./timing_at_scale.html">Timing at Scale</a>'s own three executors, same geometry, same machine. Right: where each size's time actually goes, split into uploading the images, extracting search areas, correlating them, and refining the peaks.</figcaption>
@@ -634,15 +675,15 @@ it, with threads, and could not finish it. The Apple GPU completed it in
 <h3 id="throughput-rises-then-falls"><a class="header" href="#throughput-rises-then-falls">Throughput Rises, Then Falls</a></h3>
 <p>Points tracked per second, at each size <code>mps</code> completed:</p>
 <table>
-<thead><tr><th>Width (px)</th><th>Search area</th><th>Points</th><th>Seconds</th><th>Points/second</th><th>1e9 points would take</th></tr></thead>
+<thead><tr><th>Width (px)</th><th>Search area (px)</th><th>Points</th><th>Seconds</th><th>Points/second</th><th>1e9 points would take (h)</th></tr></thead>
 <tbody>
-<tr><td style="text-align: right;">300</td><td style="text-align: right;">48x48</td><td style="text-align: right;">2,809</td><td style="text-align: right;">0.2</td><td style="text-align: right;">11,868</td><td style="text-align: right;">23 h</td></tr>
-<tr><td style="text-align: right;">540</td><td style="text-align: right;">58x58</td><td style="text-align: right;">9,216</td><td style="text-align: right;">0.5</td><td style="text-align: right;">17,415</td><td style="text-align: right;">16 h</td></tr>
-<tr><td style="text-align: right;">972</td><td style="text-align: right;">74x74</td><td style="text-align: right;">29,584</td><td style="text-align: right;">1.1</td><td style="text-align: right;">27,374</td><td style="text-align: right;">10 h</td></tr>
-<tr><td style="text-align: right;">1750</td><td style="text-align: right;">102x102</td><td style="text-align: right;">95,481</td><td style="text-align: right;">4.8</td><td style="text-align: right;">19,723</td><td style="text-align: right;">14 h</td></tr>
-<tr><td style="text-align: right;">3149</td><td style="text-align: right;">156x156</td><td style="text-align: right;">308,025</td><td style="text-align: right;">34.6</td><td style="text-align: right;">8,890</td><td style="text-align: right;">31 h</td></tr>
-<tr><td style="text-align: right;">5669</td><td style="text-align: right;">250x250</td><td style="text-align: right;">996,004</td><td style="text-align: right;">256.5</td><td style="text-align: right;">3,884</td><td style="text-align: right;">72 h</td></tr>
-<tr><td style="text-align: right;">10204</td><td style="text-align: right;">420x420</td><td style="text-align: right;">3,229,209</td><td style="text-align: right;">2,334.7</td><td style="text-align: right;">1,383</td><td style="text-align: right;">201 h</td></tr>
+<tr><td style="text-align: right;">300</td><td style="text-align: right;">48x48</td><td style="text-align: right;">2,809</td><td style="text-align: right;">0.2</td><td style="text-align: right;">11,868</td><td style="text-align: right;">23</td></tr>
+<tr><td style="text-align: right;">540</td><td style="text-align: right;">58x58</td><td style="text-align: right;">9,216</td><td style="text-align: right;">0.5</td><td style="text-align: right;">17,415</td><td style="text-align: right;">16</td></tr>
+<tr><td style="text-align: right;">972</td><td style="text-align: right;">74x74</td><td style="text-align: right;">29,584</td><td style="text-align: right;">1.1</td><td style="text-align: right;">27,374</td><td style="text-align: right;">10</td></tr>
+<tr><td style="text-align: right;">1750</td><td style="text-align: right;">102x102</td><td style="text-align: right;">95,481</td><td style="text-align: right;">4.8</td><td style="text-align: right;">19,723</td><td style="text-align: right;">14</td></tr>
+<tr><td style="text-align: right;">3149</td><td style="text-align: right;">156x156</td><td style="text-align: right;">308,025</td><td style="text-align: right;">34.6</td><td style="text-align: right;">8,890</td><td style="text-align: right;">31</td></tr>
+<tr><td style="text-align: right;">5669</td><td style="text-align: right;">250x250</td><td style="text-align: right;">996,004</td><td style="text-align: right;">256.5</td><td style="text-align: right;">3,884</td><td style="text-align: right;">72</td></tr>
+<tr><td style="text-align: right;">10204</td><td style="text-align: right;">420x420</td><td style="text-align: right;">3,229,209</td><td style="text-align: right;">2,334.7</td><td style="text-align: right;">1,383</td><td style="text-align: right;">201</td></tr>
 </tbody>
 </table>
 <p>Throughput climbs to 27,374 points per second at 29,584 points, then
@@ -861,6 +902,11 @@ def device_select(*, prefer: str):
     """
     torch, _ = torch_require()
 
+    # No machine ever offers both accelerators. "mps" is macOS only, and
+    # only on Apple silicon (M1 and later) -- never Linux, never Windows,
+    # not even an Intel Mac. "cuda" needs an NVIDIA card, which in practice
+    # means Linux or Windows, since Apple dropped NVIDIA support years ago.
+    # "cpu" is the only entry every platform always has.
     available = ["cpu"]
     if torch.backends.mps.is_available():
         available.append("mps")

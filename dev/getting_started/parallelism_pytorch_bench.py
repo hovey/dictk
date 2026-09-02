@@ -158,6 +158,11 @@ def device_select(*, prefer: str):
     """
     torch, _ = torch_require()
 
+    # No machine ever offers both accelerators. "mps" is macOS only, and
+    # only on Apple silicon (M1 and later) -- never Linux, never Windows,
+    # not even an Intel Mac. "cuda" needs an NVIDIA card, which in practice
+    # means Linux or Windows, since Apple dropped NVIDIA support years ago.
+    # "cpu" is the only entry every platform always has.
     available = ["cpu"]
     if torch.backends.mps.is_available():
         available.append("mps")
