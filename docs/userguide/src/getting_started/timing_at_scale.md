@@ -154,7 +154,7 @@ That makes the two halves of the geometry behave differently across
 the ladder. Here is what each tier actually tracks, read directly from
 `grid_params` in the script below:
 
-<!-- cmdrun python3 -c "import csv, timing_at_scale_bench as b; widths = sorted(set(int(r['width']) for r in csv.DictReader(open('timing_at_scale_bench.csv')))); td = lambda v: f'<td style=\"text-align: right;\">{v}</td>'; print('<table>'); print('<thead><tr><th>Width (px)</th><th>Points</th><th>Kernel</th><th>Search area</th><th>Max displacement</th></tr></thead>'); print('<tbody>'); [print('<tr>' + td(w) + td(f'{c*c:,}') + td(f'{2*b.KERNEL_MARGIN}x{2*b.KERNEL_MARGIN}') + td(f'{2*s}x{2*s}') + td(f'{(o + (c-1)*b.SPACING) * (b.FACTOR_X - 1.0):.1f}px') + '</tr>') for w in widths for o, c, s in [b.grid_params(w)]]; print('</tbody>'); print('</table>')" -->
+<!-- cmdrun python3 -c "import csv, timing_at_scale_bench as b; widths = sorted(set(int(r['width']) for r in csv.DictReader(open('timing_at_scale_bench.csv')))); td = lambda v: f'<td style=\"text-align: right;\">{v}</td>'; print('<table>'); print('<thead><tr><th>Width (px)</th><th>Points</th><th>Kernel (px)</th><th>Search area (px)</th><th>Max displacement (px)</th></tr></thead>'); print('<tbody>'); [print('<tr>' + td(w) + td(f'{c*c:,}') + td(f'{2*b.KERNEL_MARGIN}x{2*b.KERNEL_MARGIN}') + td(f'{2*s}x{2*s}') + td(f'{(o + (c-1)*b.SPACING) * (b.FACTOR_X - 1.0):.1f}') + '</tr>') for w in widths for o, c, s in [b.grid_params(w)]]; print('</tbody>'); print('</table>')" -->
 
 The kernel is fixed. Every tier correlates the same 26x26 pixels. The
 search area is not fixed. It grows from 48x48 to 420x420, because the

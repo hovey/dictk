@@ -9,14 +9,16 @@ CPU-side tuning closes a gap that size.
 That page also found *why*. Every point ran its own separate correlation
 call, and each call carried its own Python-level overhead: a function
 call, a pair of array slices, an FFT plan, an object constructed for the
-result. At a few hundred points that overhead disappears into the noise.
-At a million points it *is* the cost.
+result. When correlating just a few hundred points, that overhead
+disappears into the noise, seemingly costing nothing.  However, then correlating
+a million points, the overhead bloats up the cost significantly.
 
-This page changes the shape of the work rather than the amount. Instead of a million small correlations, it runs a small number of very
-large ones. Thousands of points get correlated in a single call. No Python
+This page changes the shape of the work rather than the amount. Instead of running 
+a million small correlations, it runs a small number of very
+large correlations. Thousands of points get correlated in a single call. No Python
 loop runs between them. It reruns [Timing at Scale](./timing_at_scale.md)'s
-own ladder that way, on the same machine and at the same geometry. The
-two sets of numbers then sit side by side.
+own ladder that way, on the same machine and the same geometry. The
+two sets of numbers can then be compared.
 
 ## Test Machine
 
@@ -25,32 +27,27 @@ Every number here depends on the hardware that produced it. Same machine
 
 * **Apple MacBook Pro (14-inch, 2021), model `MacBookPro18,3`, Apple M1
 Pro chip, 10 CPU cores (8 Performance + 2 Efficiency), 32GB unified
-memory, macOS 26.6.2.**
+memory, macOS 26.6.2.**  (The operating system was recently updated to 26.6.2.)
 
 The M1 Pro also carries an integrated GPU, which every prior page in this
 book has left completely unused.
 
 ## Where This Came From
 
-This page continues work that started elsewhere, and the credit belongs
-where it started.
+This page continues work that Andrew Polonsky had with a colleague at the Naval
+Research laboratory, email dated 2025-04-15.  A summary of that discussion:
 
-Andrew Polonsky and Chad Hovey investigated exactly this question in
-2025, in a separate private codebase. The direction came out of a
-discussion Polonsky had with a colleague at the Naval Research
-Laboratory, written up in an email dated 2025-04-15:
-
-> Really thought pytorch may be the likely way to go for us, which
-> already optimizes stuff for GPU [...] Depending on our subset size, we
-> are right on the cusp of whether or not doing the FFT for
-> cross-correlation will be faster than brute force sliding dot product.
+> Pytorch may be the likely implementation strategy. Pytorch
+> already optimizes math used in correlations for the GPU.
+> Depending on the subset (kernel) size, we
+> are right on the cusp of whether or not the FFT approach for
+> cross-correlation will be faster than the brute force sliding dot product approach.
 
 Three conclusions from that discussion shaped everything after it.
-Numba works well for CPU work but is the wrong tool for a GPU. Writing
-raw GPU code portably is painful enough that the NRL colleague resorted
-to hand-written OpenCL. And PyTorch already solves the portability
-problem, because it runs the same code on a CUDA card, on an Apple GPU,
-or on a plain CPU.
+
+* Numba works well for CPU work but is the wrong tool for a GPU.
+* Writing raw GPU code in a portable manner is painful enough that the NRL colleague resorted to hand-written OpenCL.
+* PyTorch already solves the portability problem, because it runs the same code on a CUDA card, on an Apple GPU, or on a plain CPU.
 
 A team meeting on 2025-09-23 recorded the decision in one line: *"torch
 implementation, then CUDA implementation."*
@@ -61,7 +58,7 @@ an NVIDIA card. Those measurements used a 35x35 pixel kernel inside a
 120x120 pixel search window:
 
 | Correlations | PyTorch GPU | PyTorch CPU | NumPy CPU |
-|---|---|---|---|
+|---:|---:|---:|---:|
 | 1,000 | 0.044 s | 0.836 s | 1.47 s |
 | 50,000 | 3.09 s | 40.8 s | 73.6 s |
 
@@ -73,9 +70,8 @@ finding shows up again on this page, at a different scale, on different
 hardware.
 
 That earlier work also left three gaps. It never implemented an FFT
-version, despite the email above naming one. It never refined a peak to
-subpixel accuracy. And it never ran on macOS at all — the correlation
-module opened with a hard refusal:
+version. It never refined a peak to subpixel accuracy. 
+And it never ran on macOS at all — the correlation module opened with a hard refusal:
 
 ```python
 if platform.system() != "Darwin":
@@ -84,22 +80,19 @@ else:
     raise RuntimeError("This module requires PyTorch, which does not run on macOS.")
 ```
 
-That claim is false. PyTorch runs on macOS, and has supported Apple GPUs
-since 2022. A sibling file in the same codebase already contained
-working Apple GPU device selection. The two files were never reconciled,
-so the module that actually did the correlation stayed locked out of the
-machine its author used every day.
+**That claim is false.** PyTorch runs on macOS, and has supported Apple GPUs
+since 2022.
 
 This page closes two of those three gaps: it runs on Apple silicon, and
 it refines to subpixel. The FFT version stays open.
 
 ## Kernels, Search Windows, and Names
 
-Two vocabularies collide here, so it is worth settling them once.
+Two vocabularies collide here, so it is worth harmonizing them.
 
 This book has used *kernel* and *search area* since [Cross
-Correlation](./cross_correlation.md). Commercial DIC software, and the
-earlier work above, use different words for the same two things:
+Correlation](./cross_correlation.md). Commercial DIC software and the
+earlier work above use different words for the same two things:
 
 | This book | VIC-2D and the earlier work | What it is |
 |---|---|---|
@@ -117,7 +110,7 @@ Here is the trick.
 `conv2d` slides a small array over a larger one and reports how well
 they match at every position. That is one correlation. To get N
 correlations, the naive approach calls it N times in a Python loop, which
-reintroduces exactly the per-call overhead this page exists to remove.
+reintroduces exactly the per-call overhead this page seeks to remove.
 
 The way out is to stack the work so a single call does all of it.
 `conv2d` accepts a *batch* of images with multiple *channels*, and a set
@@ -127,7 +120,13 @@ area. That is both wrong and N times too much work.
 
 The `groups` argument fixes it. Setting `groups=N` splits N input
 channels into N independent groups of one. Kernel `i` then sees search
-area `i`, and nothing else:
+area `i`, and nothing else.
+
+Three symbols carry through the rest of this page:
+
+* $N$ is the point count, one correlation each.
+* $K$ is the kernel's side, in pixels.
+* $S$ is the search area's side, also in pixels.
 
 ```python
 # search areas: (1, N, S, S)   N search areas, stacked as CHANNELS
@@ -141,11 +140,30 @@ batch dimension holds a single element. The *channel* dimension carries
 the N correlations. That deliberate misuse of the two dimensions is what
 lets one call do N independent correlations.
 
-At this book's own geometry, tracking 2,809 points in a 300 pixel image,
-the shapes come out as `(1, 2809, 48, 48)` for the search areas,
-`(2809, 1, 26, 26)` for the kernels, and `(1, 2809, 23, 23)` for the
-output. Every one of those 2,809 correlations happens inside a single
-`conv2d` call.
+For this book's own example geometry, tracking 2,809 points in a 300 pixel image
+results in the following shapes:
+
+* `(1, 2809, 48, 48)` for the search areas,
+* `(2809, 1, 26, 26)` for the kernels, and
+* `(1, 2809, 23, 23)` for the output.
+
+Every one of those 2,809 correlations happens inside a *single* `conv2d` call.
+
+To be precise about what that geometry is: a 300 x 300 pixel `rosta`
+speckle image, with a square 53 x 53 grid of points at 5 pixel spacing,
+giving 2,809 points.
+
+[Simple Stretch](./simple_stretch.md#2682-point-sample) sets up something
+very similar, and illustrates it. It uses a 300 x 300 pixel `astronaut`
+image, with a 53 x 54 grid at the same 5 pixel spacing, giving 2,862
+points — one row more than this page uses. That page counts 2,682 in its
+own heading, not 2,862, because VIC-2D masks out the 180 positions whose
+correlation window would run off the edge of the image. The grid is still
+2,862 points; 2,682 of them survive the mask.
+
+Its figures are the closest picture of what this density looks like: the
+whole grid drawn over the reference image, then a true-scale zoom into
+one corner where the individual points finally separate.
 
 One convenient accident makes this work without any correction.
 Mathematical convolution flips the kernel before sliding it; correlation
@@ -175,9 +193,9 @@ Which lands this page on a specific side of the tradeoff that email
 named. A direct sliding correlation costs roughly $O(n k^2)$, where $n$
 counts search-area pixels and $k$ the kernel's side. An FFT-based one
 costs roughly $O(n \log n)$. The earlier work's own estimate put the FFT
-about 300 times ahead for a 35² kernel in a 120² window.
+about 300 times ahead for a `35 x 35` pixel kernel in a `120 x 120` pixel window.
 
-So every CPU measurement in [Subpixel Accuracy](./subpixel_accuracy.md),
+Every CPU measurement in [Subpixel Accuracy](./subpixel_accuracy.md),
 [High Point Density](./high_point_density.md) and [Timing at
 Scale](./timing_at_scale.md) came from the FFT side of that cusp. Every
 measurement on this page comes from the brute-force side. Comparing them
@@ -199,12 +217,27 @@ short ladder, best to worst:
 
 ```python
 if torch.cuda.is_available():
+    # NVIDIA GPU. Linux and Windows only -- Apple dropped NVIDIA support
+    # years ago, so this branch never fires on a Mac.
     device, sync = torch.device("cuda"), torch.cuda.synchronize
 elif torch.backends.mps.is_available():
+    # Apple GPU, via Metal Performance Shaders. macOS ONLY, and only on
+    # Apple silicon (M1 and later). Never available on Linux or Windows,
+    # and not on an Intel Mac either.
     device, sync = torch.device("mps"), torch.mps.synchronize
 else:
+    # Every platform has this one. Always available, always correct,
+    # never the fastest.
     device, sync = torch.device("cpu"), lambda: None
 ```
+
+Note what that ordering implies. **No single machine can take the first
+two branches.** A CUDA card and an Apple GPU are mutually exclusive in
+practice, so this is not really a preference ranking — it is a portability
+ladder. The same source runs on a Linux workstation, a Windows box, and
+this laptop, and each one lands on whichever accelerator it actually has.
+That portability is the whole reason the 2025-04-15 email above landed on
+PyTorch rather than hand-written GPU code.
 
 **MPS** stands for **Metal Performance Shaders**. It is Apple's framework
 for offloading matrix operations and tensor math onto the GPU built into
@@ -243,8 +276,9 @@ a GPU one. A missing device here stops the run and says so.
 Stacking N search areas into one tensor raises a question [Timing at
 Scale](./timing_at_scale.md) never had to ask. How much memory does that tensor take?
 
-One search area holds $S^2$ float32 values. At the 300 pixel image size,
-$S = 48$, so that is 48 x 48 x 4 bytes, about 9 KB. Small. But
+One search area is $S$ pixels on a side, so it holds $S^2$ float32
+values. At the 300 pixel image size, $S = 48$, so that is 48 x 48 x 4
+bytes, about 9 KB. Small. But
 [Timing at Scale](./timing_at_scale.md#finding-the-ceiling) grows the
 search area along with the image, because a 2% stretch displaces a far
 edge further in a bigger picture. By the 10204 pixel size, $S = 420$, and
@@ -252,7 +286,7 @@ one search area costs 420 x 420 x 4 bytes, about 706 KB.
 
 Multiply by point count and the totals stop being comfortable:
 
-<!-- cmdrun python3 -c "import timing_at_scale_bench as b; td = lambda v: f'<td style=\"text-align: right;\">{v}</td>'; print('<table>'); print('<thead><tr><th>Width (px)</th><th>Points</th><th>Search area</th><th>All search areas at once</th><th>Both images, resident</th></tr></thead>'); print('<tbody>'); [print('<tr>' + td(w) + td(f'{c*c:,}') + td(f'{2*s}x{2*s}') + td(f'{c*c*(2*s)**2*4/1e9:,.1f} GB') + td(f'{2*w*w*4/1e9:.2f} GB') + '</tr>') for w in b._widths() for o, c, s in [b.grid_params(w)]]; print('</tbody>'); print('</table>')" -->
+<!-- cmdrun python3 -c "import timing_at_scale_bench as b; td = lambda v: f'<td style=\"text-align: right;\">{v}</td>'; print('<table>'); print('<thead><tr><th>Width (px)</th><th>Points</th><th>Search area (px)</th><th>All search areas at once (GB)</th><th>Both images, resident (GB)</th></tr></thead>'); print('<tbody>'); [print('<tr>' + td(w) + td(f'{c*c:,}') + td(f'{2*s}x{2*s}') + td(f'{c*c*(2*s)**2*4/1e9:,.1f}') + td(f'{2*w*w*4/1e9:.2f}') + '</tr>') for w in b._widths() for o, c, s in [b.grid_params(w)]]; print('</tbody>'); print('</table>')" -->
 
 This machine has 32 GB, and Apple's Metal layer will admit only about
 26.8 GB of it as a working set. So materializing every search area at
@@ -360,10 +394,20 @@ every one of those 2,809 points. float32 costs nothing measurable here.
 
 Same image sizes, same point grids, same kernel, same search areas,
 same machine. The only change is what runs the correlation.
-[Timing at Scale](./timing_at_scale.md)'s own threaded column sits
-alongside, because it was that page's fastest CPU result:
+The `threads` column is carried over from [Timing at
+Scale](./timing_at_scale.md), unchanged. It was that page's fastest CPU
+result, so it is the number worth beating:
 
-<!-- cmdrun python3 -c "import csv; rows=list(csv.DictReader(open('parallelism_pytorch_bench.csv'))); old=list(csv.DictReader(open('timing_at_scale_bench.csv'))); g=lambda w,d,s: next((float(r['seconds']) for r in rows if int(r['width'])==w and r['device']==d and r['stage']==s), None); o=lambda w,s: next((float(r['seconds']) for r in old if int(r['width'])==w and r['stage']==s), None); pts={int(r['width']):int(r['points']) for r in rows if r['points']!='0'}; widths=sorted(pts); f=lambda v: '—' if v is None else (f'{v:.1f}s' if v<1000 else f'{v/60:.0f} min'); td=lambda v: f'<td style=\"text-align: right;\">{v}</td>'; print('<table>'); print('<thead><tr><th>Width (px)</th><th>Points</th><th>Search area</th><th>threads (9.3)</th><th>torch CPU</th><th>torch MPS</th><th>MPS speedup</th></tr></thead>'); print('<tbody>'); [print('<tr>'+td(w)+td(f'{pts[w]:,}')+td(f'{2*s}x{2*s}')+td(f(o(w,'threads')))+td(f(g(w,'cpu','total')))+td(f(g(w,'mps','total')))+td(f'{o(w,\"threads\")/g(w,\"mps\",\"total\"):.1f}x' if (o(w,'threads') and g(w,'mps','total')) else '—')+'</tr>') for w in widths for _o,_c,s in [__import__('timing_at_scale_bench').grid_params(w)]]; print('</tbody>'); print('</table>')" -->
+<!-- cmdrun python3 -c "import csv; rows=list(csv.DictReader(open('parallelism_pytorch_bench.csv'))); old=list(csv.DictReader(open('timing_at_scale_bench.csv'))); gp=__import__('timing_at_scale_bench').grid_params; pts={int(r['width']):int(r['points']) for r in rows if r['points']!='0'}; sec=lambda w,d: next((float(r['seconds']) for r in rows if int(r['width'])==w and r['device']==d and r['stage']=='total'), None); stop=lambda w,d: next((r['stage'] for r in rows if int(r['width'])==w and r['device']==d and r['stage'].startswith(('STOPPED_','FAILED_'))), None); osec=lambda w: next((float(r['seconds']) for r in old if int(r['width'])==w and r['stage']=='threads'), None); ofail=lambda w: any(int(r['width'])==w and r['stage']=='FAILED_timeout_threads' for r in old); dur=lambda v: f'{v:.1f}s' if v<1000 else f'{v/60:.0f} min'; why=lambda s: 'cost gate' if s and 'cost_gate' in s else ('out of memory' if s and 'oom' in s else 'not run'); cell=lambda w,d: dur(sec(w,d)) if sec(w,d) is not None else why(stop(w,d)); ocell=lambda w: dur(osec(w)) if osec(w) is not None else ('timeout' if ofail(w) else 'not run'); td=lambda v: f'<td style=\"text-align: right;\">{v}</td>'; print('<table>'); print('<thead><tr><th>Width (px)</th><th>Points</th><th>Search area (px)</th><th>threads,<br>Timing at Scale</th><th>torch CPU</th><th>torch MPS</th><th>MPS speedup<br>vs threads</th></tr></thead>'); print('<tbody>'); [print('<tr>'+td(w)+td(f'{pts[w]:,}')+td(f'{2*s}x{2*s}')+td(ocell(w))+td(cell(w,'cpu'))+td(cell(w,'mps'))+td(f'{osec(w)/sec(w,\"mps\"):.1f}x' if (osec(w) and sec(w,'mps')) else '—')+'</tr>') for w in sorted(pts) for _o,_c,s in [gp(w)]]; print('</tbody>'); print('</table>')" -->
+
+Three of those cells report a stop rather than a time. **cost gate** means
+this page's own predicted-cost rule declined to run that size, explained
+in [Knowing When to Stop](#knowing-when-to-stop) below. **timeout** means
+[Timing at Scale](./timing_at_scale.md)'s own 1800-second budget expired
+before that run finished. **not run** means the ladder never reached that
+size, because the device had already stopped one rung earlier. The
+remaining dash, in the speedup column, marks a ratio with no denominator
+to compute it from.
 
 <figure>
     <img src="parallelism_pytorch_bench.png" alt="two log-log panels: left compares tracking cost against point count, with Timing at Scale's sequential, threads and processes as dashed lines and this page's torch CPU and torch MPS as solid lines; torch MPS runs lowest at every point count, while torch CPU starts below that page's threads line and crosses above it near 100,000 points; right breaks each size's time into upload, extract, correlate and refine, showing correlate highest and upload and refine lowest throughout" />
@@ -528,7 +572,7 @@ it, with threads, and could not finish it. The Apple GPU completed it in
 
 Points tracked per second, at each size `mps` completed:
 
-<!-- cmdrun python3 -c "import csv; rows=list(csv.DictReader(open('parallelism_pytorch_bench.csv'))); g=lambda w,d,s: next((float(r['seconds']) for r in rows if int(r['width'])==w and r['device']==d and r['stage']==s), None); pts={int(r['width']):int(r['points']) for r in rows if r['points']!='0'}; td=lambda v: f'<td style=\"text-align: right;\">{v}</td>'; print('<table>'); print('<thead><tr><th>Width (px)</th><th>Search area</th><th>Points</th><th>Seconds</th><th>Points/second</th><th>1e9 points would take</th></tr></thead>'); print('<tbody>'); [print('<tr>'+td(w)+td(f'{2*s}x{2*s}')+td(f'{pts[w]:,}')+td(f'{t:,.1f}')+td(f'{pts[w]/t:,.0f}')+td(f'{1e9/(pts[w]/t)/3600:,.0f} h')+'</tr>') for w in sorted(pts) for t in [g(w,'mps','total')] if t for _o,_c,s in [__import__('timing_at_scale_bench').grid_params(w)]]; print('</tbody>'); print('</table>')" -->
+<!-- cmdrun python3 -c "import csv; rows=list(csv.DictReader(open('parallelism_pytorch_bench.csv'))); g=lambda w,d,s: next((float(r['seconds']) for r in rows if int(r['width'])==w and r['device']==d and r['stage']==s), None); pts={int(r['width']):int(r['points']) for r in rows if r['points']!='0'}; td=lambda v: f'<td style=\"text-align: right;\">{v}</td>'; print('<table>'); print('<thead><tr><th>Width (px)</th><th>Search area (px)</th><th>Points</th><th>Seconds</th><th>Points/second</th><th>1e9 points would take (h)</th></tr></thead>'); print('<tbody>'); [print('<tr>'+td(w)+td(f'{2*s}x{2*s}')+td(f'{pts[w]:,}')+td(f'{t:,.1f}')+td(f'{pts[w]/t:,.0f}')+td(f'{1e9/(pts[w]/t)/3600:,.0f}')+'</tr>') for w in sorted(pts) for t in [g(w,'mps','total')] if t for _o,_c,s in [__import__('timing_at_scale_bench').grid_params(w)]]; print('</tbody>'); print('</table>')" -->
 
 Throughput climbs to 27,374 points per second at 29,584 points, then
 falls away steadily. By the largest size it has dropped to 1,383, a
