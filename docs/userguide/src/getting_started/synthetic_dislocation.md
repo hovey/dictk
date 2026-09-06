@@ -1,9 +1,8 @@
 # Synthetic Dislocation
 
-Harvested from `hdic`'s Ex. 8a: Synthetic Dislocation, replacing its
-cameraman image with `dictk`'s own astronaut. [Discontinuities](./discontinuities.md)
-already built the plain-photo version of this jump. Here it carries a
-speckle pattern, so a correlation actually has something to track:
+[Discontinuities](./discontinuities.md) already built the plain-photo
+version of this jump. Here it carries a speckle pattern, so a
+correlation actually has something to track:
 
 ```python
 import dictk

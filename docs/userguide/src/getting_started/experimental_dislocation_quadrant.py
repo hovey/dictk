@@ -1,9 +1,6 @@
 """Plot the correlation surface a window straddling a real experimental
-crack produces, ZNCC and FFT side by side.
-
-Harvested from hdic's docs/userguide/src/formulation/examples/08b (Ex. 8b:
-Experimental Dislocation / "Example 08: Preprocessing for Experimental
-Dislocation") -- the two source images are copied in unmodified.
+crack produces, ZNCC and FFT side by side. The two source images are
+real experimental micrographs, copied in unmodified.
 """
 
 from dictk.image import read, subimage, PixelCoordinate

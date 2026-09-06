@@ -1,8 +1,5 @@
 """Build a synthetic crack-dislocation image pair and plot the correlation
 surface a window straddling the crack produces, ZNCC and FFT side by side.
-
-Harvested from hdic's docs/userguide/src/formulation/examples/08a (Ex. 8a:
-Synthetic Dislocation), replacing cameraman with dictk's own astronaut.
 """
 
 import dictk

@@ -400,11 +400,9 @@ re-run after the fix. Both are recorded in the script's own docstrings.
 ## 2026-09-06
 
 **Discontinuities (10), Synthetic Dislocation (10.1), and Experimental
-Dislocation (10.2), shipped.** New chapter, harvested from `hdic`'s Ex.
-8a and Ex. 8b (3.3.6/3.3.7), replacing `hdic`'s cameraman with `dictk`'s
-own astronaut. First empirical evidence toward the Postponed "Heaviside
-DIC and XFEM" item above. Not a resolution of it: a characterization of
-what the symptom looks like.
+Dislocation (10.2), shipped.** New chapter. First empirical evidence
+toward the Postponed "Heaviside DIC and XFEM" item above. Not a
+resolution of it: a characterization of what the symptom looks like.
 
 **The finding: a straddling window's correlation surface shows two
 comparably-tall peaks, not one.**
@@ -424,8 +422,8 @@ integer-pixel surface to resolve as two separate local maxima; phase
 correlation still resolved it there. Not a fluke at one lucky parameter
 choice: the relationship holds across a 32x range.
 
-**Real data (`hdic`'s Ex. 8b image pair, copied in unmodified): the
-signature survives, noisier.** At `(x=218, y=186)`,
+**Real data (a real experimental crack image pair, copied in
+unmodified): the signature survives, noisier.** At `(x=218, y=186)`,
 `kernel_margin=25`, `search_margin=65`, ZNCC's surface shows three local
 maxima along its peak column (heights 0.09, 0.19, 0.28). The two
 tallest, 22 pixels apart, both clearly exceed the third and the general
