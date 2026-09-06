@@ -6,13 +6,30 @@ correlation actually has something to track:
 
 ```python
 import dictk
-from dictk.image import combine, crack_dislocation
+from dictk.image import combine, crack_dislocation, write
 
 speckle = dictk.rosta(width=300, height=300, density=0.5)
 photo = dictk.astronaut(width=300, height=300)
 reference_image = combine(a=speckle, b=photo)
 current_image = crack_dislocation(arr=reference_image, offset=4.0)
+
+write(arr=reference_image, path="synthetic_dislocation_reference.png")
+write(arr=current_image, path="synthetic_dislocation_current.png")
 ```
+
+```text
+<!-- cmdrun python3 -c "import dictk; from dictk.image import combine, crack_dislocation, write; speckle = dictk.rosta(width=300, height=300, density=0.5); photo = dictk.astronaut(width=300, height=300); reference_image = combine(a=speckle, b=photo); current_image = crack_dislocation(arr=reference_image, offset=4.0); write(arr=reference_image, path='synthetic_dislocation_reference.png'); write(arr=current_image, path='synthetic_dislocation_current.png'); print('Saved: synthetic_dislocation_reference.png, synthetic_dislocation_current.png')" -->
+```
+
+Synthetic Dislocation | Image
+--- | ---
+Original | ![original](synthetic_dislocation_reference.png)
+offset=4 pixels | ![crack dislocation](synthetic_dislocation_current.png)
+
+Both carry the same `rosta` speckle pattern — only the dislocation
+differs. [Discontinuities](./discontinuities.md)'s plain-photo version
+showed the geometry alone; this pair is what a correlation actually
+sees.
 
 ## A Window Straddling the Crack
 
