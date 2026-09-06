@@ -8241,13 +8241,27 @@ shows up.</p>
 version of this jump. Here it carries a speckle pattern, so a
 correlation actually has something to track:</p>
 <pre><code class="language-python">import dictk
-from dictk.image import combine, crack_dislocation
+from dictk.image import combine, crack_dislocation, write
 
 speckle = dictk.rosta(width=300, height=300, density=0.5)
 photo = dictk.astronaut(width=300, height=300)
 reference_image = combine(a=speckle, b=photo)
 current_image = crack_dislocation(arr=reference_image, offset=4.0)
+
+write(arr=reference_image, path="synthetic_dislocation_reference.png")
+write(arr=current_image, path="synthetic_dislocation_current.png")
 </code></pre>
+<pre><code class="language-text">Saved: synthetic_dislocation_reference.png, synthetic_dislocation_current.png
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>Synthetic Dislocation</th><th>Image</th></tr></thead><tbody>
+<tr><td>Original</td><td><img src="getting_started/synthetic_dislocation_reference.png" alt="original" /></td></tr>
+<tr><td>offset=4 pixels</td><td><img src="getting_started/synthetic_dislocation_current.png" alt="crack dislocation" /></td></tr>
+</tbody></table>
+</div>
+<p>Both carry the same <code>rosta</code> speckle pattern — only the dislocation
+differs. <a href="getting_started/./discontinuities.html">Discontinuities</a>'s plain-photo version
+showed the geometry alone; this pair is what a correlation actually
+sees.</p>
 <h2 id="a-window-straddling-the-crack"><a class="header" href="#a-window-straddling-the-crack">A Window Straddling the Crack</a></h2>
 <p>Place a tracking window centered exactly on the crack: <code>x = 150</code>, the
 image's own vertical midline, where the dislocation splits left from
