@@ -4,8 +4,11 @@ real experimental micrographs, copied in unmodified.
 """
 
 from dictk.image import read, subimage, PixelCoordinate
-from dictk.correlation import zncc, phase_correlation
-from dictk.plot import spatial_correlation_quadrant_plot, phase_correlation_quadrant_plot
+from dictk.correlation import zncc
+from dictk.plot import (
+    spatial_correlation_quadrant_plot,
+    phase_correlation_quadrant_plot,
+)
 
 KERNEL_MARGIN = 25
 SEARCH_MARGIN = 65

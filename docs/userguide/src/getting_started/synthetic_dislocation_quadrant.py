@@ -4,8 +4,11 @@ surface a window straddling the crack produces, ZNCC and FFT side by side.
 
 import dictk
 from dictk.image import combine, crack_dislocation, subimage, write, PixelCoordinate
-from dictk.correlation import zncc, phase_correlation
-from dictk.plot import spatial_correlation_quadrant_plot, phase_correlation_quadrant_plot
+from dictk.correlation import zncc
+from dictk.plot import (
+    spatial_correlation_quadrant_plot,
+    phase_correlation_quadrant_plot,
+)
 
 WIDTH = HEIGHT = 300
 OFFSET = 4.0

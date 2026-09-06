@@ -58,7 +58,9 @@ for offset in OFFSETS:
     phase_sep = two_peak_separation(phase_correlation(kernel=kernel, search=search))
     rows.append((offset, zncc_sep, phase_sep))
 
-print("| offset (px) | 2 x offset | ZNCC separation | ZNCC matches | Phase separation | Phase matches |")
+print(
+    "| offset (px) | 2 x offset | ZNCC separation | ZNCC matches | Phase separation | Phase matches |"
+)
 print("|---|---|---|---|---|---|")
 for offset, zncc_sep, phase_sep in rows:
     expected = 2 * offset
@@ -75,9 +77,32 @@ offsets_plot = [r[0] for r in rows]
 zncc_plot = [r[1] for r in rows]
 phase_plot = [r[2] for r in rows]
 line_x = np.linspace(0, max(offsets_plot), 100)
-ax.plot(line_x, 2 * line_x, linestyle="--", color="black", linewidth=1, label="separation = 2 x offset")
-ax.plot(offsets_plot, zncc_plot, marker="o", linestyle="none", color="tab:blue", label="ZNCC", markersize=8)
-ax.plot(offsets_plot, phase_plot, marker="x", linestyle="none", color="tab:orange", label="Phase (FFT)", markersize=8)
+ax.plot(
+    line_x,
+    2 * line_x,
+    linestyle="--",
+    color="black",
+    linewidth=1,
+    label="separation = 2 x offset",
+)
+ax.plot(
+    offsets_plot,
+    zncc_plot,
+    marker="o",
+    linestyle="none",
+    color="tab:blue",
+    label="ZNCC",
+    markersize=8,
+)
+ax.plot(
+    offsets_plot,
+    phase_plot,
+    marker="x",
+    linestyle="none",
+    color="tab:orange",
+    label="Phase (FFT)",
+    markersize=8,
+)
 ax.set_xlabel("crack_dislocation offset (pixels)")
 ax.set_ylabel("peak separation (pixels)")
 ax.set_title("Peak Separation vs. Dislocation Offset")
