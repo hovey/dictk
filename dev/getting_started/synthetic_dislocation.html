@@ -290,6 +290,49 @@ criteria. One honest exception sits at the low end: once the two true
 displacements are only a pixel apart, resolving them as two distinct
 peaks runs into the same integer-pixel resolution limit <a href="./subpixel_accuracy.html">Subpixel
 Accuracy</a> already covers for a single peak.</p>
+<h2 id="moving-the-window-off-the-crack"><a class="header" href="#moving-the-window-off-the-crack">Moving the Window Off the Crack</a></h2>
+<p>Every result so far centers the window exactly on the crack, at
+<code>x = 150</code>. What happens as that center slides away from it?</p>
+<p><code>kernel_margin=25</code> sets a hard geometric boundary. Once the window's
+center sits more than 25 pixels from the crack, the window no longer
+touches both halves at all: it's <code>x &lt;= 125</code> for a window entirely in
+the left half, <code>x &gt;= 175</code> for one entirely in the right. Sweeping
+<code>x</code> from 100 to 200 and reading the ZNCC surface at both candidate
+peak locations, Δy=+4 (the left half's own shift) and Δy=-4 (the
+right half's own shift), at each step:</p>
+<div class="table-wrapper"><table><thead><tr><th>kernel center x</th><th>left-half peak (dy=+4)</th><th>right-half peak (dy=-4)</th></tr></thead><tbody>
+<tr><td>100</td><td>1.000</td><td>0.048</td></tr>
+<tr><td>110</td><td>1.000</td><td>0.122</td></tr>
+<tr><td>120</td><td>1.000</td><td>0.065</td></tr>
+<tr><td>130</td><td>0.901</td><td>0.164</td></tr>
+<tr><td>140</td><td>0.725</td><td>0.360</td></tr>
+<tr><td>150</td><td>0.519</td><td>0.528</td></tr>
+<tr><td>160</td><td>0.433</td><td>0.722</td></tr>
+<tr><td>170</td><td>0.311</td><td>0.939</td></tr>
+<tr><td>180</td><td>0.304</td><td>1.000</td></tr>
+<tr><td>190</td><td>0.221</td><td>1.000</td></tr>
+<tr><td>200</td><td>0.233</td><td>1.000</td></tr>
+<tr><td>Saved: synthetic_dislocation_x_sweep.png</td><td></td><td></td></tr>
+</tbody></table>
+</div><figure>
+    <img src="synthetic_dislocation_x_sweep.png" alt="line plot of ZNCC peak magnitude vs. window center x from 100 to 200: the left-half peak pins at exactly 1.0 until x=125, both peaks cross near x=148, then the right-half peak pins at exactly 1.0 from x=175 onward while the left-half peak fades to a fluctuating 0.2-0.3 band" />
+    <figcaption>Peak magnitude vs. window center x, dotted lines at x=125 and x=175 marking the geometric boundary, dashed line at x=150 marking the crack. Below x=125 there's exactly one peak, at Δy=+4, pinned at 1.0: the "lower" peak, further down the page. That confirms it's the only one present, not merely the tallest. Above x=175 the mirror image holds: one peak, at Δy=-4, pinned at 1.0. Between them, the two trade dominance smoothly, crossing near x=148, both close to 0.52 there, matching <a href="#a-window-straddling-the-crack">the single point already measured at x=150</a>.</figcaption>
+</figure>
+<p>ZNCC hits exactly 1.0, not just a high value, wherever the window sits
+fully inside one half. That's not a coincidence: a window entirely
+inside one half sees a pure integer-pixel rigid shift of identical
+content. There's no interpolation error and nothing else to explain
+away, so ZNCC reaches its exact theoretical maximum.</p>
+<p>The two sides aren't quite mirror images once the window fully clears
+the crack. Below x=125 the vanishing peak (Δy=-4) fades to 0.05-0.16.
+Above x=175 the vanishing peak (Δy=+4) settles into a higher,
+fluctuating 0.2-0.3 band instead, with a small bump near x=183. That
+difference comes from the underlying speckle and photo content on
+each side, not from the crack itself.</p>
+<p>Straddling the crack is what makes two comparable peaks possible. Move
+the window fully clear of it, in either direction, and only one peak
+remains: a single, perfect match. There's no diagnostic to read there
+at all.</p>
 <h2 id="what-this-doesnt-do"><a class="header" href="#what-this-doesnt-do">What This Doesn't Do</a></h2>
 <p>This is a diagnostic. It doesn't fix anything. Nothing here located the
 crack; a human already centered the window on it.
@@ -472,6 +515,83 @@ ax.set_title("Peak Separation vs. Dislocation Offset")
 ax.legend()
 fig.savefig("synthetic_dislocation_sweep.png", dpi=300)
 print("Saved: synthetic_dislocation_sweep.png")
+</code></pre>
+<h3 id="synthetic_dislocation_x_sweeppy"><a class="header" href="#synthetic_dislocation_x_sweeppy"><code>synthetic_dislocation_x_sweep.py</code></a></h3>
+<pre><code class="language-python">"""Sweep the tracking window's center x position across the crack and
+watch the two ZNCC peaks trade dominance: a single peak away from the
+crack, both present and comparable near it.
+"""
+
+import matplotlib.pyplot as plt
+
+import dictk
+from dictk.image import combine, crack_dislocation, subimage, PixelCoordinate
+from dictk.correlation import zncc
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+
+WIDTH = HEIGHT = 300
+OFFSET = 4.0
+KERNEL_MARGIN = 25
+SEARCH_MARGIN = 45
+Y = 150
+CENTER_INDEX = SEARCH_MARGIN - KERNEL_MARGIN  # 20, the zero-shift index
+LEFT_ROW = CENTER_INDEX + int(OFFSET)  # y=24, dy=+4 (left half's own shift)
+RIGHT_ROW = CENTER_INDEX - int(OFFSET)  # y=16, dy=-4 (right half's own shift)
+
+speckle = dictk.rosta(width=WIDTH, height=HEIGHT, density=0.5)
+photo = dictk.astronaut(width=WIDTH, height=HEIGHT)
+reference_image = combine(a=speckle, b=photo)
+current_image = crack_dislocation(arr=reference_image, offset=OFFSET)
+
+xs = list(range(100, 201))
+left_peak = []
+right_peak = []
+for x in xs:
+    p0 = PixelCoordinate(x=x, y=Y)
+    kernel = subimage(
+        image=reference_image,
+        origin=PixelCoordinate(x=p0.x - KERNEL_MARGIN, y=p0.y - KERNEL_MARGIN),
+        width=2 * KERNEL_MARGIN,
+        height=2 * KERNEL_MARGIN,
+    )
+    search = subimage(
+        image=current_image,
+        origin=PixelCoordinate(x=p0.x - SEARCH_MARGIN, y=p0.y - SEARCH_MARGIN),
+        width=2 * SEARCH_MARGIN,
+        height=2 * SEARCH_MARGIN,
+    )
+    surf = zncc(kernel=kernel, search=search)
+    left_peak.append(surf[LEFT_ROW, CENTER_INDEX])
+    right_peak.append(surf[RIGHT_ROW, CENTER_INDEX])
+
+full_left_boundary = (
+    WIDTH / 2 - KERNEL_MARGIN
+)  # 125: kernel entirely left of the crack at or below this x
+full_right_boundary = (
+    WIDTH / 2 + KERNEL_MARGIN
+)  # 175: kernel entirely right of the crack at or above this x
+
+print("| kernel center x | left-half peak (dy=+4) | right-half peak (dy=-4) |")
+print("|---|---|---|")
+for x in range(100, 201, 10):
+    i = xs.index(x)
+    print(f"| {x} | {left_peak[i]:.3f} | {right_peak[i]:.3f} |")
+
+fig, ax = plt.subplots(figsize=(7.0, 5.0), constrained_layout=True)
+ax.plot(xs, left_peak, color="tab:blue", label="peak at Δy=+4 (left half's own shift)")
+ax.plot(
+    xs, right_peak, color="tab:orange", label="peak at Δy=-4 (right half's own shift)"
+)
+ax.axvline(full_left_boundary, color="black", linestyle=":", linewidth=1)
+ax.axvline(full_right_boundary, color="black", linestyle=":", linewidth=1)
+ax.axvline(WIDTH / 2, color="gray", linestyle="--", linewidth=1)
+ax.set_xlabel("tracking window center x (pixels)")
+ax.set_ylabel("ZNCC value")
+ax.set_title("Peak Magnitudes vs. Window Center x")
+ax.legend(loc="center left")
+fig.savefig("synthetic_dislocation_x_sweep.png", dpi=300)
+print("Saved: synthetic_dislocation_x_sweep.png")
 </code></pre>
 
                     </main>
