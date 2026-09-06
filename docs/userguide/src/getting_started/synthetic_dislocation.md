@@ -19,7 +19,11 @@ current_image = crack_dislocation(arr=reference_image, offset=4.0)
 Place a tracking window centered exactly on the crack: `x = 150`, the
 image's own vertical midline, where the dislocation splits left from
 right. A window there doesn't sit cleanly on one side. It contains both
-true displacements at once: +4 pixels on its left half, -4 on its right.
+true displacements at once: +4 pixels on its left half, -4 on its
+right. `dictk`'s own y-axis points down the page, not up (see
+[Multi-Point Motion](./multi_point_motion.md#verification-against-vic-2d)
+for this same sign convention). So +4 here means the left half shifts
+*down*. -4 means the right half shifts *up*.
 
 ```python
 from dictk.image import subimage, PixelCoordinate
