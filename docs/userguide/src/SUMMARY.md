@@ -25,5 +25,8 @@
   - [High Point Density](./getting_started/high_point_density.md)
   - [Timing at Scale](./getting_started/timing_at_scale.md)
   - [Parallelism with PyTorch](./getting_started/parallelism_pytorch.md)
+- [Discontinuities](./getting_started/discontinuities.md)
+  - [Synthetic Dislocation](./getting_started/synthetic_dislocation.md)
+  - [Experimental Dislocation](./getting_started/experimental_dislocation.md)
 - [Path Forward](./getting_started/path_forward.md)
 - [Contributing](./contributing.md)

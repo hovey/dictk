@@ -94,7 +94,11 @@ Noted, not being pursued right now:
 
 * **Heaviside DIC and XFEM** — enriching the correlation itself to
   detect and locate a discontinuity, not just generating test images
-  that contain one (see above).
+  that contain one (see above). [Discontinuities](./discontinuities.md)'s
+  2026-09-06 entry below characterizes the symptom: a straddling
+  window's correlation surface shows two comparably-tall peaks, on both
+  synthetic and real data. That's a diagnostic. The algorithm this item
+  asks for still doesn't exist.
 * **`grid.locate()` windowing demo.** `windowing` has only ever been
   demonstrated directly on
   [`dictk.correlation.phase_correlation`](../api/dictk/correlation.html#phase_correlation)
@@ -392,3 +396,52 @@ re-uploaded both full images to the device once per chunk rather than
 once per size (26 redundant 40MB uploads at 3149px), which inflated
 measured extraction cost; partial results were discarded and the ladder
 re-run after the fix. Both are recorded in the script's own docstrings.
+
+## 2026-09-06
+
+**Discontinuities (10), Synthetic Dislocation (10.1), and Experimental
+Dislocation (10.2), shipped.** New chapter, harvested from `hdic`'s Ex.
+8a and Ex. 8b (3.3.6/3.3.7), replacing `hdic`'s cameraman with `dictk`'s
+own astronaut. First empirical evidence toward the Postponed "Heaviside
+DIC and XFEM" item above. Not a resolution of it: a characterization of
+what the symptom looks like.
+
+**The finding: a straddling window's correlation surface shows two
+comparably-tall peaks, not one.**
+[Image Transformation](./transformation.md#crack-dislocation)'s crack
+shifts its left half +4px and its right half -4px, and no single
+displacement answer can represent both at once. On synthetic data
+(`astronaut0`, offset=4, `kernel_margin=25`, `search_margin=45`), ZNCC
+and phase correlation (FFT) land on the exact same two peaks: y=16 and
+y=24. Both straddle the window's own zero-shift center (y=20) by
+exactly ∓4 pixels, the same 4-pixel offset applied, so their
+separation, 8 pixels, is exactly twice the offset.
+
+**Swept offset 1-32 pixels: separation = 2 x offset held at every
+offset from 2 to 32, for both criteria.** The only miss came at
+offset=1, where ZNCC's two peaks sit one pixel apart, too close for an
+integer-pixel surface to resolve as two separate local maxima; phase
+correlation still resolved it there. Not a fluke at one lucky parameter
+choice: the relationship holds across a 32x range.
+
+**Real data (`hdic`'s Ex. 8b image pair, copied in unmodified): the
+signature survives, noisier.** At `(x=218, y=186)`,
+`kernel_margin=25`, `search_margin=65`, ZNCC's surface shows three local
+maxima along its peak column (heights 0.09, 0.19, 0.28). The two
+tallest, 22 pixels apart, both clearly exceed the third and the general
+noise floor. Phase correlation on the same window, though, is speckled
+with noise across its entire extent. It shows no clean isolated peak,
+values an order of magnitude smaller, and its single reported maximum
+lands at a different position than ZNCC's own tallest peak. The two
+criteria agreed exactly on synthetic data and don't here: real,
+non-periodic texture is exactly the case
+[`phase_correlation`](../api/dictk/correlation.html#phase_correlation)'s
+own docstring already warns is noisier than a spatial-domain criterion.
+ZNCC is the criterion worth trusting for this diagnostic on real data.
+
+**Still not started:** an algorithm that finds this signature on its
+own, rather than a person centering a window on a crack they already
+know is there. That's what "enriching the correlation itself to detect
+and locate a discontinuity" above still means. 348 tests, unchanged.
+This shipped as new book pages and two harvested image assets, not new
+library code.
