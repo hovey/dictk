@@ -1,4 +1,4 @@
-"""Sweep the tracking window's center x position across the crack and
+"""Sweep the kernel window's center x position across the crack and
 watch the two ZNCC peaks trade dominance: a single peak away from the
 crack, both present and comparable near it.
 """
@@ -67,9 +67,9 @@ ax.plot(
 ax.axvline(full_left_boundary, color="black", linestyle=":", linewidth=1)
 ax.axvline(full_right_boundary, color="black", linestyle=":", linewidth=1)
 ax.axvline(WIDTH / 2, color="gray", linestyle="--", linewidth=1)
-ax.set_xlabel("tracking window center x (pixels)")
+ax.set_xlabel("kernel window center x (pixels)")
 ax.set_ylabel("ZNCC value")
 ax.set_title("Peak Magnitudes vs. Window Center x")
-ax.legend(loc="center left")
+ax.legend(loc="lower right")
 fig.savefig("synthetic_dislocation_x_sweep.png", dpi=300)
 print("Saved: synthetic_dislocation_x_sweep.png")

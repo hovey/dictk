@@ -33,7 +33,7 @@ sees.
 
 ## A Window Straddling the Crack
 
-Place a tracking window centered exactly on the crack: `x = 150`, the
+Place a kernel window centered exactly on the crack: `x = 150`, the
 image's own vertical midline, where the dislocation splits left from
 right. A window there doesn't sit cleanly on one side. It contains both
 true displacements at once: +4 pixels on its left half, -4 on its
@@ -132,7 +132,19 @@ right half's own shift), at each step:
 
 <figure>
     <img src="synthetic_dislocation_x_sweep.png" alt="line plot of ZNCC peak magnitude vs. window center x from 100 to 200: the left-half peak pins at exactly 1.0 until x=125, both peaks cross near x=148, then the right-half peak pins at exactly 1.0 from x=175 onward while the left-half peak fades to a fluctuating 0.2-0.3 band" />
-    <figcaption>Peak magnitude vs. window center x, dotted lines at x=125 and x=175 marking the geometric boundary, dashed line at x=150 marking the crack. Below x=125 there's exactly one peak, at Δy=+4, pinned at 1.0: the "lower" peak, further down the page. That confirms it's the only one present, not merely the tallest. Above x=175 the mirror image holds: one peak, at Δy=-4, pinned at 1.0. Between them, the two trade dominance smoothly, crossing near x=148, both close to 0.52 there, matching <a href="#a-window-straddling-the-crack">the single point already measured at x=150</a>.</figcaption>
+    <figcaption>Peak magnitude vs. kernel window center x, dotted lines at x=125 and x=175 marking the geometric boundary, dashed line at x=150 marking the crack. Below x=125 there's exactly one peak, at Δy=+4, pinned at 1.0: the "lower" peak, further down the page. That confirms it's the only one present, not merely the tallest. Above x=175 the mirror image holds: one peak, at Δy=-4, pinned at 1.0. Between them, the two trade dominance smoothly, crossing near x=148, both close to 0.52 there, matching <a href="#a-window-straddling-the-crack">the single point already measured at x=150</a>.</figcaption>
+</figure>
+
+The line plot only reads two fixed points on the surface. The surface
+itself tells the same story directly: the Correlation Surface panel at
+five kernel window center positions, `x = 130, 140, 150, 160, 170`,
+sharing one colorbar:
+
+<!-- cmdrun python3 synthetic_dislocation_x_sweep_panels.py -->
+
+<figure>
+    <img src="synthetic_dislocation_x_sweep_panels.png" alt="five ZNCC Correlation Surface panels side by side at kernel window center x=130, 140, 150, 160, and 170, sharing one viridis colorbar from 0 to 1: a single bright peak near the bottom at x=130, a second peak emerging and growing through x=140 and x=150 where both are comparable, then the first peak fading while the second dominates by x=160 and x=170" />
+    <figcaption>The Correlation Surface panel itself, at five kernel window center positions. At x=130 one peak, near the bottom, clearly dominates. A second, fainter peak sits just above it. By x=150 the two are close enough to call a tie; the argmax circle lands on whichever is barely taller. By x=170 the roles have fully reversed: the upper peak dominates, the lower one nearly gone.</figcaption>
 </figure>
 
 ZNCC hits exactly 1.0, not just a high value, wherever the window sits
@@ -150,8 +162,7 @@ each side, not from the crack itself.
 
 Straddling the crack is what makes two comparable peaks possible. Move
 the window fully clear of it, in either direction, and only one peak
-remains: a single, perfect match. There's no diagnostic to read there
-at all.
+remains: a single, perfect match.
 
 ## What This Doesn't Do
 
@@ -181,4 +192,10 @@ ground truth isn't known in advance.
 
 ```python
 <!-- cmdrun cat synthetic_dislocation_x_sweep.py -->
+```
+
+### `synthetic_dislocation_x_sweep_panels.py`
+
+```python
+<!-- cmdrun cat synthetic_dislocation_x_sweep_panels.py -->
 ```
