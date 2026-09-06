@@ -220,6 +220,11 @@ unlike every other example on this page, which deforms smoothly.
 Standard DIC assumes smooth displacements and cannot capture this jump;
 cases like this motivate the Heaviside finite-element formulation.
 
+`dictk`'s own y-axis points down the page, not up (see [Multi-Point
+Motion](./multi_point_motion.md#verification-against-vic-2d) for this
+same sign convention). So +4 here means the left half shifts *down*.
+-4 means the right half shifts *up*.
+
 ```python
 import dictk
 from dictk.image import crack_dislocation, write
