@@ -207,7 +207,7 @@ differs. <a href="./discontinuities.html">Discontinuities</a>'s plain-photo vers
 showed the geometry alone; this pair is what a correlation actually
 sees.</p>
 <h2 id="a-window-straddling-the-crack"><a class="header" href="#a-window-straddling-the-crack">A Window Straddling the Crack</a></h2>
-<p>Place a tracking window centered exactly on the crack: <code>x = 150</code>, the
+<p>Place a kernel window centered exactly on the crack: <code>x = 150</code>, the
 image's own vertical midline, where the dislocation splits left from
 right. A window there doesn't sit cleanly on one side. It contains both
 true displacements at once: +4 pixels on its left half, -4 on its
@@ -316,7 +316,16 @@ right half's own shift), at each step:</p>
 </tbody></table>
 </div><figure>
     <img src="synthetic_dislocation_x_sweep.png" alt="line plot of ZNCC peak magnitude vs. window center x from 100 to 200: the left-half peak pins at exactly 1.0 until x=125, both peaks cross near x=148, then the right-half peak pins at exactly 1.0 from x=175 onward while the left-half peak fades to a fluctuating 0.2-0.3 band" />
-    <figcaption>Peak magnitude vs. window center x, dotted lines at x=125 and x=175 marking the geometric boundary, dashed line at x=150 marking the crack. Below x=125 there's exactly one peak, at Δy=+4, pinned at 1.0: the "lower" peak, further down the page. That confirms it's the only one present, not merely the tallest. Above x=175 the mirror image holds: one peak, at Δy=-4, pinned at 1.0. Between them, the two trade dominance smoothly, crossing near x=148, both close to 0.52 there, matching <a href="#a-window-straddling-the-crack">the single point already measured at x=150</a>.</figcaption>
+    <figcaption>Peak magnitude vs. kernel window center x, dotted lines at x=125 and x=175 marking the geometric boundary, dashed line at x=150 marking the crack. Below x=125 there's exactly one peak, at Δy=+4, pinned at 1.0: the "lower" peak, further down the page. That confirms it's the only one present, not merely the tallest. Above x=175 the mirror image holds: one peak, at Δy=-4, pinned at 1.0. Between them, the two trade dominance smoothly, crossing near x=148, both close to 0.52 there, matching <a href="#a-window-straddling-the-crack">the single point already measured at x=150</a>.</figcaption>
+</figure>
+<p>The line plot only reads two fixed points on the surface. The surface
+itself tells the same story directly: the Correlation Surface panel at
+five kernel window center positions, <code>x = 130, 140, 150, 160, 170</code>,
+sharing one colorbar:</p>
+<p>Saved: synthetic_dislocation_x_sweep_panels.png</p>
+<figure>
+    <img src="synthetic_dislocation_x_sweep_panels.png" alt="five ZNCC Correlation Surface panels side by side at kernel window center x=130, 140, 150, 160, and 170, sharing one viridis colorbar from 0 to 1: a single bright peak near the bottom at x=130, a second peak emerging and growing through x=140 and x=150 where both are comparable, then the first peak fading while the second dominates by x=160 and x=170" />
+    <figcaption>The Correlation Surface panel itself, at five kernel window center positions. At x=130 one peak, near the bottom, clearly dominates. A second, fainter peak sits just above it. By x=150 the two are close enough to call a tie; the argmax circle lands on whichever is barely taller. By x=170 the roles have fully reversed: the upper peak dominates, the lower one nearly gone.</figcaption>
 </figure>
 <p>ZNCC hits exactly 1.0, not just a high value, wherever the window sits
 fully inside one half. That's not a coincidence: a window entirely
@@ -331,8 +340,7 @@ difference comes from the underlying speckle and photo content on
 each side, not from the crack itself.</p>
 <p>Straddling the crack is what makes two comparable peaks possible. Move
 the window fully clear of it, in either direction, and only one peak
-remains: a single, perfect match. There's no diagnostic to read there
-at all.</p>
+remains: a single, perfect match.</p>
 <h2 id="what-this-doesnt-do"><a class="header" href="#what-this-doesnt-do">What This Doesn't Do</a></h2>
 <p>This is a diagnostic. It doesn't fix anything. Nothing here located the
 crack; a human already centered the window on it.
@@ -517,7 +525,7 @@ fig.savefig("synthetic_dislocation_sweep.png", dpi=300)
 print("Saved: synthetic_dislocation_sweep.png")
 </code></pre>
 <h3 id="synthetic_dislocation_x_sweeppy"><a class="header" href="#synthetic_dislocation_x_sweeppy"><code>synthetic_dislocation_x_sweep.py</code></a></h3>
-<pre><code class="language-python">"""Sweep the tracking window's center x position across the crack and
+<pre><code class="language-python">"""Sweep the kernel window's center x position across the crack and
 watch the two ZNCC peaks trade dominance: a single peak away from the
 crack, both present and comparable near it.
 """
@@ -586,12 +594,87 @@ ax.plot(
 ax.axvline(full_left_boundary, color="black", linestyle=":", linewidth=1)
 ax.axvline(full_right_boundary, color="black", linestyle=":", linewidth=1)
 ax.axvline(WIDTH / 2, color="gray", linestyle="--", linewidth=1)
-ax.set_xlabel("tracking window center x (pixels)")
+ax.set_xlabel("kernel window center x (pixels)")
 ax.set_ylabel("ZNCC value")
 ax.set_title("Peak Magnitudes vs. Window Center x")
-ax.legend(loc="center left")
+ax.legend(loc="lower right")
 fig.savefig("synthetic_dislocation_x_sweep.png", dpi=300)
 print("Saved: synthetic_dislocation_x_sweep.png")
+</code></pre>
+<h3 id="synthetic_dislocation_x_sweep_panelspy"><a class="header" href="#synthetic_dislocation_x_sweep_panelspy"><code>synthetic_dislocation_x_sweep_panels.py</code></a></h3>
+<pre><code class="language-python">"""Show the ZNCC Correlation Surface panel itself, side by side, at five
+kernel window center x positions straddling the crack -- the single
+peak at x=130 splitting into two, crossing near the crack, and merging
+back into a single peak at x=170.
+"""
+
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import numpy as np
+
+import dictk
+from dictk.image import combine, crack_dislocation, subimage, PixelCoordinate
+from dictk.correlation import zncc
+from dictk.plot import _correlation_surface_ticks
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+
+WIDTH = HEIGHT = 300
+OFFSET = 4.0
+KERNEL_MARGIN = 25
+SEARCH_MARGIN = 45
+Y = 150
+VICINITY_MARGIN = 4
+XS_PANELS = [130, 140, 150, 160, 170]
+
+speckle = dictk.rosta(width=WIDTH, height=HEIGHT, density=0.5)
+photo = dictk.astronaut(width=WIDTH, height=HEIGHT)
+reference_image = combine(a=speckle, b=photo)
+current_image = crack_dislocation(arr=reference_image, offset=OFFSET)
+
+fig, axes = plt.subplots(
+    1, len(XS_PANELS), figsize=(15.0, 3.4), constrained_layout=True
+)
+for ax, x in zip(axes, XS_PANELS):
+    p0 = PixelCoordinate(x=x, y=Y)
+    kernel = subimage(
+        image=reference_image,
+        origin=PixelCoordinate(x=p0.x - KERNEL_MARGIN, y=p0.y - KERNEL_MARGIN),
+        width=2 * KERNEL_MARGIN,
+        height=2 * KERNEL_MARGIN,
+    )
+    search = subimage(
+        image=current_image,
+        origin=PixelCoordinate(x=p0.x - SEARCH_MARGIN, y=p0.y - SEARCH_MARGIN),
+        width=2 * SEARCH_MARGIN,
+        height=2 * SEARCH_MARGIN,
+    )
+    surf = zncc(kernel=kernel, search=search)
+    peak_y, peak_x = np.unravel_index(np.argmax(surf), surf.shape)
+
+    im = ax.imshow(surf, cmap="viridis", vmin=0, vmax=1, origin="upper")
+    ax.add_patch(
+        patches.Circle(
+            (peak_x, peak_y),
+            radius=VICINITY_MARGIN,
+            edgecolor="red",
+            facecolor="none",
+            linewidth=1.5,
+        )
+    )
+    ax.set_title(f"x={x}")
+    ax.set_xlabel(r"$\Delta x$ offset (pixels)")
+    surface_height, surface_width = surf.shape
+    ax.set_xticks(_correlation_surface_ticks(surface_width))
+    ax.set_yticks(_correlation_surface_ticks(surface_height))
+
+axes[0].set_ylabel(r"$\Delta y$ offset (pixels)")
+for ax in axes[1:]:
+    ax.set_yticklabels([])
+
+fig.colorbar(im, ax=axes, shrink=0.8, label="ZNCC value")
+fig.savefig("synthetic_dislocation_x_sweep_panels.png", dpi=300)
+print("Saved: synthetic_dislocation_x_sweep_panels.png")
 </code></pre>
 
                     </main>
