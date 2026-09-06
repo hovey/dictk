@@ -1751,6 +1751,10 @@ displacement field that jumps discontinuously across the crack line —
 unlike every other example on this page, which deforms smoothly.
 Standard DIC assumes smooth displacements and cannot capture this jump;
 cases like this motivate the Heaviside finite-element formulation.</p>
+<p><code>dictk</code>'s own y-axis points down the page, not up (see <a href="getting_started/./multi_point_motion.html#verification-against-vic-2d">Multi-Point
+Motion</a> for this
+same sign convention). So +4 here means the left half shifts <em>down</em>.
+-4 means the right half shifts <em>up</em>.</p>
 <pre><code class="language-python">import dictk
 from dictk.image import crack_dislocation, write
 
@@ -8286,11 +8290,11 @@ phase_correlation_quadrant_plot(
 </code></pre>
 <figure>
     <img src="getting_started/synthetic_dislocation_zncc.png" alt="ZNCC quadrant plot: correlation surface shows two separate bright yellow peaks, one near (20, 16) and one near (20, 24), rather than one" />
-    <figcaption>ZNCC's Correlation Surface panel: two comparably-tall peaks, not one, at (x=20, y=16) and (x=20, y=24), with heights 0.528 and 0.519. Both sit at the same x offset, 20, the center index that matches the crack's own zero horizontal shift. They differ only in y, by 8 pixels.</figcaption>
+    <figcaption>ZNCC's Correlation Surface panel: two (not one) comparably-tall peaks at (x=20, y=16) and (x=20, y=24), with heights 0.528 and 0.519, respectively. Both sit at the same x offset, 20, the center index that matches the crack's own zero horizontal shift. They differ only in y, by 8 pixels.</figcaption>
 </figure>
 <figure>
     <img src="getting_started/synthetic_dislocation_phase.png" alt="Phase correlation quadrant plot: correlation surface is otherwise flat except for two isolated bright pixels at the same two locations the ZNCC surface found" />
-    <figcaption>Phase correlation's Correlation Surface panel shows the same pattern as <a href="getting_started/./correlation_visualization.html#phase-correlation">Phase Correlation</a>: flat except for one sharp pixel. Here, though, there are two sharp pixels, at (x=20, y=16) and (x=20, y=24) with heights 0.206 and 0.173, the same two locations ZNCC found.</figcaption>
+    <figcaption>Phase correlation's Correlation Surface panel shows the same pattern as <a href="getting_started/./correlation_visualization.html#phase-correlation">Phase Correlation</a>: flat except for one sharp pixel. Here, though, there are two sharp pixels, at (x=20, y=16) and (x=20, y=24), with heights 0.206 and 0.173, respectively. These are the same two locations ZNCC found.</figcaption>
 </figure>
 <p>Two comparably-tall peaks, not one, because a single-peak correlation
 answer can't represent two different true displacements at once. Neither

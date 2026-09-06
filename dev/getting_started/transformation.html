@@ -360,6 +360,10 @@ displacement field that jumps discontinuously across the crack line —
 unlike every other example on this page, which deforms smoothly.
 Standard DIC assumes smooth displacements and cannot capture this jump;
 cases like this motivate the Heaviside finite-element formulation.</p>
+<p><code>dictk</code>'s own y-axis points down the page, not up (see <a href="./multi_point_motion.html#verification-against-vic-2d">Multi-Point
+Motion</a> for this
+same sign convention). So +4 here means the left half shifts <em>down</em>.
+-4 means the right half shifts <em>up</em>.</p>
 <pre><code class="language-python">import dictk
 from dictk.image import crack_dislocation, write
 
