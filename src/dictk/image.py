@@ -532,10 +532,7 @@ def crack_dislocation(*, arr: np.ndarray, offset: float = 8.0) -> np.ndarray:
     Splits the image with a vertical crack at x = width / 2: the left
     half shifts down by `offset` pixels and the right half shifts up by
     `offset` pixels, producing a displacement field that jumps
-    discontinuously across the crack line — unlike every other transform
-    in this module, which varies smoothly. Standard DIC assumes smooth
-    displacements and cannot capture this jump; cases like this motivate
-    the Heaviside finite-element formulation. Uses the same backward
+    discontinuously across the crack line.  Uses the same backward
     mapping as the other transform functions, just with a piecewise
     (rather than single-matrix) displacement field, so non-integer
     source coordinates are bilinearly interpolated, and any pixel with
