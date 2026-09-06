@@ -121,8 +121,9 @@ reveal.
 
 [Discontinuities](./discontinuities.md) named the actual open problem:
 an algorithm that finds this signature on its own. Nothing here does
-that. Continue to [Path Forward](./path_forward.md) for where this
-leaves that item.
+that. Continue to [Discontinuity
+Localization](./discontinuity_localization.md), which tries a few ways
+to build one.
 
 ### `experimental_dislocation_quadrant.py`
 

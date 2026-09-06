@@ -28,5 +28,6 @@
 - [Discontinuities](./getting_started/discontinuities.md)
   - [Synthetic Dislocation](./getting_started/synthetic_dislocation.md)
   - [Experimental Dislocation](./getting_started/experimental_dislocation.md)
+  - [Discontinuity Localization](./getting_started/discontinuity_localization.md)
 - [Path Forward](./getting_started/path_forward.md)
 - [Contributing](./contributing.md)

@@ -92,13 +92,15 @@ the right next step here, not something this fix already covered.
 
 Noted, not being pursued right now:
 
-* **Heaviside DIC and XFEM** — enriching the correlation itself to
-  detect and locate a discontinuity, not just generating test images
-  that contain one (see above). [Discontinuities](./discontinuities.md)'s
-  2026-09-06 entry below characterizes the symptom: a straddling
-  window's correlation surface shows two comparably-tall peaks, on both
-  synthetic and real data. That's a diagnostic. The algorithm this item
-  asks for still doesn't exist.
+* **Heaviside DIC and XFEM: DIC-detection half resolved, FEA/XFEM
+  half still open.** [Discontinuity
+  Localization](./discontinuity_localization.md) closed the half this
+  item originally asked for: `dictk.discontinuity.locate` finds a
+  straddling window's two-peak signature on its own, on both synthetic
+  and real data, no human-centered window required. What's still not
+  started: consuming a located discontinuity in an actual
+  Heaviside-enriched finite-element formulation. That's XFEM's own side
+  of this, untouched by anything above.
 * **`grid.locate()` windowing demo.** `windowing` has only ever been
   demonstrated directly on
   [`dictk.correlation.phase_correlation`](../api/dictk/correlation.html#phase_correlation)
@@ -443,3 +445,31 @@ know is there. That's what "enriching the correlation itself to detect
 and locate a discontinuity" above still means. 348 tests, unchanged.
 This shipped as new book pages and two harvested image assets, not new
 library code.
+
+**Discontinuity Localization (10.3), shipped: the DIC-detection half of
+"Heaviside DIC and XFEM" is resolved.** Three approaches, compared on
+both the synthetic pair above and Experimental Dislocation's real crack
+image pair. A grid-anomaly baseline (standard `grid.locate`, no new
+code): 11 evaluations, 5-pixel error on synthetic data, capped at half
+the grid spacing by construction. A dense peak-ratio sweep with
+subpixel parabolic refinement: 101 evaluations, 0.2-pixel error on
+synthetic data, 0.7 pixels from Experimental Dislocation's own by-eye
+`x=218` on real data. Golden-section search on the same metric: 12
+evaluations, 0.25-pixel error on synthetic data, competitive with the
+dense sweep. A wide, honest real-data bracket breaks it, though: with
+no prior estimate of where the crack sits, it converges instead to a
+smaller, secondary peak 90 pixels from the real crack, confidently and
+silently.
+
+**The dense sweep wins and ships.** New module `dictk.discontinuity`:
+`peak_ratio` (a correlation surface's second-tallest peak divided by its
+tallest: near 1.0 for a straddling window, 0.0 for a clean one),
+`sweep` (evaluate `peak_ratio` along a line), and `locate` (the same
+sweep, refined to subpixel precision). The baseline and golden-section
+search stay as page illustrations, not library code. That's the same
+try-and-reject pattern earlier chapters have used for a rejected
+`kernel_margin` value or a reverted median filter. 371 tests
+(348 + 23).
+
+**Still not resolved:** a located discontinuity still isn't consumed by
+anything. The postponed item below is split to reflect exactly that.

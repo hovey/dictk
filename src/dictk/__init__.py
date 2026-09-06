@@ -40,6 +40,7 @@ __all__ = [
     # of both.
     "cli",
     "correlation",
+    "discontinuity",
     "element",
     "grid",
     "image",

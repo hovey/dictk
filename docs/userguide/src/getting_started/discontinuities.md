@@ -35,9 +35,8 @@ straddling window on a real experimental crack image pair. There the
 ground truth isn't known in advance, so it checks whether the same
 signature shows up outside a synthetic setup.
 
-Neither section proposes a discontinuity-aware correlation algorithm.
-[Path Forward](./path_forward.md#postponed)'s "Heaviside DIC and XFEM"
-item stays unstarted: enriching the correlation itself to detect and
-locate a discontinuity, not just generating test images that contain
-one. What follows only characterizes the symptom, and how reliably it
-shows up.
+Neither section proposes a discontinuity-aware correlation algorithm on
+its own. [Discontinuity
+Localization](./discontinuity_localization.md) takes that on next:
+comparing a few candidate algorithms and settling on one that finds
+this signature by itself, without a person centering the window first.
