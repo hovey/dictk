@@ -61,7 +61,7 @@ for offset in OFFSETS:
 print(
     "| offset (px) | 2 x offset | ZNCC separation | ZNCC matches | Phase separation | Phase matches |"
 )
-print("|---|---|---|---|---|---|")
+print("|:---:|:---:|:---:|:---:|:---:|:---:|")
 for offset, zncc_sep, phase_sep in rows:
     expected = 2 * offset
     print(
@@ -71,6 +71,7 @@ for offset, zncc_sep, phase_sep in rows:
         f"{phase_sep if phase_sep is not None else 'n/a'} | "
         f"{phase_sep == expected} |"
     )
+print()
 
 fig, ax = plt.subplots(figsize=(6.0, 5.0), constrained_layout=True)
 offsets_plot = [r[0] for r in rows]

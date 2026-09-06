@@ -8322,22 +8322,23 @@ correlation (FFT) land on the same two peaks, at the same two positions.</p>
 <p>One offset proving the point isn't enough to trust it. Sweeping
 <code>crack_dislocation</code>'s offset from 1 to 32 pixels, and checking whether
 each surface's two-peak separation still equals twice the offset:</p>
-<div class="table-wrapper"><table><thead><tr><th>offset (px)</th><th>2 x offset</th><th>ZNCC separation</th><th>ZNCC matches</th><th>Phase separation</th><th>Phase matches</th></tr></thead><tbody>
-<tr><td>1</td><td>2</td><td>n/a</td><td>False</td><td>2</td><td>True</td></tr>
-<tr><td>2</td><td>4</td><td>4</td><td>True</td><td>4</td><td>True</td></tr>
-<tr><td>3</td><td>6</td><td>6</td><td>True</td><td>6</td><td>True</td></tr>
-<tr><td>4</td><td>8</td><td>8</td><td>True</td><td>8</td><td>True</td></tr>
-<tr><td>6</td><td>12</td><td>12</td><td>True</td><td>12</td><td>True</td></tr>
-<tr><td>8</td><td>16</td><td>16</td><td>True</td><td>16</td><td>True</td></tr>
-<tr><td>12</td><td>24</td><td>24</td><td>True</td><td>24</td><td>True</td></tr>
-<tr><td>16</td><td>32</td><td>32</td><td>True</td><td>32</td><td>True</td></tr>
-<tr><td>20</td><td>40</td><td>40</td><td>True</td><td>40</td><td>True</td></tr>
-<tr><td>24</td><td>48</td><td>48</td><td>True</td><td>48</td><td>True</td></tr>
-<tr><td>28</td><td>56</td><td>56</td><td>True</td><td>56</td><td>True</td></tr>
-<tr><td>32</td><td>64</td><td>64</td><td>True</td><td>64</td><td>True</td></tr>
-<tr><td>Saved: synthetic_dislocation_sweep.png</td><td></td><td></td><td></td><td></td><td></td></tr>
+<div class="table-wrapper"><table><thead><tr><th style="text-align: center">offset (px)</th><th style="text-align: center">2 x offset</th><th style="text-align: center">ZNCC separation</th><th style="text-align: center">ZNCC matches</th><th style="text-align: center">Phase separation</th><th style="text-align: center">Phase matches</th></tr></thead><tbody>
+<tr><td style="text-align: center">1</td><td style="text-align: center">2</td><td style="text-align: center">n/a</td><td style="text-align: center">False</td><td style="text-align: center">2</td><td style="text-align: center">True</td></tr>
+<tr><td style="text-align: center">2</td><td style="text-align: center">4</td><td style="text-align: center">4</td><td style="text-align: center">True</td><td style="text-align: center">4</td><td style="text-align: center">True</td></tr>
+<tr><td style="text-align: center">3</td><td style="text-align: center">6</td><td style="text-align: center">6</td><td style="text-align: center">True</td><td style="text-align: center">6</td><td style="text-align: center">True</td></tr>
+<tr><td style="text-align: center">4</td><td style="text-align: center">8</td><td style="text-align: center">8</td><td style="text-align: center">True</td><td style="text-align: center">8</td><td style="text-align: center">True</td></tr>
+<tr><td style="text-align: center">6</td><td style="text-align: center">12</td><td style="text-align: center">12</td><td style="text-align: center">True</td><td style="text-align: center">12</td><td style="text-align: center">True</td></tr>
+<tr><td style="text-align: center">8</td><td style="text-align: center">16</td><td style="text-align: center">16</td><td style="text-align: center">True</td><td style="text-align: center">16</td><td style="text-align: center">True</td></tr>
+<tr><td style="text-align: center">12</td><td style="text-align: center">24</td><td style="text-align: center">24</td><td style="text-align: center">True</td><td style="text-align: center">24</td><td style="text-align: center">True</td></tr>
+<tr><td style="text-align: center">16</td><td style="text-align: center">32</td><td style="text-align: center">32</td><td style="text-align: center">True</td><td style="text-align: center">32</td><td style="text-align: center">True</td></tr>
+<tr><td style="text-align: center">20</td><td style="text-align: center">40</td><td style="text-align: center">40</td><td style="text-align: center">True</td><td style="text-align: center">40</td><td style="text-align: center">True</td></tr>
+<tr><td style="text-align: center">24</td><td style="text-align: center">48</td><td style="text-align: center">48</td><td style="text-align: center">True</td><td style="text-align: center">48</td><td style="text-align: center">True</td></tr>
+<tr><td style="text-align: center">28</td><td style="text-align: center">56</td><td style="text-align: center">56</td><td style="text-align: center">True</td><td style="text-align: center">56</td><td style="text-align: center">True</td></tr>
+<tr><td style="text-align: center">32</td><td style="text-align: center">64</td><td style="text-align: center">64</td><td style="text-align: center">True</td><td style="text-align: center">64</td><td style="text-align: center">True</td></tr>
 </tbody></table>
-</div><figure>
+</div>
+<p>Saved: synthetic_dislocation_sweep.png</p>
+<figure>
     <img src="getting_started/synthetic_dislocation_sweep.png" alt="scatter plot of peak separation vs dislocation offset, both ZNCC circles and phase-correlation crosses landing exactly on a dashed separation-equals-two-times-offset reference line from 2 to 32 pixels" />
     <figcaption>Every offset from 2 to 32 pixels lands exactly on the separation = 2 x offset line, for both criteria. Only at offset=1 does ZNCC miss. There, the two peaks sit one pixel apart, too close for this integer-pixel surface to resolve as two separate local maxima. Phase correlation still resolves them at that offset.</figcaption>
 </figure>
@@ -8356,21 +8357,22 @@ the left half, <code>x &gt;= 175</code> for one entirely in the right. Sweeping
 <code>x</code> from 100 to 200 and reading the ZNCC surface at both candidate
 peak locations, Δy=+4 (the left half's own shift) and Δy=-4 (the
 right half's own shift), at each step:</p>
-<div class="table-wrapper"><table><thead><tr><th>kernel center x</th><th>left-half peak (dy=+4)</th><th>right-half peak (dy=-4)</th></tr></thead><tbody>
-<tr><td>100</td><td>1.000</td><td>0.048</td></tr>
-<tr><td>110</td><td>1.000</td><td>0.122</td></tr>
-<tr><td>120</td><td>1.000</td><td>0.065</td></tr>
-<tr><td>130</td><td>0.901</td><td>0.164</td></tr>
-<tr><td>140</td><td>0.725</td><td>0.360</td></tr>
-<tr><td>150</td><td>0.519</td><td>0.528</td></tr>
-<tr><td>160</td><td>0.433</td><td>0.722</td></tr>
-<tr><td>170</td><td>0.311</td><td>0.939</td></tr>
-<tr><td>180</td><td>0.304</td><td>1.000</td></tr>
-<tr><td>190</td><td>0.221</td><td>1.000</td></tr>
-<tr><td>200</td><td>0.233</td><td>1.000</td></tr>
-<tr><td>Saved: synthetic_dislocation_x_sweep.png</td><td></td><td></td></tr>
+<div class="table-wrapper"><table><thead><tr><th style="text-align: center">kernel center x</th><th style="text-align: center">left-half peak (dy=+4)</th><th style="text-align: center">right-half peak (dy=-4)</th></tr></thead><tbody>
+<tr><td style="text-align: center">100</td><td style="text-align: center">1.000</td><td style="text-align: center">0.048</td></tr>
+<tr><td style="text-align: center">110</td><td style="text-align: center">1.000</td><td style="text-align: center">0.122</td></tr>
+<tr><td style="text-align: center">120</td><td style="text-align: center">1.000</td><td style="text-align: center">0.065</td></tr>
+<tr><td style="text-align: center">130</td><td style="text-align: center">0.901</td><td style="text-align: center">0.164</td></tr>
+<tr><td style="text-align: center">140</td><td style="text-align: center">0.725</td><td style="text-align: center">0.360</td></tr>
+<tr><td style="text-align: center">150</td><td style="text-align: center">0.519</td><td style="text-align: center">0.528</td></tr>
+<tr><td style="text-align: center">160</td><td style="text-align: center">0.433</td><td style="text-align: center">0.722</td></tr>
+<tr><td style="text-align: center">170</td><td style="text-align: center">0.311</td><td style="text-align: center">0.939</td></tr>
+<tr><td style="text-align: center">180</td><td style="text-align: center">0.304</td><td style="text-align: center">1.000</td></tr>
+<tr><td style="text-align: center">190</td><td style="text-align: center">0.221</td><td style="text-align: center">1.000</td></tr>
+<tr><td style="text-align: center">200</td><td style="text-align: center">0.233</td><td style="text-align: center">1.000</td></tr>
 </tbody></table>
-</div><figure>
+</div>
+<p>Saved: synthetic_dislocation_x_sweep.png</p>
+<figure>
     <img src="getting_started/synthetic_dislocation_x_sweep.png" alt="line plot of ZNCC peak magnitude vs. window center x from 100 to 200: the left-half peak pins at exactly 1.0 until x=125, both peaks cross near x=148, then the right-half peak pins at exactly 1.0 from x=175 onward while the left-half peak fades to a fluctuating 0.2-0.3 band" />
     <figcaption>Peak magnitude vs. kernel window center x, dotted lines at x=125 and x=175 marking the geometric boundary, dashed line at x=150 marking the crack. Below x=125 there's exactly one peak, at Δy=+4, pinned at 1.0: the "lower" peak, further down the page. That confirms it's the only one present, not merely the tallest. Above x=175 the mirror image holds: one peak, at Δy=-4, pinned at 1.0. Between them, the two trade dominance smoothly, crossing near x=148, both close to 0.52 there, matching <a href="getting_started/synthetic_dislocation.html#a-window-straddling-the-crack">the single point already measured at x=150</a>.</figcaption>
 </figure>
@@ -8531,7 +8533,7 @@ for offset in OFFSETS:
 print(
     "| offset (px) | 2 x offset | ZNCC separation | ZNCC matches | Phase separation | Phase matches |"
 )
-print("|---|---|---|---|---|---|")
+print("|:---:|:---:|:---:|:---:|:---:|:---:|")
 for offset, zncc_sep, phase_sep in rows:
     expected = 2 * offset
     print(
@@ -8541,6 +8543,7 @@ for offset, zncc_sep, phase_sep in rows:
         f"{phase_sep if phase_sep is not None else 'n/a'} | "
         f"{phase_sep == expected} |"
     )
+print()
 
 fig, ax = plt.subplots(figsize=(6.0, 5.0), constrained_layout=True)
 offsets_plot = [r[0] for r in rows]
@@ -8637,10 +8640,11 @@ full_right_boundary = (
 )  # 175: kernel entirely right of the crack at or above this x
 
 print("| kernel center x | left-half peak (dy=+4) | right-half peak (dy=-4) |")
-print("|---|---|---|")
+print("|:---:|:---:|:---:|")
 for x in range(100, 201, 10):
     i = xs.index(x)
     print(f"| {x} | {left_peak[i]:.3f} | {right_peak[i]:.3f} |")
+print()
 
 fig, ax = plt.subplots(figsize=(7.0, 5.0), constrained_layout=True)
 ax.plot(xs, left_peak, color="tab:blue", label="peak at Δy=+4 (left half's own shift)")
