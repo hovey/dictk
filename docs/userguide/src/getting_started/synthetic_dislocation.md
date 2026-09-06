@@ -115,6 +115,44 @@ displacements are only a pixel apart, resolving them as two distinct
 peaks runs into the same integer-pixel resolution limit [Subpixel
 Accuracy](./subpixel_accuracy.md) already covers for a single peak.
 
+## Moving the Window Off the Crack
+
+Every result so far centers the window exactly on the crack, at
+`x = 150`. What happens as that center slides away from it?
+
+`kernel_margin=25` sets a hard geometric boundary. Once the window's
+center sits more than 25 pixels from the crack, the window no longer
+touches both halves at all: it's `x <= 125` for a window entirely in
+the left half, `x >= 175` for one entirely in the right. Sweeping
+`x` from 100 to 200 and reading the ZNCC surface at both candidate
+peak locations, Δy=+4 (the left half's own shift) and Δy=-4 (the
+right half's own shift), at each step:
+
+<!-- cmdrun python3 synthetic_dislocation_x_sweep.py -->
+
+<figure>
+    <img src="synthetic_dislocation_x_sweep.png" alt="line plot of ZNCC peak magnitude vs. window center x from 100 to 200: the left-half peak pins at exactly 1.0 until x=125, both peaks cross near x=148, then the right-half peak pins at exactly 1.0 from x=175 onward while the left-half peak fades to a fluctuating 0.2-0.3 band" />
+    <figcaption>Peak magnitude vs. window center x, dotted lines at x=125 and x=175 marking the geometric boundary, dashed line at x=150 marking the crack. Below x=125 there's exactly one peak, at Δy=+4, pinned at 1.0: the "lower" peak, further down the page. That confirms it's the only one present, not merely the tallest. Above x=175 the mirror image holds: one peak, at Δy=-4, pinned at 1.0. Between them, the two trade dominance smoothly, crossing near x=148, both close to 0.52 there, matching <a href="#a-window-straddling-the-crack">the single point already measured at x=150</a>.</figcaption>
+</figure>
+
+ZNCC hits exactly 1.0, not just a high value, wherever the window sits
+fully inside one half. That's not a coincidence: a window entirely
+inside one half sees a pure integer-pixel rigid shift of identical
+content. There's no interpolation error and nothing else to explain
+away, so ZNCC reaches its exact theoretical maximum.
+
+The two sides aren't quite mirror images once the window fully clears
+the crack. Below x=125 the vanishing peak (Δy=-4) fades to 0.05-0.16.
+Above x=175 the vanishing peak (Δy=+4) settles into a higher,
+fluctuating 0.2-0.3 band instead, with a small bump near x=183. That
+difference comes from the underlying speckle and photo content on
+each side, not from the crack itself.
+
+Straddling the crack is what makes two comparable peaks possible. Move
+the window fully clear of it, in either direction, and only one peak
+remains: a single, perfect match. There's no diagnostic to read there
+at all.
+
 ## What This Doesn't Do
 
 This is a diagnostic. It doesn't fix anything. Nothing here located the
@@ -137,4 +175,10 @@ ground truth isn't known in advance.
 
 ```python
 <!-- cmdrun cat synthetic_dislocation_sweep.py -->
+```
+
+### `synthetic_dislocation_x_sweep.py`
+
+```python
+<!-- cmdrun cat synthetic_dislocation_x_sweep.py -->
 ```
