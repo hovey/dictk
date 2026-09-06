@@ -267,7 +267,11 @@ the right next step here, not something this fix already covered.</p>
 <ul>
 <li><strong>Heaviside DIC and XFEM</strong> — enriching the correlation itself to
 detect and locate a discontinuity, not just generating test images
-that contain one (see above).</li>
+that contain one (see above). <a href="./discontinuities.html">Discontinuities</a>'s
+2026-09-06 entry below characterizes the symptom: a straddling
+window's correlation surface shows two comparably-tall peaks, on both
+synthetic and real data. That's a diagnostic. The algorithm this item
+asks for still doesn't exist.</li>
 <li><strong><code>grid.locate()</code> windowing demo.</strong> <code>windowing</code> has only ever been
 demonstrated directly on
 <a href="../api/dictk/correlation.html#phase_correlation"><code>dictk.correlation.phase_correlation</code></a>
@@ -537,12 +541,53 @@ re-uploaded both full images to the device once per chunk rather than
 once per size (26 redundant 40MB uploads at 3149px), which inflated
 measured extraction cost; partial results were discarded and the ladder
 re-run after the fix. Both are recorded in the script's own docstrings.</p>
+<h2 id="2026-09-06"><a class="header" href="#2026-09-06">2026-09-06</a></h2>
+<p><strong>Discontinuities (10), Synthetic Dislocation (10.1), and Experimental
+Dislocation (10.2), shipped.</strong> New chapter. First empirical evidence
+toward the Postponed "Heaviside DIC and XFEM" item above. Not a
+resolution of it: a characterization of what the symptom looks like.</p>
+<p><strong>The finding: a straddling window's correlation surface shows two
+comparably-tall peaks, not one.</strong>
+<a href="./transformation.html#crack-dislocation">Image Transformation</a>'s crack
+shifts its left half +4px and its right half -4px, and no single
+displacement answer can represent both at once. On synthetic data
+(<code>astronaut0</code>, offset=4, <code>kernel_margin=25</code>, <code>search_margin=45</code>), ZNCC
+and phase correlation (FFT) land on the exact same two peaks: y=16 and
+y=24. Both straddle the window's own zero-shift center (y=20) by
+exactly ∓4 pixels, the same 4-pixel offset applied, so their
+separation, 8 pixels, is exactly twice the offset.</p>
+<p><strong>Swept offset 1-32 pixels: separation = 2 x offset held at every
+offset from 2 to 32, for both criteria.</strong> The only miss came at
+offset=1, where ZNCC's two peaks sit one pixel apart, too close for an
+integer-pixel surface to resolve as two separate local maxima; phase
+correlation still resolved it there. Not a fluke at one lucky parameter
+choice: the relationship holds across a 32x range.</p>
+<p><strong>Real data (a real experimental crack image pair, copied in
+unmodified): the signature survives, noisier.</strong> At <code>(x=218, y=186)</code>,
+<code>kernel_margin=25</code>, <code>search_margin=65</code>, ZNCC's surface shows three local
+maxima along its peak column (heights 0.09, 0.19, 0.28). The two
+tallest, 22 pixels apart, both clearly exceed the third and the general
+noise floor. Phase correlation on the same window, though, is speckled
+with noise across its entire extent. It shows no clean isolated peak,
+values an order of magnitude smaller, and its single reported maximum
+lands at a different position than ZNCC's own tallest peak. The two
+criteria agreed exactly on synthetic data and don't here: real,
+non-periodic texture is exactly the case
+<a href="../api/dictk/correlation.html#phase_correlation"><code>phase_correlation</code></a>'s
+own docstring already warns is noisier than a spatial-domain criterion.
+ZNCC is the criterion worth trusting for this diagnostic on real data.</p>
+<p><strong>Still not started:</strong> an algorithm that finds this signature on its
+own, rather than a person centering a window on a crack they already
+know is there. That's what "enriching the correlation itself to detect
+and locate a discontinuity" above still means. 348 tests, unchanged.
+This shipped as new book pages and two harvested image assets, not new
+library code.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../getting_started/parallelism_pytorch.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../getting_started/experimental_dislocation.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
@@ -556,7 +601,7 @@ re-run after the fix. Both are recorded in the script's own docstrings.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../getting_started/parallelism_pytorch.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../getting_started/experimental_dislocation.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 

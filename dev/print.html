@@ -8194,6 +8194,459 @@ if __name__ == "__main__":
         summary_plot()
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="discontinuities"><a class="header" href="#discontinuities">Discontinuities</a></h1>
+<p>Every correlation criterion from <a href="getting_started/./correlation_criteria.html">Correlation
+Criteria</a> onward, and every worked example
+through <a href="getting_started/./parallelism_pytorch.html">Parallelism with PyTorch</a>, tracks one
+assumption without saying so: the true displacement field is smooth. A
+kernel window moves as a rigid or gently stretching patch, and the search
+for its match assumes a single answer exists.</p>
+<p>Real specimens don't always cooperate. A crack, a slip band, or a material
+interface can produce a genuine jump in displacement rather than a
+gradient. <a href="getting_started/./transformation.html#crack-dislocation">Image Transformation</a>
+already built exactly that jump:</p>
+<div class="table-wrapper"><table><thead><tr><th>Crack Dislocation</th><th>Image</th></tr></thead><tbody>
+<tr><td>Original</td><td><img src="getting_started/astronaut_crack_plain_original.png" alt="original" /></td></tr>
+<tr><td>offset=4 pixels</td><td><img src="getting_started/astronaut_crack_plain_dislocation.png" alt="crack dislocation" /></td></tr>
+</tbody></table>
+</div>
+<p>A vertical crack splits the image at its vertical midline. The left half
+shifts down 4 pixels. The right half shifts up 4 pixels. Standard DIC has
+no way to represent that jump. Every criterion this book covers fits one
+displacement per kernel, not two.</p>
+<p>This chapter asks a narrower question than "how do you fix that." It asks
+what happens first. What does a correlation surface actually look like
+when a kernel window straddles a real discontinuity, rather than sitting
+cleanly on one side of it?</p>
+<p><a href="getting_started/./synthetic_dislocation.html">Synthetic Dislocation</a> answers that with a
+known, exact ground truth: the same 4-pixel offset above, now carrying a
+speckle pattern a correlation can actually track. <a href="getting_started/./experimental_dislocation.html">Experimental
+Dislocation</a> then repeats the same
+straddling window on a real experimental crack image pair. There the
+ground truth isn't known in advance, so it checks whether the same
+signature shows up outside a synthetic setup.</p>
+<p>Neither section proposes a discontinuity-aware correlation algorithm.
+<a href="getting_started/./path_forward.html#postponed">Path Forward</a>'s "Heaviside DIC and XFEM"
+item stays unstarted: enriching the correlation itself to detect and
+locate a discontinuity, not just generating test images that contain
+one. What follows only characterizes the symptom, and how reliably it
+shows up.</p>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="synthetic-dislocation"><a class="header" href="#synthetic-dislocation">Synthetic Dislocation</a></h1>
+<p><a href="getting_started/./discontinuities.html">Discontinuities</a> already built the plain-photo
+version of this jump. Here it carries a speckle pattern, so a
+correlation actually has something to track:</p>
+<pre><code class="language-python">import dictk
+from dictk.image import combine, crack_dislocation
+
+speckle = dictk.rosta(width=300, height=300, density=0.5)
+photo = dictk.astronaut(width=300, height=300)
+reference_image = combine(a=speckle, b=photo)
+current_image = crack_dislocation(arr=reference_image, offset=4.0)
+</code></pre>
+<h2 id="a-window-straddling-the-crack"><a class="header" href="#a-window-straddling-the-crack">A Window Straddling the Crack</a></h2>
+<p>Place a tracking window centered exactly on the crack: <code>x = 150</code>, the
+image's own vertical midline, where the dislocation splits left from
+right. A window there doesn't sit cleanly on one side. It contains both
+true displacements at once: +4 pixels on its left half, -4 on its right.</p>
+<pre><code class="language-python">from dictk.image import subimage, PixelCoordinate
+from dictk.correlation import zncc
+from dictk.plot import spatial_correlation_quadrant_plot, phase_correlation_quadrant_plot
+
+p0 = PixelCoordinate(x=150, y=150)
+kernel_margin, search_margin = 25, 45
+kernel = subimage(
+    image=reference_image,
+    origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin),
+    width=2 * kernel_margin, height=2 * kernel_margin,
+)
+search = subimage(
+    image=current_image,
+    origin=PixelCoordinate(x=p0.x - search_margin, y=p0.y - search_margin),
+    width=2 * search_margin, height=2 * search_margin,
+)
+
+spatial_correlation_quadrant_plot(
+    kernel=kernel, search=search,
+    correlation_surface=zncc(kernel=kernel, search=search),
+    title="Zero-mean Normalized Cross-Correlation (ZNCC)",
+    path="synthetic_dislocation_zncc.png",
+)
+phase_correlation_quadrant_plot(
+    kernel=kernel, search=search,
+    title="Phase Correlation (FFT)",
+    path="synthetic_dislocation_phase.png",
+)
+</code></pre>
+<pre><code class="language-text">Saved: synthetic_dislocation_reference.png, synthetic_dislocation_current.png, synthetic_dislocation_zncc.png, synthetic_dislocation_phase.png
+</code></pre>
+<figure>
+    <img src="getting_started/synthetic_dislocation_zncc.png" alt="ZNCC quadrant plot: correlation surface shows two separate bright yellow peaks, one near (20, 16) and one near (20, 24), rather than one" />
+    <figcaption>ZNCC's Correlation Surface panel: two comparably-tall peaks, not one, at (x=20, y=16) and (x=20, y=24), with heights 0.528 and 0.519. Both sit at the same x offset, 20, the center index that matches the crack's own zero horizontal shift. They differ only in y, by 8 pixels.</figcaption>
+</figure>
+<figure>
+    <img src="getting_started/synthetic_dislocation_phase.png" alt="Phase correlation quadrant plot: correlation surface is otherwise flat except for two isolated bright pixels at the same two locations the ZNCC surface found" />
+    <figcaption>Phase correlation's Correlation Surface panel shows the same pattern as <a href="getting_started/./correlation_visualization.html#phase-correlation">Phase Correlation</a>: flat except for one sharp pixel. Here, though, there are two sharp pixels, at (x=20, y=16) and (x=20, y=24) with heights 0.206 and 0.173, the same two locations ZNCC found.</figcaption>
+</figure>
+<p>Two comparably-tall peaks, not one, because a single-peak correlation
+answer can't represent two different true displacements at once. Neither
+peak is a false match. Each one is exactly right for its own half of the
+window. The peaks sit at <code>y=16</code> and <code>y=24</code>, straddling the window's own
+zero-shift center (<code>y=20</code>) by exactly ∓4 pixels. That's the same 4-pixel
+offset <code>crack_dislocation</code> applied, and their separation, 8 pixels, is
+exactly twice it. Both criteria agree: ZNCC (spatial) and phase
+correlation (FFT) land on the same two peaks, at the same two positions.</p>
+<h2 id="does-this-hold-in-general"><a class="header" href="#does-this-hold-in-general">Does This Hold in General?</a></h2>
+<p>One offset proving the point isn't enough to trust it. Sweeping
+<code>crack_dislocation</code>'s offset from 1 to 32 pixels, and checking whether
+each surface's two-peak separation still equals twice the offset:</p>
+<div class="table-wrapper"><table><thead><tr><th>offset (px)</th><th>2 x offset</th><th>ZNCC separation</th><th>ZNCC matches</th><th>Phase separation</th><th>Phase matches</th></tr></thead><tbody>
+<tr><td>1</td><td>2</td><td>n/a</td><td>False</td><td>2</td><td>True</td></tr>
+<tr><td>2</td><td>4</td><td>4</td><td>True</td><td>4</td><td>True</td></tr>
+<tr><td>3</td><td>6</td><td>6</td><td>True</td><td>6</td><td>True</td></tr>
+<tr><td>4</td><td>8</td><td>8</td><td>True</td><td>8</td><td>True</td></tr>
+<tr><td>6</td><td>12</td><td>12</td><td>True</td><td>12</td><td>True</td></tr>
+<tr><td>8</td><td>16</td><td>16</td><td>True</td><td>16</td><td>True</td></tr>
+<tr><td>12</td><td>24</td><td>24</td><td>True</td><td>24</td><td>True</td></tr>
+<tr><td>16</td><td>32</td><td>32</td><td>True</td><td>32</td><td>True</td></tr>
+<tr><td>20</td><td>40</td><td>40</td><td>True</td><td>40</td><td>True</td></tr>
+<tr><td>24</td><td>48</td><td>48</td><td>True</td><td>48</td><td>True</td></tr>
+<tr><td>28</td><td>56</td><td>56</td><td>True</td><td>56</td><td>True</td></tr>
+<tr><td>32</td><td>64</td><td>64</td><td>True</td><td>64</td><td>True</td></tr>
+<tr><td>Saved: synthetic_dislocation_sweep.png</td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+</div><figure>
+    <img src="getting_started/synthetic_dislocation_sweep.png" alt="scatter plot of peak separation vs dislocation offset, both ZNCC circles and phase-correlation crosses landing exactly on a dashed separation-equals-two-times-offset reference line from 2 to 32 pixels" />
+    <figcaption>Every offset from 2 to 32 pixels lands exactly on the separation = 2 x offset line, for both criteria. Only at offset=1 does ZNCC miss. There, the two peaks sit one pixel apart, too close for this integer-pixel surface to resolve as two separate local maxima. Phase correlation still resolves them at that offset.</figcaption>
+</figure>
+<p>The encoding holds reliably across a 32x range of offsets, for both
+criteria. One honest exception sits at the low end: once the two true
+displacements are only a pixel apart, resolving them as two distinct
+peaks runs into the same integer-pixel resolution limit <a href="getting_started/./subpixel_accuracy.html">Subpixel
+Accuracy</a> already covers for a single peak.</p>
+<h2 id="what-this-doesnt-do"><a class="header" href="#what-this-doesnt-do">What This Doesn't Do</a></h2>
+<p>This is a diagnostic. It doesn't fix anything. Nothing here located the
+crack; a human already centered the window on it.
+<a href="getting_started/./discontinuities.html">Discontinuities</a> names the open problem this
+points toward: an algorithm that finds this signature on its own,
+rather than a person choosing where to look.</p>
+<p>Continue to <a href="getting_started/./experimental_dislocation.html">Experimental Dislocation</a> to
+check whether the same signature survives on a real crack, where the
+ground truth isn't known in advance.</p>
+<h3 id="synthetic_dislocation_quadrantpy"><a class="header" href="#synthetic_dislocation_quadrantpy"><code>synthetic_dislocation_quadrant.py</code></a></h3>
+<pre><code class="language-python">"""Build a synthetic crack-dislocation image pair and plot the correlation
+surface a window straddling the crack produces, ZNCC and FFT side by side.
+"""
+
+import dictk
+from dictk.image import combine, crack_dislocation, subimage, write, PixelCoordinate
+from dictk.correlation import zncc
+from dictk.plot import (
+    spatial_correlation_quadrant_plot,
+    phase_correlation_quadrant_plot,
+)
+
+WIDTH = HEIGHT = 300
+OFFSET = 4.0
+KERNEL_MARGIN = 25
+SEARCH_MARGIN = 45
+
+speckle = dictk.rosta(width=WIDTH, height=HEIGHT, density=0.5)
+photo = dictk.astronaut(width=WIDTH, height=HEIGHT)
+reference_image = combine(a=speckle, b=photo)
+current_image = crack_dislocation(arr=reference_image, offset=OFFSET)
+
+write(arr=reference_image, path="synthetic_dislocation_reference.png")
+write(arr=current_image, path="synthetic_dislocation_current.png")
+
+p0 = PixelCoordinate(x=WIDTH // 2, y=HEIGHT // 2)
+kernel = subimage(
+    image=reference_image,
+    origin=PixelCoordinate(x=p0.x - KERNEL_MARGIN, y=p0.y - KERNEL_MARGIN),
+    width=2 * KERNEL_MARGIN,
+    height=2 * KERNEL_MARGIN,
+)
+search = subimage(
+    image=current_image,
+    origin=PixelCoordinate(x=p0.x - SEARCH_MARGIN, y=p0.y - SEARCH_MARGIN),
+    width=2 * SEARCH_MARGIN,
+    height=2 * SEARCH_MARGIN,
+)
+
+spatial_correlation_quadrant_plot(
+    kernel=kernel,
+    search=search,
+    correlation_surface=zncc(kernel=kernel, search=search),
+    title="Zero-mean Normalized Cross-Correlation (ZNCC)",
+    path="synthetic_dislocation_zncc.png",
+)
+phase_correlation_quadrant_plot(
+    kernel=kernel,
+    search=search,
+    title="Phase Correlation (FFT)",
+    path="synthetic_dislocation_phase.png",
+)
+
+print(
+    "Saved: synthetic_dislocation_reference.png, "
+    "synthetic_dislocation_current.png, "
+    "synthetic_dislocation_zncc.png, "
+    "synthetic_dislocation_phase.png"
+)
+</code></pre>
+<h3 id="synthetic_dislocation_sweeppy"><a class="header" href="#synthetic_dislocation_sweeppy"><code>synthetic_dislocation_sweep.py</code></a></h3>
+<pre><code class="language-python">"""Sweep the crack_dislocation offset and check whether the correlation
+surface's two-peak separation reliably encodes 2x that offset, for both
+ZNCC (spatial) and phase correlation (FFT).
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import find_peaks
+
+import dictk
+from dictk.image import combine, crack_dislocation, subimage, PixelCoordinate
+from dictk.correlation import zncc, phase_correlation
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+
+WIDTH = HEIGHT = 300
+KERNEL_MARGIN = 25
+OFFSETS = [1, 2, 3, 4, 6, 8, 12, 16, 20, 24, 28, 32]
+
+speckle = dictk.rosta(width=WIDTH, height=HEIGHT, density=0.5)
+photo = dictk.astronaut(width=WIDTH, height=HEIGHT)
+reference_image = combine(a=speckle, b=photo)
+p0 = PixelCoordinate(x=WIDTH // 2, y=HEIGHT // 2)
+
+
+def two_peak_separation(surface: np.ndarray) -&gt; tuple[int, int] | None:
+    """Return (separation, count) for the two tallest peaks along the
+    argmax column, or None if fewer than two are resolvable."""
+    x_max = int(np.argmax(surface.max(axis=0)))
+    column = surface[:, x_max]
+    peaks, props = find_peaks(column, height=0.2 * column.max(), distance=2)
+    if len(peaks) &lt; 2:
+        return None
+    order = np.argsort(props["peak_heights"])[::-1][:2]
+    y_top_two = sorted(peaks[order])
+    return int(y_top_two[1] - y_top_two[0])
+
+
+rows = []
+for offset in OFFSETS:
+    current_image = crack_dislocation(arr=reference_image, offset=float(offset))
+    search_margin = KERNEL_MARGIN + int(np.ceil(offset)) + 10
+
+    kernel = subimage(
+        image=reference_image,
+        origin=PixelCoordinate(x=p0.x - KERNEL_MARGIN, y=p0.y - KERNEL_MARGIN),
+        width=2 * KERNEL_MARGIN,
+        height=2 * KERNEL_MARGIN,
+    )
+    search = subimage(
+        image=current_image,
+        origin=PixelCoordinate(x=p0.x - search_margin, y=p0.y - search_margin),
+        width=2 * search_margin,
+        height=2 * search_margin,
+    )
+
+    zncc_sep = two_peak_separation(zncc(kernel=kernel, search=search))
+    phase_sep = two_peak_separation(phase_correlation(kernel=kernel, search=search))
+    rows.append((offset, zncc_sep, phase_sep))
+
+print(
+    "| offset (px) | 2 x offset | ZNCC separation | ZNCC matches | Phase separation | Phase matches |"
+)
+print("|---|---|---|---|---|---|")
+for offset, zncc_sep, phase_sep in rows:
+    expected = 2 * offset
+    print(
+        f"| {offset} | {expected} | "
+        f"{zncc_sep if zncc_sep is not None else 'n/a'} | "
+        f"{zncc_sep == expected} | "
+        f"{phase_sep if phase_sep is not None else 'n/a'} | "
+        f"{phase_sep == expected} |"
+    )
+
+fig, ax = plt.subplots(figsize=(6.0, 5.0), constrained_layout=True)
+offsets_plot = [r[0] for r in rows]
+zncc_plot = [r[1] for r in rows]
+phase_plot = [r[2] for r in rows]
+line_x = np.linspace(0, max(offsets_plot), 100)
+ax.plot(
+    line_x,
+    2 * line_x,
+    linestyle="--",
+    color="black",
+    linewidth=1,
+    label="separation = 2 x offset",
+)
+ax.plot(
+    offsets_plot,
+    zncc_plot,
+    marker="o",
+    linestyle="none",
+    color="tab:blue",
+    label="ZNCC",
+    markersize=8,
+)
+ax.plot(
+    offsets_plot,
+    phase_plot,
+    marker="x",
+    linestyle="none",
+    color="tab:orange",
+    label="Phase (FFT)",
+    markersize=8,
+)
+ax.set_xlabel("crack_dislocation offset (pixels)")
+ax.set_ylabel("peak separation (pixels)")
+ax.set_title("Peak Separation vs. Dislocation Offset")
+ax.legend()
+fig.savefig("synthetic_dislocation_sweep.png", dpi=300)
+print("Saved: synthetic_dislocation_sweep.png")
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="experimental-dislocation"><a class="header" href="#experimental-dislocation">Experimental Dislocation</a></h1>
+<p><a href="getting_started/./synthetic_dislocation.html">Synthetic Dislocation</a> found a clean
+signature on a known ground truth: a straddling window's correlation
+surface shows two comparably-tall peaks, not one. A synthetic image is
+generous, though. It has no camera noise, no lighting variation, no
+unknown displacement field. This section repeats the same experiment on
+a real crack, to check whether the signature survives outside a
+synthetic setup.</p>
+<h2 id="data-download-2"><a class="header" href="#data-download-2">Data Download</a></h2>
+<p>Both images below are real 512x512 experimental micrographs of a crack,
+included unmodified rather than generated by this book.</p>
+<div class="table-wrapper"><table><thead><tr><th>File</th><th>Description</th><th>Size</th></tr></thead><tbody>
+<tr><td><a href="getting_started/experimental_dislocation_reference.tiff">experimental_dislocation_reference.tiff</a></td><td>Reference configuration, 512x512 pixels</td><td>256 KB</td></tr>
+<tr><td><a href="getting_started/experimental_dislocation_current.tiff">experimental_dislocation_current.tiff</a></td><td>Deformed configuration, 512x512 pixels</td><td>256 KB</td></tr>
+</tbody></table>
+</div>
+<pre><code class="language-python">from dictk.image import read
+
+reference_image = read(path="experimental_dislocation_reference.tiff")
+current_image = read(path="experimental_dislocation_current.tiff")
+</code></pre>
+<h2 id="a-window-straddling-the-real-crack"><a class="header" href="#a-window-straddling-the-real-crack">A Window Straddling the Real Crack</a></h2>
+<p>Unlike the synthetic case, the true displacement field here isn't known
+in advance. It isn't purely vertical either: a real crack can open at
+an angle, not just split into a clean up/down jump. Center a window
+directly on the crack, at <code>x=218, y=186</code>, with <code>kernel_margin=25</code> and
+<code>search_margin=65</code> (generous enough that the true match can't fall
+outside the search area and get clipped):</p>
+<pre><code class="language-python">from dictk.image import subimage, PixelCoordinate
+from dictk.correlation import zncc
+from dictk.plot import spatial_correlation_quadrant_plot, phase_correlation_quadrant_plot
+
+p0 = PixelCoordinate(x=218, y=186)
+kernel_margin, search_margin = 25, 65
+kernel = subimage(
+    image=reference_image,
+    origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin),
+    width=2 * kernel_margin, height=2 * kernel_margin,
+)
+search = subimage(
+    image=current_image,
+    origin=PixelCoordinate(x=p0.x - search_margin, y=p0.y - search_margin),
+    width=2 * search_margin, height=2 * search_margin,
+)
+
+spatial_correlation_quadrant_plot(
+    kernel=kernel, search=search,
+    correlation_surface=zncc(kernel=kernel, search=search),
+    title="Zero-mean Normalized Cross-Correlation (ZNCC)",
+    path="experimental_dislocation_zncc.png",
+)
+</code></pre>
+<pre><code class="language-text">Saved: experimental_dislocation_zncc.png, experimental_dislocation_phase.png
+</code></pre>
+<figure>
+    <img src="getting_started/experimental_dislocation_zncc.png" alt="ZNCC quadrant plot on the real crack image pair: a bumpy, noisy correlation surface with two clearly-distinct bright peaks along the same column, well above a third, smaller local maximum and the general noise floor" />
+    <figcaption>ZNCC's Correlation Surface panel on real data: noisier throughout than <a href="getting_started/./synthetic_dislocation.html">Synthetic Dislocation</a>'s near-flat background, as expected for real texture, but the same signature still stands out. Along the column through the tallest value, three local maxima appear at Δy = 9, 31, and 53 pixels, with heights 0.09, 0.19, and 0.28. The two tallest, at Δy = 31 and 53, sit 22 pixels apart. Both clearly exceed the third peak and the surrounding noise, and both are comparably tall (0.19 vs. 0.28). They straddle the crack the same way <a href="getting_started/./synthetic_dislocation.html">Synthetic Dislocation</a>'s did.</figcaption>
+</figure>
+<h2 id="fft-on-real-texture-noisier-not-just-smaller"><a class="header" href="#fft-on-real-texture-noisier-not-just-smaller">FFT on Real Texture: Noisier, Not Just Smaller</a></h2>
+<pre><code class="language-python">phase_correlation_quadrant_plot(
+    kernel=kernel, search=search,
+    title="Phase Correlation (FFT)",
+    path="experimental_dislocation_phase.png",
+)
+</code></pre>
+<figure>
+    <img src="getting_started/experimental_dislocation_phase.png" alt="Phase correlation quadrant plot on the same real crack image pair: a speckled, noisy correlation surface with no clean isolated peak, values an order of magnitude smaller than ZNCC's, and its single reported maximum sitting at a different position than ZNCC's own tallest peak" />
+    <figcaption>Phase correlation's Correlation Surface panel on the same window: speckled with noise across its entire extent, not the "flat except one sharp peak" pattern <a href="getting_started/./correlation_visualization.html#phase-correlation">Phase Correlation</a> and <a href="getting_started/./synthetic_dislocation.html">Synthetic Dislocation</a> both showed. Its single reported maximum, 0.04, is an order of magnitude below ZNCC's 0.28, and lands at a different position than ZNCC's own tallest peak.</figcaption>
+</figure>
+<p>Both criteria agreed exactly on synthetic data. They don't here. Real,
+non-periodic texture is exactly the case
+<a href="getting_started/../api/dictk/correlation.html#phase_correlation"><code>phase_correlation</code></a>'s
+own docstring already warns about: the raw FFT surface is far more
+sensitive to noise than a spatial-domain criterion computed the same
+window. ZNCC's two-peak signature is the one worth trusting on real
+data. This evidence puts the FFT surface itself in doubt as a
+diagnostic.</p>
+<h2 id="what-carries-over-from-the-synthetic-case"><a class="header" href="#what-carries-over-from-the-synthetic-case">What Carries Over From the Synthetic Case</a></h2>
+<p>The core finding survives: a window straddling a real discontinuity
+still shows two comparably-tall peaks, not one, matching <a href="getting_started/./synthetic_dislocation.html#does-this-hold-in-general">Synthetic
+Dislocation</a>'s
+result. What changes on real data is how cleanly the signature shows
+up. Here it's a bumpy, noisy background rather than a flat one, plus a
+real gap between the criteria that a synthetic, noise-free image can't
+reveal.</p>
+<p><a href="getting_started/./discontinuities.html">Discontinuities</a> named the actual open problem:
+an algorithm that finds this signature on its own. Nothing here does
+that. Continue to <a href="getting_started/./path_forward.html">Path Forward</a> for where this
+leaves that item.</p>
+<h3 id="experimental_dislocation_quadrantpy"><a class="header" href="#experimental_dislocation_quadrantpy"><code>experimental_dislocation_quadrant.py</code></a></h3>
+<pre><code class="language-python">"""Plot the correlation surface a window straddling a real experimental
+crack produces, ZNCC and FFT side by side. The two source images are
+real experimental micrographs, copied in unmodified.
+"""
+
+from dictk.image import read, subimage, PixelCoordinate
+from dictk.correlation import zncc
+from dictk.plot import (
+    spatial_correlation_quadrant_plot,
+    phase_correlation_quadrant_plot,
+)
+
+KERNEL_MARGIN = 25
+SEARCH_MARGIN = 65
+
+reference_image = read(path="experimental_dislocation_reference.tiff")
+current_image = read(path="experimental_dislocation_current.tiff")
+
+p0 = PixelCoordinate(x=218, y=186)
+kernel = subimage(
+    image=reference_image,
+    origin=PixelCoordinate(x=p0.x - KERNEL_MARGIN, y=p0.y - KERNEL_MARGIN),
+    width=2 * KERNEL_MARGIN,
+    height=2 * KERNEL_MARGIN,
+)
+search = subimage(
+    image=current_image,
+    origin=PixelCoordinate(x=p0.x - SEARCH_MARGIN, y=p0.y - SEARCH_MARGIN),
+    width=2 * SEARCH_MARGIN,
+    height=2 * SEARCH_MARGIN,
+)
+
+spatial_correlation_quadrant_plot(
+    kernel=kernel,
+    search=search,
+    correlation_surface=zncc(kernel=kernel, search=search),
+    title="Zero-mean Normalized Cross-Correlation (ZNCC)",
+    path="experimental_dislocation_zncc.png",
+)
+phase_correlation_quadrant_plot(
+    kernel=kernel,
+    search=search,
+    title="Phase Correlation (FFT)",
+    path="experimental_dislocation_phase.png",
+)
+
+print("Saved: experimental_dislocation_zncc.png, experimental_dislocation_phase.png")
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="path-forward"><a class="header" href="#path-forward">Path Forward</a></h1>
 <p>This page is a running log, not a tutorial. It records forward-looking
 notes as they come up — open questions, scale targets, directions worth
@@ -8281,7 +8734,11 @@ the right next step here, not something this fix already covered.</p>
 <ul>
 <li><strong>Heaviside DIC and XFEM</strong> — enriching the correlation itself to
 detect and locate a discontinuity, not just generating test images
-that contain one (see above).</li>
+that contain one (see above). <a href="getting_started/./discontinuities.html">Discontinuities</a>'s
+2026-09-06 entry below characterizes the symptom: a straddling
+window's correlation surface shows two comparably-tall peaks, on both
+synthetic and real data. That's a diagnostic. The algorithm this item
+asks for still doesn't exist.</li>
 <li><strong><code>grid.locate()</code> windowing demo.</strong> <code>windowing</code> has only ever been
 demonstrated directly on
 <a href="getting_started/../api/dictk/correlation.html#phase_correlation"><code>dictk.correlation.phase_correlation</code></a>
@@ -8551,6 +9008,47 @@ re-uploaded both full images to the device once per chunk rather than
 once per size (26 redundant 40MB uploads at 3149px), which inflated
 measured extraction cost; partial results were discarded and the ladder
 re-run after the fix. Both are recorded in the script's own docstrings.</p>
+<h2 id="2026-09-06"><a class="header" href="#2026-09-06">2026-09-06</a></h2>
+<p><strong>Discontinuities (10), Synthetic Dislocation (10.1), and Experimental
+Dislocation (10.2), shipped.</strong> New chapter. First empirical evidence
+toward the Postponed "Heaviside DIC and XFEM" item above. Not a
+resolution of it: a characterization of what the symptom looks like.</p>
+<p><strong>The finding: a straddling window's correlation surface shows two
+comparably-tall peaks, not one.</strong>
+<a href="getting_started/./transformation.html#crack-dislocation">Image Transformation</a>'s crack
+shifts its left half +4px and its right half -4px, and no single
+displacement answer can represent both at once. On synthetic data
+(<code>astronaut0</code>, offset=4, <code>kernel_margin=25</code>, <code>search_margin=45</code>), ZNCC
+and phase correlation (FFT) land on the exact same two peaks: y=16 and
+y=24. Both straddle the window's own zero-shift center (y=20) by
+exactly ∓4 pixels, the same 4-pixel offset applied, so their
+separation, 8 pixels, is exactly twice the offset.</p>
+<p><strong>Swept offset 1-32 pixels: separation = 2 x offset held at every
+offset from 2 to 32, for both criteria.</strong> The only miss came at
+offset=1, where ZNCC's two peaks sit one pixel apart, too close for an
+integer-pixel surface to resolve as two separate local maxima; phase
+correlation still resolved it there. Not a fluke at one lucky parameter
+choice: the relationship holds across a 32x range.</p>
+<p><strong>Real data (a real experimental crack image pair, copied in
+unmodified): the signature survives, noisier.</strong> At <code>(x=218, y=186)</code>,
+<code>kernel_margin=25</code>, <code>search_margin=65</code>, ZNCC's surface shows three local
+maxima along its peak column (heights 0.09, 0.19, 0.28). The two
+tallest, 22 pixels apart, both clearly exceed the third and the general
+noise floor. Phase correlation on the same window, though, is speckled
+with noise across its entire extent. It shows no clean isolated peak,
+values an order of magnitude smaller, and its single reported maximum
+lands at a different position than ZNCC's own tallest peak. The two
+criteria agreed exactly on synthetic data and don't here: real,
+non-periodic texture is exactly the case
+<a href="getting_started/../api/dictk/correlation.html#phase_correlation"><code>phase_correlation</code></a>'s
+own docstring already warns is noisier than a spatial-domain criterion.
+ZNCC is the criterion worth trusting for this diagnostic on real data.</p>
+<p><strong>Still not started:</strong> an algorithm that finds this signature on its
+own, rather than a person centering a window on a crack they already
+know is there. That's what "enriching the correlation itself to detect
+and locate a discontinuity" above still means. 348 tests, unchanged.
+This shipped as new book pages and two harvested image assets, not new
+library code.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="contributing-to-dictk"><a class="header" href="#contributing-to-dictk">Contributing to <code>dictk</code></a></h1>
 <p><code>dictk</code> is developed on <a href="https://github.com/hovey/dictk">GitHub</a> using

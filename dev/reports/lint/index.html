@@ -13,15 +13,14 @@
 <p>Informational only: pylint runs alongside ruff (which gates CI) purely to
 produce this report and the README's pylint score badge. See
 <a href="https://github.com/hovey/dictk/blob/main/CONTRIBUTING.md#running-pylint-informational">CONTRIBUTING.md</a>.</p>
-<pre>************* Module dictk.element
-src/dictk/element.py:146:0: C0301: Line too long (112/100) (line-too-long)
-src/dictk/element.py:187:0: C0301: Line too long (113/100) (line-too-long)
-src/dictk/element.py:233:0: C0301: Line too long (105/100) (line-too-long)
-src/dictk/element.py:248:0: C0301: Line too long (121/100) (line-too-long)
-src/dictk/element.py:182:32: W0621: Redefining name &#x27;jacobian&#x27; from outer scope (line 164) (redefined-outer-name)
-src/dictk/element.py:232:28: W0621: Redefining name &#x27;displacement_gradient&#x27; from outer scope (line 211) (redefined-outer-name)
-src/dictk/element.py:247:29: W0621: Redefining name &#x27;deformation_gradient&#x27; from outer scope (line 232) (redefined-outer-name)
-src/dictk/element.py:262:18: W0621: Redefining name &#x27;deformation_gradient&#x27; from outer scope (line 232) (redefined-outer-name)
+<pre>************* Module dictk.grid
+src/dictk/grid.py:156:0: C0301: Line too long (118/100) (line-too-long)
+src/dictk/grid.py:33:0: R0913: Too many arguments (8/5) (too-many-arguments)
+src/dictk/grid.py:65:0: R0913: Too many arguments (9/5) (too-many-arguments)
+src/dictk/grid.py:205:0: R0913: Too many arguments (11/5) (too-many-arguments)
+src/dictk/grid.py:321:0: R0913: Too many arguments (12/5) (too-many-arguments)
+************* Module dictk.rosta
+src/dictk/rosta.py:99:0: R0913: Too many arguments (6/5) (too-many-arguments)
 ************* Module dictk.plot
 src/dictk/plot.py:1085:0: C0301: Line too long (101/100) (line-too-long)
 src/dictk/plot.py:1721:0: C0301: Line too long (117/100) (line-too-long)
@@ -47,27 +46,28 @@ src/dictk/plot.py:1436:0: R0913: Too many arguments (13/5) (too-many-arguments)
 src/dictk/plot.py:1436:0: R0914: Too many local variables (39/15) (too-many-locals)
 src/dictk/plot.py:1653:0: R0913: Too many arguments (16/5) (too-many-arguments)
 src/dictk/plot.py:1653:0: R0914: Too many local variables (29/15) (too-many-locals)
+************* Module dictk.element
+src/dictk/element.py:146:0: C0301: Line too long (112/100) (line-too-long)
+src/dictk/element.py:187:0: C0301: Line too long (113/100) (line-too-long)
+src/dictk/element.py:233:0: C0301: Line too long (105/100) (line-too-long)
+src/dictk/element.py:248:0: C0301: Line too long (121/100) (line-too-long)
+src/dictk/element.py:182:32: W0621: Redefining name &#x27;jacobian&#x27; from outer scope (line 164) (redefined-outer-name)
+src/dictk/element.py:232:28: W0621: Redefining name &#x27;displacement_gradient&#x27; from outer scope (line 211) (redefined-outer-name)
+src/dictk/element.py:247:29: W0621: Redefining name &#x27;deformation_gradient&#x27; from outer scope (line 232) (redefined-outer-name)
+src/dictk/element.py:262:18: W0621: Redefining name &#x27;deformation_gradient&#x27; from outer scope (line 232) (redefined-outer-name)
 ************* Module dictk.correlation
 src/dictk/correlation.py:46:0: C0301: Line too long (140/100) (line-too-long)
 src/dictk/correlation.py:493:10: E1101: Instance of &#x27;finfo&#x27; has no &#x27;eps&#x27; member (no-member)
-************* Module dictk.grid
-src/dictk/grid.py:156:0: C0301: Line too long (118/100) (line-too-long)
-src/dictk/grid.py:33:0: R0913: Too many arguments (8/5) (too-many-arguments)
-src/dictk/grid.py:65:0: R0913: Too many arguments (9/5) (too-many-arguments)
-src/dictk/grid.py:205:0: R0913: Too many arguments (11/5) (too-many-arguments)
-src/dictk/grid.py:321:0: R0913: Too many arguments (12/5) (too-many-arguments)
-************* Module dictk.cli
-src/dictk/cli.py:20:0: R0913: Too many arguments (6/5) (too-many-arguments)
-src/dictk/cli.py:20:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
-************* Module dictk.rosta
-src/dictk/rosta.py:99:0: R0913: Too many arguments (6/5) (too-many-arguments)
 ************* Module dictk.translation
 src/dictk/translation.py:4:0: E0611: No name &#x27;phase_cross_correlation&#x27; in module &#x27;skimage.registration&#x27; (no-name-in-module)
 src/dictk/translation.py:10:0: R0913: Too many arguments (9/5) (too-many-arguments)
 src/dictk/translation.py:10:0: R0914: Too many local variables (23/15) (too-many-locals)
 src/dictk/translation.py:202:0: R0913: Too many arguments (10/5) (too-many-arguments)
 src/dictk/translation.py:202:0: R0914: Too many local variables (24/15) (too-many-locals)
-src/dictk/translation.py:1:0: R0801: Similar lines in 2 files
+************* Module dictk.cli
+src/dictk/cli.py:20:0: R0913: Too many arguments (6/5) (too-many-arguments)
+src/dictk/cli.py:20:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
+src/dictk/cli.py:1:0: R0801: Similar lines in 2 files
 ==dictk.image:[72:78]
 ==dictk.plot:[79:86]
     if width &lt; 1:
@@ -176,7 +176,7 @@ Messages by category
 +------------------+------+--------+---------+-----------+
 |module            |error |warning |refactor |convention |
 +==================+======+========+=========+===========+
-|dictk.translation |50.00 |0.00    |15.62    |0.00       |
+|dictk.translation |50.00 |0.00    |12.50    |0.00       |
 +------------------+------+--------+---------+-----------+
 |dictk.correlation |50.00 |0.00    |0.00     |11.11      |
 +------------------+------+--------+---------+-----------+
@@ -186,7 +186,7 @@ Messages by category
 +------------------+------+--------+---------+-----------+
 |dictk.grid        |0.00  |0.00    |12.50    |11.11      |
 +------------------+------+--------+---------+-----------+
-|dictk.cli         |0.00  |0.00    |6.25     |0.00       |
+|dictk.cli         |0.00  |0.00    |9.38     |0.00       |
 +------------------+------+--------+---------+-----------+
 |dictk.rosta       |0.00  |0.00    |3.12     |0.00       |
 +------------------+------+--------+---------+-----------+

@@ -1,0 +1,510 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Synthetic Dislocation - dictk User Guide</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Digital Image Correlation Toolkit">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../docs/userguide/theme/custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">dictk User Guide</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/hovey/dictk" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="synthetic-dislocation"><a class="header" href="#synthetic-dislocation">Synthetic Dislocation</a></h1>
+<p><a href="./discontinuities.html">Discontinuities</a> already built the plain-photo
+version of this jump. Here it carries a speckle pattern, so a
+correlation actually has something to track:</p>
+<pre><code class="language-python">import dictk
+from dictk.image import combine, crack_dislocation
+
+speckle = dictk.rosta(width=300, height=300, density=0.5)
+photo = dictk.astronaut(width=300, height=300)
+reference_image = combine(a=speckle, b=photo)
+current_image = crack_dislocation(arr=reference_image, offset=4.0)
+</code></pre>
+<h2 id="a-window-straddling-the-crack"><a class="header" href="#a-window-straddling-the-crack">A Window Straddling the Crack</a></h2>
+<p>Place a tracking window centered exactly on the crack: <code>x = 150</code>, the
+image's own vertical midline, where the dislocation splits left from
+right. A window there doesn't sit cleanly on one side. It contains both
+true displacements at once: +4 pixels on its left half, -4 on its right.</p>
+<pre><code class="language-python">from dictk.image import subimage, PixelCoordinate
+from dictk.correlation import zncc
+from dictk.plot import spatial_correlation_quadrant_plot, phase_correlation_quadrant_plot
+
+p0 = PixelCoordinate(x=150, y=150)
+kernel_margin, search_margin = 25, 45
+kernel = subimage(
+    image=reference_image,
+    origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin),
+    width=2 * kernel_margin, height=2 * kernel_margin,
+)
+search = subimage(
+    image=current_image,
+    origin=PixelCoordinate(x=p0.x - search_margin, y=p0.y - search_margin),
+    width=2 * search_margin, height=2 * search_margin,
+)
+
+spatial_correlation_quadrant_plot(
+    kernel=kernel, search=search,
+    correlation_surface=zncc(kernel=kernel, search=search),
+    title="Zero-mean Normalized Cross-Correlation (ZNCC)",
+    path="synthetic_dislocation_zncc.png",
+)
+phase_correlation_quadrant_plot(
+    kernel=kernel, search=search,
+    title="Phase Correlation (FFT)",
+    path="synthetic_dislocation_phase.png",
+)
+</code></pre>
+<pre><code class="language-text">Saved: synthetic_dislocation_reference.png, synthetic_dislocation_current.png, synthetic_dislocation_zncc.png, synthetic_dislocation_phase.png
+</code></pre>
+<figure>
+    <img src="synthetic_dislocation_zncc.png" alt="ZNCC quadrant plot: correlation surface shows two separate bright yellow peaks, one near (20, 16) and one near (20, 24), rather than one" />
+    <figcaption>ZNCC's Correlation Surface panel: two comparably-tall peaks, not one, at (x=20, y=16) and (x=20, y=24), with heights 0.528 and 0.519. Both sit at the same x offset, 20, the center index that matches the crack's own zero horizontal shift. They differ only in y, by 8 pixels.</figcaption>
+</figure>
+<figure>
+    <img src="synthetic_dislocation_phase.png" alt="Phase correlation quadrant plot: correlation surface is otherwise flat except for two isolated bright pixels at the same two locations the ZNCC surface found" />
+    <figcaption>Phase correlation's Correlation Surface panel shows the same pattern as <a href="./correlation_visualization.html#phase-correlation">Phase Correlation</a>: flat except for one sharp pixel. Here, though, there are two sharp pixels, at (x=20, y=16) and (x=20, y=24) with heights 0.206 and 0.173, the same two locations ZNCC found.</figcaption>
+</figure>
+<p>Two comparably-tall peaks, not one, because a single-peak correlation
+answer can't represent two different true displacements at once. Neither
+peak is a false match. Each one is exactly right for its own half of the
+window. The peaks sit at <code>y=16</code> and <code>y=24</code>, straddling the window's own
+zero-shift center (<code>y=20</code>) by exactly ∓4 pixels. That's the same 4-pixel
+offset <code>crack_dislocation</code> applied, and their separation, 8 pixels, is
+exactly twice it. Both criteria agree: ZNCC (spatial) and phase
+correlation (FFT) land on the same two peaks, at the same two positions.</p>
+<h2 id="does-this-hold-in-general"><a class="header" href="#does-this-hold-in-general">Does This Hold in General?</a></h2>
+<p>One offset proving the point isn't enough to trust it. Sweeping
+<code>crack_dislocation</code>'s offset from 1 to 32 pixels, and checking whether
+each surface's two-peak separation still equals twice the offset:</p>
+<div class="table-wrapper"><table><thead><tr><th>offset (px)</th><th>2 x offset</th><th>ZNCC separation</th><th>ZNCC matches</th><th>Phase separation</th><th>Phase matches</th></tr></thead><tbody>
+<tr><td>1</td><td>2</td><td>n/a</td><td>False</td><td>2</td><td>True</td></tr>
+<tr><td>2</td><td>4</td><td>4</td><td>True</td><td>4</td><td>True</td></tr>
+<tr><td>3</td><td>6</td><td>6</td><td>True</td><td>6</td><td>True</td></tr>
+<tr><td>4</td><td>8</td><td>8</td><td>True</td><td>8</td><td>True</td></tr>
+<tr><td>6</td><td>12</td><td>12</td><td>True</td><td>12</td><td>True</td></tr>
+<tr><td>8</td><td>16</td><td>16</td><td>True</td><td>16</td><td>True</td></tr>
+<tr><td>12</td><td>24</td><td>24</td><td>True</td><td>24</td><td>True</td></tr>
+<tr><td>16</td><td>32</td><td>32</td><td>True</td><td>32</td><td>True</td></tr>
+<tr><td>20</td><td>40</td><td>40</td><td>True</td><td>40</td><td>True</td></tr>
+<tr><td>24</td><td>48</td><td>48</td><td>True</td><td>48</td><td>True</td></tr>
+<tr><td>28</td><td>56</td><td>56</td><td>True</td><td>56</td><td>True</td></tr>
+<tr><td>32</td><td>64</td><td>64</td><td>True</td><td>64</td><td>True</td></tr>
+<tr><td>Saved: synthetic_dislocation_sweep.png</td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody></table>
+</div><figure>
+    <img src="synthetic_dislocation_sweep.png" alt="scatter plot of peak separation vs dislocation offset, both ZNCC circles and phase-correlation crosses landing exactly on a dashed separation-equals-two-times-offset reference line from 2 to 32 pixels" />
+    <figcaption>Every offset from 2 to 32 pixels lands exactly on the separation = 2 x offset line, for both criteria. Only at offset=1 does ZNCC miss. There, the two peaks sit one pixel apart, too close for this integer-pixel surface to resolve as two separate local maxima. Phase correlation still resolves them at that offset.</figcaption>
+</figure>
+<p>The encoding holds reliably across a 32x range of offsets, for both
+criteria. One honest exception sits at the low end: once the two true
+displacements are only a pixel apart, resolving them as two distinct
+peaks runs into the same integer-pixel resolution limit <a href="./subpixel_accuracy.html">Subpixel
+Accuracy</a> already covers for a single peak.</p>
+<h2 id="what-this-doesnt-do"><a class="header" href="#what-this-doesnt-do">What This Doesn't Do</a></h2>
+<p>This is a diagnostic. It doesn't fix anything. Nothing here located the
+crack; a human already centered the window on it.
+<a href="./discontinuities.html">Discontinuities</a> names the open problem this
+points toward: an algorithm that finds this signature on its own,
+rather than a person choosing where to look.</p>
+<p>Continue to <a href="./experimental_dislocation.html">Experimental Dislocation</a> to
+check whether the same signature survives on a real crack, where the
+ground truth isn't known in advance.</p>
+<h3 id="synthetic_dislocation_quadrantpy"><a class="header" href="#synthetic_dislocation_quadrantpy"><code>synthetic_dislocation_quadrant.py</code></a></h3>
+<pre><code class="language-python">"""Build a synthetic crack-dislocation image pair and plot the correlation
+surface a window straddling the crack produces, ZNCC and FFT side by side.
+"""
+
+import dictk
+from dictk.image import combine, crack_dislocation, subimage, write, PixelCoordinate
+from dictk.correlation import zncc
+from dictk.plot import (
+    spatial_correlation_quadrant_plot,
+    phase_correlation_quadrant_plot,
+)
+
+WIDTH = HEIGHT = 300
+OFFSET = 4.0
+KERNEL_MARGIN = 25
+SEARCH_MARGIN = 45
+
+speckle = dictk.rosta(width=WIDTH, height=HEIGHT, density=0.5)
+photo = dictk.astronaut(width=WIDTH, height=HEIGHT)
+reference_image = combine(a=speckle, b=photo)
+current_image = crack_dislocation(arr=reference_image, offset=OFFSET)
+
+write(arr=reference_image, path="synthetic_dislocation_reference.png")
+write(arr=current_image, path="synthetic_dislocation_current.png")
+
+p0 = PixelCoordinate(x=WIDTH // 2, y=HEIGHT // 2)
+kernel = subimage(
+    image=reference_image,
+    origin=PixelCoordinate(x=p0.x - KERNEL_MARGIN, y=p0.y - KERNEL_MARGIN),
+    width=2 * KERNEL_MARGIN,
+    height=2 * KERNEL_MARGIN,
+)
+search = subimage(
+    image=current_image,
+    origin=PixelCoordinate(x=p0.x - SEARCH_MARGIN, y=p0.y - SEARCH_MARGIN),
+    width=2 * SEARCH_MARGIN,
+    height=2 * SEARCH_MARGIN,
+)
+
+spatial_correlation_quadrant_plot(
+    kernel=kernel,
+    search=search,
+    correlation_surface=zncc(kernel=kernel, search=search),
+    title="Zero-mean Normalized Cross-Correlation (ZNCC)",
+    path="synthetic_dislocation_zncc.png",
+)
+phase_correlation_quadrant_plot(
+    kernel=kernel,
+    search=search,
+    title="Phase Correlation (FFT)",
+    path="synthetic_dislocation_phase.png",
+)
+
+print(
+    "Saved: synthetic_dislocation_reference.png, "
+    "synthetic_dislocation_current.png, "
+    "synthetic_dislocation_zncc.png, "
+    "synthetic_dislocation_phase.png"
+)
+</code></pre>
+<h3 id="synthetic_dislocation_sweeppy"><a class="header" href="#synthetic_dislocation_sweeppy"><code>synthetic_dislocation_sweep.py</code></a></h3>
+<pre><code class="language-python">"""Sweep the crack_dislocation offset and check whether the correlation
+surface's two-peak separation reliably encodes 2x that offset, for both
+ZNCC (spatial) and phase correlation (FFT).
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import find_peaks
+
+import dictk
+from dictk.image import combine, crack_dislocation, subimage, PixelCoordinate
+from dictk.correlation import zncc, phase_correlation
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+
+WIDTH = HEIGHT = 300
+KERNEL_MARGIN = 25
+OFFSETS = [1, 2, 3, 4, 6, 8, 12, 16, 20, 24, 28, 32]
+
+speckle = dictk.rosta(width=WIDTH, height=HEIGHT, density=0.5)
+photo = dictk.astronaut(width=WIDTH, height=HEIGHT)
+reference_image = combine(a=speckle, b=photo)
+p0 = PixelCoordinate(x=WIDTH // 2, y=HEIGHT // 2)
+
+
+def two_peak_separation(surface: np.ndarray) -&gt; tuple[int, int] | None:
+    """Return (separation, count) for the two tallest peaks along the
+    argmax column, or None if fewer than two are resolvable."""
+    x_max = int(np.argmax(surface.max(axis=0)))
+    column = surface[:, x_max]
+    peaks, props = find_peaks(column, height=0.2 * column.max(), distance=2)
+    if len(peaks) &lt; 2:
+        return None
+    order = np.argsort(props["peak_heights"])[::-1][:2]
+    y_top_two = sorted(peaks[order])
+    return int(y_top_two[1] - y_top_two[0])
+
+
+rows = []
+for offset in OFFSETS:
+    current_image = crack_dislocation(arr=reference_image, offset=float(offset))
+    search_margin = KERNEL_MARGIN + int(np.ceil(offset)) + 10
+
+    kernel = subimage(
+        image=reference_image,
+        origin=PixelCoordinate(x=p0.x - KERNEL_MARGIN, y=p0.y - KERNEL_MARGIN),
+        width=2 * KERNEL_MARGIN,
+        height=2 * KERNEL_MARGIN,
+    )
+    search = subimage(
+        image=current_image,
+        origin=PixelCoordinate(x=p0.x - search_margin, y=p0.y - search_margin),
+        width=2 * search_margin,
+        height=2 * search_margin,
+    )
+
+    zncc_sep = two_peak_separation(zncc(kernel=kernel, search=search))
+    phase_sep = two_peak_separation(phase_correlation(kernel=kernel, search=search))
+    rows.append((offset, zncc_sep, phase_sep))
+
+print(
+    "| offset (px) | 2 x offset | ZNCC separation | ZNCC matches | Phase separation | Phase matches |"
+)
+print("|---|---|---|---|---|---|")
+for offset, zncc_sep, phase_sep in rows:
+    expected = 2 * offset
+    print(
+        f"| {offset} | {expected} | "
+        f"{zncc_sep if zncc_sep is not None else 'n/a'} | "
+        f"{zncc_sep == expected} | "
+        f"{phase_sep if phase_sep is not None else 'n/a'} | "
+        f"{phase_sep == expected} |"
+    )
+
+fig, ax = plt.subplots(figsize=(6.0, 5.0), constrained_layout=True)
+offsets_plot = [r[0] for r in rows]
+zncc_plot = [r[1] for r in rows]
+phase_plot = [r[2] for r in rows]
+line_x = np.linspace(0, max(offsets_plot), 100)
+ax.plot(
+    line_x,
+    2 * line_x,
+    linestyle="--",
+    color="black",
+    linewidth=1,
+    label="separation = 2 x offset",
+)
+ax.plot(
+    offsets_plot,
+    zncc_plot,
+    marker="o",
+    linestyle="none",
+    color="tab:blue",
+    label="ZNCC",
+    markersize=8,
+)
+ax.plot(
+    offsets_plot,
+    phase_plot,
+    marker="x",
+    linestyle="none",
+    color="tab:orange",
+    label="Phase (FFT)",
+    markersize=8,
+)
+ax.set_xlabel("crack_dislocation offset (pixels)")
+ax.set_ylabel("peak separation (pixels)")
+ax.set_title("Peak Separation vs. Dislocation Offset")
+ax.legend()
+fig.savefig("synthetic_dislocation_sweep.png", dpi=300)
+print("Saved: synthetic_dislocation_sweep.png")
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../getting_started/discontinuities.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../getting_started/experimental_dislocation.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../getting_started/discontinuities.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../getting_started/experimental_dislocation.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>
