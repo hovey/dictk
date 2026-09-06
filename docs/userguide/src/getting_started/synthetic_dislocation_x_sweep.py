@@ -54,10 +54,11 @@ full_right_boundary = (
 )  # 175: kernel entirely right of the crack at or above this x
 
 print("| kernel center x | left-half peak (dy=+4) | right-half peak (dy=-4) |")
-print("|---|---|---|")
+print("|:---:|:---:|:---:|")
 for x in range(100, 201, 10):
     i = xs.index(x)
     print(f"| {x} | {left_peak[i]:.3f} | {right_peak[i]:.3f} |")
+print()
 
 fig, ax = plt.subplots(figsize=(7.0, 5.0), constrained_layout=True)
 ax.plot(xs, left_peak, color="tab:blue", label="peak at Δy=+4 (left half's own shift)")
