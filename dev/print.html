@@ -8229,12 +8229,11 @@ Dislocation</a> then repeats the same
 straddling window on a real experimental crack image pair. There the
 ground truth isn't known in advance, so it checks whether the same
 signature shows up outside a synthetic setup.</p>
-<p>Neither section proposes a discontinuity-aware correlation algorithm.
-<a href="getting_started/./path_forward.html#postponed">Path Forward</a>'s "Heaviside DIC and XFEM"
-item stays unstarted: enriching the correlation itself to detect and
-locate a discontinuity, not just generating test images that contain
-one. What follows only characterizes the symptom, and how reliably it
-shows up.</p>
+<p>Neither section proposes a discontinuity-aware correlation algorithm on
+its own. <a href="getting_started/./discontinuity_localization.html">Discontinuity
+Localization</a> takes that on next:
+comparing a few candidate algorithms and settling on one that finds
+this signature by itself, without a person centering the window first.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="synthetic-dislocation"><a class="header" href="#synthetic-dislocation">Synthetic Dislocation</a></h1>
 <p><a href="getting_started/./discontinuities.html">Discontinuities</a> already built the plain-photo
@@ -8840,8 +8839,9 @@ real gap between the criteria that a synthetic, noise-free image can't
 reveal.</p>
 <p><a href="getting_started/./discontinuities.html">Discontinuities</a> named the actual open problem:
 an algorithm that finds this signature on its own. Nothing here does
-that. Continue to <a href="getting_started/./path_forward.html">Path Forward</a> for where this
-leaves that item.</p>
+that. Continue to <a href="getting_started/./discontinuity_localization.html">Discontinuity
+Localization</a>, which tries a few ways
+to build one.</p>
 <h3 id="experimental_dislocation_quadrantpy"><a class="header" href="#experimental_dislocation_quadrantpy"><code>experimental_dislocation_quadrant.py</code></a></h3>
 <pre><code class="language-python">"""Plot the correlation surface a window straddling a real experimental
 crack produces, ZNCC and FFT side by side. The two source images are
@@ -8890,6 +8890,645 @@ phase_correlation_quadrant_plot(
 )
 
 print("Saved: experimental_dislocation_zncc.png, experimental_dislocation_phase.png")
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="discontinuity-localization"><a class="header" href="#discontinuity-localization">Discontinuity Localization</a></h1>
+<p><a href="getting_started/./synthetic_dislocation.html">Synthetic Dislocation</a> and <a href="getting_started/./experimental_dislocation.html">Experimental
+Dislocation</a> both found the same
+signature: a window straddling a crack shows two comparably-tall
+correlation peaks, not one. Both stopped there. A person centered the
+window on the crack first. Neither page found the crack on its own.
+This page tries three ways to find a crack on its own, compares them,
+and ships the one that wins.</p>
+<h2 id="a-naive-baseline-grid-anomaly"><a class="header" href="#a-naive-baseline-grid-anomaly">A Naive Baseline: Grid Anomaly</a></h2>
+<p>The cheapest thing to try uses no new code at all. Run standard,
+single-peak DIC across the crack with
+<a href="getting_started/../api/dictk/grid.html#locate"><code>dictk.grid.locate</code></a>, the same way every
+earlier chapter does, and see what a displacement field recovered while
+ignoring the crack actually looks like:</p>
+<pre><code class="language-python">import dictk
+from dictk.grid import generate, locate
+from dictk.image import PixelCoordinate, combine, crack_dislocation
+
+speckle = dictk.rosta(width=300, height=300, density=0.5)
+photo = dictk.astronaut(width=300, height=300)
+reference_image = combine(a=speckle, b=photo)
+current_image = crack_dislocation(arr=reference_image, offset=4.0)
+
+points = generate(
+    origin=PixelCoordinate(x=100, y=150), count_x=11, count_y=1,
+    spacing_x=10, spacing_y=1,
+)
+found = locate(
+    reference_image=reference_image, current_image=current_image,
+    reference_points=points,
+    kernel_margin_width=25, kernel_margin_height=25,
+    search_margin_width=45, search_margin_height=45,
+)
+</code></pre>
+<pre><code class="language-text">Grid spacing: 10 px, 11 points, 11 correlation evaluations
+Largest displacement jump: 140 -&gt; 150px
+Estimated crack position: x=145.0
+Error vs. known x=150: 5.0px
+
+Saved: discontinuity_localization_baseline.png
+</code></pre>
+<figure>
+    <img src="getting_started/discontinuity_localization_baseline.png" alt="step plot of recovered y-displacement vs grid point x: a flat line at +4 pixels for x=100 through 140, then a sharp step down to -4 pixels for x=150 through 200, with the estimated crossing at x=145 marked slightly left of the true crack at x=150" />
+    <figcaption>Recovered y-displacement at 11 grid points, spaced 10 pixels apart. The jump between x=140 and x=150 is unmistakable: +4 pixels on one side, -4 on the other. The midpoint between them, x=145, lands 5 pixels from the true crack at x=150. That's half the grid spacing: exactly the resolution this approach can offer, no better.</figcaption>
+</figure>
+<p>It works, in the sense that it flags roughly the right neighborhood.
+It's also a proxy, not a measurement of the thing itself. Nothing here
+looks at peak structure. A large stretch, not a crack, would produce
+the same kind of jump. Resolution is capped at the grid's own spacing.
+Tighten the grid and the jump narrows, but so does how many points a
+DIC run at that spacing can afford to place.</p>
+<h2 id="a-peak-ratio-metric"><a class="header" href="#a-peak-ratio-metric">A Peak-Ratio Metric</a></h2>
+<p><a href="getting_started/./synthetic_dislocation.html#a-window-straddling-the-crack">Synthetic Dislocation</a>
+already measured a straddling window's two peaks by hand: heights 0.528
+and 0.519 at <code>x=150</code>. Turning that into a number that needs no ground
+truth: <a href="getting_started/../api/dictk/discontinuity.html#peak_ratio"><code>dictk.discontinuity.peak_ratio</code></a>
+divides the second-tallest peak by the tallest, along the correlation
+surface's own argmax column.</p>
+<pre><code class="language-python">from dictk.correlation import zncc
+from dictk.discontinuity import peak_ratio
+from dictk.image import PixelCoordinate, subimage
+
+for x in (150, 100):
+    p0 = PixelCoordinate(x=x, y=150)
+    kernel = subimage(
+        image=reference_image,
+        origin=PixelCoordinate(x=p0.x - 25, y=p0.y - 25),
+        width=50, height=50,
+    )
+    search = subimage(
+        image=current_image,
+        origin=PixelCoordinate(x=p0.x - 45, y=p0.y - 45),
+        width=90, height=90,
+    )
+    ratio = peak_ratio(surface=zncc(kernel=kernel, search=search))
+    print(f"x={x}: peak_ratio={ratio:.3f}")
+</code></pre>
+<pre><code class="language-text">x=150: peak_ratio=0.983
+x=100: peak_ratio=0.000
+</code></pre>
+<p>Centered on the crack, <code>peak_ratio</code> is 0.983, close to the <code>1.0</code> two
+perfectly equal peaks would give. At <code>x=100</code>, well clear of the crack,
+it's <code>0.0</code>: one peak resolvable, nothing to divide against. A single
+number now stands in for "does this window straddle a discontinuity,"
+with no offset to already know in advance.</p>
+<h2 id="a-dense-sweep-and-subpixel-refinement"><a class="header" href="#a-dense-sweep-and-subpixel-refinement">A Dense Sweep and Subpixel Refinement</a></h2>
+<p><a href="getting_started/../api/dictk/discontinuity.html#sweep"><code>dictk.discontinuity.sweep</code></a>
+evaluates <code>peak_ratio</code> at many window-center positions along a line, and
+<a href="getting_started/../api/dictk/discontinuity.html#locate"><code>dictk.discontinuity.locate</code></a>
+takes that sweep's tallest value and refines it to subpixel precision
+with a 3-point parabolic fit. Sweeping the same <code>x=100</code> to <code>x=200</code> range
+<a href="getting_started/./synthetic_dislocation.html#moving-the-window-off-the-crack">Synthetic Dislocation</a>
+already swept by hand:</p>
+<p>Evaluations: 101
+Located crack position: x=149.804
+Error vs. known x=150: 0.196px</p>
+<p>Saved: discontinuity_localization_sweep.png</p>
+<figure>
+    <img src="getting_started/discontinuity_localization_sweep.png" alt="line plot of peak_ratio vs window center x from 100 to 200, rising from 0 at x=130 to a sharp peak near 1.0 at x=150, then falling and settling into a fluctuating 0.2-0.3 band past x=170" />
+    <figcaption>peak_ratio vs. window center x. A single, sharp maximum at x=149.8, subpixel-refined from a 101-point sweep. The known crack sits at x=150, 0.2 pixels away. Past x=170, peak_ratio settles into the same 0.2-0.3 band Synthetic Dislocation's own sweep already found and attributed to the underlying image content on that side, not the crack.</figcaption>
+</figure>
+<p>101 evaluations, one per swept position, land 0.2 pixels from the known
+crack. No offset, no hand-picked center. The sweep finds the crossing
+on its own.</p>
+<h2 id="a-faster-alternative-golden-section-search"><a class="header" href="#a-faster-alternative-golden-section-search">A Faster Alternative: Golden-Section Search</a></h2>
+<p>A dense sweep evaluates every candidate position, even the ones far
+from any discontinuity. <code>peak_ratio</code> rises to a single maximum and falls
+away on both sides of the crack. That's exactly the shape a
+derivative-free optimizer can search without visiting every point.
+Golden-section search narrows a bracket toward a unimodal function's
+maximum in <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span> evaluations instead of <code>sweep</code>'s <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mclose">)</span></span></span></span>:</p>
+<p>Golden-section result: x=150.25, evaluations=12
+Error vs. known x=150: 0.251px</p>
+<div class="table-wrapper"><table><thead><tr><th>Approach</th><th>Evaluations</th><th>Localization Error (px)</th><th>Notes</th></tr></thead><tbody>
+<tr><td>Grid anomaly (baseline)</td><td>11</td><td>5.0</td><td>resolution capped at 10px grid spacing</td></tr>
+<tr><td>Dense peak-ratio sweep (winner)</td><td>101</td><td>0.196</td><td>robust to bracket width, see below</td></tr>
+<tr><td>Golden-section peak-ratio search</td><td>12</td><td>0.251</td><td>fast here, breaks on real data -- see below</td></tr>
+</tbody></table>
+</div>
+<p>Saved: discontinuity_localization_bisection.png</p>
+<figure>
+    <img src="getting_started/discontinuity_localization_bisection.png" alt="the same peak_ratio curve as the dense sweep figure, with red x markers showing golden-section search's 12 sampled points clustered tightly around the true peak at x=150" />
+    <figcaption>Golden-section search's own 12 sampled points, against the dense sweep's full curve for reference. All 12 cluster near the true maximum. The search needed no help finding it.</figcaption>
+</figure>
+<p>12 evaluations instead of 101, landing 0.25 pixels from the known crack.
+That's barely worse than the dense sweep, for roughly a tenth of the
+cost. On this dataset, it looks like a strictly better trade.</p>
+<h2 id="applying-it-to-real-data"><a class="header" href="#applying-it-to-real-data">Applying It to Real Data</a></h2>
+<p><a href="getting_started/./experimental_dislocation.html#a-window-straddling-the-real-crack">Experimental Dislocation</a>
+already centered a window by eye on the real crack, at <code>x=218, y=186</code>.
+This runs the dense sweep across a much wider range, <code>x=100</code> to
+<code>x=350</code>, assuming nothing about roughly where the crack sits. It also
+runs golden-section search at three brackets: one already centered
+tightly on the crack, one moderately wide, and one as wide as the
+dense sweep's own range.</p>
+<p>Dense sweep (wide range 100-350, 126 evaluations):
+located crack position: x=218.74 (Experimental Dislocation's own x=218)</p>
+<p>golden-section, bracket (178, 258): x=217.55, evaluations=12
+golden-section, bracket (150, 300): x=217.25, evaluations=13
+golden-section, bracket (100, 350): x=308.11, evaluations=14</p>
+<p>The tight and moderate brackets land within 1px of the dense sweep's own answer. The wide bracket -- the one that assumes no prior knowledge of roughly where the crack is -- converges instead to a smaller, secondary peak_ratio bump far from the real crack, confidently and silently.
+Saved: discontinuity_localization_experimental.png</p>
+<figure>
+    <img src="getting_started/discontinuity_localization_experimental.png" alt="line plot of peak_ratio vs window center x from 100 to 350 on real data: a tall sharp peak near x=219, plus three smaller, shorter bumps around x=130, x=300-315, and x=325-340" />
+    <figcaption>peak_ratio across a wide real-data range. One peak clearly stands above the rest, at x=218.7, 0.7 pixels from Experimental Dislocation's own by-eye x=218. Three smaller bumps sit elsewhere in the image, each shorter than the real crack's peak, but not by a wide margin.</figcaption>
+</figure>
+<p>The dense sweep's global maximum lands within a pixel of the known
+location, no matter how wide a range it searches. Golden-section search
+does too, but only at the two brackets already narrowed toward the
+crack. Given the full, uncommitted range, it converges instead to the
+bump near <code>x=308</code>, over 90 pixels from the real crack, confidently and
+silently. A fast local search only works once you already roughly know
+where to look. That's most of the problem this page set out to solve
+in the first place.</p>
+<h2 id="declaring-a-winner"><a class="header" href="#declaring-a-winner">Declaring a Winner</a></h2>
+<p>The dense sweep, with subpixel parabolic refinement, ships as
+<a href="getting_started/../api/dictk/discontinuity.html"><code>dictk.discontinuity</code></a>. It needs no
+prior estimate of where a crack sits, its accuracy doesn't depend on
+how wide a range it searches, and it holds up on both synthetic and
+real data. The grid-anomaly baseline and golden-section search stay as
+illustrations on this page, not library code: the baseline only ever
+offers grid-spacing resolution, and golden-section search's speed comes
+at the cost of needing the answer roughly in hand before it can find it.</p>
+<div class="table-wrapper"><table><thead><tr><th>Approach</th><th>Evaluations (synthetic)</th><th>Localization Error (synthetic)</th><th>Real Data</th></tr></thead><tbody>
+<tr><td>Grid anomaly (baseline)</td><td>11</td><td>5.0 px</td><td>weaker, noisier jump signal</td></tr>
+<tr><td>Dense peak-ratio sweep (winner)</td><td>101</td><td>0.2 px</td><td>0.7 px from by-eye estimate</td></tr>
+<tr><td>Golden-section search</td><td>12</td><td>0.25 px</td><td>fails on a wide, honest bracket</td></tr>
+</tbody></table>
+</div>
+<h2 id="what-this-still-doesnt-do"><a class="header" href="#what-this-still-doesnt-do">What This Still Doesn't Do</a></h2>
+<p>This locates a crossing along one already-chosen line, not a
+discontinuity anywhere in a 2D field. Something still has to decide
+where to sweep. And a located position still isn't consumed by
+anything: <a href="getting_started/./path_forward.html#postponed">Path Forward</a>'s Heaviside
+DIC/XFEM item asked for detection and localization, not a finite-element
+formulation that acts on the result. That half stays open.</p>
+<p>Continue to <a href="getting_started/./path_forward.html">Path Forward</a> for where this leaves it.</p>
+<h3 id="discontinuity_localization_baselinepy"><a class="header" href="#discontinuity_localization_baselinepy"><code>discontinuity_localization_baseline.py</code></a></h3>
+<pre><code class="language-python">"""A naive baseline: run standard single-peak DIC across the crack,
+ignoring it, and look for a jump in the recovered displacement field
+between neighboring grid points. Zero new library code -- entirely
+`dictk.grid.generate`/`dictk.grid.locate`.
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+import dictk
+from dictk.grid import generate, locate
+from dictk.image import PixelCoordinate, combine, crack_dislocation
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+
+WIDTH = HEIGHT = 300
+OFFSET = 4.0
+KERNEL_MARGIN = 25
+SEARCH_MARGIN = 45
+Y = 150
+SPACING = 10
+
+speckle = dictk.rosta(width=WIDTH, height=HEIGHT, density=0.5)
+photo = dictk.astronaut(width=WIDTH, height=HEIGHT)
+reference_image = combine(a=speckle, b=photo)
+current_image = crack_dislocation(arr=reference_image, offset=OFFSET)
+
+points = generate(
+    origin=PixelCoordinate(x=100, y=Y),
+    count_x=11,
+    count_y=1,
+    spacing_x=SPACING,
+    spacing_y=1,
+)
+found = locate(
+    reference_image=reference_image,
+    current_image=current_image,
+    reference_points=points,
+    kernel_margin_width=KERNEL_MARGIN,
+    kernel_margin_height=KERNEL_MARGIN,
+    search_margin_width=SEARCH_MARGIN,
+    search_margin_height=SEARCH_MARGIN,
+)
+displacements = [f.y - p.y for f, p in zip(found, points)]
+jumps = [
+    abs(displacements[i + 1] - displacements[i]) for i in range(len(displacements) - 1)
+]
+jump_index = int(np.argmax(jumps))
+crack_estimate = (points[jump_index].x + points[jump_index + 1].x) / 2
+
+print(
+    f"Grid spacing: {SPACING} px, {len(points)} points, {len(points)} correlation evaluations"
+)
+print(
+    f"Largest displacement jump: {points[jump_index].x} -&gt; {points[jump_index + 1].x}px"
+)
+print(f"Estimated crack position: x={crack_estimate}")
+print(f"Error vs. known x=150: {abs(crack_estimate - 150)}px")
+print()
+
+fig, ax = plt.subplots(figsize=(6.0, 4.5), constrained_layout=True)
+xs = [p.x for p in points]
+ax.step(xs, displacements, where="mid", color="tab:blue", marker="o")
+ax.axvline(150, color="gray", linestyle="--", linewidth=1, label="known crack (x=150)")
+ax.axvline(
+    crack_estimate,
+    color="tab:red",
+    linestyle=":",
+    linewidth=1.5,
+    label=f"estimated crack (x={crack_estimate:.0f})",
+)
+ax.set_xlabel("grid point x (pixels)")
+ax.set_ylabel("recovered y-displacement (pixels)")
+ax.set_title("Grid-Anomaly Baseline: Displacement Jump")
+ax.legend(loc="center right")
+fig.savefig("discontinuity_localization_baseline.png", dpi=300)
+print("Saved: discontinuity_localization_baseline.png")
+</code></pre>
+<h3 id="discontinuity_localization_sweeppy"><a class="header" href="#discontinuity_localization_sweeppy"><code>discontinuity_localization_sweep.py</code></a></h3>
+<pre><code class="language-python">"""Locate the crack with a dense peak-ratio sweep and subpixel parabolic
+refinement, no ground truth required -- `dictk.discontinuity.sweep()`
+and `.locate()`, generalizing Synthetic Dislocation's own known-offset
+x-sweep into a real detector.
+"""
+
+import matplotlib.pyplot as plt
+
+import dictk
+from dictk.discontinuity import locate, sweep
+from dictk.image import PixelCoordinate, combine, crack_dislocation
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+
+WIDTH = HEIGHT = 300
+OFFSET = 4.0
+KERNEL_MARGIN = 25
+SEARCH_MARGIN = 45
+Y = 150
+SAMPLES = 101
+
+speckle = dictk.rosta(width=WIDTH, height=HEIGHT, density=0.5)
+photo = dictk.astronaut(width=WIDTH, height=HEIGHT)
+reference_image = combine(a=speckle, b=photo)
+current_image = crack_dislocation(arr=reference_image, offset=OFFSET)
+
+result = sweep(
+    reference_image=reference_image,
+    current_image=current_image,
+    start=PixelCoordinate(x=100, y=Y),
+    end=PixelCoordinate(x=200, y=Y),
+    samples=SAMPLES,
+    kernel_margin_width=KERNEL_MARGIN,
+    kernel_margin_height=KERNEL_MARGIN,
+    search_margin_width=SEARCH_MARGIN,
+    search_margin_height=SEARCH_MARGIN,
+)
+xs = [p.x for p in result.positions]
+
+found = locate(
+    reference_image=reference_image,
+    current_image=current_image,
+    start=PixelCoordinate(x=100, y=Y),
+    end=PixelCoordinate(x=200, y=Y),
+    samples=SAMPLES,
+    kernel_margin_width=KERNEL_MARGIN,
+    kernel_margin_height=KERNEL_MARGIN,
+    search_margin_width=SEARCH_MARGIN,
+    search_margin_height=SEARCH_MARGIN,
+)
+
+print(f"Evaluations: {SAMPLES}")
+print(f"Located crack position: x={found.x:.3f}")
+print(f"Error vs. known x=150: {abs(found.x - 150):.3f}px")
+print()
+
+fig, ax = plt.subplots(figsize=(7.0, 5.0), constrained_layout=True)
+ax.plot(xs, result.peak_ratios, color="tab:blue")
+ax.axvline(150, color="gray", linestyle="--", linewidth=1, label="known crack (x=150)")
+ax.axvline(
+    found.x,
+    color="tab:red",
+    linestyle=":",
+    linewidth=1.5,
+    label=f"located crack (x={found.x:.1f})",
+)
+ax.set_xlabel("kernel window center x (pixels)")
+ax.set_ylabel("peak_ratio")
+ax.set_title("Dense Peak-Ratio Sweep")
+ax.legend(loc="lower right")
+fig.savefig("discontinuity_localization_sweep.png", dpi=300)
+print("Saved: discontinuity_localization_sweep.png")
+</code></pre>
+<h3 id="discontinuity_localization_bisectionpy"><a class="header" href="#discontinuity_localization_bisectionpy"><code>discontinuity_localization_bisection.py</code></a></h3>
+<pre><code class="language-python">"""A faster alternative: instead of sweeping every position, search for
+`peak_ratio`'s maximum with golden-section search, which needs only
+O(log n) evaluations if the metric is unimodal within the search
+bracket. Not shipped as library code -- see Applying It to Real Data for
+why.
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+import dictk
+from dictk.correlation import zncc
+from dictk.discontinuity import locate as discontinuity_locate
+from dictk.discontinuity import peak_ratio
+from dictk.discontinuity import sweep as discontinuity_sweep
+from dictk.grid import generate
+from dictk.grid import locate as grid_locate
+from dictk.image import PixelCoordinate, combine, crack_dislocation, subimage
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+
+WIDTH = HEIGHT = 300
+OFFSET = 4.0
+KERNEL_MARGIN = 25
+SEARCH_MARGIN = 45
+Y = 150
+
+speckle = dictk.rosta(width=WIDTH, height=HEIGHT, density=0.5)
+photo = dictk.astronaut(width=WIDTH, height=HEIGHT)
+reference_image = combine(a=speckle, b=photo)
+current_image = crack_dislocation(arr=reference_image, offset=OFFSET)
+
+
+def _evaluate(x):
+    p0 = PixelCoordinate(x=int(round(x)), y=Y)
+    kernel = subimage(
+        image=reference_image,
+        origin=PixelCoordinate(x=p0.x - KERNEL_MARGIN, y=p0.y - KERNEL_MARGIN),
+        width=2 * KERNEL_MARGIN,
+        height=2 * KERNEL_MARGIN,
+    )
+    search = subimage(
+        image=current_image,
+        origin=PixelCoordinate(x=p0.x - SEARCH_MARGIN, y=p0.y - SEARCH_MARGIN),
+        width=2 * SEARCH_MARGIN,
+        height=2 * SEARCH_MARGIN,
+    )
+    return peak_ratio(surface=zncc(kernel=kernel, search=search))
+
+
+def golden_section_max(f, a, b, tol=1.0, max_iterations=50):
+    """Golden-section search for a unimodal function's maximum on [a, b].
+
+    Returns (x, evaluations, sampled_x) -- the found maximizer, how many
+    times `f` was called, and every x actually sampled, in call order.
+    """
+    ratio = (5**0.5 - 1) / 2
+    c = b - ratio * (b - a)
+    d = a + ratio * (b - a)
+    sampled = [c, d]
+    fc, fd = f(c), f(d)
+    for _ in range(max_iterations):
+        if abs(b - a) &lt;= tol:
+            break
+        if fc &gt; fd:
+            b, d, fd = d, c, fc
+            c = b - ratio * (b - a)
+            sampled.append(c)
+            fc = f(c)
+        else:
+            a, c, fc = c, d, fd
+            d = a + ratio * (b - a)
+            sampled.append(d)
+            fd = f(d)
+    return (a + b) / 2, len(sampled), sampled
+
+
+bisection_x, bisection_evaluations, bisection_samples = golden_section_max(
+    _evaluate, 100, 200, tol=1.0
+)
+print(
+    f"Golden-section result: x={bisection_x:.2f}, evaluations={bisection_evaluations}"
+)
+print(f"Error vs. known x=150: {abs(bisection_x - 150):.3f}px")
+print()
+
+# Full comparison, all three approaches, same synthetic dataset.
+baseline_points = generate(
+    origin=PixelCoordinate(x=100, y=Y), count_x=11, count_y=1, spacing_x=10, spacing_y=1
+)
+baseline_found = grid_locate(
+    reference_image=reference_image,
+    current_image=current_image,
+    reference_points=baseline_points,
+    kernel_margin_width=KERNEL_MARGIN,
+    kernel_margin_height=KERNEL_MARGIN,
+    search_margin_width=SEARCH_MARGIN,
+    search_margin_height=SEARCH_MARGIN,
+)
+baseline_dy = [f.y - p.y for f, p in zip(baseline_found, baseline_points)]
+baseline_jumps = [
+    abs(baseline_dy[i + 1] - baseline_dy[i]) for i in range(len(baseline_dy) - 1)
+]
+baseline_i = int(np.argmax(baseline_jumps))
+baseline_x = (baseline_points[baseline_i].x + baseline_points[baseline_i + 1].x) / 2
+
+sweep_found = discontinuity_locate(
+    reference_image=reference_image,
+    current_image=current_image,
+    start=PixelCoordinate(x=100, y=Y),
+    end=PixelCoordinate(x=200, y=Y),
+    samples=101,
+    kernel_margin_width=KERNEL_MARGIN,
+    kernel_margin_height=KERNEL_MARGIN,
+    search_margin_width=SEARCH_MARGIN,
+    search_margin_height=SEARCH_MARGIN,
+)
+
+print("| Approach | Evaluations | Localization Error (px) | Notes |")
+print("|---|---|---|---|")
+print(
+    f"| Grid anomaly (baseline) | {len(baseline_points)} | "
+    f"{abs(baseline_x - 150):.1f} | resolution capped at {10}px grid spacing |"
+)
+print(
+    f"| Dense peak-ratio sweep (winner) | 101 | "
+    f"{abs(sweep_found.x - 150):.3f} | robust to bracket width, see below |"
+)
+print(
+    f"| Golden-section peak-ratio search | {bisection_evaluations} | "
+    f"{abs(bisection_x - 150):.3f} | fast here, breaks on real data -- see below |"
+)
+print()
+
+dense = discontinuity_sweep(
+    reference_image=reference_image,
+    current_image=current_image,
+    start=PixelCoordinate(x=100, y=Y),
+    end=PixelCoordinate(x=200, y=Y),
+    samples=101,
+    kernel_margin_width=KERNEL_MARGIN,
+    kernel_margin_height=KERNEL_MARGIN,
+    search_margin_width=SEARCH_MARGIN,
+    search_margin_height=SEARCH_MARGIN,
+)
+fig, ax = plt.subplots(figsize=(7.0, 5.0), constrained_layout=True)
+ax.plot(
+    [p.x for p in dense.positions],
+    dense.peak_ratios,
+    color="tab:blue",
+    linewidth=1,
+    label="dense sweep (101 evaluations, for reference)",
+)
+ax.plot(
+    bisection_samples,
+    [_evaluate(x) for x in bisection_samples],
+    marker="x",
+    linestyle="none",
+    color="tab:red",
+    markersize=8,
+    label=f"golden-section samples ({bisection_evaluations} evaluations)",
+)
+ax.axvline(150, color="gray", linestyle="--", linewidth=1)
+ax.set_xlabel("kernel window center x (pixels)")
+ax.set_ylabel("peak_ratio")
+ax.set_title("Golden-Section Search vs. the Dense Sweep")
+ax.legend(loc="lower right")
+fig.savefig("discontinuity_localization_bisection.png", dpi=300)
+print("Saved: discontinuity_localization_bisection.png")
+</code></pre>
+<h3 id="discontinuity_localization_experimentalpy"><a class="header" href="#discontinuity_localization_experimentalpy"><code>discontinuity_localization_experimental.py</code></a></h3>
+<pre><code class="language-python">"""Apply the winning dense peak-ratio sweep, and the rejected
+golden-section variant, to the real crack image pair Experimental
+Dislocation already introduced. No exact ground truth exists here --
+Experimental Dislocation's own straddling-window example already
+centered on `x=218, y=186` by inspection, so that value is a visual
+sanity check, not a precise target.
+"""
+
+import matplotlib.pyplot as plt
+
+from dictk.correlation import zncc
+from dictk.discontinuity import locate as discontinuity_locate
+from dictk.discontinuity import peak_ratio
+from dictk.discontinuity import sweep as discontinuity_sweep
+from dictk.image import PixelCoordinate, read, subimage
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+
+KERNEL_MARGIN = 25
+SEARCH_MARGIN = 65
+Y = 186
+
+reference_image = read(path="experimental_dislocation_reference.tiff")
+current_image = read(path="experimental_dislocation_current.tiff")
+
+
+def _evaluate(x):
+    p0 = PixelCoordinate(x=int(round(x)), y=Y)
+    kernel = subimage(
+        image=reference_image,
+        origin=PixelCoordinate(x=p0.x - KERNEL_MARGIN, y=p0.y - KERNEL_MARGIN),
+        width=2 * KERNEL_MARGIN,
+        height=2 * KERNEL_MARGIN,
+    )
+    search = subimage(
+        image=current_image,
+        origin=PixelCoordinate(x=p0.x - SEARCH_MARGIN, y=p0.y - SEARCH_MARGIN),
+        width=2 * SEARCH_MARGIN,
+        height=2 * SEARCH_MARGIN,
+    )
+    return peak_ratio(surface=zncc(kernel=kernel, search=search))
+
+
+def golden_section_max(f, a, b, tol=1.0, max_iterations=50):
+    """Golden-section search for a unimodal function's maximum on [a, b]."""
+    ratio = (5**0.5 - 1) / 2
+    c = b - ratio * (b - a)
+    d = a + ratio * (b - a)
+    evaluations = 2
+    fc, fd = f(c), f(d)
+    for _ in range(max_iterations):
+        if abs(b - a) &lt;= tol:
+            break
+        if fc &gt; fd:
+            b, d, fd = d, c, fc
+            c = b - ratio * (b - a)
+            fc = f(c)
+        else:
+            a, c, fc = c, d, fd
+            d = a + ratio * (b - a)
+            fd = f(d)
+        evaluations += 1
+    return (a + b) / 2, evaluations
+
+
+# The winner: a dense sweep over a wide, uncommitted range. No bracket
+# to get right -- it visits every candidate position and reports the
+# tallest peak_ratio wherever it actually is.
+wide_start, wide_end = 100, 350
+dense = discontinuity_sweep(
+    reference_image=reference_image,
+    current_image=current_image,
+    start=PixelCoordinate(x=wide_start, y=Y),
+    end=PixelCoordinate(x=wide_end, y=Y),
+    samples=126,
+    kernel_margin_width=KERNEL_MARGIN,
+    kernel_margin_height=KERNEL_MARGIN,
+    search_margin_width=SEARCH_MARGIN,
+    search_margin_height=SEARCH_MARGIN,
+)
+found = discontinuity_locate(
+    reference_image=reference_image,
+    current_image=current_image,
+    start=PixelCoordinate(x=wide_start, y=Y),
+    end=PixelCoordinate(x=wide_end, y=Y),
+    samples=126,
+    kernel_margin_width=KERNEL_MARGIN,
+    kernel_margin_height=KERNEL_MARGIN,
+    search_margin_width=SEARCH_MARGIN,
+    search_margin_height=SEARCH_MARGIN,
+)
+print(f"Dense sweep (wide range {wide_start}-{wide_end}, 126 evaluations):")
+print(
+    f"  located crack position: x={found.x:.2f} (Experimental Dislocation's own x=218)"
+)
+print()
+
+# The rejected alternative, at three brackets: one already centered
+# tightly on the crack, one moderately wide, one as wide as the dense
+# sweep's own range -- the bracket a person without a rough answer
+# already in hand would have to use.
+for bracket in [(178, 258), (150, 300), (100, 350)]:
+    x, evaluations = golden_section_max(_evaluate, *bracket, tol=1.0)
+    print(f"  golden-section, bracket {bracket}: x={x:.2f}, evaluations={evaluations}")
+print()
+print(
+    "The tight and moderate brackets land within 1px of the dense sweep's "
+    "own answer. The wide bracket -- the one that assumes no prior "
+    "knowledge of roughly where the crack is -- converges instead to a "
+    "smaller, secondary peak_ratio bump far from the real crack, "
+    "confidently and silently."
+)
+
+fig, ax = plt.subplots(figsize=(7.5, 5.0), constrained_layout=True)
+ax.plot([p.x for p in dense.positions], dense.peak_ratios, color="tab:blue")
+ax.axvline(
+    218,
+    color="gray",
+    linestyle="--",
+    linewidth=1,
+    label="x=218 (Experimental Dislocation)",
+)
+ax.axvline(
+    found.x,
+    color="tab:red",
+    linestyle=":",
+    linewidth=1.5,
+    label=f"located (x={found.x:.1f})",
+)
+ax.set_xlabel("kernel window center x (pixels)")
+ax.set_ylabel("peak_ratio")
+ax.set_title("Dense Peak-Ratio Sweep on Real Data")
+ax.legend(loc="upper right")
+fig.savefig("discontinuity_localization_experimental.png", dpi=300)
+print("Saved: discontinuity_localization_experimental.png")
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="path-forward"><a class="header" href="#path-forward">Path Forward</a></h1>
@@ -8977,13 +9616,15 @@ the right next step here, not something this fix already covered.</p>
 <h3 id="postponed"><a class="header" href="#postponed">Postponed</a></h3>
 <p>Noted, not being pursued right now:</p>
 <ul>
-<li><strong>Heaviside DIC and XFEM</strong> — enriching the correlation itself to
-detect and locate a discontinuity, not just generating test images
-that contain one (see above). <a href="getting_started/./discontinuities.html">Discontinuities</a>'s
-2026-09-06 entry below characterizes the symptom: a straddling
-window's correlation surface shows two comparably-tall peaks, on both
-synthetic and real data. That's a diagnostic. The algorithm this item
-asks for still doesn't exist.</li>
+<li><strong>Heaviside DIC and XFEM: DIC-detection half resolved, FEA/XFEM
+half still open.</strong> <a href="getting_started/./discontinuity_localization.html">Discontinuity
+Localization</a> closed the half this
+item originally asked for: <code>dictk.discontinuity.locate</code> finds a
+straddling window's two-peak signature on its own, on both synthetic
+and real data, no human-centered window required. What's still not
+started: consuming a located discontinuity in an actual
+Heaviside-enriched finite-element formulation. That's XFEM's own side
+of this, untouched by anything above.</li>
 <li><strong><code>grid.locate()</code> windowing demo.</strong> <code>windowing</code> has only ever been
 demonstrated directly on
 <a href="getting_started/../api/dictk/correlation.html#phase_correlation"><code>dictk.correlation.phase_correlation</code></a>
@@ -9294,6 +9935,31 @@ know is there. That's what "enriching the correlation itself to detect
 and locate a discontinuity" above still means. 348 tests, unchanged.
 This shipped as new book pages and two harvested image assets, not new
 library code.</p>
+<p><strong>Discontinuity Localization (10.3), shipped: the DIC-detection half of
+"Heaviside DIC and XFEM" is resolved.</strong> Three approaches, compared on
+both the synthetic pair above and Experimental Dislocation's real crack
+image pair. A grid-anomaly baseline (standard <code>grid.locate</code>, no new
+code): 11 evaluations, 5-pixel error on synthetic data, capped at half
+the grid spacing by construction. A dense peak-ratio sweep with
+subpixel parabolic refinement: 101 evaluations, 0.2-pixel error on
+synthetic data, 0.7 pixels from Experimental Dislocation's own by-eye
+<code>x=218</code> on real data. Golden-section search on the same metric: 12
+evaluations, 0.25-pixel error on synthetic data, competitive with the
+dense sweep. A wide, honest real-data bracket breaks it, though: with
+no prior estimate of where the crack sits, it converges instead to a
+smaller, secondary peak 90 pixels from the real crack, confidently and
+silently.</p>
+<p><strong>The dense sweep wins and ships.</strong> New module <code>dictk.discontinuity</code>:
+<code>peak_ratio</code> (a correlation surface's second-tallest peak divided by its
+tallest: near 1.0 for a straddling window, 0.0 for a clean one),
+<code>sweep</code> (evaluate <code>peak_ratio</code> along a line), and <code>locate</code> (the same
+sweep, refined to subpixel precision). The baseline and golden-section
+search stay as page illustrations, not library code. That's the same
+try-and-reject pattern earlier chapters have used for a rejected
+<code>kernel_margin</code> value or a reverted median filter. 371 tests
+(348 + 23).</p>
+<p><strong>Still not resolved:</strong> a located discontinuity still isn't consumed by
+anything. The postponed item below is split to reflect exactly that.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="contributing-to-dictk"><a class="header" href="#contributing-to-dictk">Contributing to <code>dictk</code></a></h1>
 <p><code>dictk</code> is developed on <a href="https://github.com/hovey/dictk">GitHub</a> using

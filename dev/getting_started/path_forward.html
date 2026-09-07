@@ -265,13 +265,15 @@ the right next step here, not something this fix already covered.</p>
 <h3 id="postponed"><a class="header" href="#postponed">Postponed</a></h3>
 <p>Noted, not being pursued right now:</p>
 <ul>
-<li><strong>Heaviside DIC and XFEM</strong> — enriching the correlation itself to
-detect and locate a discontinuity, not just generating test images
-that contain one (see above). <a href="./discontinuities.html">Discontinuities</a>'s
-2026-09-06 entry below characterizes the symptom: a straddling
-window's correlation surface shows two comparably-tall peaks, on both
-synthetic and real data. That's a diagnostic. The algorithm this item
-asks for still doesn't exist.</li>
+<li><strong>Heaviside DIC and XFEM: DIC-detection half resolved, FEA/XFEM
+half still open.</strong> <a href="./discontinuity_localization.html">Discontinuity
+Localization</a> closed the half this
+item originally asked for: <code>dictk.discontinuity.locate</code> finds a
+straddling window's two-peak signature on its own, on both synthetic
+and real data, no human-centered window required. What's still not
+started: consuming a located discontinuity in an actual
+Heaviside-enriched finite-element formulation. That's XFEM's own side
+of this, untouched by anything above.</li>
 <li><strong><code>grid.locate()</code> windowing demo.</strong> <code>windowing</code> has only ever been
 demonstrated directly on
 <a href="../api/dictk/correlation.html#phase_correlation"><code>dictk.correlation.phase_correlation</code></a>
@@ -582,12 +584,37 @@ know is there. That's what "enriching the correlation itself to detect
 and locate a discontinuity" above still means. 348 tests, unchanged.
 This shipped as new book pages and two harvested image assets, not new
 library code.</p>
+<p><strong>Discontinuity Localization (10.3), shipped: the DIC-detection half of
+"Heaviside DIC and XFEM" is resolved.</strong> Three approaches, compared on
+both the synthetic pair above and Experimental Dislocation's real crack
+image pair. A grid-anomaly baseline (standard <code>grid.locate</code>, no new
+code): 11 evaluations, 5-pixel error on synthetic data, capped at half
+the grid spacing by construction. A dense peak-ratio sweep with
+subpixel parabolic refinement: 101 evaluations, 0.2-pixel error on
+synthetic data, 0.7 pixels from Experimental Dislocation's own by-eye
+<code>x=218</code> on real data. Golden-section search on the same metric: 12
+evaluations, 0.25-pixel error on synthetic data, competitive with the
+dense sweep. A wide, honest real-data bracket breaks it, though: with
+no prior estimate of where the crack sits, it converges instead to a
+smaller, secondary peak 90 pixels from the real crack, confidently and
+silently.</p>
+<p><strong>The dense sweep wins and ships.</strong> New module <code>dictk.discontinuity</code>:
+<code>peak_ratio</code> (a correlation surface's second-tallest peak divided by its
+tallest: near 1.0 for a straddling window, 0.0 for a clean one),
+<code>sweep</code> (evaluate <code>peak_ratio</code> along a line), and <code>locate</code> (the same
+sweep, refined to subpixel precision). The baseline and golden-section
+search stay as page illustrations, not library code. That's the same
+try-and-reject pattern earlier chapters have used for a rejected
+<code>kernel_margin</code> value or a reverted median filter. 371 tests
+(348 + 23).</p>
+<p><strong>Still not resolved:</strong> a located discontinuity still isn't consumed by
+anything. The postponed item below is split to reflect exactly that.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../getting_started/experimental_dislocation.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../getting_started/discontinuity_localization.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
@@ -601,7 +628,7 @@ library code.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../getting_started/experimental_dislocation.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../getting_started/discontinuity_localization.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 

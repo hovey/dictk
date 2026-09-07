@@ -13,7 +13,16 @@
 <p>Informational only: pylint runs alongside ruff (which gates CI) purely to
 produce this report and the README's pylint score badge. See
 <a href="https://github.com/hovey/dictk/blob/main/CONTRIBUTING.md#running-pylint-informational">CONTRIBUTING.md</a>.</p>
-<pre>************* Module dictk.grid
+<pre>************* Module dictk.discontinuity
+src/dictk/discontinuity.py:135:0: C0301: Line too long (102/100) (line-too-long)
+src/dictk/discontinuity.py:226:0: C0301: Line too long (118/100) (line-too-long)
+src/dictk/discontinuity.py:231:0: C0301: Line too long (127/100) (line-too-long)
+src/dictk/discontinuity.py:120:0: R0913: Too many arguments (12/5) (too-many-arguments)
+src/dictk/discontinuity.py:120:0: R0914: Too many local variables (20/15) (too-many-locals)
+src/dictk/discontinuity.py:253:0: R0913: Too many arguments (12/5) (too-many-arguments)
+src/dictk/discontinuity.py:253:0: R0914: Too many local variables (18/15) (too-many-locals)
+src/dictk/discontinuity.py:325:7: R1714: Consider merging these comparisons with &#x27;in&#x27; by using &#x27;i in (0, len(ratios) - 1)&#x27;. Use a set instead if elements are hashable. (consider-using-in)
+************* Module dictk.grid
 src/dictk/grid.py:156:0: C0301: Line too long (118/100) (line-too-long)
 src/dictk/grid.py:33:0: R0913: Too many arguments (8/5) (too-many-arguments)
 src/dictk/grid.py:65:0: R0913: Too many arguments (9/5) (too-many-arguments)
@@ -68,6 +77,93 @@ src/dictk/translation.py:202:0: R0914: Too many local variables (24/15) (too-man
 src/dictk/cli.py:20:0: R0913: Too many arguments (6/5) (too-many-arguments)
 src/dictk/cli.py:20:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
 src/dictk/cli.py:1:0: R0801: Similar lines in 2 files
+==dictk.discontinuity:[103:179]
+==dictk.translation:[94:109]
+    if kernel_margin_width &lt; 1:
+        raise ValueError(f&quot;kernel_margin_width {kernel_margin_width} must be &gt;= 1&quot;)
+    if kernel_margin_height &lt; 1:
+        raise ValueError(f&quot;kernel_margin_height {kernel_margin_height} must be &gt;= 1&quot;)
+    if search_margin_width &lt;= kernel_margin_width:
+        raise ValueError(
+            f&quot;search_margin_width {search_margin_width} must be greater than &quot;
+            f&quot;kernel_margin_width {kernel_margin_width}&quot;
+        )
+    if search_margin_height &lt;= kernel_margin_height:
+        raise ValueError(
+            f&quot;search_margin_height {search_margin_height} must be greater than &quot;
+            f&quot;kernel_margin_height {kernel_margin_height}&quot;
+        )
+
+
+def sweep(
+    *,
+    reference_image: np.ndarray,
+    current_image: np.ndarray,
+    start: PixelCoordinate,
+    end: PixelCoordinate,
+    samples: int,
+    kernel_margin_width: int,
+    kernel_margin_height: int,
+    search_margin_width: int,
+    search_margin_height: int,
+    windowing: WindowingMethod | None = None,
+    height_threshold: float = 0.2,
+    distance: int = 2,
+) -&gt; DiscontinuitySweep:
+    &quot;&quot;&quot;Evaluate `peak_ratio` at `samples` window-center positions evenly spaced from `start` to `end`.
+
+    At each position, extracts a kernel from `reference_image` and a
+    search area from `current_image`, both centered on that position
+    (the same &quot;center a window here&quot; step [Synthetic
+    Dislocation](../getting_started/synthetic_dislocation.html#moving-the-window-off-the-crack)
+    does by hand at one fixed row), computes their ZNCC surface, and
+    reads its `peak_ratio`. A discontinuity crossing the `start`-`end`
+    line shows up as a rise in `peak_ratios` near the crossing, high on
+    an ambiguous, straddling window and low everywhere else -- see
+    [`locate`](#locate) to turn that rise into a single position.
+
+    Args:
+        reference_image: The reference (undeformed) 2D grayscale image.
+        current_image: The current (deformed) 2D grayscale image.
+        start: The first window-center position, in both images&#x27; shared
+            pixel reference frame.
+        end: The last window-center position.
+        samples: Number of window-center positions, evenly spaced from
+            `start` to `end` inclusive. Must be &gt;= 2.
+        kernel_margin_width: Half each kernel&#x27;s width, in pixels. Must be
+            &gt;= 1.
+        kernel_margin_height: Half each kernel&#x27;s height, in pixels. Must
+            be &gt;= 1.
+        search_margin_width: Half each search area&#x27;s width, in pixels.
+            Must be greater than `kernel_margin_width`.
+        search_margin_height: Half each search area&#x27;s height, in pixels.
+            Must be greater than `kernel_margin_height`.
+        windowing: Passed straight through to
+            [`dictk.correlation.window`](./correlation.html#window) for
+            both the kernel and search area at every position. Default
+            `None` applies no windowing.
+        height_threshold: Passed straight through to each position&#x27;s own
+            [`peak_ratio`](#peak_ratio) call.
+        distance: Passed straight through to each position&#x27;s own
+            `peak_ratio` call.
+
+    Returns:
+        A `DiscontinuitySweep` pairing each swept position with its own
+        `peak_ratio`, in sweep order.
+
+    Raises:
+        ValueError: If `samples` is less than 2, or the margin arguments
+            are invalid (see `kernel_margin_width`/etc. above).
+    &quot;&quot;&quot; (duplicate-code)
+src/dictk/cli.py:1:0: R0801: Similar lines in 2 files
+==dictk.discontinuity:[314:319]
+==dictk.grid:[56:61]
+        kernel_margin_width=kernel_margin_width,
+        kernel_margin_height=kernel_margin_height,
+        search_margin_width=search_margin_width,
+        search_margin_height=search_margin_height,
+        windowing=windowing, (duplicate-code)
+src/dictk/cli.py:1:0: R0801: Similar lines in 2 files
 ==dictk.image:[72:78]
 ==dictk.plot:[79:86]
     if width &lt; 1:
@@ -75,12 +171,13 @@ src/dictk/cli.py:1:0: R0801: Similar lines in 2 files
     if height &lt; 1:
         raise ValueError(f&quot;height {height} must be &gt;= 1&quot;)
 
-    image_height, image_width = image.shape (duplicate-code)
+    image_height, image_width = image.shape
+ (duplicate-code)
 
 
 Report
 ======
-936 statements analysed.
+998 statements analysed.
 
 Statistics by type
 ------------------
@@ -88,13 +185,13 @@ Statistics by type
 +---------+-------+-----------+-----------+------------+---------+
 |type     |number |old number |difference |%documented |%badname |
 +=========+=======+===========+===========+============+=========+
-|module   |9      |NC         |NC         |100.00      |0.00     |
+|module   |10     |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
-|class    |9      |NC         |NC         |100.00      |0.00     |
+|class    |10     |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
 |method   |1      |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
-|function |76     |NC         |NC         |100.00      |0.00     |
+|function |81     |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
 
 
@@ -111,16 +208,17 @@ External dependencies
       \-path (dictk.plot)
       \-patheffects (dictk.plot)
       \-pyplot (dictk.plot)
-    numpy (dictk.cli,dictk.correlation,dictk.element,dictk.grid,dictk.image,dictk.plot,dictk.rosta,dictk.translation)
+    numpy (dictk.cli,dictk.correlation,dictk.discontinuity,dictk.element,dictk.grid,dictk.image,dictk.plot,dictk.rosta,dictk.translation)
     scipy 
       \-interpolate (dictk.image)
       \-ndimage (dictk.image,dictk.rosta)
+      \-signal (dictk.discontinuity)
     skimage 
       \-registration (dictk.translation)
 
 
 
-4631 lines have been analyzed
+4971 lines have been analyzed
 
 Raw metrics
 -----------
@@ -128,13 +226,13 @@ Raw metrics
 +----------+-------+------+---------+-----------+
 |type      |number |%     |previous |difference |
 +==========+=======+======+=========+===========+
-|code      |1923   |41.52 |NC       |NC         |
+|code      |2070   |41.64 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|docstring |2166   |46.77 |NC       |NC         |
+|docstring |2337   |47.01 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|comment   |189    |4.08  |NC       |NC         |
+|comment   |189    |3.80  |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|empty     |353    |7.62  |NC       |NC         |
+|empty     |375    |7.54  |NC       |NC         |
 +----------+-------+------+---------+-----------+
 
 
@@ -158,9 +256,9 @@ Messages by category
 +-----------+-------+---------+-----------+
 |type       |number |previous |difference |
 +===========+=======+=========+===========+
-|convention |9      |NC       |NC         |
+|convention |12     |NC       |NC         |
 +-----------+-------+---------+-----------+
-|refactor   |32     |NC       |NC         |
+|refactor   |39     |NC       |NC         |
 +-----------+-------+---------+-----------+
 |warning    |5      |NC       |NC         |
 +-----------+-------+---------+-----------+
@@ -172,23 +270,25 @@ Messages by category
 % errors / warnings by module
 -----------------------------
 
-+------------------+------+--------+---------+-----------+
-|module            |error |warning |refactor |convention |
-+==================+======+========+=========+===========+
-|dictk.translation |50.00 |0.00    |12.50    |0.00       |
-+------------------+------+--------+---------+-----------+
-|dictk.correlation |50.00 |0.00    |0.00     |11.11      |
-+------------------+------+--------+---------+-----------+
-|dictk.element     |0.00  |80.00   |0.00     |44.44      |
-+------------------+------+--------+---------+-----------+
-|dictk.plot        |0.00  |20.00   |62.50    |33.33      |
-+------------------+------+--------+---------+-----------+
-|dictk.grid        |0.00  |0.00    |12.50    |11.11      |
-+------------------+------+--------+---------+-----------+
-|dictk.cli         |0.00  |0.00    |9.38     |0.00       |
-+------------------+------+--------+---------+-----------+
-|dictk.rosta       |0.00  |0.00    |3.12     |0.00       |
-+------------------+------+--------+---------+-----------+
++--------------------+------+--------+---------+-----------+
+|module              |error |warning |refactor |convention |
++====================+======+========+=========+===========+
+|dictk.translation   |50.00 |0.00    |10.26    |0.00       |
++--------------------+------+--------+---------+-----------+
+|dictk.correlation   |50.00 |0.00    |0.00     |8.33       |
++--------------------+------+--------+---------+-----------+
+|dictk.element       |0.00  |80.00   |0.00     |33.33      |
++--------------------+------+--------+---------+-----------+
+|dictk.plot          |0.00  |20.00   |51.28    |25.00      |
++--------------------+------+--------+---------+-----------+
+|dictk.discontinuity |0.00  |0.00    |12.82    |25.00      |
++--------------------+------+--------+---------+-----------+
+|dictk.cli           |0.00  |0.00    |12.82    |0.00       |
++--------------------+------+--------+---------+-----------+
+|dictk.grid          |0.00  |0.00    |10.26    |8.33       |
++--------------------+------+--------+---------+-----------+
+|dictk.rosta         |0.00  |0.00    |2.56     |0.00       |
++--------------------+------+--------+---------+-----------+
 
 
 
@@ -198,13 +298,15 @@ Messages
 +------------------------------+------------+
 |message id                    |occurrences |
 +==============================+============+
-|too-many-arguments            |18          |
+|too-many-arguments            |20          |
 +------------------------------+------------+
-|too-many-locals               |10          |
+|too-many-locals               |12          |
 +------------------------------+------------+
-|line-too-long                 |8           |
+|line-too-long                 |11          |
 +------------------------------+------------+
 |redefined-outer-name          |4           |
++------------------------------+------------+
+|duplicate-code                |3           |
 +------------------------------+------------+
 |too-many-statements           |2           |
 +------------------------------+------------+
@@ -218,14 +320,14 @@ Messages
 +------------------------------+------------+
 |no-member                     |1           |
 +------------------------------+------------+
-|duplicate-code                |1           |
+|consider-using-in             |1           |
 +------------------------------+------------+
 
 
 
 
 -----------------------------------
-Your code has been rated at 9.40/10
+Your code has been rated at 9.34/10
 </pre>
 </body>
 </html>
