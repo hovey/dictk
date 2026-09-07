@@ -78,7 +78,9 @@ def golden_section_max(f, a, b, tol=1.0, max_iterations=50):
 bisection_x, bisection_evaluations, bisection_samples = golden_section_max(
     _evaluate, 100, 200, tol=1.0
 )
-print(f"Golden-section result: x={bisection_x:.2f}, evaluations={bisection_evaluations}")
+print(
+    f"Golden-section result: x={bisection_x:.2f}, evaluations={bisection_evaluations}"
+)
 print(f"Error vs. known x=150: {abs(bisection_x - 150):.3f}px")
 print()
 

@@ -90,7 +90,9 @@ found = discontinuity_locate(
     search_margin_height=SEARCH_MARGIN,
 )
 print(f"Dense sweep (wide range {wide_start}-{wide_end}, 126 evaluations):")
-print(f"  located crack position: x={found.x:.2f} (Experimental Dislocation's own x=218)")
+print(
+    f"  located crack position: x={found.x:.2f} (Experimental Dislocation's own x=218)"
+)
 print()
 
 # The rejected alternative, at three brackets: one already centered
@@ -111,9 +113,19 @@ print(
 
 fig, ax = plt.subplots(figsize=(7.5, 5.0), constrained_layout=True)
 ax.plot([p.x for p in dense.positions], dense.peak_ratios, color="tab:blue")
-ax.axvline(218, color="gray", linestyle="--", linewidth=1, label="x=218 (Experimental Dislocation)")
 ax.axvline(
-    found.x, color="tab:red", linestyle=":", linewidth=1.5, label=f"located (x={found.x:.1f})"
+    218,
+    color="gray",
+    linestyle="--",
+    linewidth=1,
+    label="x=218 (Experimental Dislocation)",
+)
+ax.axvline(
+    found.x,
+    color="tab:red",
+    linestyle=":",
+    linewidth=1.5,
+    label=f"located (x={found.x:.1f})",
 )
 ax.set_xlabel("kernel window center x (pixels)")
 ax.set_ylabel("peak_ratio")

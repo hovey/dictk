@@ -26,7 +26,11 @@ reference_image = combine(a=speckle, b=photo)
 current_image = crack_dislocation(arr=reference_image, offset=OFFSET)
 
 points = generate(
-    origin=PixelCoordinate(x=100, y=Y), count_x=11, count_y=1, spacing_x=SPACING, spacing_y=1
+    origin=PixelCoordinate(x=100, y=Y),
+    count_x=11,
+    count_y=1,
+    spacing_x=SPACING,
+    spacing_y=1,
 )
 found = locate(
     reference_image=reference_image,
@@ -38,12 +42,18 @@ found = locate(
     search_margin_height=SEARCH_MARGIN,
 )
 displacements = [f.y - p.y for f, p in zip(found, points)]
-jumps = [abs(displacements[i + 1] - displacements[i]) for i in range(len(displacements) - 1)]
+jumps = [
+    abs(displacements[i + 1] - displacements[i]) for i in range(len(displacements) - 1)
+]
 jump_index = int(np.argmax(jumps))
 crack_estimate = (points[jump_index].x + points[jump_index + 1].x) / 2
 
-print(f"Grid spacing: {SPACING} px, {len(points)} points, {len(points)} correlation evaluations")
-print(f"Largest displacement jump: {points[jump_index].x} -> {points[jump_index + 1].x}px")
+print(
+    f"Grid spacing: {SPACING} px, {len(points)} points, {len(points)} correlation evaluations"
+)
+print(
+    f"Largest displacement jump: {points[jump_index].x} -> {points[jump_index + 1].x}px"
+)
 print(f"Estimated crack position: x={crack_estimate}")
 print(f"Error vs. known x=150: {abs(crack_estimate - 150)}px")
 print()
