@@ -1,15 +1,16 @@
 # Discontinuities
 
-Every correlation criterion from [Correlation
-Criteria](./correlation_criteria.md) onward, and every worked example
-through [Parallelism with PyTorch](./parallelism_pytorch.md), tracks one
-assumption without saying so: the true displacement field is smooth. A
-kernel window moves as a rigid or gently stretching patch, and the search
-for its match assumes a single answer exists.
+Every correlation criterion since [Correlation
+Criteria](./correlation_criteria.md), and every worked example through
+[Parallelism with PyTorch](./parallelism_pytorch.md), depends on one
+tacit assumption: the true displacement field is smooth.
+A kernel window moves as a rigid or gently stretching patch. The search
+for its match assumes one answer exists.
 
-Real specimens don't always cooperate. A crack, a slip band, or a material
-interface can produce a genuine jump in displacement rather than a
-gradient. [Image Transformation](./transformation.md#crack-dislocation)
+Real specimens may not always have a continuous displacement field.
+A crack, a slip band, or a material
+interface can produce a genuine jump in displacement instead of a
+continuous displacement. [Image Transformation](./transformation.md#crack-dislocation)
 already built exactly that jump:
 
 Crack Dislocation | Image
@@ -18,13 +19,13 @@ Original | ![original](astronaut_crack_plain_original.png)
 offset=4 pixels | ![crack dislocation](astronaut_crack_plain_dislocation.png)
 
 A vertical crack splits the image at its vertical midline. The left half
-shifts down 4 pixels. The right half shifts up 4 pixels. Standard DIC has
-no way to represent that jump. Every criterion this book covers fits one
-displacement per kernel, not two.
+shifts down 4 pixels. The right half shifts up 4 pixels. Standard DIC
+can't represent that jump.
 
-This chapter asks a narrower question than "how do you fix that." It asks
-what happens first. What does a correlation surface actually look like
-when a kernel window straddles a real discontinuity, rather than sitting
+This chapter seeks to identify characteristics of the correlation map in the presence
+of a discontinuous displacement field. Specifically,
+what does a correlation surface look like when
+a kernel window straddles a real discontinuity instead of sitting
 cleanly on one side of it?
 
 [Synthetic Dislocation](./synthetic_dislocation.md) answers that with a
@@ -37,6 +38,4 @@ signature shows up outside a synthetic setup.
 
 Neither section proposes a discontinuity-aware correlation algorithm on
 its own. [Discontinuity
-Localization](./discontinuity_localization.md) takes that on next:
-comparing a few candidate algorithms and settling on one that finds
-this signature by itself, without a person centering the window first.
+Localization](./discontinuity_localization.md) addresses that challenge.

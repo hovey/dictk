@@ -23,6 +23,7 @@ from dictk.plot import (
     PointAnnotation,
     element_strain_plot,
     phase_correlation_quadrant_plot,
+    point_displacement_plot,
     point_grid_boxes_plot,
     point_grid_plot,
     point_plot,
@@ -1055,6 +1056,136 @@ def test_element_strain_plot_accepts_subpixel_coordinate_points(tmp_path: Path):
     )
     assert path.exists()
     assert path.stat().st_size > 0
+
+
+def _point_displacement_plot_inputs():
+    points = grid_generate(
+        origin=PixelCoordinate(x=50, y=50),
+        count_x=3,
+        count_y=4,
+        spacing_x=50,
+        spacing_y=55,
+    )
+    # Fabricated values -- point_displacement_plot only draws what it's
+    # given, so a real displacement measurement isn't needed to test it.
+    values = [float(i) - 6 for i in range(len(points))]
+    return points, values
+
+
+def test_point_displacement_plot_requires_keyword_arguments():
+    points, values = _point_displacement_plot_inputs()
+    with pytest.raises(TypeError):
+        point_displacement_plot(points, values, "label")
+
+
+def test_point_displacement_plot_without_image_writes_file(tmp_path: Path):
+    points, values = _point_displacement_plot_inputs()
+    path = tmp_path / "point_displacement.png"
+    point_displacement_plot(
+        points=points,
+        values=values,
+        label="Displacement, dy (pixels)",
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_displacement_plot_with_image_writes_file(tmp_path: Path):
+    points, values = _point_displacement_plot_inputs()
+    photo = astronaut(width=300, height=300)
+    path = tmp_path / "point_displacement_on_image.png"
+    point_displacement_plot(
+        points=points,
+        values=values,
+        label="Displacement, dy (pixels)",
+        image=photo,
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_displacement_plot_accepts_colormap_instance(tmp_path: Path):
+    points, values = _point_displacement_plot_inputs()
+    path = tmp_path / "point_displacement_cmap.png"
+    point_displacement_plot(
+        points=points,
+        values=values,
+        label="Displacement, dy (pixels)",
+        cmap=ListedColormap(["red", "green", "blue"]),
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_displacement_plot_marker_writes_file(tmp_path: Path):
+    points, values = _point_displacement_plot_inputs()
+    path = tmp_path / "point_displacement_marker.png"
+    point_displacement_plot(
+        points=points,
+        values=values,
+        label="Displacement, dy (pixels)",
+        marker="s",
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_displacement_plot_vmin_vmax_writes_file(tmp_path: Path):
+    points, values = _point_displacement_plot_inputs()
+    path = tmp_path / "point_displacement_vmin_vmax.png"
+    point_displacement_plot(
+        points=points,
+        values=values,
+        label="Displacement, dy (pixels)",
+        vmin=-6,
+        vmax=6,
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_displacement_plot_dot_size_writes_file(tmp_path: Path):
+    points, values = _point_displacement_plot_inputs()
+    path = tmp_path / "point_displacement_dot_size.png"
+    point_displacement_plot(
+        points=points,
+        values=values,
+        label="Displacement, dy (pixels)",
+        dot_size=6,
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_displacement_plot_accepts_subpixel_coordinate_points(tmp_path: Path):
+    _, values = _point_displacement_plot_inputs()
+    points = [SubpixelCoordinate(x=50.3, y=50.7)] * len(values)
+    path = tmp_path / "point_displacement_subpixel.png"
+    point_displacement_plot(
+        points=points,
+        values=values,
+        label="Displacement, dy (pixels)",
+        path=path,
+    )
+    assert path.exists()
+    assert path.stat().st_size > 0
+
+
+def test_point_displacement_plot_raises_on_mismatched_lengths():
+    points, values = _point_displacement_plot_inputs()
+    with pytest.raises(ValueError):
+        point_displacement_plot(
+            points=points,
+            values=values[:-1],
+            label="Displacement, dy (pixels)",
+            path=Path("unused.png"),
+        )
 
 
 def test_point_grid_boxes_plot_writes_file(tmp_path: Path):

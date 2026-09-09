@@ -1650,6 +1650,121 @@ def point_grid_plot(
     plt.close(fig)
 
 
+def point_displacement_plot(
+    *,
+    points: Sequence[PixelCoordinate | SubpixelCoordinate],
+    values: Sequence[float],
+    label: str,
+    image: np.ndarray | None = None,
+    cmap: str | Colormap = "viridis",
+    dot_size: float = 150,
+    marker: str = "o",
+    vmin: float | None = None,
+    vmax: float | None = None,
+    figsize: tuple[float, float] = (10.0, 5.0),
+    path: Path,
+    dpi: int = 300,
+) -> None:
+    """Save a figure of a scalar value at each of a set of points.
+
+    Scatters `points` colored by `values`, with a colorbar labeled
+    `label`. If `image` is given, it's drawn as the background (e.g.
+    pass the current/deformed image, with `points` in that same current
+    configuration, to show where each point ended up); otherwise the
+    axes alone are y-inverted to match image/pixel convention (y
+    increasing downward), so the two modes render in the same visual
+    orientation. The axes are always aspect-locked 1:1 (a pixel spans
+    the same rendered length along x and y), regardless of `figsize` or
+    `image`'s own shape.
+
+    This is [`element_strain_plot`](#element_strain_plot)'s same
+    rendering -- background image, scatter, colorbar, 1:1 aspect -- with
+    its Q4 mesh/Gauss-point machinery dropped: there's no element
+    outline to draw and no interpolated Gauss-point location to plot,
+    just each point's own raw value. Useful for e.g. a per-point
+    displacement field, where `values` is each point's own `dy` (or
+    `dx`) and no mesh connectivity is involved at all.
+
+    Args:
+        points: One point per value, in the same configuration `values`
+            was measured in (e.g. `found`, not the original reference
+            points, to plot where each point ended up).
+        values: One scalar per point, same order and length as `points`.
+            This function doesn't compute anything itself, so the
+            caller picks what `values` means (e.g. `dy = found.y -
+            reference.y`) and sets `label` to match.
+        label: Colorbar label, e.g. `r"Displacement, $\\delta y$ (pixels)"`.
+        image: Optional background image (2D grayscale array). Default
+            `None` draws the points alone, on a plain y-inverted axes.
+        cmap: Matplotlib colormap for the scatter -- either a name
+            (e.g. `"viridis"`) or a `Colormap` instance (e.g.
+            `matplotlib.colors.ListedColormap`, for a custom or
+            externally-matched palette).
+        dot_size: Marker size (matplotlib `scatter`'s own `s`) for each
+            point. Default `150` suits sparse grids; a dense grid with
+            points only a few pixels apart needs a smaller value, or
+            neighboring markers overlap into a solid mass instead of a
+            legible field.
+        marker: Matplotlib marker style for each point. Default `"o"`
+            (circle). On a regular grid dense enough that neighboring
+            markers touch, circles leave small diamond-shaped gaps at
+            their corners (tangent circles never fully tile a plane) --
+            `"s"` (square), sized and axis-aligned with the grid, tiles
+            edge to edge with no gaps, reading as a genuinely continuous
+            field rather than a field of dots.
+        vmin: Optional fixed lower bound for the color scale. Default
+            `None` auto-scales from `values`' own min. Set alongside
+            `vmax` to pin the colorbar to a specific range. Values
+            outside `[vmin, vmax]` still plot, just clipped to the
+            scale's own end colors, the same way matplotlib always
+            handles an explicit `vmin`/`vmax`.
+        vmax: Optional fixed upper bound for the color scale; see `vmin`.
+        figsize: `(width, height)` in inches for the saved figure, used
+            whether or not `image` is given.
+        path: Output file path for the figure; format is inferred from
+            the extension by matplotlib's savefig (e.g. `.png`).
+        dpi: Resolution of the saved figure.
+
+    Raises:
+        ValueError: If `values` and `points` have different lengths.
+    """
+    if len(values) != len(points):
+        raise ValueError(
+            f"values has {len(values)} entries, but points has {len(points)}"
+        )
+
+    xs = [point.x for point in points]
+    ys = [point.y for point in points]
+
+    fig, ax = plt.subplots(figsize=figsize)
+
+    if image is not None:
+        image_height, image_width = image.shape
+        ax.imshow(
+            image,
+            cmap="gray",
+            origin="upper",
+            extent=(0, image_width, image_height, 0),
+        )
+    elif not ax.yaxis_inverted():
+        ax.invert_yaxis()
+
+    scatter = ax.scatter(
+        xs, ys, c=values, cmap=cmap, s=dot_size, marker=marker, vmin=vmin, vmax=vmax
+    )
+    fig.colorbar(scatter, ax=ax, label=label)
+
+    ax.axis("image")  # aspect-locked 1:1, autoscaled tight to the data
+    ax.set_xlabel("x (pixels)")
+    ax.set_ylabel("y (pixels)")
+
+    plt.tight_layout()
+    # No bbox_inches="tight" here, matching element_strain_plot's own
+    # fixed-canvas save.
+    plt.savefig(path, dpi=dpi)
+    plt.close(fig)
+
+
 def element_strain_plot(
     *,
     points: Sequence[PixelCoordinate | SubpixelCoordinate],
@@ -1671,11 +1786,9 @@ def element_strain_plot(
 ) -> None:
     r"""Save a figure of a Q4 mesh with its Gauss points colored by a scalar value.
 
-    Modeled on the reference `hdic` codebase's
-    `~/hdic/src/hdic/types/fea_vis.py`'s `plot_strain_at_gauss_points` --
-    same two-mode design (with or without a background image), same
-    node-number/Gauss-point-scatter/colorbar layout -- adapted to dictk's
-    own point/element representation
+    Two rendering modes -- with or without a background image -- share
+    the same node-number/Gauss-point-scatter/colorbar layout, built from
+    dictk's own point/element representation
     ([`dictk.grid.elements`](../grid.html#elements),
     [`dictk.element.gauss_point_coordinates`](../element.html#gauss_point_coordinates)).
     Deliberately agnostic to which strain measure (or any other
@@ -1770,8 +1883,7 @@ def element_strain_plot(
     gauss_ys = [c[1] for c in coordinates]
 
     # Same figsize whether or not image is given -- not sized from
-    # image.shape -- matching hdic's own plot_strain_at_gauss_points,
-    # which uses one fixed canvas for both calls.
+    # image.shape -- one fixed canvas for both calls.
     fig, ax = plt.subplots(figsize=figsize)
 
     if image is not None:
@@ -1784,8 +1896,7 @@ def element_strain_plot(
         )
     elif not ax.yaxis_inverted():
         # No image to establish the y-down orientation via its own
-        # extent -- invert explicitly, matching hdic's own conditional
-        # invert_yaxis() call.
+        # extent -- invert explicitly.
         ax.invert_yaxis()
 
     if show_mesh_lines:
@@ -1823,16 +1934,14 @@ def element_strain_plot(
     fig.colorbar(scatter, ax=ax, label=label)
 
     ax.axis("image")  # aspect-locked 1:1, autoscaled tight to the data --
-    # matching hdic's own plt.axis("image") exactly, not a manually
-    # recreated aspect+anchor+xlim/ylim equivalent.
+    # not a manually recreated aspect+anchor+xlim/ylim equivalent.
     ax.set_xlabel("x (pixels)")
     ax.set_ylabel("y (pixels)")
 
     plt.tight_layout()
     # No bbox_inches="tight" here, unlike this module's other plot
-    # functions -- matching hdic's own plot_strain_at_gauss_points, which
-    # keeps its fixed-size canvas as saved (plt.savefig(..., dpi=300),
-    # no bbox_inches) rather than cropping to the mesh's own, generally
-    # smaller, content bounding box.
+    # functions -- the fixed-size canvas is saved as is (plt.savefig(...,
+    # dpi=dpi), no bbox_inches) rather than cropped to the mesh's own,
+    # generally smaller, content bounding box.
     plt.savefig(path, dpi=dpi)
     plt.close(fig)
