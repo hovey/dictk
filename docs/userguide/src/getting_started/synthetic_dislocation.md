@@ -365,6 +365,13 @@ points_vic2d = generate(
 )
 ```
 
+<!-- cmdrun python3 synthetic_dislocation_grid_kernel_panels.py -->
+
+<figure>
+    <img src="synthetic_dislocation_grid_kernel_panels.png" alt="two panels side by side over the same reference image: the left shows the current 43x43 grid of bold orange dots with a green 50x50 pixel kernel box around its first point, labeled K at the box's origin and P at the point; the right shows the denser VIC-2D-style 53x54 grid with the same labeling around a smaller green 26x26 pixel kernel box" />
+    <figcaption>The two grids from the code above, drawn over <code>reference_image</code>. Left: the current 43x43 grid (1849 points, 5-pixel spacing), with a green box around <code>points_current[0]</code> showing its 50x50 pixel kernel window (<code>kernel_margin=25</code>). Right: the denser VIC-2D-style 53x54 grid (2862 points, same 5-pixel spacing), with a green box around <code>points_vic2d[0]</code> showing its smaller 26x26 pixel kernel window (<code>kernel_margin=13</code>). In both, the box's origin $\boldsymbol{r}_{OK/\mathcal{F}}$ is marked $K$ (green dot) and its tracked point $P$ (orange dot), matching <a href="#a-window-straddling-the-crack">A Window Straddling the Crack</a>'s own labeling convention.</figcaption>
+</figure>
+
 <!-- cmdrun python3 synthetic_dislocation_displacement_field_vic2d.py -->
 
 The first table above tracks the two grids as they'd actually run: the
@@ -379,37 +386,17 @@ no. The second table isolates the kernel size alone: it tracks the
 current grid's own 1849-point layout, at the same edge-safe origin, but
 with the VIC-2D grid's smaller kernel instead.
 
-Nearly all of the difference is already there before any edge is
-involved: 0.16 pixels, against the full VIC-2D grid's 0.19 and the
-current grid's own 0.09. The kernel window's own side length is what
-matters, not point spacing and not the image edge. A 26x26 pixel window
-holds a quarter of the speckle content a 50x50 pixel window does, and
-less unique texture gives cross-correlation less to lock a subpixel
-position onto. That raises the noise floor everywhere in the field,
-whether or not a given point's own window ever touches the crack. Edge
-clipping adds a further, smaller amount on top: 0.16 pixels without it,
-0.19 with it.
+Isolating the kernel size alone already produces most of the
+difference. It measures 0.16 pixels, against 0.19 for the full VIC-2D
+grid and 0.09 for the current grid. The kernel window's side length
+drives this difference, not point spacing and not the image edge.
 
-<figure>
-    <img src="synthetic_dislocation_displacement_field_histogram_current.png" alt="histogram of dy for the current 43x43 grid: two narrow, tall bars at -4 and +4, nothing between them" />
-    <figcaption>The current grid's own <code>dy</code> distribution: two narrow spikes at $\pm4$, matching the sharp field above.</figcaption>
-</figure>
-
-<figure>
-    <img src="synthetic_dislocation_displacement_field_histogram_vic2d.png" alt="histogram of dy for the VIC-2D-style 53x54 grid: two bars at -4 and +4, each visibly wider than the current grid's own histogram" />
-    <figcaption>The VIC-2D-style grid's own <code>dy</code> distribution: still cleanly bimodal, nothing blurs into the middle, but each bar is visibly wider than the current grid's own.</figcaption>
-</figure>
-
-Both are still cleanly bimodal. Nothing blurs into the middle in either
-one. Plotted on the same count axis, though, they wouldn't compare
-fairly: 2862 points against 1849 means taller bars regardless of any
-real difference in spread. Normalizing both to a probability density
-instead, on the same bins, isolates the shape difference on its own:
-
-<figure>
-    <img src="synthetic_dislocation_displacement_field_histogram_combined.png" alt="both histograms overlaid as probability densities on shared bins: the current grid's bars are taller and narrower, the VIC-2D-style grid's bars are shorter and wider, around the same two centers" />
-    <figcaption>Both grids' <code>dy</code> distributions, normalized to a probability density on the same bins. Equal area under each color, but the VIC-2D-style grid's own bars (orange) sit visibly shorter and wider than the current grid's (blue) -- the same spread difference the deviation numbers above already found, now visible directly.</figcaption>
-</figure>
+A 26x26 pixel window captures a quarter of the speckle content a 50x50
+pixel window captures. With less speckle content, cross-correlation
+finds fewer unique features to match. It locks the subpixel position
+less precisely. That weaker lock raises deviation at every point, even
+a point whose own window never touches the crack. Edge clipping adds
+further deviation on top: 0.16 pixels without it, 0.19 pixels with it.
 
 ## What This Doesn't Do
 
@@ -457,6 +444,12 @@ ground truth isn't known in advance.
 
 ```python
 <!-- cmdrun cat synthetic_dislocation_displacement_field.py -->
+```
+
+### `synthetic_dislocation_grid_kernel_panels.py`
+
+```python
+<!-- cmdrun cat synthetic_dislocation_grid_kernel_panels.py -->
 ```
 
 ### `synthetic_dislocation_displacement_field_vic2d.py`

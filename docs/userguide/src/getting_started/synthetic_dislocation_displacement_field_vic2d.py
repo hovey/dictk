@@ -4,7 +4,6 @@ kernel_margin=13, matching high_point_density.md's own convention):
 same crack, same story, but does the smaller kernel change anything?
 """
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 import dictk
@@ -122,55 +121,4 @@ print(
     f"| VIC-2D style (53x54, kernel_margin=13) | "
     f"{2 * VIC2D_STYLE_KERNEL_MARGIN}x{2 * VIC2D_STYLE_KERNEL_MARGIN} | {clipped_vic2d} | "
     f"{dev_vic2d.max():.4f} | {dev_vic2d.mean():.4f} |"
-)
-print()
-
-shared_bins = np.linspace(-4.5, 4.5, 61)
-
-fig, ax = plt.subplots(figsize=(6.0, 4.0))
-ax.hist(dy_current, bins=shared_bins, color="tab:blue")
-ax.set_xlabel(r"Displacement, $\delta y$ (pixels)")
-ax.set_ylabel("count")
-ax.set_title(f"Current: 43x43, kernel_margin=25 (n={len(dy_current)})")
-plt.tight_layout()
-plt.savefig("synthetic_dislocation_displacement_field_histogram_current.png", dpi=300)
-plt.close(fig)
-
-fig, ax = plt.subplots(figsize=(6.0, 4.0))
-ax.hist(dy_vic2d, bins=shared_bins, color="tab:orange")
-ax.set_xlabel(r"Displacement, $\delta y$ (pixels)")
-ax.set_ylabel("count")
-ax.set_title(f"VIC-2D-style: 53x54, kernel_margin=13 (n={len(dy_vic2d)})")
-plt.tight_layout()
-plt.savefig("synthetic_dislocation_displacement_field_histogram_vic2d.png", dpi=300)
-plt.close(fig)
-
-fig, ax = plt.subplots(figsize=(6.0, 4.0))
-ax.hist(
-    dy_current,
-    bins=shared_bins,
-    density=True,
-    alpha=0.6,
-    color="tab:blue",
-    label=f"Current (n={len(dy_current)})",
-)
-ax.hist(
-    dy_vic2d,
-    bins=shared_bins,
-    density=True,
-    alpha=0.6,
-    color="tab:orange",
-    label=f"VIC-2D-style (n={len(dy_vic2d)})",
-)
-ax.set_xlabel(r"Displacement, $\delta y$ (pixels)")
-ax.set_ylabel("probability density")
-ax.legend()
-plt.tight_layout()
-plt.savefig("synthetic_dislocation_displacement_field_histogram_combined.png", dpi=300)
-plt.close(fig)
-
-print(
-    "Saved: synthetic_dislocation_displacement_field_histogram_current.png, "
-    "synthetic_dislocation_displacement_field_histogram_vic2d.png, "
-    "synthetic_dislocation_displacement_field_histogram_combined.png"
 )
