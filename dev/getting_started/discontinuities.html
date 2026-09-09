@@ -181,15 +181,16 @@
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="discontinuities"><a class="header" href="#discontinuities">Discontinuities</a></h1>
-<p>Every correlation criterion from <a href="./correlation_criteria.html">Correlation
-Criteria</a> onward, and every worked example
-through <a href="./parallelism_pytorch.html">Parallelism with PyTorch</a>, tracks one
-assumption without saying so: the true displacement field is smooth. A
-kernel window moves as a rigid or gently stretching patch, and the search
-for its match assumes a single answer exists.</p>
-<p>Real specimens don't always cooperate. A crack, a slip band, or a material
-interface can produce a genuine jump in displacement rather than a
-gradient. <a href="./transformation.html#crack-dislocation">Image Transformation</a>
+<p>Every correlation criterion since <a href="./correlation_criteria.html">Correlation
+Criteria</a>, and every worked example through
+<a href="./parallelism_pytorch.html">Parallelism with PyTorch</a>, depends on one
+tacit assumption: the true displacement field is smooth.
+A kernel window moves as a rigid or gently stretching patch. The search
+for its match assumes one answer exists.</p>
+<p>Real specimens may not always have a continuous displacement field.
+A crack, a slip band, or a material
+interface can produce a genuine jump in displacement instead of a
+continuous displacement. <a href="./transformation.html#crack-dislocation">Image Transformation</a>
 already built exactly that jump:</p>
 <div class="table-wrapper"><table><thead><tr><th>Crack Dislocation</th><th>Image</th></tr></thead><tbody>
 <tr><td>Original</td><td><img src="astronaut_crack_plain_original.png" alt="original" /></td></tr>
@@ -197,12 +198,12 @@ already built exactly that jump:</p>
 </tbody></table>
 </div>
 <p>A vertical crack splits the image at its vertical midline. The left half
-shifts down 4 pixels. The right half shifts up 4 pixels. Standard DIC has
-no way to represent that jump. Every criterion this book covers fits one
-displacement per kernel, not two.</p>
-<p>This chapter asks a narrower question than "how do you fix that." It asks
-what happens first. What does a correlation surface actually look like
-when a kernel window straddles a real discontinuity, rather than sitting
+shifts down 4 pixels. The right half shifts up 4 pixels. Standard DIC
+can't represent that jump.</p>
+<p>This chapter seeks to identify characteristics of the correlation map in the presence
+of a discontinuous displacement field. Specifically,
+what does a correlation surface look like when
+a kernel window straddles a real discontinuity instead of sitting
 cleanly on one side of it?</p>
 <p><a href="./synthetic_dislocation.html">Synthetic Dislocation</a> answers that with a
 known, exact ground truth: the same 4-pixel offset above, now carrying a
@@ -213,9 +214,7 @@ ground truth isn't known in advance, so it checks whether the same
 signature shows up outside a synthetic setup.</p>
 <p>Neither section proposes a discontinuity-aware correlation algorithm on
 its own. <a href="./discontinuity_localization.html">Discontinuity
-Localization</a> takes that on next:
-comparing a few candidate algorithms and settling on one that finds
-this signature by itself, without a person centering the window first.</p>
+Localization</a> addresses that challenge.</p>
 
                     </main>
 

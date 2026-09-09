@@ -182,8 +182,8 @@
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="synthetic-dislocation"><a class="header" href="#synthetic-dislocation">Synthetic Dislocation</a></h1>
 <p><a href="./discontinuities.html">Discontinuities</a> already built the plain-photo
-version of this jump. Here it carries a speckle pattern, so a
-correlation actually has something to track:</p>
+version of this jump. Here we have added a speckle pattern, so the
+correlation has something to track:</p>
 <pre><code class="language-python">import dictk
 from dictk.image import combine, crack_dislocation, write
 
@@ -198,8 +198,8 @@ write(arr=current_image, path="synthetic_dislocation_current.png")
 <pre><code class="language-text">Saved: synthetic_dislocation_reference.png, synthetic_dislocation_current.png
 </code></pre>
 <div class="table-wrapper"><table><thead><tr><th>Synthetic Dislocation</th><th>Image</th></tr></thead><tbody>
-<tr><td>Original</td><td><img src="synthetic_dislocation_reference.png" alt="original" /></td></tr>
-<tr><td>offset=4 pixels</td><td><img src="synthetic_dislocation_current.png" alt="crack dislocation" /></td></tr>
+<tr><td>Original<br><a href="synthetic_dislocation_reference.png">synthetic_dislocation_reference.png</a></td><td><img src="synthetic_dislocation_reference.png" alt="original" /></td></tr>
+<tr><td>offset=4 pixels<br><a href="synthetic_dislocation_current.png">synthetic_dislocation_current.png</a></td><td><img src="synthetic_dislocation_current.png" alt="crack dislocation" /></td></tr>
 </tbody></table>
 </div>
 <p>Both carry the same <code>rosta</code> speckle pattern — only the dislocation
@@ -210,11 +210,37 @@ sees.</p>
 <p>Place a kernel window centered exactly on the crack: <code>x = 150</code>, the
 image's own vertical midline, where the dislocation splits left from
 right. A window there doesn't sit cleanly on one side. It contains both
-true displacements at once: +4 pixels on its left half, -4 on its
-right. <code>dictk</code>'s own y-axis points down the page, not up (see
-<a href="./multi_point_motion.html#verification-against-vic-2d">Multi-Point Motion</a>
-for this same sign convention). So +4 here means the left half shifts
-<em>down</em>. -4 means the right half shifts <em>up</em>.</p>
+true displacements at once: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">δy</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span></span></span></span> +4 pixels on its left half, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">δy</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span></span></span></span> -4 pixels on its
+right. <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.03785em;">δ</span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span></span></span></span> 0 pixels for all pixels in the current image.</p>
+<blockquote>
+<p>Recall that <code>dictk</code>'s own y-axis points down the page, not up (see <a href="./multi_point_motion.html#verification-against-vic-2d">Multi-Point Motion</a> for this same sign convention). So +4 here means the left half shifts <em>down</em>. -4 means the right half shifts <em>up</em>.</p>
+</blockquote>
+<pre><code class="language-python">from dictk.plot import subimage_comparison_plot
+
+kernel_margin = 25
+kernel_origin = PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin)
+subimage_comparison_plot(
+    image=reference_image,
+    origin=kernel_origin,
+    width=2 * kernel_margin,
+    height=2 * kernel_margin,
+    point=p0,
+    point_color="orange",
+    point_label="$P$",
+    subimage_label="kernel",
+    color="green",
+    origin_label="$K$",
+    source_origin_label="$O$",
+    figsize=(6.4, 4.8),
+    path="synthetic_dislocation_kernel.png",
+)
+</code></pre>
+<pre><code class="language-text">Saved: synthetic_dislocation_kernel.png
+</code></pre>
+<figure>
+    <img src="synthetic_dislocation_kernel.png" alt="the kernel window as a green box centered at x=150, y=150 on reference_image, with the extracted kernel subimage shown alongside it" />
+    <figcaption>The kernel window (green box), a 50x50 pixel region of <code>reference_image</code> centered on the crack at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6886em;vertical-align:-0.2441em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">150</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span></span></span></span>, with origin <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">O</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.09931em;">F</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">125</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">125</span><span class="mclose">)</span></span></span></span> pixels (green dot). Because the window straddles the crack instead of sitting on one side of it, it contains pixels from both displacements on the left and right halves of the current image. This follows the nomenclature and convention established in <a href="./cross_correlation.html#kernel">Cross Correlation (CC)</a>.</figcaption>
+</figure>
 <pre><code class="language-python">from dictk.image import subimage, PixelCoordinate
 from dictk.correlation import zncc
 from dictk.plot import spatial_correlation_quadrant_plot, phase_correlation_quadrant_plot
@@ -254,14 +280,14 @@ phase_correlation_quadrant_plot(
     <img src="synthetic_dislocation_phase.png" alt="Phase correlation quadrant plot: correlation surface is otherwise flat except for two isolated bright pixels at the same two locations the ZNCC surface found" />
     <figcaption>Phase correlation's Correlation Surface panel shows the same pattern as <a href="./correlation_visualization.html#phase-correlation">Phase Correlation</a>: flat except for one sharp pixel. Here, though, there are two sharp pixels, at (x=20, y=16) and (x=20, y=24), with heights 0.206 and 0.173, respectively. These are the same two locations ZNCC found.</figcaption>
 </figure>
-<p>Two comparably-tall peaks, not one, because a single-peak correlation
-answer can't represent two different true displacements at once. Neither
-peak is a false match. Each one is exactly right for its own half of the
-window. The peaks sit at <code>y=16</code> and <code>y=24</code>, straddling the window's own
-zero-shift center (<code>y=20</code>) by exactly ∓4 pixels. That's the same 4-pixel
-offset <code>crack_dislocation</code> applied, and their separation, 8 pixels, is
-exactly twice it. Both criteria agree: ZNCC (spatial) and phase
-correlation (FFT) land on the same two peaks, at the same two positions.</p>
+<p>Two comparably-tall peaks appear, not one, because a single-peak
+correlation answer can't represent two different true displacements at
+once. Neither is a false match. Each is exactly right for its own half
+of the window. The peaks sit at <code>y=16</code> and <code>y=24</code>, straddling the
+window's own zero-shift center (<code>y=20</code>) by exactly ∓4 pixels. That's the
+same 4-pixel offset <code>crack_dislocation</code> applied. Their separation, 8
+pixels, is exactly twice it. ZNCC (spatial) and phase correlation (FFT)
+agree: both land on the same two peaks.</p>
 <h2 id="does-this-hold-in-general"><a class="header" href="#does-this-hold-in-general">Does This Hold in General?</a></h2>
 <p>One offset proving the point isn't enough to trust it. Sweeping
 <code>crack_dislocation</code>'s offset from 1 to 32 pixels, and checking whether
@@ -287,7 +313,7 @@ each surface's two-peak separation still equals twice the offset:</p>
     <figcaption>Every offset from 2 to 32 pixels lands exactly on the separation = 2 x offset line, for both criteria. Only at offset=1 does ZNCC miss. There, the two peaks sit one pixel apart, too close for this integer-pixel surface to resolve as two separate local maxima. Phase correlation still resolves them at that offset.</figcaption>
 </figure>
 <p>The encoding holds reliably across a 32x range of offsets, for both
-criteria. One honest exception sits at the low end: once the two true
+criteria. One exception sits at the low end: once the two true
 displacements are only a pixel apart, resolving them as two distinct
 peaks runs into the same integer-pixel resolution limit <a href="./subpixel_accuracy.html">Subpixel
 Accuracy</a> already covers for a single peak.</p>
@@ -343,6 +369,215 @@ each side, not from the crack itself.</p>
 <p>Straddling the crack is what makes two comparable peaks possible. Move
 the window fully clear of it, in either direction, and only one peak
 remains: a single, perfect match.</p>
+<h2 id="displacement-field"><a class="header" href="#displacement-field">Displacement Field</a></h2>
+<p>Every result so far reads one fixed point, or one line through the
+image (<code>y = 150</code>, sweeping <code>x</code>). A grid of tracked points turns that
+into a field: the same displacement each single measurement already
+found, but everywhere at once, not just where a human chose to look.</p>
+<p><code>SEARCH_MARGIN = 45</code> sets how far each point's own search window
+reaches from its own center. Starting the grid's own origin exactly
+there keeps every point's search window fully inside the image, with no
+edge effect competing with the crack for attention:</p>
+<pre><code class="language-python">from dictk.grid import generate, locate_subpixel
+
+points = generate(
+    origin=PixelCoordinate(x=SEARCH_MARGIN, y=SEARCH_MARGIN),
+    count_x=43,
+    count_y=43,
+    spacing_x=5,
+    spacing_y=5,
+)
+found = locate_subpixel(
+    reference_image=reference_image,
+    current_image=current_image,
+    reference_points=points,
+    kernel_margin_width=KERNEL_MARGIN,
+    kernel_margin_height=KERNEL_MARGIN,
+    search_margin_width=SEARCH_MARGIN,
+    search_margin_height=SEARCH_MARGIN,
+    upsample_factor=100,
+)
+</code></pre>
+<pre><code class="language-python">dx = [f.x - p.x for f, p in zip(found, points)]
+dy = [f.y - p.y for f, p in zip(found, points)]
+</code></pre>
+<p>The <code>dy</code> field, painted over <code>current_image</code>:</p>
+<pre><code class="language-python">from dictk.plot import point_displacement_plot
+
+point_displacement_plot(
+    points=found,
+    values=dy,
+    label=r"Displacement, $\delta y$ (pixels)",
+    image=current_image,
+    dot_size=6,
+    marker="s",
+    cmap="coolwarm",
+    path="synthetic_dislocation_displacement_field.png",
+)
+</code></pre>
+<figure>
+    <img src="synthetic_dislocation_displacement_field.png" alt="displacement field: a dense grid of small square points colored by dy, split into a red (+4 pixel) region on the left half of the field and a blue (-4 pixel) region on the right half, with a sharp boundary between them right at the crack" />
+    <figcaption>The <code>dy</code> field over all 1849 tracked points. Not a gradient: two flat colors, solid <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">δy</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">+</span><span class="mord">4</span></span></span></span> (left) and solid <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">δy</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">−</span><span class="mord">4</span></span></span></span> (right), meeting at a boundary within one grid column (5 pixels) of the crack at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">150</span></span></span></span>, for every row.</figcaption>
+</figure>
+<p>Zooming into that boundary shows small gaps: spots where the gray and
+black speckle image shows through, neither red nor blue. None of the
+1849 points are missing -- every one of the 43 columns holds all 43
+rows, and every point gets a color. The gaps come from how the points
+are drawn, not which ones are plotted.</p>
+<p><code>dot_size=6</code> sizes each square marker at only about a quarter of its
+own 5-pixel grid cell. Every marker sits well short of its neighbors,
+on every side, everywhere in the field -- the same small gap separates
+every red neighbor, every blue neighbor, and every point at the
+boundary. That gap is easy to miss where it sits between two markers of
+the same color: a patch of speckle between two red squares blends into
+the surrounding red, and the eye skips past it, reading as texture
+rather than as a hole. The identical-sized gap between a red marker and
+a blue one is unmistakable, flanked by two different colors instead of
+one. The gaps aren't concentrated at the crack. They're everywhere.
+Only at the crack does the color change on either side make them
+visible.</p>
+<p><code>crack_dislocation</code> only ever moves pixels vertically, so <code>dx</code> should
+come back trivially close to zero at every one of these 1849 points --
+worth checking directly, not just assuming it from the one point
+already measured:</p>
+<div class="table-wrapper"><table><thead><tr><th>quantity</th><th style="text-align: right">value</th></tr></thead><tbody>
+<tr><td>points in group</td><td style="text-align: right">1849</td></tr>
+<tr><td>mean dx (px)</td><td style="text-align: right">-0.0008</td></tr>
+<tr><td>max abs dx (px)</td><td style="text-align: right">0.0700</td></tr>
+</tbody></table>
+</div><div class="table-wrapper"><table><thead><tr><th>quantity</th><th style="text-align: right">value</th></tr></thead><tbody>
+<tr><td>points in group</td><td style="text-align: right">921</td></tr>
+<tr><td>mean dy (px)</td><td style="text-align: right">4.0038</td></tr>
+<tr><td>std dy (px)</td><td style="text-align: right">0.0173</td></tr>
+<tr><td>min dy (px)</td><td style="text-align: right">3.9500</td></tr>
+<tr><td>max dy (px)</td><td style="text-align: right">4.0900</td></tr>
+</tbody></table>
+</div><div class="table-wrapper"><table><thead><tr><th>quantity</th><th style="text-align: right">value</th></tr></thead><tbody>
+<tr><td>points in group</td><td style="text-align: right">928</td></tr>
+<tr><td>mean dy (px)</td><td style="text-align: right">-4.0033</td></tr>
+<tr><td>std dy (px)</td><td style="text-align: right">0.0156</td></tr>
+<tr><td>min dy (px)</td><td style="text-align: right">-4.0700</td></tr>
+<tr><td>max dy (px)</td><td style="text-align: right">-3.9300</td></tr>
+</tbody></table>
+</div>
+<p>Saved: synthetic_dislocation_displacement_field.png, synthetic_dislocation_displacement_field_dx_histogram.png, synthetic_dislocation_displacement_field_dy_positive_histogram.png, synthetic_dislocation_displacement_field_dy_negative_histogram.png</p>
+<h3 id="displacement-dx"><a class="header" href="#displacement-dx">Displacement dx</a></h3>
+<p><code>dx</code> does stay trivially small: every one of the 1849 points comes back
+within 0.07 pixels of zero, well under a tenth of a pixel, as the first
+table above shows. The full distribution, not just its extremes:</p>
+<figure>
+    <img src="synthetic_dislocation_displacement_field_dx_histogram.png" alt="histogram of dx across all 1849 points: a single narrow peak centered at zero, spanning roughly -0.07 to 0.07 pixels, with a shaded band marking one std on either side of the mean and a dashed black line at the mean itself" />
+    <figcaption>The <code>dx</code> distribution across all 1849 tracked points: a single peak centered on zero, no second mode. The shaded band marks one std on either side of the mean; the dashed line marks the mean itself. The 0.01-pixel steps are <code>upsample_factor=100</code>'s own subpixel quantization, the same effect <a href="./high_point_density.html">High Point Density</a> found for <code>dy</code>.</figcaption>
+</figure>
+<h3 id="displacement-dy"><a class="header" href="#displacement-dy">Displacement dy</a></h3>
+<p>That boundary in the field figure above is sharper than "Moving the
+Window Off the Crack" would suggest. Windows straddle the crack for
+every point with <code>125 &lt; x &lt; 175</code> -- 387 of the 1849 points here -- yet
+none of them return a value between the two true displacements. Each
+straddling window's correlation surface does hold two comparable peaks,
+exactly as the earlier single-window measurement found, but
+<code>locate_subpixel</code> still returns one location: whichever peak is taller.
+Which one wins depends on how much of that window's own area sits on
+each side of the crack, and that tips over almost exactly at the crack
+itself, not gradually across the full 50-pixel span a straddling window
+could in principle blur together.</p>
+<p>Splitting <code>dy</code> on its own sign, rather than by <code>x</code> position, gives the
+same two groups directly: 921 points read a positive displacement, 928
+read a negative one, and none read zero. The second and third tables
+above cover each group on its own.</p>
+<p>The <code>+4</code> group:</p>
+<figure>
+    <img src="synthetic_dislocation_displacement_field_dy_positive_histogram.png" alt="histogram of dy for the 921 points reading a positive displacement: a single narrow peak centered near 4.00 pixels, with a shaded band marking one std on either side of the mean and a dashed black line at the mean itself" />
+    <figcaption>The <code>dy</code> distribution for the 921 points in the <code>+4</code> group: a single peak at 4.00 pixels, std 0.017 pixels -- the shaded band and dashed line mark that mean and its one-std spread directly.</figcaption>
+</figure>
+<p>The <code>-4</code> group:</p>
+<figure>
+    <img src="synthetic_dislocation_displacement_field_dy_negative_histogram.png" alt="histogram of dy for the 928 points reading a negative displacement: a single narrow peak centered near -4.00 pixels, with a shaded band marking one std on either side of the mean and a dashed black line at the mean itself" />
+    <figcaption>The <code>dy</code> distribution for the 928 points in the <code>-4</code> group: a single peak at -4.00 pixels, std 0.016 pixels -- the shaded band and dashed line mark that mean and its one-std spread directly.</figcaption>
+</figure>
+<p>Both groups are tight, single-mode distributions, each barely 0.15
+pixels wide start to finish. The largest deviation from a clean <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">±</span><span class="mord">4</span></span></span></span>,
+anywhere in either group including the 387 straddling points, is 0.09
+pixels.</p>
+<h3 id="vic-2d-style-point-density"><a class="header" href="#vic-2d-style-point-density">VIC-2D-Style Point Density</a></h3>
+<p><a href="./high_point_density.html">High Point Density</a> verifies a denser grid --
+<code>count_x=53, count_y=54, spacing_x=spacing_y=5</code>, with
+<code>kernel_margin_width=kernel_margin_height=13</code>,
+<code>search_margin_width=search_margin_height=25</code> -- against a real VIC-2D
+run. That comparison is for a different experiment, though: a 2%
+uniaxial stretch, not a crack. VIC-2D has never analyzed this page's
+own crack-dislocation image pair, so nothing below is a VIC-2D result --
+just the same grid density and kernel size, in VIC-2D's own style,
+applied to this page's own crack instead. Does that same grid change
+anything about the field above?</p>
+<pre><code class="language-python">CURRENT_KERNEL_MARGIN = 25
+CURRENT_SEARCH_MARGIN = 45
+points_current = generate(
+    origin=PixelCoordinate(x=CURRENT_SEARCH_MARGIN, y=CURRENT_SEARCH_MARGIN),
+    count_x=43,
+    count_y=43,
+    spacing_x=5,
+    spacing_y=5,
+)
+
+VIC2D_STYLE_KERNEL_MARGIN = 13
+VIC2D_STYLE_SEARCH_MARGIN = 25
+points_vic2d = generate(
+    origin=PixelCoordinate(x=18, y=16),
+    count_x=53,
+    count_y=54,
+    spacing_x=5,
+    spacing_y=5,
+)
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th>grid</th><th>points</th><th>kernel (px)</th><th>clipped</th><th>max dev (px)</th><th>mean dev (px)</th></tr></thead><tbody>
+<tr><td>Current (43x43, kernel_margin=25)</td><td>1849</td><td>50x50</td><td>0</td><td>0.0900</td><td>0.0119</td></tr>
+<tr><td>VIC-2D style (53x54, kernel_margin=13)</td><td>2862</td><td>26x26</td><td>362</td><td>0.1900</td><td>0.0267</td></tr>
+</tbody></table>
+</div><div class="table-wrapper"><table><thead><tr><th>grid</th><th>kernel (px)</th><th>clipped</th><th>max dev (px)</th><th>mean dev (px)</th></tr></thead><tbody>
+<tr><td>Current (43x43, kernel_margin=25)</td><td>50x50</td><td>0</td><td>0.0900</td><td>0.0119</td></tr>
+<tr><td>Current density, VIC-2D kernel (43x43, kernel_margin=13)</td><td>26x26</td><td>0</td><td>0.1600</td><td>0.0257</td></tr>
+<tr><td>VIC-2D style (53x54, kernel_margin=13)</td><td>26x26</td><td>362</td><td>0.1900</td><td>0.0267</td></tr>
+</tbody></table>
+</div>
+<p>Saved: synthetic_dislocation_displacement_field_histogram_current.png, synthetic_dislocation_displacement_field_histogram_vic2d.png, synthetic_dislocation_displacement_field_histogram_combined.png</p>
+<p>The first table above tracks the two grids as they'd actually run: the
+VIC-2D-style grid finds more points, 2862 against 1849, but its own
+smaller kernel window (26x26 pixels, against the current grid's 50x50)
+roughly doubles the largest deviation from a clean <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">±</span><span class="mord">4</span></span></span></span>: 0.19 pixels,
+against 0.09. 362 of its 2862 points also sit close enough to the image
+edge that their own search windows reach outside it.</p>
+<p>Is that the point spacing? Both grids use the same 5-pixel spacing, so
+no. The second table isolates the kernel size alone: it tracks the
+current grid's own 1849-point layout, at the same edge-safe origin, but
+with the VIC-2D grid's smaller kernel instead.</p>
+<p>Nearly all of the difference is already there before any edge is
+involved: 0.16 pixels, against the full VIC-2D grid's 0.19 and the
+current grid's own 0.09. The kernel window's own side length is what
+matters, not point spacing and not the image edge. A 26x26 pixel window
+holds a quarter of the speckle content a 50x50 pixel window does, and
+less unique texture gives cross-correlation less to lock a subpixel
+position onto. That raises the noise floor everywhere in the field,
+whether or not a given point's own window ever touches the crack. Edge
+clipping adds a further, smaller amount on top: 0.16 pixels without it,
+0.19 with it.</p>
+<figure>
+    <img src="synthetic_dislocation_displacement_field_histogram_current.png" alt="histogram of dy for the current 43x43 grid: two narrow, tall bars at -4 and +4, nothing between them" />
+    <figcaption>The current grid's own <code>dy</code> distribution: two narrow spikes at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">±</span><span class="mord">4</span></span></span></span>, matching the sharp field above.</figcaption>
+</figure>
+<figure>
+    <img src="synthetic_dislocation_displacement_field_histogram_vic2d.png" alt="histogram of dy for the VIC-2D-style 53x54 grid: two bars at -4 and +4, each visibly wider than the current grid's own histogram" />
+    <figcaption>The VIC-2D-style grid's own <code>dy</code> distribution: still cleanly bimodal, nothing blurs into the middle, but each bar is visibly wider than the current grid's own.</figcaption>
+</figure>
+<p>Both are still cleanly bimodal. Nothing blurs into the middle in either
+one. Plotted on the same count axis, though, they wouldn't compare
+fairly: 2862 points against 1849 means taller bars regardless of any
+real difference in spread. Normalizing both to a probability density
+instead, on the same bins, isolates the shape difference on its own:</p>
+<figure>
+    <img src="synthetic_dislocation_displacement_field_histogram_combined.png" alt="both histograms overlaid as probability densities on shared bins: the current grid's bars are taller and narrower, the VIC-2D-style grid's bars are shorter and wider, around the same two centers" />
+    <figcaption>Both grids' <code>dy</code> distributions, normalized to a probability density on the same bins. Equal area under each color, but the VIC-2D-style grid's own bars (orange) sit visibly shorter and wider than the current grid's (blue) -- the same spread difference the deviation numbers above already found, now visible directly.</figcaption>
+</figure>
 <h2 id="what-this-doesnt-do"><a class="header" href="#what-this-doesnt-do">What This Doesn't Do</a></h2>
 <p>This is a diagnostic. It doesn't fix anything. Nothing here located the
 crack; a human already centered the window on it.
@@ -352,6 +587,43 @@ rather than a person choosing where to look.</p>
 <p>Continue to <a href="./experimental_dislocation.html">Experimental Dislocation</a> to
 check whether the same signature survives on a real crack, where the
 ground truth isn't known in advance.</p>
+<h3 id="synthetic_dislocation_kernelpy"><a class="header" href="#synthetic_dislocation_kernelpy"><code>synthetic_dislocation_kernel.py</code></a></h3>
+<pre><code class="language-python">"""Show the kernel window (green box) straddling the crack in
+`reference_image`, centered on the crack's own x = 150.
+"""
+
+import dictk
+from dictk.image import combine, PixelCoordinate
+from dictk.plot import subimage_comparison_plot
+
+WIDTH = HEIGHT = 300
+KERNEL_MARGIN = 25
+
+speckle = dictk.rosta(width=WIDTH, height=HEIGHT, density=0.5)
+photo = dictk.astronaut(width=WIDTH, height=HEIGHT)
+reference_image = combine(a=speckle, b=photo)
+
+p0 = PixelCoordinate(x=WIDTH // 2, y=HEIGHT // 2)
+kernel_origin = PixelCoordinate(x=p0.x - KERNEL_MARGIN, y=p0.y - KERNEL_MARGIN)
+
+subimage_comparison_plot(
+    image=reference_image,
+    origin=kernel_origin,
+    width=2 * KERNEL_MARGIN,
+    height=2 * KERNEL_MARGIN,
+    point=p0,
+    point_color="orange",
+    point_label="$P$",
+    subimage_label="kernel",
+    color="green",
+    origin_label="$K$",
+    source_origin_label="$O$",
+    figsize=(6.4, 4.8),
+    path="synthetic_dislocation_kernel.png",
+)
+
+print("Saved: synthetic_dislocation_kernel.png")
+</code></pre>
 <h3 id="synthetic_dislocation_quadrantpy"><a class="header" href="#synthetic_dislocation_quadrantpy"><code>synthetic_dislocation_quadrant.py</code></a></h3>
 <pre><code class="language-python">"""Build a synthetic crack-dislocation image pair and plot the correlation
 surface a window straddling the crack produces, ZNCC and FFT side by side.
@@ -679,6 +951,327 @@ for ax in axes[1:]:
 fig.colorbar(im, ax=axes, shrink=0.8, label="ZNCC value")
 fig.savefig("synthetic_dislocation_x_sweep_panels.png", dpi=300)
 print("Saved: synthetic_dislocation_x_sweep_panels.png")
+</code></pre>
+<h3 id="synthetic_dislocation_displacement_fieldpy"><a class="header" href="#synthetic_dislocation_displacement_fieldpy"><code>synthetic_dislocation_displacement_field.py</code></a></h3>
+<pre><code class="language-python">"""Track a full grid of points across the crack. dx stays trivially
+near zero everywhere (checked, not assumed), and dy splits cleanly into
+a +4 group and a -4 group -- each examined on its own.
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+import dictk
+from dictk.grid import generate, locate_subpixel
+from dictk.image import PixelCoordinate, combine, crack_dislocation
+from dictk.plot import point_displacement_plot
+
+
+def mean_std_histogram(*, values, bins, color, xlabel, path):
+    """Save a histogram with its own mean/std drawn behind the bars: a
+    semi-transparent band, colored to match the bars, spanning mean +/-
+    one std, with a black dashed line at the mean -- black rather than
+    matching the bars so it stays visible regardless of bar color (a
+    same-color line on tab:gray bars all but disappears).
+    """
+    mean, std = values.mean(), values.std()
+    fig, ax = plt.subplots(figsize=(6.0, 4.0))
+    ax.axvspan(mean - std, mean + std, color=color, alpha=0.15, zorder=0)
+    ax.hist(values, bins=bins, color=color, zorder=1)
+    ax.axvline(mean, color="black", linestyle="--", linewidth=1.5, zorder=2)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel("count")
+    plt.tight_layout()
+    plt.savefig(path, dpi=300)
+    plt.close(fig)
+
+
+WIDTH = HEIGHT = 300
+OFFSET = 4.0
+KERNEL_MARGIN = 25
+SEARCH_MARGIN = 45
+
+speckle = dictk.rosta(width=WIDTH, height=HEIGHT, density=0.5)
+photo = dictk.astronaut(width=WIDTH, height=HEIGHT)
+reference_image = combine(a=speckle, b=photo)
+current_image = crack_dislocation(arr=reference_image, offset=OFFSET)
+
+points = generate(
+    origin=PixelCoordinate(x=SEARCH_MARGIN, y=SEARCH_MARGIN),
+    count_x=43,
+    count_y=43,
+    spacing_x=5,
+    spacing_y=5,
+)
+found = locate_subpixel(
+    reference_image=reference_image,
+    current_image=current_image,
+    reference_points=points,
+    kernel_margin_width=KERNEL_MARGIN,
+    kernel_margin_height=KERNEL_MARGIN,
+    search_margin_width=SEARCH_MARGIN,
+    search_margin_height=SEARCH_MARGIN,
+    upsample_factor=100,
+)
+
+dx = np.array([f.x - p.x for f, p in zip(found, points)])
+dy = np.array([f.y - p.y for f, p in zip(found, points)])
+
+DX_TOLERANCE = 0.1  # px
+assert np.abs(dx).max() &lt; DX_TOLERANCE, (
+    f"dx should be trivially ~0 (crack_dislocation only shifts pixels "
+    f"vertically), got max |dx| = {np.abs(dx).max():.4f} px"
+)
+
+point_displacement_plot(
+    points=found,
+    values=list(dy),
+    label=r"Displacement, $\delta y$ (pixels)",
+    image=current_image,
+    dot_size=6,
+    marker="s",
+    cmap="coolwarm",
+    path="synthetic_dislocation_displacement_field.png",
+)
+
+# --- Focus 1: dx, across all 1849 points ---
+print("| quantity | value |")
+print("|---|---:|")
+print(f"| points in group | {len(dx)} |")
+print(f"| mean dx (px) | {dx.mean():.4f} |")
+print(f"| max abs dx (px) | {np.abs(dx).max():.4f} |")
+print()
+
+mean_std_histogram(
+    values=dx,
+    bins=40,
+    color="tab:gray",
+    xlabel=r"Displacement, $\delta x$ (pixels)",
+    path="synthetic_dislocation_displacement_field_dx_histogram.png",
+)
+
+# --- Focus 2 &amp; 3: dy, split into its own +4 and -4 groups ---
+dy_positive = dy[dy &gt; 0]
+dy_negative = dy[dy &lt; 0]
+
+print("| quantity | value |")
+print("|---|---:|")
+print(f"| points in group | {len(dy_positive)} |")
+print(f"| mean dy (px) | {dy_positive.mean():.4f} |")
+print(f"| std dy (px) | {dy_positive.std():.4f} |")
+print(f"| min dy (px) | {dy_positive.min():.4f} |")
+print(f"| max dy (px) | {dy_positive.max():.4f} |")
+print()
+
+mean_std_histogram(
+    values=dy_positive,
+    bins=40,
+    color="tab:red",
+    xlabel=r"Displacement, $\delta y$ (pixels)",
+    path="synthetic_dislocation_displacement_field_dy_positive_histogram.png",
+)
+
+print("| quantity | value |")
+print("|---|---:|")
+print(f"| points in group | {len(dy_negative)} |")
+print(f"| mean dy (px) | {dy_negative.mean():.4f} |")
+print(f"| std dy (px) | {dy_negative.std():.4f} |")
+print(f"| min dy (px) | {dy_negative.min():.4f} |")
+print(f"| max dy (px) | {dy_negative.max():.4f} |")
+print()
+
+mean_std_histogram(
+    values=dy_negative,
+    bins=40,
+    color="tab:blue",
+    xlabel=r"Displacement, $\delta y$ (pixels)",
+    path="synthetic_dislocation_displacement_field_dy_negative_histogram.png",
+)
+
+print(
+    "Saved: synthetic_dislocation_displacement_field.png, "
+    "synthetic_dislocation_displacement_field_dx_histogram.png, "
+    "synthetic_dislocation_displacement_field_dy_positive_histogram.png, "
+    "synthetic_dislocation_displacement_field_dy_negative_histogram.png"
+)
+</code></pre>
+<h3 id="synthetic_dislocation_displacement_field_vic2dpy"><a class="header" href="#synthetic_dislocation_displacement_field_vic2dpy"><code>synthetic_dislocation_displacement_field_vic2d.py</code></a></h3>
+<pre><code class="language-python">"""Compare the page's own displacement-field grid (43x43,
+kernel_margin=25) against a VIC-2D-style denser grid (53x54,
+kernel_margin=13, matching high_point_density.md's own convention):
+same crack, same story, but does the smaller kernel change anything?
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+import dictk
+from dictk.grid import generate, locate_subpixel
+from dictk.image import PixelCoordinate, combine, crack_dislocation
+
+WIDTH = HEIGHT = 300
+OFFSET = 4.0
+
+speckle = dictk.rosta(width=WIDTH, height=HEIGHT, density=0.5)
+photo = dictk.astronaut(width=WIDTH, height=HEIGHT)
+reference_image = combine(a=speckle, b=photo)
+current_image = crack_dislocation(arr=reference_image, offset=OFFSET)
+
+
+def track(*, origin, count_x, count_y, spacing, kernel_margin, search_margin):
+    points = generate(
+        origin=origin,
+        count_x=count_x,
+        count_y=count_y,
+        spacing_x=spacing,
+        spacing_y=spacing,
+    )
+    clipped = sum(
+        1
+        for p in points
+        if p.x - search_margin &lt; 0
+        or p.y - search_margin &lt; 0
+        or p.x + search_margin &gt; WIDTH
+        or p.y + search_margin &gt; HEIGHT
+    )
+    found = locate_subpixel(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_points=points,
+        kernel_margin_width=kernel_margin,
+        kernel_margin_height=kernel_margin,
+        search_margin_width=search_margin,
+        search_margin_height=search_margin,
+        upsample_factor=100,
+    )
+    dy = np.array([f.y - p.y for f, p in zip(found, points)])
+    return dy, clipped
+
+
+def deviation(dy):
+    return np.minimum(np.abs(dy - OFFSET), np.abs(dy + OFFSET))
+
+
+CURRENT_KERNEL_MARGIN = 25
+CURRENT_SEARCH_MARGIN = 45
+dy_current, clipped_current = track(
+    origin=PixelCoordinate(x=CURRENT_SEARCH_MARGIN, y=CURRENT_SEARCH_MARGIN),
+    count_x=43,
+    count_y=43,
+    spacing=5,
+    kernel_margin=CURRENT_KERNEL_MARGIN,
+    search_margin=CURRENT_SEARCH_MARGIN,
+)
+
+VIC2D_STYLE_KERNEL_MARGIN = 13
+VIC2D_STYLE_SEARCH_MARGIN = 25
+dy_vic2d, clipped_vic2d = track(
+    origin=PixelCoordinate(x=18, y=16),
+    count_x=53,
+    count_y=54,
+    spacing=5,
+    kernel_margin=VIC2D_STYLE_KERNEL_MARGIN,
+    search_margin=VIC2D_STYLE_SEARCH_MARGIN,
+)
+
+# Same density and origin as the current grid, but with the VIC-2D
+# grid's own smaller kernel -- isolates the kernel-size effect from
+# both point density and edge clipping (this grid clips nothing).
+dy_isolated, clipped_isolated = track(
+    origin=PixelCoordinate(x=CURRENT_SEARCH_MARGIN, y=CURRENT_SEARCH_MARGIN),
+    count_x=43,
+    count_y=43,
+    spacing=5,
+    kernel_margin=VIC2D_STYLE_KERNEL_MARGIN,
+    search_margin=VIC2D_STYLE_SEARCH_MARGIN,
+)
+
+dev_current = deviation(dy_current)
+dev_vic2d = deviation(dy_vic2d)
+dev_isolated = deviation(dy_isolated)
+
+print("| grid | points | kernel (px) | clipped | max dev (px) | mean dev (px) |")
+print("|---|---|---|---|---|---|")
+print(
+    f"| Current (43x43, kernel_margin=25) | {len(dy_current)} | "
+    f"{2 * CURRENT_KERNEL_MARGIN}x{2 * CURRENT_KERNEL_MARGIN} | {clipped_current} | "
+    f"{dev_current.max():.4f} | {dev_current.mean():.4f} |"
+)
+print(
+    f"| VIC-2D style (53x54, kernel_margin=13) | {len(dy_vic2d)} | "
+    f"{2 * VIC2D_STYLE_KERNEL_MARGIN}x{2 * VIC2D_STYLE_KERNEL_MARGIN} | {clipped_vic2d} | "
+    f"{dev_vic2d.max():.4f} | {dev_vic2d.mean():.4f} |"
+)
+print()
+
+print("| grid | kernel (px) | clipped | max dev (px) | mean dev (px) |")
+print("|---|---|---|---|---|")
+print(
+    f"| Current (43x43, kernel_margin=25) | "
+    f"{2 * CURRENT_KERNEL_MARGIN}x{2 * CURRENT_KERNEL_MARGIN} | {clipped_current} | "
+    f"{dev_current.max():.4f} | {dev_current.mean():.4f} |"
+)
+print(
+    f"| Current density, VIC-2D kernel (43x43, kernel_margin=13) | "
+    f"{2 * VIC2D_STYLE_KERNEL_MARGIN}x{2 * VIC2D_STYLE_KERNEL_MARGIN} | {clipped_isolated} | "
+    f"{dev_isolated.max():.4f} | {dev_isolated.mean():.4f} |"
+)
+print(
+    f"| VIC-2D style (53x54, kernel_margin=13) | "
+    f"{2 * VIC2D_STYLE_KERNEL_MARGIN}x{2 * VIC2D_STYLE_KERNEL_MARGIN} | {clipped_vic2d} | "
+    f"{dev_vic2d.max():.4f} | {dev_vic2d.mean():.4f} |"
+)
+print()
+
+shared_bins = np.linspace(-4.5, 4.5, 61)
+
+fig, ax = plt.subplots(figsize=(6.0, 4.0))
+ax.hist(dy_current, bins=shared_bins, color="tab:blue")
+ax.set_xlabel(r"Displacement, $\delta y$ (pixels)")
+ax.set_ylabel("count")
+ax.set_title(f"Current: 43x43, kernel_margin=25 (n={len(dy_current)})")
+plt.tight_layout()
+plt.savefig("synthetic_dislocation_displacement_field_histogram_current.png", dpi=300)
+plt.close(fig)
+
+fig, ax = plt.subplots(figsize=(6.0, 4.0))
+ax.hist(dy_vic2d, bins=shared_bins, color="tab:orange")
+ax.set_xlabel(r"Displacement, $\delta y$ (pixels)")
+ax.set_ylabel("count")
+ax.set_title(f"VIC-2D-style: 53x54, kernel_margin=13 (n={len(dy_vic2d)})")
+plt.tight_layout()
+plt.savefig("synthetic_dislocation_displacement_field_histogram_vic2d.png", dpi=300)
+plt.close(fig)
+
+fig, ax = plt.subplots(figsize=(6.0, 4.0))
+ax.hist(
+    dy_current,
+    bins=shared_bins,
+    density=True,
+    alpha=0.6,
+    color="tab:blue",
+    label=f"Current (n={len(dy_current)})",
+)
+ax.hist(
+    dy_vic2d,
+    bins=shared_bins,
+    density=True,
+    alpha=0.6,
+    color="tab:orange",
+    label=f"VIC-2D-style (n={len(dy_vic2d)})",
+)
+ax.set_xlabel(r"Displacement, $\delta y$ (pixels)")
+ax.set_ylabel("probability density")
+ax.legend()
+plt.tight_layout()
+plt.savefig("synthetic_dislocation_displacement_field_histogram_combined.png", dpi=300)
+plt.close(fig)
+
+print(
+    "Saved: synthetic_dislocation_displacement_field_histogram_current.png, "
+    "synthetic_dislocation_displacement_field_histogram_vic2d.png, "
+    "synthetic_dislocation_displacement_field_histogram_combined.png"
+)
 </code></pre>
 
                     </main>
