@@ -530,6 +530,11 @@ points_vic2d = generate(
     spacing_y=5,
 )
 </code></pre>
+<p>Saved: synthetic_dislocation_grid_kernel_panels.png</p>
+<figure>
+    <img src="synthetic_dislocation_grid_kernel_panels.png" alt="two panels side by side over the same reference image: the left shows the current 43x43 grid of bold orange dots with a green 50x50 pixel kernel box around its first point, labeled K at the box's origin and P at the point; the right shows the denser VIC-2D-style 53x54 grid with the same labeling around a smaller green 26x26 pixel kernel box" />
+    <figcaption>The two grids from the code above, drawn over <code>reference_image</code>. Left: the current 43x43 grid (1849 points, 5-pixel spacing), with a green box around <code>points_current[0]</code> showing its 50x50 pixel kernel window (<code>kernel_margin=25</code>). Right: the denser VIC-2D-style 53x54 grid (2862 points, same 5-pixel spacing), with a green box around <code>points_vic2d[0]</code> showing its smaller 26x26 pixel kernel window (<code>kernel_margin=13</code>). In both, the box's origin <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">O</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.09931em;">F</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span></span></span></span> is marked <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span></span></span></span> (green dot) and its tracked point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span> (orange dot), matching <a href="#a-window-straddling-the-crack">A Window Straddling the Crack</a>'s own labeling convention.</figcaption>
+</figure>
 <div class="table-wrapper"><table><thead><tr><th>grid</th><th>points</th><th>kernel (px)</th><th>clipped</th><th>max dev (px)</th><th>mean dev (px)</th></tr></thead><tbody>
 <tr><td>Current (43x43, kernel_margin=25)</td><td>1849</td><td>50x50</td><td>0</td><td>0.0900</td><td>0.0119</td></tr>
 <tr><td>VIC-2D style (53x54, kernel_margin=13)</td><td>2862</td><td>26x26</td><td>362</td><td>0.1900</td><td>0.0267</td></tr>
@@ -540,7 +545,6 @@ points_vic2d = generate(
 <tr><td>VIC-2D style (53x54, kernel_margin=13)</td><td>26x26</td><td>362</td><td>0.1900</td><td>0.0267</td></tr>
 </tbody></table>
 </div>
-<p>Saved: synthetic_dislocation_displacement_field_histogram_current.png, synthetic_dislocation_displacement_field_histogram_vic2d.png, synthetic_dislocation_displacement_field_histogram_combined.png</p>
 <p>The first table above tracks the two grids as they'd actually run: the
 VIC-2D-style grid finds more points, 2862 against 1849, but its own
 smaller kernel window (26x26 pixels, against the current grid's 50x50)
@@ -551,33 +555,16 @@ edge that their own search windows reach outside it.</p>
 no. The second table isolates the kernel size alone: it tracks the
 current grid's own 1849-point layout, at the same edge-safe origin, but
 with the VIC-2D grid's smaller kernel instead.</p>
-<p>Nearly all of the difference is already there before any edge is
-involved: 0.16 pixels, against the full VIC-2D grid's 0.19 and the
-current grid's own 0.09. The kernel window's own side length is what
-matters, not point spacing and not the image edge. A 26x26 pixel window
-holds a quarter of the speckle content a 50x50 pixel window does, and
-less unique texture gives cross-correlation less to lock a subpixel
-position onto. That raises the noise floor everywhere in the field,
-whether or not a given point's own window ever touches the crack. Edge
-clipping adds a further, smaller amount on top: 0.16 pixels without it,
-0.19 with it.</p>
-<figure>
-    <img src="synthetic_dislocation_displacement_field_histogram_current.png" alt="histogram of dy for the current 43x43 grid: two narrow, tall bars at -4 and +4, nothing between them" />
-    <figcaption>The current grid's own <code>dy</code> distribution: two narrow spikes at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">±</span><span class="mord">4</span></span></span></span>, matching the sharp field above.</figcaption>
-</figure>
-<figure>
-    <img src="synthetic_dislocation_displacement_field_histogram_vic2d.png" alt="histogram of dy for the VIC-2D-style 53x54 grid: two bars at -4 and +4, each visibly wider than the current grid's own histogram" />
-    <figcaption>The VIC-2D-style grid's own <code>dy</code> distribution: still cleanly bimodal, nothing blurs into the middle, but each bar is visibly wider than the current grid's own.</figcaption>
-</figure>
-<p>Both are still cleanly bimodal. Nothing blurs into the middle in either
-one. Plotted on the same count axis, though, they wouldn't compare
-fairly: 2862 points against 1849 means taller bars regardless of any
-real difference in spread. Normalizing both to a probability density
-instead, on the same bins, isolates the shape difference on its own:</p>
-<figure>
-    <img src="synthetic_dislocation_displacement_field_histogram_combined.png" alt="both histograms overlaid as probability densities on shared bins: the current grid's bars are taller and narrower, the VIC-2D-style grid's bars are shorter and wider, around the same two centers" />
-    <figcaption>Both grids' <code>dy</code> distributions, normalized to a probability density on the same bins. Equal area under each color, but the VIC-2D-style grid's own bars (orange) sit visibly shorter and wider than the current grid's (blue) -- the same spread difference the deviation numbers above already found, now visible directly.</figcaption>
-</figure>
+<p>Isolating the kernel size alone already produces most of the
+difference. It measures 0.16 pixels, against 0.19 for the full VIC-2D
+grid and 0.09 for the current grid. The kernel window's side length
+drives this difference, not point spacing and not the image edge.</p>
+<p>A 26x26 pixel window captures a quarter of the speckle content a 50x50
+pixel window captures. With less speckle content, cross-correlation
+finds fewer unique features to match. It locks the subpixel position
+less precisely. That weaker lock raises deviation at every point, even
+a point whose own window never touches the crack. Edge clipping adds
+further deviation on top: 0.16 pixels without it, 0.19 pixels with it.</p>
 <h2 id="what-this-doesnt-do"><a class="header" href="#what-this-doesnt-do">What This Doesn't Do</a></h2>
 <p>This is a diagnostic. It doesn't fix anything. Nothing here located the
 crack; a human already centered the window on it.
@@ -1095,6 +1082,121 @@ print(
     "synthetic_dislocation_displacement_field_dy_negative_histogram.png"
 )
 </code></pre>
+<h3 id="synthetic_dislocation_grid_kernel_panelspy"><a class="header" href="#synthetic_dislocation_grid_kernel_panelspy"><code>synthetic_dislocation_grid_kernel_panels.py</code></a></h3>
+<pre><code class="language-python">"""Show the two point grids from "VIC-2D-Style Point Density" side by
+side over `reference_image`: the current 43x43 grid on the left, the
+denser VIC-2D-style 53x54 grid on the right, each with a green box
+around its own first point's kernel window -- 50x50 pixels for the
+current grid's kernel_margin=25, 26x26 pixels for the VIC-2D-style
+grid's kernel_margin=13. The box's own origin (green dot, labeled $K$)
+and the tracked point at its center (orange dot, labeled $P$) match
+"A Window Straddling the Crack"'s own labeling convention.
+"""
+
+import matplotlib.patches as patches
+import matplotlib.patheffects as patheffects
+import matplotlib.pyplot as plt
+
+import dictk
+from dictk.grid import generate
+from dictk.image import PixelCoordinate, combine
+
+WIDTH = HEIGHT = 300
+
+speckle = dictk.rosta(width=WIDTH, height=HEIGHT, density=0.5)
+photo = dictk.astronaut(width=WIDTH, height=HEIGHT)
+reference_image = combine(a=speckle, b=photo)
+
+CURRENT_KERNEL_MARGIN = 25
+CURRENT_SEARCH_MARGIN = 45
+points_current = generate(
+    origin=PixelCoordinate(x=CURRENT_SEARCH_MARGIN, y=CURRENT_SEARCH_MARGIN),
+    count_x=43,
+    count_y=43,
+    spacing_x=5,
+    spacing_y=5,
+)
+
+VIC2D_STYLE_KERNEL_MARGIN = 13
+VIC2D_STYLE_SEARCH_MARGIN = 25
+points_vic2d = generate(
+    origin=PixelCoordinate(x=18, y=16),
+    count_x=53,
+    count_y=54,
+    spacing_x=5,
+    spacing_y=5,
+)
+
+PANELS = [
+    ("Current: 43x43, kernel_margin=25", points_current, CURRENT_KERNEL_MARGIN),
+    ("VIC-2D-style: 53x54, kernel_margin=13", points_vic2d, VIC2D_STYLE_KERNEL_MARGIN),
+]
+
+LABEL_OFFSET = 6
+LABEL_OUTLINE = [patheffects.withStroke(linewidth=2, foreground="white")]
+
+fig, axes = plt.subplots(1, 2, figsize=(11.0, 5.5), constrained_layout=True)
+for ax, (title, points, kernel_margin) in zip(axes, PANELS):
+    ax.imshow(
+        reference_image,
+        cmap="gray",
+        origin="upper",
+        extent=(0, WIDTH, HEIGHT, 0),
+    )
+    ax.plot(
+        [p.x for p in points],
+        [p.y for p in points],
+        marker="s",
+        markersize=2.5,
+        markeredgewidth=0,
+        color="tab:orange",
+        linestyle="none",
+    )
+    p0 = points[0]
+    origin = PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin)
+    ax.add_patch(
+        patches.Rectangle(
+            (origin.x, origin.y),
+            2 * kernel_margin,
+            2 * kernel_margin,
+            edgecolor="green",
+            facecolor="none",
+            linewidth=2.5,
+        )
+    )
+    ax.plot(origin.x, origin.y, marker="o", color="green", markersize=8)
+    ax.text(
+        origin.x + LABEL_OFFSET,
+        origin.y - LABEL_OFFSET,
+        "$K$",
+        color="green",
+        fontsize=14,
+        va="bottom",
+        path_effects=LABEL_OUTLINE,
+    )
+    ax.plot(p0.x, p0.y, marker="o", color="tab:orange", markersize=7)
+    ax.text(
+        p0.x + LABEL_OFFSET,
+        p0.y - LABEL_OFFSET,
+        "$P$",
+        color="tab:orange",
+        fontsize=14,
+        va="bottom",
+        path_effects=LABEL_OUTLINE,
+    )
+    # A little headroom above y=0 so the $K$ label (which can land right
+    # at the image's own top edge, depending on the grid's origin) never
+    # collides with the panel's title.
+    ax.set_xlim(0, WIDTH)
+    ax.set_ylim(HEIGHT, -20)
+    ax.set_xlabel("x (pixels)")
+    ax.set_title(f"{title} (n={len(points)})")
+
+axes[0].set_ylabel("y (pixels)")
+
+fig.savefig("synthetic_dislocation_grid_kernel_panels.png", dpi=300)
+print("Saved: synthetic_dislocation_grid_kernel_panels.png")
+</code></pre>
 <h3 id="synthetic_dislocation_displacement_field_vic2dpy"><a class="header" href="#synthetic_dislocation_displacement_field_vic2dpy"><code>synthetic_dislocation_displacement_field_vic2d.py</code></a></h3>
 <pre><code class="language-python">"""Compare the page's own displacement-field grid (43x43,
 kernel_margin=25) against a VIC-2D-style denser grid (53x54,
@@ -1102,7 +1204,6 @@ kernel_margin=13, matching high_point_density.md's own convention):
 same crack, same story, but does the smaller kernel change anything?
 """
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 import dictk
@@ -1220,57 +1321,6 @@ print(
     f"| VIC-2D style (53x54, kernel_margin=13) | "
     f"{2 * VIC2D_STYLE_KERNEL_MARGIN}x{2 * VIC2D_STYLE_KERNEL_MARGIN} | {clipped_vic2d} | "
     f"{dev_vic2d.max():.4f} | {dev_vic2d.mean():.4f} |"
-)
-print()
-
-shared_bins = np.linspace(-4.5, 4.5, 61)
-
-fig, ax = plt.subplots(figsize=(6.0, 4.0))
-ax.hist(dy_current, bins=shared_bins, color="tab:blue")
-ax.set_xlabel(r"Displacement, $\delta y$ (pixels)")
-ax.set_ylabel("count")
-ax.set_title(f"Current: 43x43, kernel_margin=25 (n={len(dy_current)})")
-plt.tight_layout()
-plt.savefig("synthetic_dislocation_displacement_field_histogram_current.png", dpi=300)
-plt.close(fig)
-
-fig, ax = plt.subplots(figsize=(6.0, 4.0))
-ax.hist(dy_vic2d, bins=shared_bins, color="tab:orange")
-ax.set_xlabel(r"Displacement, $\delta y$ (pixels)")
-ax.set_ylabel("count")
-ax.set_title(f"VIC-2D-style: 53x54, kernel_margin=13 (n={len(dy_vic2d)})")
-plt.tight_layout()
-plt.savefig("synthetic_dislocation_displacement_field_histogram_vic2d.png", dpi=300)
-plt.close(fig)
-
-fig, ax = plt.subplots(figsize=(6.0, 4.0))
-ax.hist(
-    dy_current,
-    bins=shared_bins,
-    density=True,
-    alpha=0.6,
-    color="tab:blue",
-    label=f"Current (n={len(dy_current)})",
-)
-ax.hist(
-    dy_vic2d,
-    bins=shared_bins,
-    density=True,
-    alpha=0.6,
-    color="tab:orange",
-    label=f"VIC-2D-style (n={len(dy_vic2d)})",
-)
-ax.set_xlabel(r"Displacement, $\delta y$ (pixels)")
-ax.set_ylabel("probability density")
-ax.legend()
-plt.tight_layout()
-plt.savefig("synthetic_dislocation_displacement_field_histogram_combined.png", dpi=300)
-plt.close(fig)
-
-print(
-    "Saved: synthetic_dislocation_displacement_field_histogram_current.png, "
-    "synthetic_dislocation_displacement_field_histogram_vic2d.png, "
-    "synthetic_dislocation_displacement_field_histogram_combined.png"
 )
 </code></pre>
 
