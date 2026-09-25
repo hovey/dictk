@@ -409,6 +409,14 @@ computing strain, trading spatial resolution for strain precision.
 mesh is accurate on average and honestly noisy point to point, not
 silently smoothed into looking better than the underlying tracking
 supports.</p>
+<p>The next page, <a href="./kernel_warping.html">Kernel Warping</a>, revisits this
+diagnosis. The tracking error behind this spread isn't random noise.
+<code>locate_subpixel</code>'s <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error follows a wave, about ±0.13 px tall, set
+by where each point's true position falls within its pixel. Kernel
+Warping introduces <code>locate_warp</code>, which cuts that <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error's standard
+deviation from 0.109 px to 0.008 px. On this page's 2862-point grid,
+it cuts the <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> standard deviation from 16531 to 1161
+microstrain.</p>
 <h2 id="distribution-across-the-full-mesh"><a class="header" href="#distribution-across-the-full-mesh">Distribution Across the Full Mesh</a></h2>
 <p>The mean/std/range summary above collapses the 11024 Gauss point
 numbers into four.
@@ -491,6 +499,13 @@ small <span class="katex"><span class="katex-html" aria-hidden="true"><span clas
 oversized ones, means averaging over less independent texture per
 point. Some of that extra spread is the expected cost of matching
 VIC-2D's own geometry, not a shortcoming unique to <code>dictk</code>.</p>
+<p><a href="./kernel_warping.html">Kernel Warping</a> measures that tracking error
+against known true positions and traces it to two sources of about
+equal size. One is pixel locking in <code>locate_subpixel</code> itself. The
+other is the bilinear interpolation <code>image.stretch</code> uses to build the
+current image. On a current image built with a quintic spline instead,
+<code>locate_subpixel</code>'s <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error falls from 0.109 px to 0.057 px, about
+half.</p>
 <p>Point count, tracking accuracy, and now strain precision have all been
 free variables throughout Simple Stretch, Subpixel Accuracy, and this
 page. How <code>dictk</code>'s own tracking time scales as point count grows —
@@ -506,7 +521,7 @@ attempted here either.</p>
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../getting_started/timing_at_scale.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../getting_started/kernel_warping.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -520,7 +535,7 @@ attempted here either.</p>
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../getting_started/timing_at_scale.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../getting_started/kernel_warping.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

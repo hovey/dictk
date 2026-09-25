@@ -1,0 +1,1056 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Kernel Warping - dictk User Guide</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Digital Image Correlation Toolkit">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../docs/userguide/theme/custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">dictk User Guide</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/hovey/dictk" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="kernel-warping"><a class="header" href="#kernel-warping">Kernel Warping</a></h1>
+<p><a href="./high_point_density.html">High Point Density</a> left a wide strain
+distribution unexplained. Its 11024 Gauss points ranged from about
+-16400 to 106100 microstrain. VIC-2D's own measurements of the same
+stretch stayed between about 17300 and 23100. That page blamed element
+size: a fixed tracking error, divided by a small <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">L</span></span></span></span>, becomes a large
+strain error.</p>
+<p>That explanation leaves out the tracking error's shape. This page
+measures the error against each point's known true position. The <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error
+follows a wave, about ±0.13 px tall, tied to where each point's true
+position falls within its pixel. That wave explains High Point Density's
+vertical stripes.
+This page introduces <code>locate_warp</code>, a subpixel method different from
+<code>locate_subpixel</code>. It cuts the <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error's standard deviation from
+0.109 px to 0.008 px. Relative
+to the <code>locate_subpixel</code> baseline, <code>locate_warp</code> shrinks the strain
+spread by a factor of 14, from a standard deviation of 16531 to 1161
+microstrain.</p>
+<h2 id="pixel-locking"><a class="header" href="#pixel-locking">Pixel Locking</a></h2>
+<p>The subject 2% stretch sends every reference point to a new known <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> location,
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">1.02</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span> (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">Y</span></span></span></span> remains constant for all points). High Point
+Density's own <code>locate_subpixel</code> call already tracked all 2862 of those
+points. Subtracting each point's known true
+position from its tracked one gives the tracking error:</p>
+<ul>
+<li>x error: mean -0.0110 px, std 0.1091 px</li>
+<li>y error: mean +0.0005 px, std 0.0385 px</li>
+</ul>
+<p>Each row's x error vs. the all-row mean: correlation 0.82 to 0.94; row 27 (y = 151 px): 0.82</p>
+<p>Saved: kernel_warping_pixel_locking.png</p>
+<figure>
+    <img src="kernel_warping_pixel_locking.png" alt="two panels. Left: x error of every tracked point plotted against the fractional part of its true x position, gray dots with black binned means tracing one full sine-like cycle, about -0.14 px near 0.3 and +0.12 px near 0.7, crossing zero near 0.5. Right: x error along one grid row against true x, oscillating between about -0.18 and +0.17 px, with dotted vertical lines every 51 px marking where each cycle begins" />
+    <figcaption>Left: each point's <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error against the fractional part of its true <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> (gray), with the mean of each tenth of a pixel (black). Right: the same error along row 27 of the grid, at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">151</span></span></span></span> px. Row 27 is the middle of the grid's 54 rows, chosen to stay clear of the image's top and bottom edges. The wave depends only on <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span>, so every row shows it. Each row's error correlates 0.82 to 0.94 with the average over all rows. Row 27 sits at the low end, 0.82. So this panel shows the least regular of the 54 rows. Dotted lines mark every 51 px, the distance over which the true position's fractional part completes one cycle.</figcaption>
+</figure>
+<p>The left panel shows the error depends on where the true position sits
+within its pixel. Points just past a whole pixel read low. Points just
+short of the next whole pixel read high. Points at an exact half pixel
+read about right. This is <strong>pixel locking</strong>: a subpixel estimator's
+answer drifts toward whole-pixel values. <code>locate_subpixel</code> refines the
+peak of an upsampled phase correlation surface. That surface comes from
+a zero-padded kernel, and its peak shifts in a way that depends on the
+true fractional position. About half of this wave's size comes
+from how the stretched image itself was made: <code>image.stretch</code> uses
+bilinear interpolation. <a href="#the-residual-wave">The Residual
+Wave</a> separates the two causes.</p>
+<p>The right panel shows why this matters for strain. Every reference
+position <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span> on the grid is a whole pixel. So the true position,
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">1.02</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7667em;vertical-align:-0.0833em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">0.02</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span>, has the same fractional part as
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">0.02</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span>. That fractional part climbs from 0 to 1, then wraps back to
+0, each time <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">0.02</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span> grows by 1. That takes
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">Δ</span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1/0.02</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">50</span></span></span></span> reference pixels. The stretch scales those
+50 px by 1.02, so one cycle spans <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1.02</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">50</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">51</span></span></span></span> pixels in the
+current image. So the bias itself forms a wave
+along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span>, about 0.13 px tall and 51 px long. Strain measures the slope
+of displacement. The slope of that wave swings to about
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">±</span><span class="mord">0.13</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.03588em;">π</span><span class="mord">/51</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">±</span><span class="mord">0.016</span></span></span></span>, or 16000 microstrain.
+That matches the scale of High Point Density's measured standard
+deviation, 16531 microstrain. The same wave explains the vertical stripes
+in that page's field figure, one stripe pair per cycle.</p>
+<p>It also explains why
+<a href="./simple_stretch.html#simple-stretch-revisited">Simple Stretch Revisited</a>
+never saw this. That page spaced its points 50 px apart, one full bias
+cycle. Every true position landed on a whole pixel, so every node sat
+at the same point on the wave. High Point Density's 5 px spacing spread
+the nodes across the whole wave, and the error showed up in every
+element.</p>
+<h2 id="inverse-compositional-gauss-newton"><a class="header" href="#inverse-compositional-gauss-newton">Inverse Compositional Gauss-Newton</a></h2>
+<p>Commercial DIC codes such as VIC-2D warp the kernel itself, instead of
+refining a correlation peak (as done by <code>locate_subpixel</code>).
+<a href="../api/dictk/grid.html#locate_warp"><code>dictk.grid.locate_warp</code></a> warps
+the kernel too, as VIC-2D does. It works in two stages.</p>
+<p>First, <a href="../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a>
+finds the nearest whole pixel. Second, <strong>inverse compositional
+Gauss-Newton (IC-GN)</strong> refines it. IC-GN lets the reference kernel
+deform by an affine warp, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span></span></span></span>, with six
+parameters: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">u</span></span></span></span>, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7167em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span>, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span></span></span></span>,
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7167em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span>. <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">u</span></span></span></span> and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span></span></span></span> are the displacements along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>.
+The subscripts mark their gradients across the kernel, so
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord" style="margin-right:0.05556em;">∂</span><span class="mord mathnormal">u</span><span class="mord">/</span><span class="mord" style="margin-right:0.05556em;">∂</span><span class="mord mathnormal">x</span></span></span></span> and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7167em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord" style="margin-right:0.05556em;">∂</span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mord">/</span><span class="mord" style="margin-right:0.05556em;">∂</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>:</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="mopen">(</span><span class="mord">Δ</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">Δ</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mpunct">;</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.6em;vertical-align:-1.55em;"></span><span class="minner"><span class="mopen"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.05em;"><span class="pstrut" style="height:5.6em;"></span><span style="width:0.667em;height:3.600em;"><svg xmlns="http://www.w3.org/2000/svg" width='0.667em' height='3.600em' viewBox='0 0 667 3600'><path d='M403 1759 V84 H666 V0 H319 V1759 v0 v1759 h347 v-84 H403z M403 1759 V0 H319 V1759 v0 v1759 h84z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">u</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span></span><span class="mclose"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.05em;"><span class="pstrut" style="height:5.6em;"></span><span style="width:0.667em;height:3.600em;"><svg xmlns="http://www.w3.org/2000/svg" width='0.667em' height='3.600em' viewBox='0 0 667 3600'><path d='M347 1759 V0 H0 V84 H263 V1759 v0 v1759 H0 v84 H347z M347 1759 V0 H263 V1759 v0 v1759 h84z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="mopen"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.05em;"><span class="pstrut" style="height:5.6em;"></span><span style="width:0.667em;height:3.600em;"><svg xmlns="http://www.w3.org/2000/svg" width='0.667em' height='3.600em' viewBox='0 0 667 3600'><path d='M403 1759 V84 H666 V0 H319 V1759 v0 v1759 h347 v-84 H403z M403 1759 V0 H319 V1759 v0 v1759 h84z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">Δ</span><span class="mord mathnormal">x</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">Δ</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span></span><span class="mclose"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.05em;"><span class="pstrut" style="height:5.6em;"></span><span style="width:0.667em;height:3.600em;"><svg xmlns="http://www.w3.org/2000/svg" width='0.667em' height='3.600em' viewBox='0 0 667 3600'><path d='M347 1759 V0 H0 V84 H263 V1759 v0 v1759 H0 v84 H347z M347 1759 V0 H263 V1759 v0 v1759 h84z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mopen">(</span><span class="mord mathnormal">u</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mord">.</span></span></span></span></span></p>
+<p>Here <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">Δ</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">Δ</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span> labels each pixel of the reference kernel
+by its fixed offset from the kernel's center, from <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">−</span><span class="mord">13</span></span></span></span> to <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">+</span><span class="mord">13</span></span></span></span> px
+here. The warp maps each such pixel to its position in the current
+image. IC-GN searches for the <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6389em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span></span></span></span> that minimizes the
+zero-normalized sum of squared differences (ZNSSD) between the
+reference kernel <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span></span></span></span> and the current image sampled through the warp,
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span></span></span></span>:</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">(</span><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.1427em;vertical-align:-1.4304em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.05em;"><span style="top:-1.8557em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">Δ</span><span class="mord mathnormal mtight">x</span><span class="mpunct mtight">,</span><span class="mord mtight">Δ</span><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.4304em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">[</span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.5082em;"><span style="top:-2.2788em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mopen">∥</span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8312em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span></span><span style="top:-3.2634em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.0833em;"><span class="mord">ˉ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span><span class="mclose">∥</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8312em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span></span><span style="top:-3.2634em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.0833em;"><span class="mord">ˉ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.9712em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mopen">∥</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.5678em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.2222em;"><span class="mord">ˉ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span><span class="mclose">∥</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mopen">(</span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.5678em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.2222em;"><span class="mord">ˉ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1944em;"><span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">]</span></span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:1.7122em;"><span style="top:-3.9611em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">.</span></span></span></span></span></p>
+<p>Each iteration solves for a small update <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord">Δ</span><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span></span></span></span> to
+the <em>reference</em> kernel. It then composes that update's inverse into the
+current warp, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">←</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∘</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="mopen">(</span><span class="mord">Δ</span><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span></span></span></span>. The inverse compositional
+form puts all gradient work on <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span></span></span></span>. It computes the Hessian once per
+point, not once per iteration. Cubic B-splines sample <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span></span></span></span> at the
+warped, fractional positions. The tracked position is the warp's own
+translation, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">u</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mclose">)</span></span></span></span>.</p>
+<p><code>locate</code> and <code>locate_subpixel</code> never warp their kernel. Each cuts an
+axis-aligned square from <code>reference_image</code>. Each slides that square,
+unchanged, across the search area. The only thing either one finds is
+a translation. In contrast, <code>locate_warp</code> finds how the kernel
+translates and deforms.</p>
+<p>One point, at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">150</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span></span></span></span>, under an exaggerated deformation shows the
+difference. The current image stretches 7% along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and shears by
+0.05. The 7% stretch is 3.5 times this page's 2%, large enough to see
+the warp.</p>
+<p>A shift then moves the point by a fractional number of pixels. A
+whole-pixel shift would hand <code>locate</code> an exact answer by construction,
+since <code>locate</code> only returns whole pixels. So the first table tracks
+the point under 30 random fractional shifts, each between 4 and 8 px
+along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and between 2 and 6 px along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>. The figure uses the one
+shift whose three errors sit closest to the three median errors in
+that table. The second table tracks that shift. Then come the warp
+matrices, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span></span></span></span>, from <code>locate_subpixel</code> and <code>locate_warp</code>,
+followed by the true one:</p>
+<p>Across 30 random fractional shifts:</p>
+<div class="table-wrapper"><table><thead><tr><th>Function</th><th>Smallest error (px)</th><th>Median error (px)</th><th>Largest error (px)</th></tr></thead><tbody>
+<tr><td><code>locate</code></td><td>0.081</td><td>0.462</td><td>0.658</td></tr>
+<tr><td><code>locate_subpixel</code></td><td>0.054</td><td>0.105</td><td>0.150</td></tr>
+<tr><td><code>locate_warp</code></td><td>0.001</td><td>0.003</td><td>0.006</td></tr>
+</tbody></table>
+</div>
+<p>The most typical shift, (6.43, 4.92) px, puts the true position at (156.43, 154.92):</p>
+<div class="table-wrapper"><table><thead><tr><th>Function</th><th>Found <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span></th><th>Found <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span></th><th>Error (px)</th></tr></thead><tbody>
+<tr><td><code>locate</code></td><td>156.000</td><td>155.000</td><td>0.437</td></tr>
+<tr><td><code>locate_subpixel</code></td><td>156.340</td><td>154.970</td><td>0.103</td></tr>
+<tr><td><code>locate_warp</code></td><td>156.432</td><td>154.918</td><td>0.003</td></tr>
+</tbody></table>
+</div>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0531em;vertical-align:-0.367em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">locate_subpixel</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.367em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.6em;vertical-align:-1.55em;"></span><span class="minner"><span class="mopen"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.05em;"><span class="pstrut" style="height:5.6em;"></span><span style="width:0.667em;height:3.600em;"><svg xmlns="http://www.w3.org/2000/svg" width='0.667em' height='3.600em' viewBox='0 0 667 3600'><path d='M403 1759 V84 H666 V0 H319 V1759 v0 v1759 h347 v-84 H403z M403 1759 V0 H319 V1759 v0 v1759 h84z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">6.3400</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">4.9700</span></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span></span><span class="mclose"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.05em;"><span class="pstrut" style="height:5.6em;"></span><span style="width:0.667em;height:3.600em;"><svg xmlns="http://www.w3.org/2000/svg" width='0.667em' height='3.600em' viewBox='0 0 667 3600'><path d='M347 1759 V0 H0 V84 H263 V1759 v0 v1759 H0 v84 H347z M347 1759 V0 H263 V1759 v0 v1759 h84z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:1em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7167em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7167em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">0</span><span class="mclose">)</span></span></span></span></span></p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0531em;vertical-align:-0.367em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">locate_warp</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.367em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.6em;vertical-align:-1.55em;"></span><span class="minner"><span class="mopen"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.05em;"><span class="pstrut" style="height:5.6em;"></span><span style="width:0.667em;height:3.600em;"><svg xmlns="http://www.w3.org/2000/svg" width='0.667em' height='3.600em' viewBox='0 0 667 3600'><path d='M403 1759 V84 H666 V0 H319 V1759 v0 v1759 h347 v-84 H403z M403 1759 V0 H319 V1759 v0 v1759 h84z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1.0701</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">−</span><span class="mord">0.0001</span></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0.0499</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1.0000</span></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">6.4318</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">4.9178</span></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span></span><span class="mclose"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.05em;"><span class="pstrut" style="height:5.6em;"></span><span style="width:0.667em;height:3.600em;"><svg xmlns="http://www.w3.org/2000/svg" width='0.667em' height='3.600em' viewBox='0 0 667 3600'><path d='M347 1759 V0 H0 V84 H263 V1759 v0 v1759 H0 v84 H347z M347 1759 V0 H263 V1759 v0 v1759 h84z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span></span></span></span></span></span></p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8361em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">true</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.6em;vertical-align:-1.55em;"></span><span class="minner"><span class="mopen"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.05em;"><span class="pstrut" style="height:5.6em;"></span><span style="width:0.667em;height:3.600em;"><svg xmlns="http://www.w3.org/2000/svg" width='0.667em' height='3.600em' viewBox='0 0 667 3600'><path d='M403 1759 V84 H666 V0 H319 V1759 v0 v1759 h347 v-84 H403z M403 1759 V0 H319 V1759 v0 v1759 h84z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1.07</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0.05</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.21em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">6.43</span></span></span><span style="top:-3.01em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">4.92</span></span></span><span style="top:-1.81em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span></span><span class="mclose"><span class="delimsizing mult"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:2.05em;"><span style="top:-4.05em;"><span class="pstrut" style="height:5.6em;"></span><span style="width:0.667em;height:3.600em;"><svg xmlns="http://www.w3.org/2000/svg" width='0.667em' height='3.600em' viewBox='0 0 667 3600'><path d='M347 1759 V0 H0 V84 H263 V1759 v0 v1759 H0 v84 H347z M347 1759 V0 H263 V1759 v0 v1759 h84z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.55em;"><span></span></span></span></span></span></span></span></span></span></span></span></p>
+<figure>
+    <img src="kernel_warping_panels.png" alt="two zoomed panels of the same deformed speckle image around one point. In both, a dashed white square marks the reference kernel at (150, 150), an orange arrow points to the tracked position, and a red cross marks the true position at (156.43, 154.92). Left: an orange axis-aligned square with a 10x10 grid of orange dots, the same shape as the reference square, moved by the arrow. Right: an orange parallelogram, slightly wider than the square and leaning right toward the bottom, with its 10x10 grid of dots stretched and sheared to match" />
+    <figcaption>Both panels show the deformed image around one point. The dashed white square marks the reference kernel at its original position. The orange arrow points to each function's tracked position, and the red cross marks the true one. Left: <code>locate</code> and <code>locate_subpixel</code> move the square without changing its shape (drawn at <code>locate_subpixel</code>'s position). Right: <code>locate_warp</code> also stretches and shears the kernel. Its outline and sample points use the warp IC-GN fitted, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0531em;vertical-align:-0.367em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">locate_warp</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.367em;"><span></span></span></span></span></span></span></span></span></span>.</figcaption>
+</figure>
+<p>Across all 30 shifts, <code>locate</code> misses by a median 0.462 px, since it
+rounds to a whole pixel. <code>locate_subpixel</code> misses by a median 0.105
+px, because its rigid square no longer matches the stretched and
+sheared content. <code>locate_warp</code> misses by a median 0.003 px, about 35
+times smaller than <code>locate_subpixel</code>'s. Even <code>locate_warp</code>'s largest
+miss over all 30 shifts, 0.006 px, is about 9 times smaller than
+<code>locate_subpixel</code>'s smallest, 0.054 px.</p>
+<p><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0531em;vertical-align:-0.367em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">locate_subpixel</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.367em;"><span></span></span></span></span></span></span></span></span></span> keeps an identity block in
+its upper left. A rigid kernel can only translate, so its four
+gradient terms stay at zero. <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0531em;vertical-align:-0.367em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">locate_warp</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.367em;"><span></span></span></span></span></span></span></span></span></span> is
+the warp IC-GN fitted.
+<a href="../api/dictk/warp.html#fit"><code>dictk.warp.fit</code></a> returns it directly.
+Its gradient block matches <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8361em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">true</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> to within
+0.0001. Its translation matches to within 0.003 px.</p>
+<p>Two things remove the bias. The spline samples the image itself at
+fractional positions, so no correlation peak needs interpolating. The
+affine warp also lets the kernel stretch along with the material,
+instead of forcing a rigid match. The call mirrors <code>locate_subpixel</code>,
+with the same grid and margins:</p>
+<pre><code class="language-python">from dictk.grid import locate_warp
+
+found = locate_warp(
+    reference_image=reference_image,
+    current_image=current_image,
+    reference_points=points,
+    kernel_margin_width=13,
+    kernel_margin_height=13,
+    search_margin_width=25,
+    search_margin_height=25,
+)
+</code></pre>
+<p>The same fractional-position error curve, now for both trackers:</p>
+<div class="table-wrapper"><table><thead><tr><th>Tracker</th><th>Time (s)</th><th>Mean <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error (px)</th><th>Std <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error (px)</th><th>Max |<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error| (px)</th></tr></thead><tbody>
+<tr><td><code>locate_subpixel</code></td><td>1.8</td><td>-0.0110</td><td>0.1091</td><td>0.3200</td></tr>
+<tr><td><code>locate_warp</code></td><td>1.7</td><td>-0.0000</td><td>0.0080</td><td>0.0234</td></tr>
+</tbody></table>
+</div><figure>
+    <img src="kernel_warping_bias.png" alt="mean x error against the fractional part of true x for two trackers. locate_subpixel, circles, swings from about -0.14 to +0.12 px. locate_warp, squares, stays within about 0.01 px of zero across the whole pixel" />
+    <figcaption>Mean <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error per tenth of a pixel, for <code>locate_subpixel</code> (circles) and <code>locate_warp</code> (squares), across all 2862 points.</figcaption>
+</figure>
+<p>The error standard deviation falls from 0.109 px to 0.008 px. The
+table lists both run times. For all 2862 points they differ by less
+than a second. A residual wave,
+about 0.01 px tall, remains. <a href="#the-residual-wave">The Residual Wave</a>
+traces it to the test image.</p>
+<h2 id="strain-at-full-density-again"><a class="header" href="#strain-at-full-density-again">Strain at Full Density, Again</a></h2>
+<p>High Point Density's strain pipeline stays the same:
+<a href="../api/dictk/grid.html#elements"><code>dictk.grid.elements</code></a> for
+connectivity, then
+<a href="../api/dictk/element.html#gauss_point_log_strains"><code>gauss_point_log_strains</code></a>
+at each Gauss point. Only the tracked positions change:</p>
+<div class="table-wrapper"><table><thead><tr><th>Source</th><th>Mean (µε)</th><th>Std (µε)</th><th>Min (µε)</th><th>Max (µε)</th><th>Inside [17560, 22360]</th></tr></thead><tbody>
+<tr><td><code>locate_subpixel</code> + Q4</td><td>20465</td><td>16531</td><td>-16446</td><td>106134</td><td>9.5%</td></tr>
+<tr><td><code>locate_warp</code> + Q4</td><td>19851</td><td>1161</td><td>16562</td><td>23160</td><td>97.4%</td></tr>
+<tr><td>VIC-2D</td><td>19876</td><td>1385</td><td>17330</td><td>23137</td><td>98.2%</td></tr>
+<tr><td>Analytical, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">ln</span><span class="mopen">(</span><span class="mord">1.02</span><span class="mclose">)</span></span></span></span></td><td>19803</td><td>0</td><td></td><td></td><td></td></tr>
+</tbody></table>
+</div>
+<p>The spread falls from 16531 to 1161 microstrain. The range now sits
+where VIC-2D's does. Of the 11024 Gauss points, 97.4% land inside
+VIC-2D's own colorbar range, up from 9.5%. The standard deviation,
+1161 microstrain, comes in under VIC-2D's 1385. The element code is
+unchanged from High Point Density, so the tracker accounts for the
+whole drop from 16531 to 1161 microstrain.</p>
+<figure>
+    <div style="display: flex; gap: 1em;">
+        <a href="../verification/simple_stretch_result_vic.png" target="_blank" rel="noopener" style="flex: 1 1 0; min-width: 0;">
+            <img src="../verification/simple_stretch_result_vic.png" alt="VIC-2D's measured exx field, colorbar 17560 to 22360 microstrain, a striped pattern in VIC-2D's own 16-band magenta-blue-cyan-green-yellow-orange-red color scale" style="width: 100%;" />
+        </a>
+        <a href="kernel_warping_strain_vic_colorbar.png" target="_blank" rel="noopener" style="flex: 1 1 0; min-width: 0;">
+            <img src="kernel_warping_strain_vic_colorbar.png" alt="dictk's own E11 field from locate_warp, on the same 17560-22360 microstrain range and VIC-2D's 16-band colormap, showing the full range of colors in narrow vertical stripes, with almost no clipped solid magenta or solid red" style="width: 100%;" />
+        </a>
+    </div>
+    <figcaption>VIC-2D's <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">xx</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> (left) and <code>dictk</code>'s <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> from <code>locate_warp</code> (right). Both use `17560`-`22360` microstrain and VIC-2D's own 16-band color scale. In High Point Density's version of the right panel, only 9.5% of the Gauss points fell inside this range. The rest clipped to solid magenta or solid red. This one uses the whole scale.</figcaption>
+</figure>
+<figure>
+    <img src="kernel_warping_strain_histogram.png" alt="two overlaid normalized histograms of log strain in microstrain. dictk, gray filled, one broad peak from about 17000 to 23000 centered near 20000. VIC-2D, black outline, five separated clusters over the same 17300 to 23100 range. A dashed red line at 19803 microstrain" />
+    <figcaption>Distribution of <code>dictk</code>'s <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> from <code>locate_warp</code> (gray, 11024 Gauss points) and VIC-2D's <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">xx</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> (black outline, 2682 points), each normalized to unit area. The dashed red line marks <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">ln</span><span class="mopen">(</span><span class="mord">1.02</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">19803</span></span></span></span> microstrain.</figcaption>
+</figure>
+<p>The two distributions now cover the same range. Their shapes still
+differ. VIC-2D's splits into five clusters. <code>dictk</code>'s forms one broad
+peak. Both fields keep vertical stripes. Both tools measured the
+same bilinear images, and <a href="#the-residual-wave">The Residual Wave</a>
+below shows those images carry a distortion of their own, tied to each
+point's fractional position. Each tracker responds to it differently.</p>
+<p>Neither result is smoothed. Commercial codes usually also apply a
+<strong>strain window</strong>, fitting displacement over a neighborhood of points
+before differentiating. That trades spatial resolution for a smaller strain spread. A 15x15-point
+window, spanning 75 px here, cut <code>locate_warp</code>'s spread from 1161 to
+39 microstrain in an exploratory test. <a href="./path_forward.html">Path Forward</a> records it as a next step.
+Fixing the bias first matters. A window spanning a whole bias cycle
+would also flatten High Point Density's stripes. That averaging would
+hide the error while leaving it in the tracked positions.</p>
+<h2 id="the-residual-wave"><a class="header" href="#the-residual-wave">The Residual Wave</a></h2>
+<p><code>locate_warp</code>'s leftover 0.01 px wave starts outside the tracker.
+<code>dictk.image.stretch</code> builds the current image with bilinear
+interpolation. Bilinear interpolation moves content by a fractional
+pixel, and it also blurs that content. The blur depends on the
+fraction. A whole-pixel position gets none, and a half-pixel position
+gets the most. So the stretched image differs from a true
+stretch, by an amount that follows each point's fractional position.
+Any tracker reads that difference as a position-dependent error. The
+table below measures how large.</p>
+<p>A quintic spline has no fraction-dependent blur like bilinear
+interpolation's. It builds a second version of the same 2% stretch.
+Tracking both versions shows how much of each tracker's error came
+from the image:</p>
+<div class="table-wrapper"><table><thead><tr><th>Current image</th><th>Tracker</th><th>Std <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error (px)</th><th>Std <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> (µε)</th></tr></thead><tbody>
+<tr><td>bilinear (<code>image.stretch</code>)</td><td><code>locate_subpixel</code></td><td>0.1091</td><td>16531</td></tr>
+<tr><td>bilinear (<code>image.stretch</code>)</td><td><code>locate_warp</code></td><td>0.0080</td><td>1161</td></tr>
+<tr><td>quintic spline</td><td><code>locate_subpixel</code></td><td>0.0568</td><td>10274</td></tr>
+<tr><td>quintic spline</td><td><code>locate_warp</code></td><td>0.0015</td><td>260</td></tr>
+</tbody></table>
+</div>
+<p>With the quintic-spline image, <code>locate_warp</code>'s <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error falls from 0.008 px
+to 0.0015 px. Its strain spread falls from 1161 to 260 microstrain. Removing
+the generator's distortion cuts IC-GN's <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error by a factor of 5. <code>locate_subpixel</code> improves
+too, from 0.109 px to 0.057 px, but its strain spread stays above 10000
+microstrain. About half of phase correlation's error came from the
+generator. The other half belongs to the tracker.</p>
+<p>Every other figure on this page keeps <code>image.stretch</code>. VIC-2D measured
+those same bilinear images, so the comparison with VIC-2D stays fair.
+<code>dictk</code>'s own tests of fractional translation avoid the generator
+entirely. They shift a smoothed speckle image by an exact fraction of
+a pixel, in the Fourier domain. There, <code>locate_warp</code> recovers every
+tested shift to within 0.005 px, and beats <code>locate_subpixel</code> every
+time.</p>
+<p>Continue to <a href="./timing_at_scale.html">Timing at Scale</a> for how tracking
+time grows with point count.</p>
+<h3 id="kernel_warping_pixel_lockingpy"><a class="header" href="#kernel_warping_pixel_lockingpy"><code>kernel_warping_pixel_locking.py</code></a></h3>
+<pre><code class="language-python">"""Pixel locking: `grid.locate_subpixel`'s own x-error against each
+point's known true position, at High Point Density's full 53x54 grid.
+Plots the error against the true position's fractional part, and along
+one row of the grid.
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from dictk.grid import generate, locate_subpixel
+from dictk.image import PixelCoordinate, read, stretch
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+
+FACTOR_X = 1.02
+
+reference_image = read(path="astronaut0.png")
+current_image = stretch(arr=reference_image, factor_x=FACTOR_X)
+points = generate(
+    origin=PixelCoordinate(x=18, y=16),
+    count_x=53,
+    count_y=54,
+    spacing_x=5,
+    spacing_y=5,
+)
+found = locate_subpixel(
+    reference_image=reference_image,
+    current_image=current_image,
+    reference_points=points,
+    kernel_margin_width=13,
+    kernel_margin_height=13,
+    search_margin_width=25,
+    search_margin_height=25,
+    upsample_factor=100,
+)
+
+true_x = np.array([p.x * FACTOR_X for p in points])
+error_x = np.array([f.x for f in found]) - true_x
+error_y = np.array([f.y - p.y for f, p in zip(found, points)])
+fraction = true_x % 1
+
+print(f"* x error: mean {error_x.mean():+.4f} px, std {error_x.std():.4f} px")
+print(f"* y error: mean {error_y.mean():+.4f} px, std {error_y.std():.4f} px")
+
+row = 27
+rows = error_x.reshape(54, 53)
+row_mean = rows.mean(axis=0)
+correlations = [np.corrcoef(r, row_mean)[0, 1] for r in rows]
+print()
+print(
+    f"Each row's x error vs. the all-row mean: correlation "
+    f"{min(correlations):.2f} to {max(correlations):.2f}; "
+    f"row {row} (y = {points[row * 53].y} px): {correlations[row]:.2f}"
+)
+
+bins = np.linspace(0, 1, 11)
+centers = (bins[:-1] + bins[1:]) / 2
+means = [
+    error_x[(fraction &gt;= a) &amp; (fraction &lt; b)].mean() for a, b in zip(bins, bins[1:])
+]
+
+fig, (left, right) = plt.subplots(1, 2, figsize=(10, 4), constrained_layout=True)
+left.scatter(fraction, error_x, s=2, color="gray", alpha=0.4)
+left.plot(centers, means, color="black", marker="o")
+left.axhline(0, color="red", linestyle="--", linewidth=1)
+left.set_xlabel(r"fractional part of true $x$ (px)")
+left.set_ylabel(r"$x$ error (px)")
+
+row_x = true_x.reshape(54, 53)[row]
+right.plot(row_x, error_x.reshape(54, 53)[row], color="black", marker=".")
+right.axhline(0, color="red", linestyle="--", linewidth=1)
+for boundary in np.arange(np.ceil(row_x[0]), row_x[-1], 50 * FACTOR_X):
+    right.axvline(boundary, color="gray", linestyle=":", linewidth=1)
+right.set_xlabel(r"true $x$ (px)")
+right.set_ylabel(r"$x$ error (px)")
+
+fig.savefig("kernel_warping_pixel_locking.png", dpi=300)
+print()
+print("Saved: kernel_warping_pixel_locking.png")
+</code></pre>
+<h3 id="kernel_warping_panelspy"><a class="header" href="#kernel_warping_panelspy"><code>kernel_warping_panels.py</code></a></h3>
+<pre><code class="language-python">"""Side-by-side illustration of the kernel `locate`/`locate_subpixel`
+match (left) against the kernel `locate_warp` warps (right), on one
+point under an exaggerated affine deformation.
+
+First sweeps 30 random fractional shifts under that deformation and
+reports each function's median error. The figure then uses the shift
+whose three errors sit closest to those medians, so the example is
+typical, not hand-picked.
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.patches import Polygon
+from scipy.ndimage import affine_transform
+
+from dictk import translation, warp
+from dictk.image import PixelCoordinate, read
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+
+# Deformation gradient in (x, y) order: 7% stretch along x plus 0.05
+# shear, exaggerated beyond this page's 2% so the warp is visible, with
+# distinct values so each one is easy to spot in the printed matrices.
+# 15% with 0.15 shear defeats the whole-pixel starting match for about
+# a third of shifts; 7% with 0.05 shear defeats none of the 30 below.
+F = np.array([[1.07, 0.05], [0.0, 1.0]])
+POINT = PixelCoordinate(x=150, y=150)
+MARGIN = 13
+SEARCH_MARGIN = 25
+SHIFT_COUNT = 30
+DOT_COUNT = 10
+ZOOM = 34
+
+reference_image = read(path="astronaut0.png")
+pivot = np.array([POINT.x, POINT.y], dtype=np.float64)
+# affine_transform maps each output (row, column) back to its input
+# position, so it takes the inverse deformation, in (y, x) order.
+inverse = np.linalg.inv(F)[::-1, ::-1]
+
+
+def deformed(shift):
+    offset = pivot[::-1] - inverse @ (pivot[::-1] + shift[::-1])
+    return affine_transform(
+        reference_image.astype(np.float64), inverse, offset=offset, order=5
+    )
+
+
+def tracked(current_image):
+    kwargs = dict(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_point=POINT,
+        search_center=POINT,
+        kernel_margin_width=MARGIN,
+        kernel_margin_height=MARGIN,
+        search_margin_width=SEARCH_MARGIN,
+        search_margin_height=SEARCH_MARGIN,
+    )
+    return (
+        translation.locate(**kwargs),
+        translation.locate_subpixel(**kwargs),
+        warp.locate(**kwargs),
+        warp.fit(**kwargs),
+    )
+
+
+names = ["`locate`", "`locate_subpixel`", "`locate_warp`"]
+# Rounded to 0.01 px, so each shift prints exactly as used.
+shifts = np.round(
+    np.random.default_rng(0).uniform([4, 2], [8, 6], size=(SHIFT_COUNT, 2)), 2
+)
+errors = np.array(
+    [
+        [
+            np.hypot(*(np.array([f.x, f.y]) - pivot - shift))
+            for f in tracked(deformed(shift))[:3]
+        ]
+        for shift in shifts
+    ]
+)
+medians = np.median(errors, axis=0)
+print(f"Across {SHIFT_COUNT} random fractional shifts:")
+print()
+print("| Function | Smallest error (px) | Median error (px) | Largest error (px) |")
+print("|---|---|---|---|")
+for name, smallest, median, largest in zip(
+    names, errors.min(axis=0), medians, errors.max(axis=0)
+):
+    print(f"| {name} | {smallest:.3f} | {median:.3f} | {largest:.3f} |")
+
+typical = int(np.argmin((np.abs(errors - medians) / medians).sum(axis=1)))
+TRANSLATION = shifts[typical]
+current_image = deformed(TRANSLATION)
+true_position = pivot + TRANSLATION
+found_locate, found_subpixel, found_warp, fitted = tracked(current_image)
+
+print()
+print(
+    f"The most typical shift, ({TRANSLATION[0]:.2f}, {TRANSLATION[1]:.2f}) px, "
+    f"puts the true position at ({true_position[0]:.2f}, {true_position[1]:.2f}):"
+)
+print()
+print("| Function | Found $x$ | Found $y$ | Error (px) |")
+print("|---|---|---|---|")
+for name, found in zip(names, [found_locate, found_subpixel, found_warp]):
+    error = np.hypot(found.x - true_position[0], found.y - true_position[1])
+    print(f"| {name} | {found.x:.3f} | {found.y:.3f} | {error:.3f} |")
+
+rigid = np.array(
+    [
+        [1.0, 0.0, found_subpixel.x - POINT.x],
+        [0.0, 1.0, found_subpixel.y - POINT.y],
+        [0.0, 0.0, 1.0],
+    ]
+)
+true = np.eye(3)
+true[:2, :2] = F
+true[:2, 2] = TRANSLATION
+
+
+def latex(matrix, exact):
+    """`matrix` as a LaTeX bmatrix. Entries where `exact` is True are
+    fixed by construction and print as given (`1`, `0`, `1.15`), not
+    padded to four decimals."""
+    rows = [
+        " &amp; ".join(
+            f"{value:g}" if fixed else f"{value:.4f}"
+            for value, fixed in zip(row, fixed_row)
+        )
+        for row, fixed_row in zip(matrix, exact)
+    ]
+    return "\\begin{bmatrix}" + " \\\\ ".join(rows) + "\\end{bmatrix}"
+
+
+bottom_row = np.zeros((3, 3), dtype=bool)
+bottom_row[2] = True
+rigid_exact = bottom_row.copy()
+rigid_exact[:2, :2] = True
+for name, matrix, exact, note in [
+    (r"locate\_subpixel", rigid, rigid_exact, r" \quad (u_x = u_y = v_x = v_y = 0)"),
+    (r"locate\_warp", fitted, bottom_row, ""),
+    ("true", true, np.ones((3, 3), dtype=bool), ""),
+]:
+    print()
+    print("$$")
+    print(f"\\boldsymbol{{W}}_\\text{{{name}}} = {latex(matrix, exact)}{note}")
+    print("$$")
+
+offsets = np.linspace(-MARGIN, MARGIN, DOT_COUNT)
+grid = np.array([(dx, dy) for dy in offsets for dx in offsets])
+square = np.array(
+    [[-MARGIN, -MARGIN], [MARGIN, -MARGIN], [MARGIN, MARGIN], [-MARGIN, MARGIN]]
+)
+
+fig, (left, right) = plt.subplots(1, 2, figsize=(10, 5.2), constrained_layout=True)
+for ax in (left, right):
+    ax.imshow(current_image, cmap="gray", vmin=0, vmax=255)
+    ax.set_xlim(pivot[0] - ZOOM, pivot[0] + ZOOM)
+    ax.set_ylim(pivot[1] + ZOOM, pivot[1] - ZOOM)
+    ax.set_xlabel("x (pixels)")
+    ax.set_ylabel("y (pixels)")
+    ax.add_patch(
+        Polygon(
+            pivot + square,
+            fill=False,
+            edgecolor="white",
+            linestyle="--",
+            linewidth=1.5,
+        )
+    )
+    ax.plot(*true_position, marker="+", color="red", markersize=14, mew=2)
+
+for ax, found, corners, dots, title in [
+    (
+        left,
+        found_subpixel,
+        square,
+        grid,
+        "locate, locate_subpixel: rigid square kernel",
+    ),
+    (
+        right,
+        found_warp,
+        square @ fitted[:2, :2].T,
+        grid @ fitted[:2, :2].T,
+        "locate_warp: affine-warped kernel",
+    ),
+]:
+    center = np.array([found.x, found.y])
+    ax.annotate(
+        "",
+        xy=center,
+        xytext=pivot,
+        arrowprops=dict(arrowstyle="-|&gt;", color="orange", linewidth=2),
+    )
+    ax.add_patch(Polygon(center + corners, fill=False, edgecolor="orange", linewidth=2))
+    ax.scatter(*(center + dots).T, s=8, color="orange")
+    ax.set_title(title)
+
+fig.savefig("kernel_warping_panels.png", dpi=300)
+</code></pre>
+<h3 id="kernel_warping_biaspy"><a class="header" href="#kernel_warping_biaspy"><code>kernel_warping_bias.py</code></a></h3>
+<pre><code class="language-python">"""The same fractional-position error curve as
+kernel_warping_pixel_locking.py, for both `grid.locate_subpixel` and
+`grid.locate_warp`, on the same axes.
+"""
+
+import time
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from dictk.grid import generate, locate_subpixel, locate_warp
+from dictk.image import PixelCoordinate, read, stretch
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+
+FACTOR_X = 1.02
+
+reference_image = read(path="astronaut0.png")
+current_image = stretch(arr=reference_image, factor_x=FACTOR_X)
+points = generate(
+    origin=PixelCoordinate(x=18, y=16),
+    count_x=53,
+    count_y=54,
+    spacing_x=5,
+    spacing_y=5,
+)
+kwargs = dict(
+    reference_image=reference_image,
+    current_image=current_image,
+    reference_points=points,
+    kernel_margin_width=13,
+    kernel_margin_height=13,
+    search_margin_width=25,
+    search_margin_height=25,
+)
+
+true_x = np.array([p.x * FACTOR_X for p in points])
+fraction = true_x % 1
+bins = np.linspace(0, 1, 11)
+centers = (bins[:-1] + bins[1:]) / 2
+
+fig, ax = plt.subplots(figsize=(7, 4), constrained_layout=True)
+print(
+    "| Tracker | Time (s) | Mean $x$ error (px) | Std $x$ error (px) | Max \\|$x$ error\\| (px) |"
+)
+print("|---|---|---|---|---|")
+for name, locate, extra, marker in [
+    ("`locate_subpixel`", locate_subpixel, dict(upsample_factor=100), "o"),
+    ("`locate_warp`", locate_warp, {}, "s"),
+]:
+    start = time.perf_counter()
+    found = locate(**kwargs, **extra)
+    elapsed = time.perf_counter() - start
+    error_x = np.array([f.x for f in found]) - true_x
+    print(
+        f"| {name} | {elapsed:.1f} | {error_x.mean():+.4f} | {error_x.std():.4f} "
+        f"| {np.abs(error_x).max():.4f} |"
+    )
+    means = [
+        error_x[(fraction &gt;= a) &amp; (fraction &lt; b)].mean() for a, b in zip(bins, bins[1:])
+    ]
+    ax.plot(centers, means, color="black", marker=marker, label=name.strip("`"))
+ax.axhline(0, color="red", linestyle="--", linewidth=1)
+ax.set_xlabel(r"fractional part of true $x$ (px)")
+ax.set_ylabel(r"mean $x$ error (px)")
+ax.legend(frameon=False)
+fig.savefig("kernel_warping_bias.png", dpi=300)
+</code></pre>
+<h3 id="kernel_warping_strainpy"><a class="header" href="#kernel_warping_strainpy"><code>kernel_warping_strain.py</code></a></h3>
+<pre><code class="language-python">"""High Point Density's own strain pipeline, rerun on `grid.locate_warp`
+positions: a summary table against `grid.locate_subpixel` and VIC-2D,
+the field on VIC-2D's own colorbar, and the distribution against
+VIC-2D's own.
+"""
+
+import csv
+
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.colors import ListedColormap
+
+from dictk.element import gauss_point_coordinates, gauss_point_log_strains
+from dictk.grid import elements, generate, locate_subpixel, locate_warp
+from dictk.image import PixelCoordinate, read, stretch
+from dictk.plot import element_strain_plot
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+
+FACTOR_X = 1.02
+VMIN, VMAX = 17560, 22360
+
+reference_image = read(path="astronaut0.png")
+current_image = stretch(arr=reference_image, factor_x=FACTOR_X)
+points = generate(
+    origin=PixelCoordinate(x=18, y=16),
+    count_x=53,
+    count_y=54,
+    spacing_x=5,
+    spacing_y=5,
+)
+kwargs = dict(
+    reference_image=reference_image,
+    current_image=current_image,
+    reference_points=points,
+    kernel_margin_width=13,
+    kernel_margin_height=13,
+    search_margin_width=25,
+    search_margin_height=25,
+)
+element_indices = elements(count_x=53, count_y=54)
+
+
+def strains(found):
+    values, coordinates = [], []
+    for element in element_indices:
+        current_corners = [found[i] for i in element]
+        values.extend(
+            strain[0, 0]
+            for strain in gauss_point_log_strains(
+                reference_points=[points[i] for i in element],
+                current_points=current_corners,
+            )
+        )
+        coordinates.extend(gauss_point_coordinates(points=current_corners))
+    return np.array(values) * 1e6, coordinates
+
+
+phase, _ = strains(locate_subpixel(**kwargs, upsample_factor=100))
+found = locate_warp(**kwargs)
+warp, coordinates = strains(found)
+
+with open("../verification/simple_stretch_vic_out.csv") as f:
+    rows = [{k.strip(' "'): v for k, v in row.items()} for row in csv.DictReader(f)]
+vic = np.array([float(r["exx"]) * 1e6 for r in rows if float(r["sigma"]) != -1])
+analytical = np.log(FACTOR_X) * 1e6
+
+print(
+    f"| Source | Mean (µε) | Std (µε) | Min (µε) | Max (µε) | Inside [{VMIN}, {VMAX}] |"
+)
+print("|---|---|---|---|---|---|")
+for name, values in [
+    ("`locate_subpixel` + Q4", phase),
+    ("`locate_warp` + Q4", warp),
+    ("VIC-2D", vic),
+]:
+    inside = np.mean((values &gt;= VMIN) &amp; (values &lt;= VMAX)) * 100
+    print(
+        f"| {name} | {values.mean():.0f} | {values.std():.0f} | {values.min():.0f} "
+        f"| {values.max():.0f} | {inside:.1f}% |"
+    )
+print(f"| Analytical, $\\ln(1.02)$ | {analytical:.0f} | 0 | | | |")
+
+vic2d_cmap = ListedColormap(
+    [
+        (0.8314, 0.0000, 1.0000),
+        (0.5176, 0.0000, 1.0000),
+        (0.1843, 0.0000, 1.0000),
+        (0.0000, 0.1333, 1.0000),
+        (0.0000, 0.4510, 1.0000),
+        (0.0000, 0.7843, 1.0000),
+        (0.0000, 1.0000, 0.8980),
+        (0.0000, 1.0000, 0.5843),
+        (0.0000, 1.0000, 0.2510),
+        (0.0667, 1.0000, 0.0000),
+        (0.3843, 1.0000, 0.0000),
+        (0.7176, 1.0000, 0.0000),
+        (1.0000, 0.9686, 0.0000),
+        (1.0000, 0.6510, 0.0000),
+        (1.0000, 0.3176, 0.0000),
+        (1.0000, 0.0000, 0.0000),
+    ]
+)
+element_strain_plot(
+    points=found,
+    elements=element_indices,
+    coordinates=coordinates,
+    values=warp,
+    label=r"Log Strain, $E_{11}$ (microstrain)",
+    image=current_image,
+    dot_size=6,
+    marker="s",
+    show_mesh_lines=False,
+    cmap=vic2d_cmap,
+    vmin=VMIN,
+    vmax=VMAX,
+    figsize=(6.9, 6.0),
+    path="kernel_warping_strain_vic_colorbar.png",
+)
+
+fig, ax = plt.subplots(figsize=(7, 4), constrained_layout=True)
+bins = np.linspace(min(warp.min(), vic.min()), max(warp.max(), vic.max()), 61)
+ax.hist(
+    warp,
+    bins=bins,
+    density=True,
+    color="gray",
+    alpha=0.8,
+    label="dictk.grid.locate_warp",
+)
+ax.hist(vic, bins=bins, density=True, histtype="step", color="black", label="VIC-2D")
+ax.axvline(analytical, color="red", linestyle="--", linewidth=1.5)
+ax.set_xlabel(r"Log strain $E_{11}$ (microstrain)")
+ax.set_ylabel("density")
+ax.legend(loc="lower center", bbox_to_anchor=(0.5, 1.0), ncol=2, frameon=False)
+fig.savefig("kernel_warping_strain_histogram.png", dpi=300)
+</code></pre>
+<h3 id="kernel_warping_generatorpy"><a class="header" href="#kernel_warping_generatorpy"><code>kernel_warping_generator.py</code></a></h3>
+<pre><code class="language-python">"""The same 2% stretch, generated two ways: `dictk.image.stretch`'s own
+bilinear interpolation, and a quintic spline. Tracks both with
+`grid.locate_subpixel` and `grid.locate_warp`, then reports each
+combination's x error and E11 spread.
+"""
+
+import numpy as np
+from scipy.ndimage import map_coordinates
+
+from dictk.element import gauss_point_log_strains
+from dictk.grid import elements, generate, locate_subpixel, locate_warp
+from dictk.image import PixelCoordinate, read, stretch
+
+FACTOR_X = 1.02
+
+reference_image = read(path="astronaut0.png")
+height, width = reference_image.shape
+ys, xs = np.mgrid[0:height, 0:width].astype(np.float64)
+generators = {
+    "bilinear (`image.stretch`)": stretch(arr=reference_image, factor_x=FACTOR_X),
+    "quintic spline": map_coordinates(
+        reference_image.astype(np.float64), [ys, xs / FACTOR_X], order=5
+    ),
+}
+points = generate(
+    origin=PixelCoordinate(x=18, y=16),
+    count_x=53,
+    count_y=54,
+    spacing_x=5,
+    spacing_y=5,
+)
+element_indices = elements(count_x=53, count_y=54)
+true_x = np.array([p.x * FACTOR_X for p in points])
+
+print("| Current image | Tracker | Std $x$ error (px) | Std $E_{11}$ (µε) |")
+print("|---|---|---|---|")
+for generator, current_image in generators.items():
+    for name, locate, extra in [
+        ("`locate_subpixel`", locate_subpixel, dict(upsample_factor=100)),
+        ("`locate_warp`", locate_warp, {}),
+    ]:
+        found = locate(
+            reference_image=reference_image,
+            current_image=current_image,
+            reference_points=points,
+            kernel_margin_width=13,
+            kernel_margin_height=13,
+            search_margin_width=25,
+            search_margin_height=25,
+            **extra,
+        )
+        error_x = np.array([f.x for f in found]) - true_x
+        strains = np.array(
+            [
+                strain[0, 0]
+                for element in element_indices
+                for strain in gauss_point_log_strains(
+                    reference_points=[points[i] for i in element],
+                    current_points=[found[i] for i in element],
+                )
+            ]
+        )
+        print(
+            f"| {generator} | {name} | {error_x.std():.4f} "
+            f"| {strains.std() * 1e6:.0f} |"
+        )
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../getting_started/high_point_density.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../getting_started/timing_at_scale.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../getting_started/high_point_density.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../getting_started/timing_at_scale.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>
