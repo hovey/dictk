@@ -283,8 +283,7 @@ a pixel, in the Fourier domain. There, `locate_warp` recovers every
 tested shift to within 0.005 px, and beats `locate_subpixel` every
 time.
 
-Continue to [Timing at Scale](./timing_at_scale.md) for how tracking
-time grows with point count.
+Continue to [Strain Window](./strain_window.md).
 
 ### `kernel_warping_pixel_locking.py`
 

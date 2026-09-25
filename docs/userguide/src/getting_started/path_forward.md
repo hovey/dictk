@@ -542,3 +542,16 @@ Postponed item above.
 `dictk.grid.locate_warp`. On the 2862-point grid it took 1.9 s,
 against `locate_subpixel`'s 1.7 s. The strain window moves to
 Postponed above. 409 tests (380 + 29).
+
+## 2026-09-25
+
+**Chapters reordered.** The chapter that held Subpixel Accuracy, High
+Point Density, and Kernel Warping was named Parallelization, although
+none of those three pages is about speed. It is now 9 Prediction
+Improvement, with a new placeholder page, 9.4 Strain Window, for the
+Postponed strain-window item above. Parallelization becomes chapter 10,
+with Timing at Scale (10.1, was 9.4) and Parallelism with PyTorch
+(10.2, was 9.5). Discontinuities moves from 10 to 11, Path Forward
+from 11 to 12, and Contributing from 12 to 13. Dated entries above
+keep the numbers that were current when they were written.
+

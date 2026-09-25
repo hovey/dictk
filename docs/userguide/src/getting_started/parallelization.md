@@ -1,6 +1,6 @@
 # Parallelization
 
-[Multi-Point Motion](./multi_point_motion.md#tracking-the-grid) just ran 12
+[Multi-Point Motion](./multi_point_motion.md#tracking-the-grid) ran 12
 independent calls to
 [`dictk.translation.locate`](../api/dictk/translation.html#locate) — one
 per point, each doing its own FFT-based phase correlation — to verify
