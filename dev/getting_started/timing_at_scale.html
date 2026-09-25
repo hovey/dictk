@@ -341,9 +341,9 @@ alongside the script that produced them:</p>
 <tr><td style="text-align: right;">10204</td><td style="text-align: right;">3,229,209</td><td style="text-align: right;">—</td><td style="text-align: right;">timeout (1800s)</td><td style="text-align: right;">—</td></tr>
 </tbody>
 </table>
-<figure>
+<figure id="figure-9.4-1">
     <img src="timing_at_scale_bench.png" alt="two log-log panels: left shows rosta generation and stretch cost climbing smoothly from under 0.01s to about 10s as image width grows from 300 to 10204px; right shows tracking cost in seconds vs. point count for sequential, threads, and processes, with processes stopping at about 95000 points, sequential stopping around 1000000 points, and threads reaching the highest point count before also stopping" />
-    <figcaption>Image generation and tracking cost across the full ladder, this machine, measured once. Left: <code>rosta</code> generation and <code>stretch</code> both scale smoothly with image width, confirming the dot-size rescaling above kept generation cost from going cubic. Right: tracking cost vs. point count for all three executors. Every series ends where its own executor died — not at a common point count, and not at a common image size.</figcaption>
+    <figcaption><strong>Figure 9.4-1:</strong> Image generation and tracking cost across the full ladder, this machine, measured once. Left: <code>rosta</code> generation and <code>stretch</code> both scale smoothly with image width, confirming the dot-size rescaling above kept generation cost from going cubic. Right: tracking cost vs. point count for all three executors. Every series ends where its own executor died — not at a common point count, and not at a common image size.</figcaption>
 </figure>
 <p>Threads pull ahead as point count grows, and by a widening margin. At
 300px, threads and sequential run a statistical tie (0.999x) — 2,809

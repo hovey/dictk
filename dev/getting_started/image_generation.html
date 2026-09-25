@@ -264,10 +264,10 @@ options:
 </code></pre>
 <p>Note that the file name is automatically chosen based on the input parameters.</p>
 <p>The result:</p>
-<figure>
+<figure id="figure-4-1">
     <img src="rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png"
     alt="rosta speckle pattern" />
-    <figcaption>Synthetic speckle pattern, 200x200 pixels.</figcaption>
+    <figcaption><strong>Figure 4-1:</strong> Synthetic speckle pattern, 200x200 pixels.</figcaption>
 </figure>
 <p>The Python equivalent returns the same pixel data as a NumPy array, with no
 file written:</p>
@@ -310,9 +310,9 @@ options:
 </code></pre>
 <pre><code class="language-text">Saved image: checkerboard_200w_by_200h_8x8.png
 </code></pre>
-<figure>
+<figure id="figure-4-2">
     <img src="checkerboard_200w_by_200h_8x8.png" alt="checkerboard" />
-    <figcaption>Checkerboard test image, 200x200 pixels, 8x8 squares.</figcaption>
+    <figcaption><strong>Figure 4-2:</strong> Checkerboard test image, 200x200 pixels, 8x8 squares.</figcaption>
 </figure>
 <p>The Python equivalent, again returning an array with no file written:</p>
 <pre><code class="language-python">import dictk
@@ -355,9 +355,9 @@ start to lose too much detail:</p>
 </code></pre>
 <pre><code class="language-text">Saved image: astronaut_300w_by_300h.png
 </code></pre>
-<figure>
+<figure id="figure-4-3">
     <img src="astronaut_300w_by_300h.png" alt="astronaut" />
-    <figcaption>NASA portrait of astronaut Eileen Collins, resized to 300x300 pixels.</figcaption>
+    <figcaption><strong>Figure 4-3:</strong> NASA portrait of astronaut Eileen Collins, resized to 300x300 pixels.</figcaption>
 </figure>
 <p>The Python equivalent, again returning an array with no file written:</p>
 <pre><code class="language-python">import dictk
@@ -385,9 +385,9 @@ write(arr=checkerboard0, path="checkerboard0.png")
 </code></pre>
 <pre><code class="language-text">Saved image: checkerboard0.png
 </code></pre>
-<figure>
+<figure id="figure-4-4">
     <img src="checkerboard0.png" alt="reference image checkerboard0" />
-    <figcaption>Reference image checkerboard0, 200x200 pixels.</figcaption>
+    <figcaption><strong>Figure 4-4:</strong> Reference image checkerboard0, 200x200 pixels.</figcaption>
 </figure>
 <p>Because both inputs are averaged and rescaled together, the checkerboard's
 squares stay clearly black or white while the speckle pattern shows up as
@@ -415,10 +415,23 @@ histogram_save(arr=checkerboard0, path="checkerboard0_histogram.png")
 </code></pre>
 <pre><code class="language-text">Saved histograms: rosta_histogram.png, checkerboard_histogram.png, checkerboard0_histogram.png
 </code></pre>
-<div class="table-wrapper"><table><thead><tr><th>rosta</th><th>checkerboard</th><th>checkerboard0</th></tr></thead><tbody>
-<tr><td><img src="rosta_histogram.png" alt="rosta histogram" /></td><td><img src="checkerboard_histogram.png" alt="checkerboard histogram" /></td><td><img src="checkerboard0_histogram.png" alt="checkerboard0 histogram" /></td></tr>
-</tbody></table>
-</div>
+<figure id="fig-speckle-checkerboard-histograms">
+    <div class="figure-row">
+        <div>
+            <img src="rosta_histogram.png" alt="rosta histogram" />
+            <span>(a)</span>
+        </div>
+        <div>
+            <img src="checkerboard_histogram.png" alt="checkerboard histogram" />
+            <span>(b)</span>
+        </div>
+        <div>
+            <img src="checkerboard0_histogram.png" alt="checkerboard0 histogram" />
+            <span>(c)</span>
+        </div>
+    </div>
+    <figcaption><strong>Figure 4-5:</strong> Intensity histograms. (a) rosta. (b) checkerboard. (c) checkerboard0.</figcaption>
+</figure>
 <h3 id="speckle--astronaut"><a class="header" href="#speckle--astronaut">Speckle + Astronaut</a></h3>
 <p>The checkerboard above is a stand-in for an actual specimen — in a real
 DIC setup, the speckle pattern is applied directly to the surface being
@@ -440,9 +453,9 @@ write(arr=astronaut0, path="astronaut0.png")
 </code></pre>
 <pre><code class="language-text">Saved image: astronaut0.png
 </code></pre>
-<figure>
+<figure id="figure-4-6">
     <img src="astronaut0.png" alt="reference image astronaut0: rosta speckle over the astronaut photo" />
-    <figcaption>Reference image astronaut0: rosta speckle pattern combined with the astronaut photo, 300x300 pixels.</figcaption>
+    <figcaption><strong>Figure 4-6:</strong> Reference image astronaut0: rosta speckle pattern combined with the astronaut photo, 300x300 pixels.</figcaption>
 </figure>
 <p>Both <code>checkerboard0.png</code> and <code>astronaut0.png</code> are also bundled in
 <code>src/dictk/data/</code>, alongside the source <code>astronaut.png</code>, so later examples

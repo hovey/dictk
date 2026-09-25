@@ -192,11 +192,19 @@ A crack, a slip band, or a material
 interface can produce a genuine jump in displacement instead of a
 continuous displacement. <a href="./transformation.html#crack-dislocation">Image Transformation</a>
 already built exactly that jump:</p>
-<div class="table-wrapper"><table><thead><tr><th>Crack Dislocation</th><th>Image</th></tr></thead><tbody>
-<tr><td>Original</td><td><img src="astronaut_crack_plain_original.png" alt="original" /></td></tr>
-<tr><td>offset=4 pixels</td><td><img src="astronaut_crack_plain_dislocation.png" alt="crack dislocation" /></td></tr>
-</tbody></table>
-</div>
+<figure id="fig-crack-dislocation-repeat">
+    <div class="figure-row">
+        <div>
+            <img src="astronaut_crack_plain_original.png" alt="original" />
+            <span>(a)</span>
+        </div>
+        <div>
+            <img src="astronaut_crack_plain_dislocation.png" alt="crack dislocation" />
+            <span>(b)</span>
+        </div>
+    </div>
+    <figcaption><strong>Figure 10-1:</strong> Crack Dislocation, the same image pair as <a href="./transformation.html#fig-crack-dislocation">Figure 6-8</a>. (a) Original. (b) offset=4 pixels.</figcaption>
+</figure>
 <p>A vertical crack splits the image at its vertical midline. The left half
 shifts down 4 pixels. The right half shifts up 4 pixels. Standard DIC
 can't represent that jump.</p>

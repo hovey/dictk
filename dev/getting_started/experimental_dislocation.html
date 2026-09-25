@@ -206,7 +206,7 @@ write(arr=current_image, path="experimental_dislocation_current_preview.png")
 </code></pre>
 <pre><code class="language-text">Saved: experimental_dislocation_reference_preview.png, experimental_dislocation_current_preview.png
 </code></pre>
-<figure>
+<figure id="figure-10.2-1">
     <div style="display: flex; gap: 1em;">
         <a href="experimental_dislocation_reference_preview.png" target="_blank" rel="noopener" style="flex: 1 1 0; min-width: 0;">
             <img src="experimental_dislocation_reference_preview.png" alt="reference configuration: a real 512x512 experimental micrograph of a speckled surface, no crack visible" style="width: 100%;" />
@@ -215,7 +215,7 @@ write(arr=current_image, path="experimental_dislocation_current_preview.png")
             <img src="experimental_dislocation_current_preview.png" alt="deformed configuration: the same surface after loading, now showing a diagonal crack running through it from upper-left to lower-right" style="width: 100%;" />
         </a>
     </div>
-    <figcaption>Reference configuration (left) and deformed configuration (right), the same real image pair <a href="#data-download">downloaded above</a> (click either for the full-size version). No crack is visible in the reference image at all. It only appears in the deformed image, as a diagonal band running through the surface. Closed and invisible before loading, open and visible after.</figcaption>
+    <figcaption><strong>Figure 10.2-1:</strong> Reference configuration (left) and deformed configuration (right), the same real image pair <a href="#data-download">downloaded above</a> (click either for the full-size version). No crack is visible in the reference image at all. It only appears in the deformed image, as a diagonal band running through the surface. Closed and invisible before loading, open and visible after.</figcaption>
 </figure>
 <h2 id="a-window-straddling-the-real-crack"><a class="header" href="#a-window-straddling-the-real-crack">A Window Straddling the Real Crack</a></h2>
 <p>Unlike the synthetic case, the true displacement field here isn't known
@@ -250,9 +250,9 @@ spatial_correlation_quadrant_plot(
 </code></pre>
 <pre><code class="language-text">Saved: experimental_dislocation_zncc.png, experimental_dislocation_phase.png
 </code></pre>
-<figure>
+<figure id="figure-10.2-2">
     <img src="experimental_dislocation_zncc.png" alt="ZNCC quadrant plot on the real crack image pair: a bumpy, noisy correlation surface with two clearly-distinct bright peaks along the same column, well above a third, smaller local maximum and the general noise floor" />
-    <figcaption>ZNCC's Correlation Surface panel on real data: noisier throughout than <a href="./synthetic_dislocation.html">Synthetic Dislocation</a>'s near-flat background, as expected for real texture, but the same signature still stands out. Along the column through the tallest value, three local maxima appear at Δy = 9, 31, and 53 pixels, with heights 0.09, 0.19, and 0.28. The two tallest, at Δy = 31 and 53, sit 22 pixels apart. Both clearly exceed the third peak and the surrounding noise, and both are comparably tall (0.19 vs. 0.28). They straddle the crack the same way <a href="./synthetic_dislocation.html">Synthetic Dislocation</a>'s did.</figcaption>
+    <figcaption><strong>Figure 10.2-2:</strong> ZNCC's Correlation Surface panel on real data: noisier throughout than <a href="./synthetic_dislocation.html">Synthetic Dislocation</a>'s near-flat background, as expected for real texture, but the same signature still stands out. Along the column through the tallest value, three local maxima appear at Δy = 9, 31, and 53 pixels, with heights 0.09, 0.19, and 0.28. The two tallest, at Δy = 31 and 53, sit 22 pixels apart. Both clearly exceed the third peak and the surrounding noise, and both are comparably tall (0.19 vs. 0.28). They straddle the crack the same way <a href="./synthetic_dislocation.html">Synthetic Dislocation</a>'s did.</figcaption>
 </figure>
 <h2 id="fft-on-real-texture-noisier-not-just-smaller"><a class="header" href="#fft-on-real-texture-noisier-not-just-smaller">FFT on Real Texture: Noisier, Not Just Smaller</a></h2>
 <pre><code class="language-python">phase_correlation_quadrant_plot(
@@ -261,9 +261,9 @@ spatial_correlation_quadrant_plot(
     path="experimental_dislocation_phase.png",
 )
 </code></pre>
-<figure>
+<figure id="figure-10.2-3">
     <img src="experimental_dislocation_phase.png" alt="Phase correlation quadrant plot on the same real crack image pair: a speckled, noisy correlation surface with no clean isolated peak, values an order of magnitude smaller than ZNCC's, and its single reported maximum sitting at a different position than ZNCC's own tallest peak" />
-    <figcaption>Phase correlation's Correlation Surface panel on the same window: speckled with noise across its entire extent, not the "flat except one sharp peak" pattern <a href="./correlation_visualization.html#phase-correlation">Phase Correlation</a> and <a href="./synthetic_dislocation.html">Synthetic Dislocation</a> both showed. Its single reported maximum, 0.04, is an order of magnitude below ZNCC's 0.28, and lands at a different position than ZNCC's own tallest peak.</figcaption>
+    <figcaption><strong>Figure 10.2-3:</strong> Phase correlation's Correlation Surface panel on the same window: speckled with noise across its entire extent, not the "flat except one sharp peak" pattern <a href="./correlation_visualization.html#phase-correlation">Phase Correlation</a> and <a href="./synthetic_dislocation.html">Synthetic Dislocation</a> both showed. Its single reported maximum, 0.04, is an order of magnitude below ZNCC's 0.28, and lands at a different position than ZNCC's own tallest peak.</figcaption>
 </figure>
 <p>Both criteria agreed exactly on synthetic data. They don't here. Real,
 non-periodic texture is exactly the case

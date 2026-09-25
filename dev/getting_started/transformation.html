@@ -184,10 +184,10 @@
 <p>Image deformations, also called <em>transformations</em> in the computer vision
 literature (see Szeliski<sup class="footnote-reference" id="fr-Szeliski_2022-1"><a href="#footnote-Szeliski_2022">1</a></sup>), fall into the categories shown
 below:</p>
-<figure>
+<figure id="figure-6-1">
     <img src="2d-planar-transformations.jpg" alt="2d-planar-transformations" />
     <figcaption>
-        Figure: Categories of 2D planar transformations from Szeliski.
+        <strong>Figure 6-1:</strong> Categories of 2D planar transformations from Szeliski.
     </figcaption>
 </figure>
 <p>Each category preserves a different, nested set of geometric properties
@@ -218,11 +218,19 @@ write(arr=translated, path="astronaut_translate_rigid_body.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_translate_original.png, astronaut_translate_rigid_body.png
 </code></pre>
-<div class="table-wrapper"><table><thead><tr><th>Translation</th><th>Image</th></tr></thead><tbody>
-<tr><td>Original</td><td><img src="astronaut_translate_original.png" alt="original" /></td></tr>
-<tr><td>dx=-60, dy=+80</td><td><img src="astronaut_translate_rigid_body.png" alt="rigid-body translation" /></td></tr>
-</tbody></table>
-</div>
+<figure id="figure-6-2">
+    <div class="figure-row">
+        <div>
+            <img src="astronaut_translate_original.png" alt="original" />
+            <span>(a)</span>
+        </div>
+        <div>
+            <img src="astronaut_translate_rigid_body.png" alt="rigid-body translation" />
+            <span>(b)</span>
+        </div>
+    </div>
+    <figcaption><strong>Figure 6-2:</strong> Translation. (a) Original. (b) dx=-60, dy=+80.</figcaption>
+</figure>
 <h2 id="pure-rotation"><a class="header" href="#pure-rotation">Pure Rotation</a></h2>
 <p>A 30° counterclockwise rotation, another rigid-body motion that preserves
 distances and angles.
@@ -242,11 +250,19 @@ write(arr=rotated, path="astronaut_rotate_30deg.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_rotate_original.png, astronaut_rotate_30deg.png
 </code></pre>
-<div class="table-wrapper"><table><thead><tr><th>Rotation</th><th>Image</th></tr></thead><tbody>
-<tr><td>Original</td><td><img src="astronaut_rotate_original.png" alt="original" /></td></tr>
-<tr><td>30° (origin-pivoted)</td><td><img src="astronaut_rotate_30deg.png" alt="30 degree rotation" /></td></tr>
-</tbody></table>
-</div>
+<figure id="figure-6-3">
+    <div class="figure-row">
+        <div>
+            <img src="astronaut_rotate_original.png" alt="original" />
+            <span>(a)</span>
+        </div>
+        <div>
+            <img src="astronaut_rotate_30deg.png" alt="30 degree rotation" />
+            <span>(b)</span>
+        </div>
+    </div>
+    <figcaption><strong>Figure 6-3:</strong> Rotation. (a) Original. (b) 30° (origin-pivoted).</figcaption>
+</figure>
 <h2 id="x-axis-stretch-extension"><a class="header" href="#x-axis-stretch-extension">X-Axis Stretch (Extension)</a></h2>
 <p>As a concrete example of the <em>similarity</em> category above,
 <a href="../api/dictk/image.html#stretch"><code>dictk.image.stretch</code></a> applies a
@@ -271,12 +287,23 @@ write(arr=stretch_50pct, path="astronaut_stretch_x_50pct.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_stretch_original.png, astronaut_stretch_x_5pct.png, astronaut_stretch_x_50pct.png
 </code></pre>
-<div class="table-wrapper"><table><thead><tr><th>Stretch</th><th>Image</th></tr></thead><tbody>
-<tr><td>Original</td><td><img src="astronaut_stretch_original.png" alt="original" /></td></tr>
-<tr><td>5% (factor_x=1.05)</td><td><img src="astronaut_stretch_x_5pct.png" alt="5% x-axis stretch" /></td></tr>
-<tr><td>50% (factor_x=1.50)</td><td><img src="astronaut_stretch_x_50pct.png" alt="50% x-axis stretch" /></td></tr>
-</tbody></table>
-</div>
+<figure id="figure-6-4">
+    <div class="figure-row">
+        <div>
+            <img src="astronaut_stretch_original.png" alt="original" />
+            <span>(a)</span>
+        </div>
+        <div>
+            <img src="astronaut_stretch_x_5pct.png" alt="5% x-axis stretch" />
+            <span>(b)</span>
+        </div>
+        <div>
+            <img src="astronaut_stretch_x_50pct.png" alt="50% x-axis stretch" />
+            <span>(c)</span>
+        </div>
+    </div>
+    <figcaption><strong>Figure 6-4:</strong> Stretch. (a) Original. (b) 5% (factor_x=1.05). (c) 50% (factor_x=1.50).</figcaption>
+</figure>
 <h2 id="y-axis-stretch-compression"><a class="header" href="#y-axis-stretch-compression">Y-Axis Stretch (Compression)</a></h2>
 <p>The same <a href="../api/dictk/image.html#stretch"><code>dictk.image.stretch</code></a>
 function compresses along the y-axis with <code>factor_y &lt; 1.0</code>. Pivoting on
@@ -298,12 +325,23 @@ write(arr=compress_neg50pct, path="astronaut_compress_y_neg50pct.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_compress_original.png, astronaut_compress_y_neg5pct.png, astronaut_compress_y_neg50pct.png
 </code></pre>
-<div class="table-wrapper"><table><thead><tr><th>Compression</th><th>Image</th></tr></thead><tbody>
-<tr><td>Original</td><td><img src="astronaut_compress_original.png" alt="original" /></td></tr>
-<tr><td>-5% (factor_y=0.95)</td><td><img src="astronaut_compress_y_neg5pct.png" alt="-5% y-axis compression" /></td></tr>
-<tr><td>-50% (factor_y=0.50)</td><td><img src="astronaut_compress_y_neg50pct.png" alt="-50% y-axis compression" /></td></tr>
-</tbody></table>
-</div>
+<figure id="figure-6-5">
+    <div class="figure-row">
+        <div>
+            <img src="astronaut_compress_original.png" alt="original" />
+            <span>(a)</span>
+        </div>
+        <div>
+            <img src="astronaut_compress_y_neg5pct.png" alt="-5% y-axis compression" />
+            <span>(b)</span>
+        </div>
+        <div>
+            <img src="astronaut_compress_y_neg50pct.png" alt="-50% y-axis compression" />
+            <span>(c)</span>
+        </div>
+    </div>
+    <figcaption><strong>Figure 6-5:</strong> Compression. (a) Original. (b) -5% (factor_y=0.95). (c) -50% (factor_y=0.50).</figcaption>
+</figure>
 <h2 id="simple-shear"><a class="header" href="#simple-shear">Simple Shear</a></h2>
 <p>A shear deformation with γ = 0.5, where horizontal planes slide relative
 to each other by an amount proportional to their y-coordinate — the
@@ -322,11 +360,19 @@ write(arr=sheared, path="astronaut_shear_x_0.5.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_shear_original.png, astronaut_shear_x_0.5.png
 </code></pre>
-<div class="table-wrapper"><table><thead><tr><th>Shear</th><th>Image</th></tr></thead><tbody>
-<tr><td>Original</td><td><img src="astronaut_shear_original.png" alt="original" /></td></tr>
-<tr><td>γ = 0.5 (shear_x=0.5)</td><td><img src="astronaut_shear_x_0.5.png" alt="simple shear" /></td></tr>
-</tbody></table>
-</div>
+<figure id="figure-6-6">
+    <div class="figure-row">
+        <div>
+            <img src="astronaut_shear_original.png" alt="original" />
+            <span>(a)</span>
+        </div>
+        <div>
+            <img src="astronaut_shear_x_0.5.png" alt="simple shear" />
+            <span>(b)</span>
+        </div>
+    </div>
+    <figcaption><strong>Figure 6-6:</strong> Shear. (a) Original. (b) γ = 0.5 (shear_x=0.5).</figcaption>
+</figure>
 <h2 id="complex-deformation"><a class="header" href="#complex-deformation">Complex Deformation</a></h2>
 <p>Combines rotation (15°) with anisotropic stretching (1.3x in x, 0.8x in
 y) — realistic loading scenarios where materials experience multiple
@@ -348,11 +394,19 @@ write(arr=combined, path="astronaut_complex_deform.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_complex_original.png, astronaut_complex_deform.png
 </code></pre>
-<div class="table-wrapper"><table><thead><tr><th>Composed Deformation</th><th>Image</th></tr></thead><tbody>
-<tr><td>Original</td><td><img src="astronaut_complex_original.png" alt="original" /></td></tr>
-<tr><td>factor_x=1.3, factor_y=0.8, angle=15°</td><td><img src="astronaut_complex_deform.png" alt="composed deformation" /></td></tr>
-</tbody></table>
-</div>
+<figure id="figure-6-7">
+    <div class="figure-row">
+        <div>
+            <img src="astronaut_complex_original.png" alt="original" />
+            <span>(a)</span>
+        </div>
+        <div>
+            <img src="astronaut_complex_deform.png" alt="composed deformation" />
+            <span>(b)</span>
+        </div>
+    </div>
+    <figcaption><strong>Figure 6-7:</strong> Composed Deformation. (a) Original. (b) factor_x=1.3, factor_y=0.8, angle=15°.</figcaption>
+</figure>
 <h2 id="crack-dislocation"><a class="header" href="#crack-dislocation">Crack Dislocation</a></h2>
 <p>A vertical crack splits the image at x = width/2: the left half shifts
 down 4 pixels and the right half shifts up 4 pixels, producing a
@@ -375,11 +429,19 @@ write(arr=cracked_plain, path="astronaut_crack_plain_dislocation.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_crack_plain_original.png, astronaut_crack_plain_dislocation.png
 </code></pre>
-<div class="table-wrapper"><table><thead><tr><th>Crack Dislocation</th><th>Image</th></tr></thead><tbody>
-<tr><td>Original</td><td><img src="astronaut_crack_plain_original.png" alt="original" /></td></tr>
-<tr><td>offset=4 pixels</td><td><img src="astronaut_crack_plain_dislocation.png" alt="crack dislocation" /></td></tr>
-</tbody></table>
-</div>
+<figure id="fig-crack-dislocation">
+    <div class="figure-row">
+        <div>
+            <img src="astronaut_crack_plain_original.png" alt="original" />
+            <span>(a)</span>
+        </div>
+        <div>
+            <img src="astronaut_crack_plain_dislocation.png" alt="crack dislocation" />
+            <span>(b)</span>
+        </div>
+    </div>
+    <figcaption><strong>Figure 6-8:</strong> Crack Dislocation. (a) Original. (b) offset=4 pixels.</figcaption>
+</figure>
 <h2 id="references"><a class="header" href="#references">References</a></h2>
 <hr>
 <ol class="footnote-definition"><li id="footnote-Szeliski_2022">
