@@ -108,68 +108,7 @@ src/dictk/discontinuity.py:1:0: R0801: Similar lines in 2 files
             f&quot;search_margin_height {search_margin_height} must be greater than &quot;
             f&quot;kernel_margin_height {kernel_margin_height}&quot;
         )
-
-
-def sweep(
-    *,
-    reference_image: np.ndarray,
-    current_image: np.ndarray,
-    start: PixelCoordinate,
-    end: PixelCoordinate,
-    samples: int,
-    kernel_margin_width: int,
-    kernel_margin_height: int,
-    search_margin_width: int,
-    search_margin_height: int,
-    windowing: WindowingMethod | None = None,
-    height_threshold: float = 0.2,
-    distance: int = 2,
-) -&gt; DiscontinuitySweep:
-    &quot;&quot;&quot;Evaluate `peak_ratio` at `samples` window-center positions evenly spaced from `start` to `end`.
-
-    At each position, extracts a kernel from `reference_image` and a
-    search area from `current_image`, both centered on that position
-    (the same &quot;center a window here&quot; step [Synthetic
-    Dislocation](../getting_started/synthetic_dislocation.html#moving-the-window-off-the-crack)
-    does by hand at one fixed row), computes their ZNCC surface, and
-    reads its `peak_ratio`. A discontinuity crossing the `start`-`end`
-    line shows up as a rise in `peak_ratios` near the crossing, high on
-    an ambiguous, straddling window and low everywhere else -- see
-    [`locate`](#locate) to turn that rise into a single position.
-
-    Args:
-        reference_image: The reference (undeformed) 2D grayscale image.
-        current_image: The current (deformed) 2D grayscale image.
-        start: The first window-center position, in both images&#x27; shared
-            pixel reference frame.
-        end: The last window-center position.
-        samples: Number of window-center positions, evenly spaced from
-            `start` to `end` inclusive. Must be &gt;= 2.
-        kernel_margin_width: Half each kernel&#x27;s width, in pixels. Must be
-            &gt;= 1.
-        kernel_margin_height: Half each kernel&#x27;s height, in pixels. Must
-            be &gt;= 1.
-        search_margin_width: Half each search area&#x27;s width, in pixels.
-            Must be greater than `kernel_margin_width`.
-        search_margin_height: Half each search area&#x27;s height, in pixels.
-            Must be greater than `kernel_margin_height`.
-        windowing: Passed straight through to
-            [`dictk.correlation.window`](./correlation.html#window) for
-            both the kernel and search area at every position. Default
-            `None` applies no windowing.
-        height_threshold: Passed straight through to each position&#x27;s own
-            [`peak_ratio`](#peak_ratio) call.
-        distance: Passed straight through to each position&#x27;s own
-            `peak_ratio` call.
-
-    Returns:
-        A `DiscontinuitySweep` pairing each swept position with its own
-        `peak_ratio`, in sweep order.
-
-    Raises:
-        ValueError: If `samples` is less than 2, or the margin arguments
-            are invalid (see `kernel_margin_width`/etc. above).
-    &quot;&quot;&quot; (duplicate-code)
+ (duplicate-code)
 src/dictk/discontinuity.py:1:0: R0801: Similar lines in 2 files
 ==dictk.grid:[114:125]
 ==dictk.warp:[176:187]
@@ -196,7 +135,24 @@ src/dictk/discontinuity.py:1:0: R0801: Similar lines in 2 files
         search_margin_width=search_margin_width,
         search_margin_height=search_margin_height,
         windowing=windowing,
-    ) (duplicate-code)
+    )
+
+
+def _locate_subpixel_worker(
+    args: tuple[PixelCoordinate, PixelCoordinate],
+    *,
+    reference_image: np.ndarray,
+    current_image: np.ndarray,
+    kernel_margin_width: int,
+    kernel_margin_height: int,
+    search_margin_width: int,
+    search_margin_height: int,
+    windowing: WindowingMethod | None,
+    upsample_factor: int,
+) -&gt; SubpixelCoordinate:
+    &quot;&quot;&quot;One point&#x27;s worth of `translation.locate_subpixel` -- see
+    `_locate_worker`&#x27;s own docstring for why this is a module-level
+    function taking a single positional argument, not a closure.&quot;&quot;&quot; (duplicate-code)
 src/dictk/discontinuity.py:1:0: R0801: Similar lines in 2 files
 ==dictk.grid:[52:61]
 ==dictk.warp:[230:239]
@@ -283,7 +239,8 @@ src/dictk/discontinuity.py:1:0: R0801: Similar lines in 2 files
     if height &lt; 1:
         raise ValueError(f&quot;height {height} must be &gt;= 1&quot;)
 
-    image_height, image_width = image.shape (duplicate-code)
+    image_height, image_width = image.shape
+ (duplicate-code)
 
 
 Report

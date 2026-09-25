@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Subpixel Accuracy - dictk User Guide</title>
+        <title>Prediction Improvement - dictk User Guide</title>
 
 
         <!-- Custom HTML head -->
@@ -180,106 +180,53 @@
                 <div id="content" class="content">
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="subpixel-accuracy"><a class="header" href="#subpixel-accuracy">Subpixel Accuracy</a></h1>
-<p><a href="../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a>'s
-own docstring has said this from the start: "Integer-pixel precision
-only; subpixel refinement is out of scope for now." <a href="./simple_stretch.html#simple-stretch-revisited">Simple Stretch
-Revisited</a> found the
-concrete case where that limitation actually bites. At VIC-2D's own
-point density — 5 pixels apart — most points' true stretched position
-isn't an integer at all. <code>locate</code> can only ever report a whole pixel,
-so it's necessarily wrong by some amount for those points. That's not
-a tracking failure. It's the wrong question being asked.</p>
-<h2 id="what-locate-actually-rounds-away"><a class="header" href="#what-locate-actually-rounds-away">What <code>locate</code> Actually Rounds Away</a></h2>
-<p><code>skimage.registration.phase_cross_correlation</code>, the FFT-based
-correlation <code>locate</code> runs, doesn't only find whole-pixel peaks. Its own
-<code>upsample_factor</code> parameter refines that peak to within <code>1 / upsample_factor</code> of a pixel. <code>locate</code> never uses it — every result gets
-truncated to the nearest whole pixel with <code>int()</code> before it's returned.</p>
-<p><a href="../api/dictk/translation.html#locate_subpixel"><code>dictk.translation.locate_subpixel</code></a>
-and its batch counterpart,
-<a href="../api/dictk/grid.html#locate_subpixel"><code>dictk.grid.locate_subpixel</code></a>,
-are new, separate functions — not a parameter added to <code>locate</code> itself,
-so <code>locate</code>'s own return type never changes shape based on an argument.
-They pass <code>upsample_factor</code> straight through, and return the refined
-position directly, undiscarded, as a
-<a href="../api/dictk/image.html#SubpixelCoordinate"><code>dictk.image.SubpixelCoordinate</code></a>
-— the same <code>(x, y)</code> shape as <code>PixelCoordinate</code>, but <code>float</code>, not <code>int</code>.</p>
-<h2 id="measuring-the-difference"><a class="header" href="#measuring-the-difference">Measuring the Difference</a></h2>
-<p>Reusing Simple Stretch Revisited's own scenario — <code>astronaut0.png</code>,
-<code>factor_x = 1.02</code> — at VIC-2D's own 5-pixel spacing across the whole
-image, 2862 points:</p>
-<pre><code class="language-python">from dictk.grid import generate, locate, locate_subpixel
-
-points = generate(
-    origin=PixelCoordinate(x=18, y=16),
-    count_x=53,
-    count_y=54,
-    spacing_x=5,
-    spacing_y=5,
-)
-true_x = [point.x * factor_x for point in points]
-
-integer_found = locate(
-    reference_image=reference_image,
-    current_image=current_image,
-    reference_points=points,
-    kernel_margin_width=20,
-    kernel_margin_height=20,
-    search_margin_width=48,
-    search_margin_height=52,
-)
-subpixel_found = locate_subpixel(
-    reference_image=reference_image,
-    current_image=current_image,
-    reference_points=points,
-    kernel_margin_width=20,
-    kernel_margin_height=20,
-    search_margin_width=48,
-    search_margin_height=52,
-    upsample_factor=10,
-)
-</code></pre>
-<div class="table-wrapper"><table><thead><tr><th>Method</th><th>Mean abs error (px)</th><th>Max abs error (px)</th></tr></thead><tbody>
-<tr><td><code>locate()</code> (integer, truncated)</td><td>0.2627</td><td>0.5600</td></tr>
-<tr><td><code>locate_subpixel(upsample_factor=1)</code></td><td>0.2627</td><td>0.5600</td></tr>
-<tr><td><code>locate_subpixel(upsample_factor=10)</code></td><td>0.0940</td><td>0.2600</td></tr>
-<tr><td><code>locate_subpixel(upsample_factor=100)</code></td><td>0.0885</td><td>0.2600</td></tr>
-</tbody></table>
-</div>
-<p><code>locate()</code> lands on the exact expected integer pixel for 1479/2862 points (52%) — the same interpolation confound Simple Stretch Revisited found and worked around, not a new one.</p>
-<p><code>upsample_factor=1</code> matches <code>locate</code>'s own error exactly — no
-refinement requested, none applied. <code>upsample_factor=10</code> cuts the mean
-error by roughly a third. <code>upsample_factor=100</code> barely improves on
-<code>10</code> — diminishing returns past that point, for this scenario.</p>
-<h2 id="why-this-isnt-fixing-the-exact-match-problem"><a class="header" href="#why-this-isnt-fixing-the-exact-match-problem">Why This Isn't "Fixing" the Exact-Match Problem</a></h2>
-<p><code>upsample_factor</code> does not make <code>locate</code>'s own truncated answer more
-often correct. If the true target is <code>64.26</code>, no amount of refinement
-turns that into a whole number — <code>locate_subpixel</code> reports something
-close to <code>64.26</code> itself, not <code>64</code> or <code>65</code> more reliably. <a href="./simple_stretch.html#simple-stretch-revisited">Simple
-Stretch Revisited</a>
-solved a different problem: it kept every point's <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> restricted to
-values where the true target genuinely <em>is</em> an integer, so <code>locate</code>
-could report it exactly. This page accepts that most targets, at this
-density, aren't integers at all, and asks how close tracking gets to
-the real one instead. Two different, both legitimate, answers to the
-same density problem.</p>
-<p>This closes <a href="./path_forward.html#postponed">Path Forward</a>'s own
-Postponed subpixel-accuracy item — real displacements don't land on
-exact pixels, and now <code>dictk</code> has a way to track them without
-pretending otherwise. <a href="./high_point_density.html">High Point
-Density</a> picks this up next, at a density
-Simple Stretch Revisited's own integer-safety constraint couldn't
-reach.</p>
+<h1 id="prediction-improvement"><a class="header" href="#prediction-improvement">Prediction Improvement</a></h1>
+<p><a href="./search_center_predictions.html">Search Center Predictions</a> improved
+where each search starts. This chapter improves what each search
+returns: the point's predicted position in the current image.</p>
+<p>Chapter 8 never had to report a position between pixels. It avoided
+that in two ways. <a href="./simple_stretch.html">Simple Stretch</a> stretched the
+image by <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord text"><span class="mord">factor</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1.02</span></span></span></span> and placed every point at an <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> that is a
+multiple of 50. Only those <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> values stretch onto whole pixels. That
+kept <a href="../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a>
+exact, because <code>locate</code> returns whole pixels only. It also capped the
+grid, at 12 points and then 250 in <a href="./simple_stretch.html#simple-stretch-revisited">Simple Stretch
+Revisited</a>. <a href="./pure_rotation.html">Pure
+Rotation</a> took the other way. It rounded each
+rotated point's true position to the nearest pixel before scoring
+<code>locate</code> against it.</p>
+<p>VIC-2D measured the same stretch on a 53x54 grid, 5 px apart, starting
+at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">18</span></span></span></span>. No <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> on that grid is a multiple of 50. So every one of
+its 2862 true positions falls between pixels. <code>locate</code> can only report
+a whole pixel, so it misses every one of them. A real specimen poses the same problem.
+Its displacements don't land on whole pixels either.</p>
+<p>The four pages of this chapter take that on in order:</p>
+<ul>
+<li><a href="./subpixel_accuracy.html">Subpixel Accuracy</a> adds <code>locate_subpixel</code>,
+which returns a fractional position. On the 2862-point grid, it cuts
+<code>locate</code>'s mean position error by about a third.</li>
+<li><a href="./high_point_density.html">High Point Density</a> computes strain from
+all 2862 tracked points. That strain spreads far wider than VIC-2D's:
+<code>dictk</code>'s <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> ranges from about -16400 to 106100 microstrain, more than 21
+times VIC-2D's own range of about 17300 to 23100.</li>
+<li><a href="./kernel_warping.html">Kernel Warping</a> traces that spread to an error
+in <code>locate_subpixel</code> tied to where each true position falls within
+its pixel. It adds <code>locate_warp</code>, which lets the kernel stretch and
+shear along with the material. The <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> standard deviation falls
+from 16531 to 1161 microstrain, against VIC-2D's 1385.</li>
+<li><a href="./strain_window.html">Strain Window</a> is a placeholder for fitting
+displacement over a neighborhood of points before computing strain.</li>
+</ul>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../getting_started/prediction_improvement.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../getting_started/search_center_predictions.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../getting_started/high_point_density.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../getting_started/subpixel_accuracy.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -289,11 +236,11 @@ reach.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../getting_started/prediction_improvement.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../getting_started/search_center_predictions.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../getting_started/high_point_density.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../getting_started/subpixel_accuracy.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

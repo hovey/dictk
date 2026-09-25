@@ -181,7 +181,7 @@
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="parallelization"><a class="header" href="#parallelization">Parallelization</a></h1>
-<p><a href="./multi_point_motion.html#tracking-the-grid">Multi-Point Motion</a> just ran 12
+<p><a href="./multi_point_motion.html#tracking-the-grid">Multi-Point Motion</a> ran 12
 independent calls to
 <a href="../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> — one
 per point, each doing its own FFT-based phase correlation — to verify
@@ -301,9 +301,9 @@ committed data, so it always matches the file on disk:</p>
 <tr><td>realistic_mesh</td><td>200</td><td>10000</td><td>9.59174</td><td>3.43856</td><td>2.789x</td><td>4.41874</td><td>2.171x</td></tr>
 <tr><td>realistic_mesh</td><td>200</td><td>100000</td><td>98.60379</td><td>31.72111</td><td>3.108x</td><td>36.23009</td><td>2.722x</td></tr>
 </tbody></table>
-</div><figure id="figure-9-1">
+</div><figure id="figure-10-1">
     <img src="parallelization_bench.png" alt="three stacked panels: book_scale shows sequential always fastest from 100 to 1,000,000 points, with a dashed trend line predicting that holds out to a trillion points; large_subset shows threads reaching over 4x speedup as correlation size grows while processes never beat sequential at only 16 points, not extrapolated; realistic_mesh shows both threads and processes beating sequential, with processes catching up to threads as point count grows, and dashed trend lines predicting each pair levels off close to its last measured value" />
-    <figcaption><strong>Figure 9-1:</strong> Speedup vs. sequential, measured once on a 10-core machine (macOS, <code>spawn</code> start method). Solid lines are measured data. Dashed lines are trend extrapolations — a straight-line time-vs-point-count fit, projected out to 10<sup>6</sup>, 10<sup>9</sup>, and 10<sup>12</sup> points. Top: at this book's own 40-pixel scale, sequential wins at every point count tested, up to 1,000,000, and the trend predicts it keeps winning — processes plateau near 0.62x, threads near 0.42x, even out to a trillion points. Middle: at only 16 points, threads win decisively once correlations are large enough; processes never recover their fixed startup cost. Not extrapolated: this panel's x-axis is correlation size, not point count, and a subset a billion pixels wide isn't physical. Bottom: with enough points, both help, and processes close the gap on threads as point count grows; the trend predicts each pair levels off close to its last measured value.</figcaption>
+    <figcaption><strong>Figure 10-1:</strong> Speedup vs. sequential, measured once on a 10-core machine (macOS, <code>spawn</code> start method). Solid lines are measured data. Dashed lines are trend extrapolations — a straight-line time-vs-point-count fit, projected out to 10<sup>6</sup>, 10<sup>9</sup>, and 10<sup>12</sup> points. Top: at this book's own 40-pixel scale, sequential wins at every point count tested, up to 1,000,000, and the trend predicts it keeps winning — processes plateau near 0.62x, threads near 0.42x, even out to a trillion points. Middle: at only 16 points, threads win decisively once correlations are large enough; processes never recover their fixed startup cost. Not extrapolated: this panel's x-axis is correlation size, not point count, and a subset a billion pixels wide isn't physical. Bottom: with enough points, both help, and processes close the gap on threads as point count grows; the trend predicts each pair levels off close to its last measured value.</figcaption>
 </figure>
 <p>Four findings, read directly off that data:</p>
 <ol>
@@ -727,11 +727,11 @@ if __name__ == "__main__":
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../getting_started/search_center_predictions.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../getting_started/strain_window.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../getting_started/subpixel_accuracy.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../getting_started/timing_at_scale.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -741,11 +741,11 @@ if __name__ == "__main__":
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../getting_started/search_center_predictions.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../getting_started/strain_window.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../getting_started/subpixel_accuracy.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../getting_started/timing_at_scale.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

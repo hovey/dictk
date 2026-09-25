@@ -5441,551 +5441,48 @@ search-window sizing" direction this connects to — a better
 <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6861em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">F</span></span></span></span></span></span>-based guess and a smaller <code>search_margin</code> are two sides
 of the same idea.</p>
 <p>Twelve points, twelve independent correlations, each one still
-sequential so far: <a href="getting_started/./parallelization.html">Parallelization</a> picks up
-from here.</p>
+sequential so far. <a href="getting_started/./prediction_improvement.html">Prediction Improvement</a>
+comes next and improves each point's accuracy. Then
+<a href="getting_started/./parallelization.html">Parallelization</a> returns to that sequential
+cost.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="parallelization"><a class="header" href="#parallelization">Parallelization</a></h1>
-<p><a href="getting_started/./multi_point_motion.html#tracking-the-grid">Multi-Point Motion</a> just ran 12
-independent calls to
-<a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> — one
-per point, each doing its own FFT-based phase correlation — to verify
-every point's displacement. We anticipate the need to process a very
-large number of point-to-point correspondences to support large-scale
-DIC work — a real finite element mesh (see <a href="getting_started/./finite_element_method.html">Finite Element
-Method</a>) can easily have thousands-to-millions
-of nodes, not the 12 points in the simple grid above. Each point
-correspondence is independent of every other: locating point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> never
-reads or writes anything locating point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.854em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span></span></span></span> touches. That independence
-isn't just a convenient property to point out —
-<a href="getting_started/../api/dictk/grid.html#locate"><code>dictk.grid.locate</code></a> is already written to
-exploit it. Its entire body is a single map over <code>reference_points</code>, one
-call to <a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a>
-per point, accumulating no shared state between iterations:</p>
-<pre><code class="language-python">return [
-    translation.locate(
-        reference_image=reference_image,
-        current_image=current_image,
-        reference_point=reference_point,
-        search_center=search_center,
-        kernel_margin_width=kernel_margin_width,
-        kernel_margin_height=kernel_margin_height,
-        search_margin_width=search_margin_width,
-        search_margin_height=search_margin_height,
-    )
-    for reference_point, search_center in zip(reference_points, search_centers)
-]
-</code></pre>
-<p>Because every iteration is already independent, parallelizing it is a
-matter of swapping this list comprehension for a parallel map over the
-same per-point calls. It is not a redesign.
-<a href="getting_started/../api/dictk/grid.html#locate"><code>dictk.grid.locate</code></a> does exactly that
-today, behind two extra keyword-only parameters: <code>max_workers</code> and
-<code>executor</code>. Default <code>max_workers=None</code> stays sequential, the loop above,
-byte-identical to <code>locate</code>'s original behavior. A positive integer
-switches to a worker pool instead.</p>
-<p>Which pool, though, is not obvious. It needs its own explanation first.</p>
-<h2 id="threads-processes-and-the-gil"><a class="header" href="#threads-processes-and-the-gil">Threads, Processes, and the GIL</a></h2>
-<p>CPython has a <strong>Global Interpreter Lock (GIL)</strong>: only one thread can
-execute Python bytecode at a time, even on a machine with many cores. A
-plain Python <code>for</code> loop split across threads would not run any faster.
-Each thread would still wait its turn for the same lock.</p>
-<p>C extensions can release the GIL during their own C-level computation,
-though. NumPy and SciPy both do this for many operations. The FFT
-<code>dictk.translation.locate</code> actually runs is one of them —
-<code>skimage.registration.phase_cross_correlation</code> calls <code>scipy.fft.fftn</code>
-and <code>scipy.fft.ifftn</code> internally, not the Python-level fallback, and
-<code>scipy.fft</code> releases the GIL for the duration of its own C computation.
-So threads <em>can</em> run FFT correlations in true parallel. The GIL is not
-held the whole time.</p>
-<p>Whether that helps depends on scale. A tiny FFT finishes almost
-instantly. Most of the wall-clock time around it is Python-level
-overhead: function calls, object construction, array slicing. Releasing
-the GIL for a few microseconds does not buy much when the thread
-scheduling and GIL reacquisition around it cost microseconds too. A
-large FFT is different. Once the C computation itself dominates the
-call, the GIL-released fraction of wall-clock time dominates too, and
-threads start to pay off.</p>
-<h2 id="threads-vs-processes-two-different-costs"><a class="header" href="#threads-vs-processes-two-different-costs">Threads vs. Processes: Two Different Costs</a></h2>
-<p>A <code>ThreadPoolExecutor</code> shares the caller's own memory. No pickling, no
-process spawn. Cheap to start. But every task still pays a GIL
-scheduling cost, and that cost does not shrink as task count grows. Run
-one task or a million, each one pays it individually.</p>
-<p>A <code>ProcessPoolExecutor</code> is different. Each worker is a separate OS
-process, with its own interpreter and its own GIL. It gets true
-parallelism regardless of whether the target function releases the GIL
-at all. The cost moves elsewhere: data has to be pickled across the
-process boundary, and on macOS (which spawns fresh interpreters rather
-than forking) each worker re-imports NumPy, SciPy, and scikit-image
-from scratch before it can do any work. That cost is mostly fixed and
-paid once, when the pool starts.</p>
-<p>That is the real asymmetry: <strong>processes pay once, threads pay every
-time.</strong> More tasks amortize a process pool's fixed startup cost. More
-tasks do not shrink a thread pool's per-task cost. Which one wins
-depends on both how big each task is and how many tasks there are —
-not on either alone.</p>
-<h2 id="measuring-the-trade-space"><a class="header" href="#measuring-the-trade-space">Measuring the Trade Space</a></h2>
-<p>Rather than guess, measure.
-<a href="getting_started/parallelization.html#parallelization_benchpy"><code>parallelization_bench.py</code></a> (full source
-below) times sequential, threaded, and process-pool execution of
-<code>phase_cross_correlation</code> across three scenarios. Correlation size and
-point count are not independent in a real DIC problem — a
-million-point mesh only makes sense with a small subset per point — so
-this is three targeted scenarios, not one brute-force grid:</p>
+<h1 id="prediction-improvement"><a class="header" href="#prediction-improvement">Prediction Improvement</a></h1>
+<p><a href="getting_started/./search_center_predictions.html">Search Center Predictions</a> improved
+where each search starts. This chapter improves what each search
+returns: the point's predicted position in the current image.</p>
+<p>Chapter 8 never had to report a position between pixels. It avoided
+that in two ways. <a href="getting_started/./simple_stretch.html">Simple Stretch</a> stretched the
+image by <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord text"><span class="mord">factor</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1.02</span></span></span></span> and placed every point at an <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> that is a
+multiple of 50. Only those <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> values stretch onto whole pixels. That
+kept <a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a>
+exact, because <code>locate</code> returns whole pixels only. It also capped the
+grid, at 12 points and then 250 in <a href="getting_started/./simple_stretch.html#simple-stretch-revisited">Simple Stretch
+Revisited</a>. <a href="getting_started/./pure_rotation.html">Pure
+Rotation</a> took the other way. It rounded each
+rotated point's true position to the nearest pixel before scoring
+<code>locate</code> against it.</p>
+<p>VIC-2D measured the same stretch on a 53x54 grid, 5 px apart, starting
+at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">18</span></span></span></span>. No <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> on that grid is a multiple of 50. So every one of
+its 2862 true positions falls between pixels. <code>locate</code> can only report
+a whole pixel, so it misses every one of them. A real specimen poses the same problem.
+Its displacements don't land on whole pixels either.</p>
+<p>The four pages of this chapter take that on in order:</p>
 <ul>
-<li><strong><code>book_scale</code></strong>: this book's own kernel/search size (40 pixels),
-point count climbing from 100 to 1,000,000. Does point count alone
-ever create a crossover, at a size this small?</li>
-<li><strong><code>large_subset</code></strong>: only 16 points, correlation size climbing from
-200 to 2,000 pixels. Where does the threads crossover sit, as a
-function of size alone?</li>
-<li><strong><code>realistic_mesh</code></strong>: a closer match to an actual finite element
-mesh — moderate correlation size (100 or 200 pixels), point count
-climbing from 1,000 to 100,000.</li>
+<li><a href="getting_started/./subpixel_accuracy.html">Subpixel Accuracy</a> adds <code>locate_subpixel</code>,
+which returns a fractional position. On the 2862-point grid, it cuts
+<code>locate</code>'s mean position error by about a third.</li>
+<li><a href="getting_started/./high_point_density.html">High Point Density</a> computes strain from
+all 2862 tracked points. That strain spreads far wider than VIC-2D's:
+<code>dictk</code>'s <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> ranges from about -16400 to 106100 microstrain, more than 21
+times VIC-2D's own range of about 17300 to 23100.</li>
+<li><a href="getting_started/./kernel_warping.html">Kernel Warping</a> traces that spread to an error
+in <code>locate_subpixel</code> tied to where each true position falls within
+its pixel. It adds <code>locate_warp</code>, which lets the kernel stretch and
+shear along with the material. The <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> standard deviation falls
+from 16531 to 1161 microstrain, against VIC-2D's 1385.</li>
+<li><a href="getting_started/./strain_window.html">Strain Window</a> is a placeholder for fitting
+displacement over a neighborhood of points before computing strain.</li>
 </ul>
-<p>This sweep takes several minutes to run (the <code>book_scale</code> scenario's
-1,000,000-point case alone runs over a minute) — far too slow to
-re-run on every build the way this book's other figures do. Its results
-are measured once and committed alongside the script that produced
-them, not regenerated live. The table below still reads live from that
-committed data, so it always matches the file on disk:</p>
-<div class="table-wrapper"><table><thead><tr><th>Scenario</th><th>Size</th><th>Points</th><th>Sequential (s)</th><th>Threads (s)</th><th>Threads speedup</th><th>Processes (s)</th><th>Processes speedup</th></tr></thead><tbody>
-<tr><td>book_scale</td><td>40</td><td>100</td><td>0.00752</td><td>0.02057</td><td>0.366x</td><td>0.77663</td><td>0.01x</td></tr>
-<tr><td>book_scale</td><td>40</td><td>1000</td><td>0.07277</td><td>0.18621</td><td>0.391x</td><td>0.99653</td><td>0.073x</td></tr>
-<tr><td>book_scale</td><td>40</td><td>10000</td><td>0.70866</td><td>1.83165</td><td>0.387x</td><td>2.06538</td><td>0.343x</td></tr>
-<tr><td>book_scale</td><td>40</td><td>100000</td><td>7.16526</td><td>18.32857</td><td>0.391x</td><td>14.26206</td><td>0.502x</td></tr>
-<tr><td>book_scale</td><td>40</td><td>1000000</td><td>71.65412</td><td>169.90165</td><td>0.422x</td><td>116.62403</td><td>0.614x</td></tr>
-<tr><td>large_subset</td><td>200</td><td>16</td><td>0.01608</td><td>0.0087</td><td>1.847x</td><td>0.83688</td><td>0.019x</td></tr>
-<tr><td>large_subset</td><td>500</td><td>16</td><td>0.10876</td><td>0.02691</td><td>4.041x</td><td>0.82919</td><td>0.131x</td></tr>
-<tr><td>large_subset</td><td>1000</td><td>16</td><td>0.46973</td><td>0.10719</td><td>4.382x</td><td>0.99717</td><td>0.471x</td></tr>
-<tr><td>large_subset</td><td>2000</td><td>16</td><td>2.2572</td><td>0.50896</td><td>4.435x</td><td>2.85197</td><td>0.791x</td></tr>
-<tr><td>realistic_mesh</td><td>100</td><td>1000</td><td>0.26763</td><td>0.24035</td><td>1.114x</td><td>0.8058</td><td>0.332x</td></tr>
-<tr><td>realistic_mesh</td><td>100</td><td>10000</td><td>2.6885</td><td>2.45357</td><td>1.096x</td><td>2.13847</td><td>1.257x</td></tr>
-<tr><td>realistic_mesh</td><td>100</td><td>100000</td><td>26.81134</td><td>24.32667</td><td>1.102x</td><td>15.24042</td><td>1.759x</td></tr>
-<tr><td>realistic_mesh</td><td>200</td><td>1000</td><td>0.95522</td><td>0.34662</td><td>2.756x</td><td>1.02504</td><td>0.932x</td></tr>
-<tr><td>realistic_mesh</td><td>200</td><td>10000</td><td>9.59174</td><td>3.43856</td><td>2.789x</td><td>4.41874</td><td>2.171x</td></tr>
-<tr><td>realistic_mesh</td><td>200</td><td>100000</td><td>98.60379</td><td>31.72111</td><td>3.108x</td><td>36.23009</td><td>2.722x</td></tr>
-</tbody></table>
-</div><figure id="figure-9-1">
-    <img src="getting_started/parallelization_bench.png" alt="three stacked panels: book_scale shows sequential always fastest from 100 to 1,000,000 points, with a dashed trend line predicting that holds out to a trillion points; large_subset shows threads reaching over 4x speedup as correlation size grows while processes never beat sequential at only 16 points, not extrapolated; realistic_mesh shows both threads and processes beating sequential, with processes catching up to threads as point count grows, and dashed trend lines predicting each pair levels off close to its last measured value" />
-    <figcaption><strong>Figure 9-1:</strong> Speedup vs. sequential, measured once on a 10-core machine (macOS, <code>spawn</code> start method). Solid lines are measured data. Dashed lines are trend extrapolations — a straight-line time-vs-point-count fit, projected out to 10<sup>6</sup>, 10<sup>9</sup>, and 10<sup>12</sup> points. Top: at this book's own 40-pixel scale, sequential wins at every point count tested, up to 1,000,000, and the trend predicts it keeps winning — processes plateau near 0.62x, threads near 0.42x, even out to a trillion points. Middle: at only 16 points, threads win decisively once correlations are large enough; processes never recover their fixed startup cost. Not extrapolated: this panel's x-axis is correlation size, not point count, and a subset a billion pixels wide isn't physical. Bottom: with enough points, both help, and processes close the gap on threads as point count grows; the trend predicts each pair levels off close to its last measured value.</figcaption>
-</figure>
-<p>Four findings, read directly off that data:</p>
-<ol>
-<li><strong>At this book's own scale, sequential always wins.</strong> 1,000,000
-points at 40 pixels still favors sequential (71.7s) over both
-threads (169.9s) and processes (116.6s). Point count alone never
-creates a crossover at this size — not at 100 points, not at a
-million.</li>
-<li><strong>Few points, large correlations: threads win, processes cannot
-recover.</strong> At 2,000 pixels with only 16 points, threads reach
-4.4x. Processes reach only 0.79x — still slower than sequential.
-Sixteen tasks is not enough to amortize a process pool's fixed
-startup cost, no matter how large each individual task is.</li>
-<li><strong>Many points, moderate correlations: processes catch up, and can
-pass threads.</strong> At 100 pixels, processes start behind threads
-(0.33x vs. 1.11x at 1,000 points) but overtake them by 100,000
-points (1.76x vs. 1.10x). More tasks keep amortizing a process
-pool's fixed cost long after a thread pool's per-task cost has
-stopped improving.</li>
-<li><strong>The trend, extrapolated to Path Forward's north-star scale,
-predicts a plateau, not a crossover.</strong> Fitting a straight line to
-each method's measured time-vs-point-count and reading off the
-resulting speedup ratio at 10<sup>6</sup>, 10<sup>9</sup>, and
-10<sup>12</sup> points: <code>book_scale</code>'s ordering never flips
-(processes settle near 0.62x, threads near 0.42x, both still
-slower than sequential); <code>realistic_mesh</code>'s pairs settle close to
-their last measured value (size=100: threads 1.10x, processes
-1.84x; size=200: threads 3.13x, processes 2.78x). This is a linear
-extrapolation from a handful of measured points, not a new
-measurement — a hypothesis worth testing at real scale, not a
-settled result.</li>
-</ol>
-<h2 id="using-max_workers"><a class="header" href="#using-max_workers">Using <code>max_workers</code></a></h2>
-<p><code>dictk.grid.locate</code> accepts <code>max_workers</code> and <code>executor</code> directly now,
-no sketch required. Run it against the same 12-point grid <a href="getting_started/./multi_point_motion.html#tracking-the-grid">Multi-Point
-Motion</a> already tracked,
-sequential and concurrent side by side:</p>
-<pre><code class="language-python">from dictk.grid import Executor, locate
-
-sequential = locate(
-    reference_image=reference_image,
-    current_image=current_image,
-    reference_points=points,
-    kernel_margin_width=20,
-    kernel_margin_height=20,
-    search_margin_width=48,
-    search_margin_height=52,
-)
-threaded = locate(
-    reference_image=reference_image,
-    current_image=current_image,
-    reference_points=points,
-    kernel_margin_width=20,
-    kernel_margin_height=20,
-    search_margin_width=48,
-    search_margin_height=52,
-    max_workers=4,
-    executor=Executor.THREAD,
-)
-print(f"results match: {sequential == threaded}")
-</code></pre>
-<pre><code class="language-text">results match: True
-</code></pre>
-<p>The results match, as they must — <code>max_workers</code> changes how the 12
-points are tracked, not what answer each one finds. It does not change
-the runtime in any way worth showing here, either. Twelve points at 40
-pixels is deep in the <code>book_scale</code> regime above: sequential wins.
-Demonstrating correctness at this scale, not speed, is the honest thing
-to show.</p>
-<h2 id="choosing-an-executor"><a class="header" href="#choosing-an-executor">Choosing an Executor</a></h2>
-<p>Given the measured trade space, not a guess:</p>
-<ul>
-<li><strong>This book's own examples (small kernels, small search areas):
-don't parallelize at all.</strong> Leave <code>max_workers=None</code>. Sequential
-wins here regardless of point count.</li>
-<li><strong>Few points, each with a large correlation</strong>: <code>Executor.THREAD</code>.
-Processes cannot recover their fixed cost across only a handful of
-tasks, no matter how large each one is.</li>
-<li><strong>Many points, each with a moderate-to-large correlation</strong> (the
-closest match to a real finite element mesh): either pool helps;
-<code>Executor.PROCESS</code> closes the gap on threads as point count grows,
-and can pass it.</li>
-<li><strong>Unsure which regime a problem falls in?</strong> <code>Executor.THREAD</code> is
-<code>locate</code>'s default for exactly this reason. It is never
-catastrophically worse than sequential, unlike a process pool at low
-point counts, even though it is not always the fastest option
-available.</li>
-</ul>
-<h3 id="parallelization_benchpy"><a class="header" href="#parallelization_benchpy"><code>parallelization_bench.py</code></a></h3>
-<pre><code class="language-python">"""Benchmark: sequential vs. threads vs. processes for
-skimage.registration.phase_cross_correlation, at varying correlation
-sizes and call counts.
-
-Not part of the dictk package -- a standalone, one-time measurement
-script, matching the convention simple_shear.py already sets. Its
-output (parallelization_bench.csv, parallelization_bench.png) is
-committed alongside it rather than regenerated on every book build: the
-full sweep takes several minutes (the 1,000,000-call case alone runs
-over a minute), far too slow for the live cmdrun re-execution every
-other figure in this book uses. Parallelization.md prints this script's
-full source inline (see its own "parallelization_bench.py" section) so
-the numbers stay checkable even though they are not live.
-
-Must be a real module, not `python3 -c` -- ProcessPoolExecutor needs a
-real, importable, top-level function to hand to spawned workers, the
-same constraint dictk.grid._locate_worker exists for.
-
-Re-run with: python3 parallelization_bench.py
-"""
-
-import csv
-import os
-import time
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
-
-import matplotlib.pyplot as plt
-import numpy as np
-from skimage.registration import phase_cross_correlation
-
-WORKERS = os.cpu_count()
-
-CSV_PATH = "parallelization_bench.csv"
-FIGURE_PATH = "parallelization_bench.png"
-
-# Point count and correlation size are not independent in a real DIC
-# problem -- a million-point mesh only makes sense with small subsets
-# per point. Three scenarios instead of one brute-force grid, each
-# answering a different question:
-SCENARIOS = {
-    # This book's own teaching scale (kernel/search sizes throughout
-    # Single/Multi-Point Motion). Does point count alone ever create a
-    # crossover, at a size this small?
-    "book_scale": [(40, n) for n in [100, 1_000, 10_000, 100_000, 1_000_000]],
-    # Few points, growing correlation size. Where does the threads
-    # crossover actually sit, as a function of size alone?
-    "large_subset": [(size, 16) for size in [200, 500, 1000, 2000]],
-    # A more realistic finite element mesh: moderate subset size,
-    # climbing point count. Does the processes-vs-threads balance shift
-    # as point count grows?
-    "realistic_mesh": [(100, n) for n in [1_000, 10_000, 100_000]]
-    + [(200, n) for n in [1_000, 10_000, 100_000]],
-}
-
-
-def one(args: tuple[np.ndarray, np.ndarray]):
-    """One correlation. Module-level and single-positional-argument on
-    purpose -- see the module docstring."""
-    kernel, search = args
-    return phase_cross_correlation(kernel, search, normalization="phase")
-
-
-def make_args(size: int, n_calls: int, seed: int = 42):
-    """`n_calls` copies of the same random kernel/search pair at `size`.
-
-    The same pair repeated, not `n_calls` distinct random pairs: this
-    benchmark measures call overhead, not correlation accuracy, so
-    identical inputs keep every call's own work identical too."""
-    rng = np.random.default_rng(seed)
-    kernel = rng.random((size, size))
-    search = rng.random((size, size))
-    return [(kernel, search)] * n_calls
-
-
-def time_sequential(args) -&gt; float:
-    t0 = time.perf_counter()
-    for x in args:
-        one(x)
-    return time.perf_counter() - t0
-
-
-def time_threads(args) -&gt; float:
-    t0 = time.perf_counter()
-    with ThreadPoolExecutor(max_workers=WORKERS) as pool:
-        list(pool.map(one, args))
-    return time.perf_counter() - t0
-
-
-def time_processes(args) -&gt; float:
-    t0 = time.perf_counter()
-    with ProcessPoolExecutor(max_workers=WORKERS) as pool:
-        list(pool.map(one, args))
-    return time.perf_counter() - t0
-
-
-def run_case(scenario: str, size: int, n_calls: int, writer: csv.DictWriter) -&gt; None:
-    args = make_args(size, n_calls)
-
-    sequential_s = time_sequential(args)
-    threads_s = time_threads(args)
-    processes_s = time_processes(args)
-
-    writer.writerow(
-        {
-            "scenario": scenario,
-            "size": size,
-            "n_calls": n_calls,
-            "workers": WORKERS,
-            "sequential_s": round(sequential_s, 5),
-            "threads_s": round(threads_s, 5),
-            "processes_s": round(processes_s, 5),
-            "threads_speedup": round(sequential_s / threads_s, 3),
-            "processes_speedup": round(sequential_s / processes_s, 3),
-        }
-    )
-    print(
-        f"[{scenario}] size={size:5d} n={n_calls:8d}  "
-        f"sequential={sequential_s:8.3f}s  "
-        f"threads={threads_s:8.3f}s (x{sequential_s / threads_s:5.2f})  "
-        f"processes={processes_s:8.3f}s (x{sequential_s / processes_s:5.2f})",
-        flush=True,
-    )
-
-
-def run_sweep() -&gt; None:
-    fieldnames = [
-        "scenario",
-        "size",
-        "n_calls",
-        "workers",
-        "sequential_s",
-        "threads_s",
-        "processes_s",
-        "threads_speedup",
-        "processes_speedup",
-    ]
-    with open(CSV_PATH, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
-        for scenario, cases in SCENARIOS.items():
-            for size, n_calls in cases:
-                run_case(scenario, size, n_calls, writer)
-                f.flush()
-    print(f"\nWrote {CSV_PATH}")
-
-
-# Point counts to extrapolate speedup trends out to, tying directly to
-# the "north star" scale in Path Forward (billions of correlations,
-# staying under a trillion by design). Only scenarios whose x-axis is
-# point count (book_scale, realistic_mesh) get this treatment --
-# large_subset's x-axis is correlation *size*, and extrapolating a
-# subset's side length out to a billion pixels isn't physical.
-EXTRAPOLATION_TARGETS = [1_000_000, 1_000_000_000, 1_000_000_000_000]
-
-
-def _trend_line(ns, seq_times, other_times, targets):
-    """Fit a linear time-vs-n trend (time = a*n + b) to `seq_times` and
-    `other_times` independently, then extrapolate the *speedup ratio*
-    (their fitted-time ratio) out to every target beyond the last real
-    data point.
-
-    Returns `(xs, speedups, marks)`: `xs`/`speedups` start at the last
-    *measured* point (so a plotted dashed line picks up exactly where
-    the solid measured line ends, no visual gap) and run through every
-    target; `marks` is just the subset of targets genuinely beyond the
-    measured range, for placing "predicted value" markers.
-    """
-    a_seq, b_seq = np.polyfit(ns, seq_times, 1)
-    a_other, b_other = np.polyfit(ns, other_times, 1)
-    last_n = ns[-1]
-    marks = [t for t in targets if t &gt; last_n]
-    xs = [last_n] + marks
-    speedups = [(a_seq * n + b_seq) / (a_other * n + b_other) for n in xs]
-    return xs, speedups, marks
-
-
-def _add_trend(ax, ns, seq_times, other_times, color):
-    xs, speedups, marks = _trend_line(ns, seq_times, other_times, EXTRAPOLATION_TARGETS)
-    ax.plot(xs, speedups, linestyle="--", color=color, linewidth=1.2)
-    mark_speedups = speedups[-len(marks) :] if marks else []
-    ax.plot(
-        marks,
-        mark_speedups,
-        linestyle="none",
-        marker="x",
-        color=color,
-        markersize=7,
-        markeredgewidth=1.5,
-    )
-    for n, s in zip(marks, mark_speedups):
-        ax.annotate(
-            f"{s:.2f}x",
-            (n, s),
-            textcoords="offset points",
-            xytext=(4, 4),
-            fontsize=7,
-            color=color,
-        )
-
-
-def plot_summary() -&gt; None:
-    with open(CSV_PATH) as f:
-        rows = list(csv.DictReader(f))
-
-    with plt.rc_context({"font.family": "serif", "mathtext.fontset": "cm"}):
-        fig, axes = plt.subplots(3, 1, figsize=(7, 15), constrained_layout=True)
-
-        panels = [
-            (
-                axes[0],
-                "book_scale",
-                "n_calls",
-                "point count (size=40 fixed)",
-                "log",
-                True,
-            ),
-            (
-                axes[1],
-                "large_subset",
-                "size",
-                "correlation size (n=16 fixed)",
-                "linear",
-                False,
-            ),
-            (
-                axes[2],
-                "realistic_mesh",
-                "n_calls",
-                "point count (size=100 or 200)",
-                "log",
-                True,
-            ),
-        ]
-        for ax, scenario, xkey, xlabel, xscale, extrapolate in panels:
-            data = [r for r in rows if r["scenario"] == scenario]
-            if scenario == "realistic_mesh":
-                for size, marker in [("100", "o"), ("200", "s")]:
-                    sub = [r for r in data if r["size"] == size]
-                    xs = [int(r[xkey]) for r in sub]
-                    ax.plot(
-                        xs,
-                        [float(r["threads_speedup"]) for r in sub],
-                        marker=marker,
-                        color="tab:blue",
-                        label=f"threads (size={size})",
-                    )
-                    ax.plot(
-                        xs,
-                        [float(r["processes_speedup"]) for r in sub],
-                        marker=marker,
-                        color="tab:orange",
-                        label=f"processes (size={size})",
-                    )
-                    if extrapolate:
-                        seq = [float(r["sequential_s"]) for r in sub]
-                        thr = [float(r["threads_s"]) for r in sub]
-                        proc = [float(r["processes_s"]) for r in sub]
-                        _add_trend(ax, xs, seq, thr, "tab:blue")
-                        _add_trend(ax, xs, seq, proc, "tab:orange")
-            else:
-                xs = [int(r[xkey]) for r in data]
-                ax.plot(
-                    xs,
-                    [float(r["threads_speedup"]) for r in data],
-                    marker="o",
-                    color="tab:blue",
-                    label="threads",
-                )
-                ax.plot(
-                    xs,
-                    [float(r["processes_speedup"]) for r in data],
-                    marker="o",
-                    color="tab:orange",
-                    label="processes",
-                )
-                if extrapolate:
-                    seq = [float(r["sequential_s"]) for r in data]
-                    thr = [float(r["threads_s"]) for r in data]
-                    proc = [float(r["processes_s"]) for r in data]
-                    _add_trend(ax, xs, seq, thr, "tab:blue")
-                    _add_trend(ax, xs, seq, proc, "tab:orange")
-            ax.axhline(
-                1.0,
-                color="black",
-                linestyle="--",
-                linewidth=1,
-                label="sequential (baseline)",
-            )
-            ax.set_xscale(xscale)
-            if extrapolate:
-                # Headroom so the rightmost "N.NNx" annotation (at the
-                # 10^12 target) doesn't clip against the panel edge.
-                ax.set_xlim(right=ax.get_xlim()[1] * 3)
-            ax.set_xlabel(xlabel)
-            ax.set_ylabel("speedup vs sequential")
-            ax.set_title(scenario)
-            handles, labels = ax.get_legend_handles_labels()
-            if extrapolate:
-                from matplotlib.lines import Line2D
-
-                handles += [
-                    Line2D(
-                        [0],
-                        [0],
-                        color="gray",
-                        marker="o",
-                        linestyle="-",
-                        label="measured",
-                    ),
-                    Line2D(
-                        [0],
-                        [0],
-                        color="gray",
-                        marker="x",
-                        linestyle="--",
-                        label="trend (extrapolated)",
-                    ),
-                ]
-            ax.legend(handles=handles, fontsize=7)
-
-        fig.savefig(FIGURE_PATH, dpi=300)
-        plt.close(fig)
-    print(f"Wrote {FIGURE_PATH}")
-
-
-if __name__ == "__main__":
-    run_sweep()
-    plot_summary()
-</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="subpixel-accuracy"><a class="header" href="#subpixel-accuracy">Subpixel Accuracy</a></h1>
 <p><a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a>'s
@@ -6578,8 +6075,8 @@ found = locate_warp(
 </code></pre>
 <p>The same fractional-position error curve, now for both trackers:</p>
 <div class="table-wrapper"><table><thead><tr><th>Tracker</th><th>Time (s)</th><th>Mean <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error (px)</th><th>Std <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error (px)</th><th>Max |<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error| (px)</th></tr></thead><tbody>
-<tr><td><code>locate_subpixel</code></td><td>3.6</td><td>-0.0110</td><td>0.1091</td><td>0.3200</td></tr>
-<tr><td><code>locate_warp</code></td><td>3.8</td><td>-0.0000</td><td>0.0080</td><td>0.0234</td></tr>
+<tr><td><code>locate_subpixel</code></td><td>2.6</td><td>-0.0110</td><td>0.1091</td><td>0.3200</td></tr>
+<tr><td><code>locate_warp</code></td><td>2.5</td><td>-0.0000</td><td>0.0080</td><td>0.0234</td></tr>
 </tbody></table>
 </div><figure id="figure-9.3-3">
     <img src="getting_started/kernel_warping_bias.png" alt="mean x error against the fractional part of true x for two trackers. locate_subpixel, circles, swings from about -0.14 to +0.12 px. locate_warp, squares, stays within about 0.01 px of zero across the whole pixel" />
@@ -6672,8 +6169,7 @@ entirely. They shift a smoothed speckle image by an exact fraction of
 a pixel, in the Fourier domain. There, <code>locate_warp</code> recovers every
 tested shift to within 0.005 px, and beats <code>locate_subpixel</code> every
 time.</p>
-<p>Continue to <a href="getting_started/./timing_at_scale.html">Timing at Scale</a> for how tracking
-time grows with point count.</p>
+<p>Continue to <a href="getting_started/./strain_window.html">Strain Window</a>.</p>
 <h3 id="kernel_warping_pixel_lockingpy"><a class="header" href="#kernel_warping_pixel_lockingpy"><code>kernel_warping_pixel_locking.py</code></a></h3>
 <pre><code class="language-python">"""Pixel locking: `grid.locate_subpixel`'s own x-error against each
 point's known true position, at High Point Density's full 53x54 grid.
@@ -7233,6 +6729,558 @@ for generator, current_image in generators.items():
         )
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="strain-window"><a class="header" href="#strain-window">Strain Window</a></h1>
+<p>This page is a placeholder. Its narrative is still to be written.</p>
+<p><a href="getting_started/./path_forward.html#postponed">Path Forward</a> describes the planned work:
+fitting displacement over a neighborhood of points before
+differentiating it. In an exploratory test, a 15x15-point
+least-squares window cut <a href="getting_started/./kernel_warping.html">Kernel Warping</a>'s
+2862-point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> standard deviation from 1161 to 39 microstrain.</p>
+<p>Continue to <a href="getting_started/./parallelization.html">Parallelization</a>.</p>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="parallelization"><a class="header" href="#parallelization">Parallelization</a></h1>
+<p><a href="getting_started/./multi_point_motion.html#tracking-the-grid">Multi-Point Motion</a> ran 12
+independent calls to
+<a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> — one
+per point, each doing its own FFT-based phase correlation — to verify
+every point's displacement. We anticipate the need to process a very
+large number of point-to-point correspondences to support large-scale
+DIC work — a real finite element mesh (see <a href="getting_started/./finite_element_method.html">Finite Element
+Method</a>) can easily have thousands-to-millions
+of nodes, not the 12 points in the simple grid above. Each point
+correspondence is independent of every other: locating point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6595em;"></span><span class="mord mathnormal">i</span></span></span></span> never
+reads or writes anything locating point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.854em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.05724em;">j</span></span></span></span> touches. That independence
+isn't just a convenient property to point out —
+<a href="getting_started/../api/dictk/grid.html#locate"><code>dictk.grid.locate</code></a> is already written to
+exploit it. Its entire body is a single map over <code>reference_points</code>, one
+call to <a href="getting_started/../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a>
+per point, accumulating no shared state between iterations:</p>
+<pre><code class="language-python">return [
+    translation.locate(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_point=reference_point,
+        search_center=search_center,
+        kernel_margin_width=kernel_margin_width,
+        kernel_margin_height=kernel_margin_height,
+        search_margin_width=search_margin_width,
+        search_margin_height=search_margin_height,
+    )
+    for reference_point, search_center in zip(reference_points, search_centers)
+]
+</code></pre>
+<p>Because every iteration is already independent, parallelizing it is a
+matter of swapping this list comprehension for a parallel map over the
+same per-point calls. It is not a redesign.
+<a href="getting_started/../api/dictk/grid.html#locate"><code>dictk.grid.locate</code></a> does exactly that
+today, behind two extra keyword-only parameters: <code>max_workers</code> and
+<code>executor</code>. Default <code>max_workers=None</code> stays sequential, the loop above,
+byte-identical to <code>locate</code>'s original behavior. A positive integer
+switches to a worker pool instead.</p>
+<p>Which pool, though, is not obvious. It needs its own explanation first.</p>
+<h2 id="threads-processes-and-the-gil"><a class="header" href="#threads-processes-and-the-gil">Threads, Processes, and the GIL</a></h2>
+<p>CPython has a <strong>Global Interpreter Lock (GIL)</strong>: only one thread can
+execute Python bytecode at a time, even on a machine with many cores. A
+plain Python <code>for</code> loop split across threads would not run any faster.
+Each thread would still wait its turn for the same lock.</p>
+<p>C extensions can release the GIL during their own C-level computation,
+though. NumPy and SciPy both do this for many operations. The FFT
+<code>dictk.translation.locate</code> actually runs is one of them —
+<code>skimage.registration.phase_cross_correlation</code> calls <code>scipy.fft.fftn</code>
+and <code>scipy.fft.ifftn</code> internally, not the Python-level fallback, and
+<code>scipy.fft</code> releases the GIL for the duration of its own C computation.
+So threads <em>can</em> run FFT correlations in true parallel. The GIL is not
+held the whole time.</p>
+<p>Whether that helps depends on scale. A tiny FFT finishes almost
+instantly. Most of the wall-clock time around it is Python-level
+overhead: function calls, object construction, array slicing. Releasing
+the GIL for a few microseconds does not buy much when the thread
+scheduling and GIL reacquisition around it cost microseconds too. A
+large FFT is different. Once the C computation itself dominates the
+call, the GIL-released fraction of wall-clock time dominates too, and
+threads start to pay off.</p>
+<h2 id="threads-vs-processes-two-different-costs"><a class="header" href="#threads-vs-processes-two-different-costs">Threads vs. Processes: Two Different Costs</a></h2>
+<p>A <code>ThreadPoolExecutor</code> shares the caller's own memory. No pickling, no
+process spawn. Cheap to start. But every task still pays a GIL
+scheduling cost, and that cost does not shrink as task count grows. Run
+one task or a million, each one pays it individually.</p>
+<p>A <code>ProcessPoolExecutor</code> is different. Each worker is a separate OS
+process, with its own interpreter and its own GIL. It gets true
+parallelism regardless of whether the target function releases the GIL
+at all. The cost moves elsewhere: data has to be pickled across the
+process boundary, and on macOS (which spawns fresh interpreters rather
+than forking) each worker re-imports NumPy, SciPy, and scikit-image
+from scratch before it can do any work. That cost is mostly fixed and
+paid once, when the pool starts.</p>
+<p>That is the real asymmetry: <strong>processes pay once, threads pay every
+time.</strong> More tasks amortize a process pool's fixed startup cost. More
+tasks do not shrink a thread pool's per-task cost. Which one wins
+depends on both how big each task is and how many tasks there are —
+not on either alone.</p>
+<h2 id="measuring-the-trade-space"><a class="header" href="#measuring-the-trade-space">Measuring the Trade Space</a></h2>
+<p>Rather than guess, measure.
+<a href="getting_started/parallelization.html#parallelization_benchpy"><code>parallelization_bench.py</code></a> (full source
+below) times sequential, threaded, and process-pool execution of
+<code>phase_cross_correlation</code> across three scenarios. Correlation size and
+point count are not independent in a real DIC problem — a
+million-point mesh only makes sense with a small subset per point — so
+this is three targeted scenarios, not one brute-force grid:</p>
+<ul>
+<li><strong><code>book_scale</code></strong>: this book's own kernel/search size (40 pixels),
+point count climbing from 100 to 1,000,000. Does point count alone
+ever create a crossover, at a size this small?</li>
+<li><strong><code>large_subset</code></strong>: only 16 points, correlation size climbing from
+200 to 2,000 pixels. Where does the threads crossover sit, as a
+function of size alone?</li>
+<li><strong><code>realistic_mesh</code></strong>: a closer match to an actual finite element
+mesh — moderate correlation size (100 or 200 pixels), point count
+climbing from 1,000 to 100,000.</li>
+</ul>
+<p>This sweep takes several minutes to run (the <code>book_scale</code> scenario's
+1,000,000-point case alone runs over a minute) — far too slow to
+re-run on every build the way this book's other figures do. Its results
+are measured once and committed alongside the script that produced
+them, not regenerated live. The table below still reads live from that
+committed data, so it always matches the file on disk:</p>
+<div class="table-wrapper"><table><thead><tr><th>Scenario</th><th>Size</th><th>Points</th><th>Sequential (s)</th><th>Threads (s)</th><th>Threads speedup</th><th>Processes (s)</th><th>Processes speedup</th></tr></thead><tbody>
+<tr><td>book_scale</td><td>40</td><td>100</td><td>0.00752</td><td>0.02057</td><td>0.366x</td><td>0.77663</td><td>0.01x</td></tr>
+<tr><td>book_scale</td><td>40</td><td>1000</td><td>0.07277</td><td>0.18621</td><td>0.391x</td><td>0.99653</td><td>0.073x</td></tr>
+<tr><td>book_scale</td><td>40</td><td>10000</td><td>0.70866</td><td>1.83165</td><td>0.387x</td><td>2.06538</td><td>0.343x</td></tr>
+<tr><td>book_scale</td><td>40</td><td>100000</td><td>7.16526</td><td>18.32857</td><td>0.391x</td><td>14.26206</td><td>0.502x</td></tr>
+<tr><td>book_scale</td><td>40</td><td>1000000</td><td>71.65412</td><td>169.90165</td><td>0.422x</td><td>116.62403</td><td>0.614x</td></tr>
+<tr><td>large_subset</td><td>200</td><td>16</td><td>0.01608</td><td>0.0087</td><td>1.847x</td><td>0.83688</td><td>0.019x</td></tr>
+<tr><td>large_subset</td><td>500</td><td>16</td><td>0.10876</td><td>0.02691</td><td>4.041x</td><td>0.82919</td><td>0.131x</td></tr>
+<tr><td>large_subset</td><td>1000</td><td>16</td><td>0.46973</td><td>0.10719</td><td>4.382x</td><td>0.99717</td><td>0.471x</td></tr>
+<tr><td>large_subset</td><td>2000</td><td>16</td><td>2.2572</td><td>0.50896</td><td>4.435x</td><td>2.85197</td><td>0.791x</td></tr>
+<tr><td>realistic_mesh</td><td>100</td><td>1000</td><td>0.26763</td><td>0.24035</td><td>1.114x</td><td>0.8058</td><td>0.332x</td></tr>
+<tr><td>realistic_mesh</td><td>100</td><td>10000</td><td>2.6885</td><td>2.45357</td><td>1.096x</td><td>2.13847</td><td>1.257x</td></tr>
+<tr><td>realistic_mesh</td><td>100</td><td>100000</td><td>26.81134</td><td>24.32667</td><td>1.102x</td><td>15.24042</td><td>1.759x</td></tr>
+<tr><td>realistic_mesh</td><td>200</td><td>1000</td><td>0.95522</td><td>0.34662</td><td>2.756x</td><td>1.02504</td><td>0.932x</td></tr>
+<tr><td>realistic_mesh</td><td>200</td><td>10000</td><td>9.59174</td><td>3.43856</td><td>2.789x</td><td>4.41874</td><td>2.171x</td></tr>
+<tr><td>realistic_mesh</td><td>200</td><td>100000</td><td>98.60379</td><td>31.72111</td><td>3.108x</td><td>36.23009</td><td>2.722x</td></tr>
+</tbody></table>
+</div><figure id="figure-10-1">
+    <img src="getting_started/parallelization_bench.png" alt="three stacked panels: book_scale shows sequential always fastest from 100 to 1,000,000 points, with a dashed trend line predicting that holds out to a trillion points; large_subset shows threads reaching over 4x speedup as correlation size grows while processes never beat sequential at only 16 points, not extrapolated; realistic_mesh shows both threads and processes beating sequential, with processes catching up to threads as point count grows, and dashed trend lines predicting each pair levels off close to its last measured value" />
+    <figcaption><strong>Figure 10-1:</strong> Speedup vs. sequential, measured once on a 10-core machine (macOS, <code>spawn</code> start method). Solid lines are measured data. Dashed lines are trend extrapolations — a straight-line time-vs-point-count fit, projected out to 10<sup>6</sup>, 10<sup>9</sup>, and 10<sup>12</sup> points. Top: at this book's own 40-pixel scale, sequential wins at every point count tested, up to 1,000,000, and the trend predicts it keeps winning — processes plateau near 0.62x, threads near 0.42x, even out to a trillion points. Middle: at only 16 points, threads win decisively once correlations are large enough; processes never recover their fixed startup cost. Not extrapolated: this panel's x-axis is correlation size, not point count, and a subset a billion pixels wide isn't physical. Bottom: with enough points, both help, and processes close the gap on threads as point count grows; the trend predicts each pair levels off close to its last measured value.</figcaption>
+</figure>
+<p>Four findings, read directly off that data:</p>
+<ol>
+<li><strong>At this book's own scale, sequential always wins.</strong> 1,000,000
+points at 40 pixels still favors sequential (71.7s) over both
+threads (169.9s) and processes (116.6s). Point count alone never
+creates a crossover at this size — not at 100 points, not at a
+million.</li>
+<li><strong>Few points, large correlations: threads win, processes cannot
+recover.</strong> At 2,000 pixels with only 16 points, threads reach
+4.4x. Processes reach only 0.79x — still slower than sequential.
+Sixteen tasks is not enough to amortize a process pool's fixed
+startup cost, no matter how large each individual task is.</li>
+<li><strong>Many points, moderate correlations: processes catch up, and can
+pass threads.</strong> At 100 pixels, processes start behind threads
+(0.33x vs. 1.11x at 1,000 points) but overtake them by 100,000
+points (1.76x vs. 1.10x). More tasks keep amortizing a process
+pool's fixed cost long after a thread pool's per-task cost has
+stopped improving.</li>
+<li><strong>The trend, extrapolated to Path Forward's north-star scale,
+predicts a plateau, not a crossover.</strong> Fitting a straight line to
+each method's measured time-vs-point-count and reading off the
+resulting speedup ratio at 10<sup>6</sup>, 10<sup>9</sup>, and
+10<sup>12</sup> points: <code>book_scale</code>'s ordering never flips
+(processes settle near 0.62x, threads near 0.42x, both still
+slower than sequential); <code>realistic_mesh</code>'s pairs settle close to
+their last measured value (size=100: threads 1.10x, processes
+1.84x; size=200: threads 3.13x, processes 2.78x). This is a linear
+extrapolation from a handful of measured points, not a new
+measurement — a hypothesis worth testing at real scale, not a
+settled result.</li>
+</ol>
+<h2 id="using-max_workers"><a class="header" href="#using-max_workers">Using <code>max_workers</code></a></h2>
+<p><code>dictk.grid.locate</code> accepts <code>max_workers</code> and <code>executor</code> directly now,
+no sketch required. Run it against the same 12-point grid <a href="getting_started/./multi_point_motion.html#tracking-the-grid">Multi-Point
+Motion</a> already tracked,
+sequential and concurrent side by side:</p>
+<pre><code class="language-python">from dictk.grid import Executor, locate
+
+sequential = locate(
+    reference_image=reference_image,
+    current_image=current_image,
+    reference_points=points,
+    kernel_margin_width=20,
+    kernel_margin_height=20,
+    search_margin_width=48,
+    search_margin_height=52,
+)
+threaded = locate(
+    reference_image=reference_image,
+    current_image=current_image,
+    reference_points=points,
+    kernel_margin_width=20,
+    kernel_margin_height=20,
+    search_margin_width=48,
+    search_margin_height=52,
+    max_workers=4,
+    executor=Executor.THREAD,
+)
+print(f"results match: {sequential == threaded}")
+</code></pre>
+<pre><code class="language-text">results match: True
+</code></pre>
+<p>The results match, as they must — <code>max_workers</code> changes how the 12
+points are tracked, not what answer each one finds. It does not change
+the runtime in any way worth showing here, either. Twelve points at 40
+pixels is deep in the <code>book_scale</code> regime above: sequential wins.
+Demonstrating correctness at this scale, not speed, is the honest thing
+to show.</p>
+<h2 id="choosing-an-executor"><a class="header" href="#choosing-an-executor">Choosing an Executor</a></h2>
+<p>Given the measured trade space, not a guess:</p>
+<ul>
+<li><strong>This book's own examples (small kernels, small search areas):
+don't parallelize at all.</strong> Leave <code>max_workers=None</code>. Sequential
+wins here regardless of point count.</li>
+<li><strong>Few points, each with a large correlation</strong>: <code>Executor.THREAD</code>.
+Processes cannot recover their fixed cost across only a handful of
+tasks, no matter how large each one is.</li>
+<li><strong>Many points, each with a moderate-to-large correlation</strong> (the
+closest match to a real finite element mesh): either pool helps;
+<code>Executor.PROCESS</code> closes the gap on threads as point count grows,
+and can pass it.</li>
+<li><strong>Unsure which regime a problem falls in?</strong> <code>Executor.THREAD</code> is
+<code>locate</code>'s default for exactly this reason. It is never
+catastrophically worse than sequential, unlike a process pool at low
+point counts, even though it is not always the fastest option
+available.</li>
+</ul>
+<h3 id="parallelization_benchpy"><a class="header" href="#parallelization_benchpy"><code>parallelization_bench.py</code></a></h3>
+<pre><code class="language-python">"""Benchmark: sequential vs. threads vs. processes for
+skimage.registration.phase_cross_correlation, at varying correlation
+sizes and call counts.
+
+Not part of the dictk package -- a standalone, one-time measurement
+script, matching the convention simple_shear.py already sets. Its
+output (parallelization_bench.csv, parallelization_bench.png) is
+committed alongside it rather than regenerated on every book build: the
+full sweep takes several minutes (the 1,000,000-call case alone runs
+over a minute), far too slow for the live cmdrun re-execution every
+other figure in this book uses. Parallelization.md prints this script's
+full source inline (see its own "parallelization_bench.py" section) so
+the numbers stay checkable even though they are not live.
+
+Must be a real module, not `python3 -c` -- ProcessPoolExecutor needs a
+real, importable, top-level function to hand to spawned workers, the
+same constraint dictk.grid._locate_worker exists for.
+
+Re-run with: python3 parallelization_bench.py
+"""
+
+import csv
+import os
+import time
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+
+import matplotlib.pyplot as plt
+import numpy as np
+from skimage.registration import phase_cross_correlation
+
+WORKERS = os.cpu_count()
+
+CSV_PATH = "parallelization_bench.csv"
+FIGURE_PATH = "parallelization_bench.png"
+
+# Point count and correlation size are not independent in a real DIC
+# problem -- a million-point mesh only makes sense with small subsets
+# per point. Three scenarios instead of one brute-force grid, each
+# answering a different question:
+SCENARIOS = {
+    # This book's own teaching scale (kernel/search sizes throughout
+    # Single/Multi-Point Motion). Does point count alone ever create a
+    # crossover, at a size this small?
+    "book_scale": [(40, n) for n in [100, 1_000, 10_000, 100_000, 1_000_000]],
+    # Few points, growing correlation size. Where does the threads
+    # crossover actually sit, as a function of size alone?
+    "large_subset": [(size, 16) for size in [200, 500, 1000, 2000]],
+    # A more realistic finite element mesh: moderate subset size,
+    # climbing point count. Does the processes-vs-threads balance shift
+    # as point count grows?
+    "realistic_mesh": [(100, n) for n in [1_000, 10_000, 100_000]]
+    + [(200, n) for n in [1_000, 10_000, 100_000]],
+}
+
+
+def one(args: tuple[np.ndarray, np.ndarray]):
+    """One correlation. Module-level and single-positional-argument on
+    purpose -- see the module docstring."""
+    kernel, search = args
+    return phase_cross_correlation(kernel, search, normalization="phase")
+
+
+def make_args(size: int, n_calls: int, seed: int = 42):
+    """`n_calls` copies of the same random kernel/search pair at `size`.
+
+    The same pair repeated, not `n_calls` distinct random pairs: this
+    benchmark measures call overhead, not correlation accuracy, so
+    identical inputs keep every call's own work identical too."""
+    rng = np.random.default_rng(seed)
+    kernel = rng.random((size, size))
+    search = rng.random((size, size))
+    return [(kernel, search)] * n_calls
+
+
+def time_sequential(args) -&gt; float:
+    t0 = time.perf_counter()
+    for x in args:
+        one(x)
+    return time.perf_counter() - t0
+
+
+def time_threads(args) -&gt; float:
+    t0 = time.perf_counter()
+    with ThreadPoolExecutor(max_workers=WORKERS) as pool:
+        list(pool.map(one, args))
+    return time.perf_counter() - t0
+
+
+def time_processes(args) -&gt; float:
+    t0 = time.perf_counter()
+    with ProcessPoolExecutor(max_workers=WORKERS) as pool:
+        list(pool.map(one, args))
+    return time.perf_counter() - t0
+
+
+def run_case(scenario: str, size: int, n_calls: int, writer: csv.DictWriter) -&gt; None:
+    args = make_args(size, n_calls)
+
+    sequential_s = time_sequential(args)
+    threads_s = time_threads(args)
+    processes_s = time_processes(args)
+
+    writer.writerow(
+        {
+            "scenario": scenario,
+            "size": size,
+            "n_calls": n_calls,
+            "workers": WORKERS,
+            "sequential_s": round(sequential_s, 5),
+            "threads_s": round(threads_s, 5),
+            "processes_s": round(processes_s, 5),
+            "threads_speedup": round(sequential_s / threads_s, 3),
+            "processes_speedup": round(sequential_s / processes_s, 3),
+        }
+    )
+    print(
+        f"[{scenario}] size={size:5d} n={n_calls:8d}  "
+        f"sequential={sequential_s:8.3f}s  "
+        f"threads={threads_s:8.3f}s (x{sequential_s / threads_s:5.2f})  "
+        f"processes={processes_s:8.3f}s (x{sequential_s / processes_s:5.2f})",
+        flush=True,
+    )
+
+
+def run_sweep() -&gt; None:
+    fieldnames = [
+        "scenario",
+        "size",
+        "n_calls",
+        "workers",
+        "sequential_s",
+        "threads_s",
+        "processes_s",
+        "threads_speedup",
+        "processes_speedup",
+    ]
+    with open(CSV_PATH, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        for scenario, cases in SCENARIOS.items():
+            for size, n_calls in cases:
+                run_case(scenario, size, n_calls, writer)
+                f.flush()
+    print(f"\nWrote {CSV_PATH}")
+
+
+# Point counts to extrapolate speedup trends out to, tying directly to
+# the "north star" scale in Path Forward (billions of correlations,
+# staying under a trillion by design). Only scenarios whose x-axis is
+# point count (book_scale, realistic_mesh) get this treatment --
+# large_subset's x-axis is correlation *size*, and extrapolating a
+# subset's side length out to a billion pixels isn't physical.
+EXTRAPOLATION_TARGETS = [1_000_000, 1_000_000_000, 1_000_000_000_000]
+
+
+def _trend_line(ns, seq_times, other_times, targets):
+    """Fit a linear time-vs-n trend (time = a*n + b) to `seq_times` and
+    `other_times` independently, then extrapolate the *speedup ratio*
+    (their fitted-time ratio) out to every target beyond the last real
+    data point.
+
+    Returns `(xs, speedups, marks)`: `xs`/`speedups` start at the last
+    *measured* point (so a plotted dashed line picks up exactly where
+    the solid measured line ends, no visual gap) and run through every
+    target; `marks` is just the subset of targets genuinely beyond the
+    measured range, for placing "predicted value" markers.
+    """
+    a_seq, b_seq = np.polyfit(ns, seq_times, 1)
+    a_other, b_other = np.polyfit(ns, other_times, 1)
+    last_n = ns[-1]
+    marks = [t for t in targets if t &gt; last_n]
+    xs = [last_n] + marks
+    speedups = [(a_seq * n + b_seq) / (a_other * n + b_other) for n in xs]
+    return xs, speedups, marks
+
+
+def _add_trend(ax, ns, seq_times, other_times, color):
+    xs, speedups, marks = _trend_line(ns, seq_times, other_times, EXTRAPOLATION_TARGETS)
+    ax.plot(xs, speedups, linestyle="--", color=color, linewidth=1.2)
+    mark_speedups = speedups[-len(marks) :] if marks else []
+    ax.plot(
+        marks,
+        mark_speedups,
+        linestyle="none",
+        marker="x",
+        color=color,
+        markersize=7,
+        markeredgewidth=1.5,
+    )
+    for n, s in zip(marks, mark_speedups):
+        ax.annotate(
+            f"{s:.2f}x",
+            (n, s),
+            textcoords="offset points",
+            xytext=(4, 4),
+            fontsize=7,
+            color=color,
+        )
+
+
+def plot_summary() -&gt; None:
+    with open(CSV_PATH) as f:
+        rows = list(csv.DictReader(f))
+
+    with plt.rc_context({"font.family": "serif", "mathtext.fontset": "cm"}):
+        fig, axes = plt.subplots(3, 1, figsize=(7, 15), constrained_layout=True)
+
+        panels = [
+            (
+                axes[0],
+                "book_scale",
+                "n_calls",
+                "point count (size=40 fixed)",
+                "log",
+                True,
+            ),
+            (
+                axes[1],
+                "large_subset",
+                "size",
+                "correlation size (n=16 fixed)",
+                "linear",
+                False,
+            ),
+            (
+                axes[2],
+                "realistic_mesh",
+                "n_calls",
+                "point count (size=100 or 200)",
+                "log",
+                True,
+            ),
+        ]
+        for ax, scenario, xkey, xlabel, xscale, extrapolate in panels:
+            data = [r for r in rows if r["scenario"] == scenario]
+            if scenario == "realistic_mesh":
+                for size, marker in [("100", "o"), ("200", "s")]:
+                    sub = [r for r in data if r["size"] == size]
+                    xs = [int(r[xkey]) for r in sub]
+                    ax.plot(
+                        xs,
+                        [float(r["threads_speedup"]) for r in sub],
+                        marker=marker,
+                        color="tab:blue",
+                        label=f"threads (size={size})",
+                    )
+                    ax.plot(
+                        xs,
+                        [float(r["processes_speedup"]) for r in sub],
+                        marker=marker,
+                        color="tab:orange",
+                        label=f"processes (size={size})",
+                    )
+                    if extrapolate:
+                        seq = [float(r["sequential_s"]) for r in sub]
+                        thr = [float(r["threads_s"]) for r in sub]
+                        proc = [float(r["processes_s"]) for r in sub]
+                        _add_trend(ax, xs, seq, thr, "tab:blue")
+                        _add_trend(ax, xs, seq, proc, "tab:orange")
+            else:
+                xs = [int(r[xkey]) for r in data]
+                ax.plot(
+                    xs,
+                    [float(r["threads_speedup"]) for r in data],
+                    marker="o",
+                    color="tab:blue",
+                    label="threads",
+                )
+                ax.plot(
+                    xs,
+                    [float(r["processes_speedup"]) for r in data],
+                    marker="o",
+                    color="tab:orange",
+                    label="processes",
+                )
+                if extrapolate:
+                    seq = [float(r["sequential_s"]) for r in data]
+                    thr = [float(r["threads_s"]) for r in data]
+                    proc = [float(r["processes_s"]) for r in data]
+                    _add_trend(ax, xs, seq, thr, "tab:blue")
+                    _add_trend(ax, xs, seq, proc, "tab:orange")
+            ax.axhline(
+                1.0,
+                color="black",
+                linestyle="--",
+                linewidth=1,
+                label="sequential (baseline)",
+            )
+            ax.set_xscale(xscale)
+            if extrapolate:
+                # Headroom so the rightmost "N.NNx" annotation (at the
+                # 10^12 target) doesn't clip against the panel edge.
+                ax.set_xlim(right=ax.get_xlim()[1] * 3)
+            ax.set_xlabel(xlabel)
+            ax.set_ylabel("speedup vs sequential")
+            ax.set_title(scenario)
+            handles, labels = ax.get_legend_handles_labels()
+            if extrapolate:
+                from matplotlib.lines import Line2D
+
+                handles += [
+                    Line2D(
+                        [0],
+                        [0],
+                        color="gray",
+                        marker="o",
+                        linestyle="-",
+                        label="measured",
+                    ),
+                    Line2D(
+                        [0],
+                        [0],
+                        color="gray",
+                        marker="x",
+                        linestyle="--",
+                        label="trend (extrapolated)",
+                    ),
+                ]
+            ax.legend(handles=handles, fontsize=7)
+
+        fig.savefig(FIGURE_PATH, dpi=300)
+        plt.close(fig)
+    print(f"Wrote {FIGURE_PATH}")
+
+
+if __name__ == "__main__":
+    run_sweep()
+    plot_summary()
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="timing-at-scale"><a class="header" href="#timing-at-scale">Timing at Scale</a></h1>
 <p><a href="getting_started/./high_point_density.html">High Point Density</a> closed with a question it
 didn't answer: how does <code>dictk</code>'s tracking time scale as point count
@@ -7394,9 +7442,9 @@ alongside the script that produced them:</p>
 <tr><td style="text-align: right;">10204</td><td style="text-align: right;">3,229,209</td><td style="text-align: right;">—</td><td style="text-align: right;">timeout (1800s)</td><td style="text-align: right;">—</td></tr>
 </tbody>
 </table>
-<figure id="figure-9.4-1">
+<figure id="figure-10.1-1">
     <img src="getting_started/timing_at_scale_bench.png" alt="two log-log panels: left shows rosta generation and stretch cost climbing smoothly from under 0.01s to about 10s as image width grows from 300 to 10204px; right shows tracking cost in seconds vs. point count for sequential, threads, and processes, with processes stopping at about 95000 points, sequential stopping around 1000000 points, and threads reaching the highest point count before also stopping" />
-    <figcaption><strong>Figure 9.4-1:</strong> Image generation and tracking cost across the full ladder, this machine, measured once. Left: <code>rosta</code> generation and <code>stretch</code> both scale smoothly with image width, confirming the dot-size rescaling above kept generation cost from going cubic. Right: tracking cost vs. point count for all three executors. Every series ends where its own executor died — not at a common point count, and not at a common image size.</figcaption>
+    <figcaption><strong>Figure 10.1-1:</strong> Image generation and tracking cost across the full ladder, this machine, measured once. Left: <code>rosta</code> generation and <code>stretch</code> both scale smoothly with image width, confirming the dot-size rescaling above kept generation cost from going cubic. Right: tracking cost vs. point count for all three executors. Every series ends where its own executor died — not at a common point count, and not at a common image size.</figcaption>
 </figure>
 <p>Threads pull ahead as point count grows, and by a widening margin. At
 300px, threads and sequential run a statistical tie (0.999x) — 2,809
@@ -8277,9 +8325,9 @@ before that run finished. <strong>not run</strong> means the ladder never reache
 size, because the device had already stopped one rung earlier. The
 remaining dash, in the speedup column, marks a ratio with no denominator
 to compute it from.</p>
-<figure id="figure-9.5-1">
+<figure id="figure-10.2-1">
     <img src="getting_started/parallelism_pytorch_bench.png" alt="two log-log panels: left compares tracking cost against point count, with Timing at Scale's sequential, threads and processes as dashed lines and this page's torch CPU and torch MPS as solid lines; torch MPS runs lowest at every point count, while torch CPU starts below that page's threads line and crosses above it near 100,000 points; right breaks each size's time into upload, extract, correlate and refine, showing correlate highest and upload and refine lowest throughout" />
-    <figcaption><strong>Figure 9.5-1:</strong> Left: batched PyTorch against <a href="getting_started/./timing_at_scale.html">Timing at Scale</a>'s own three executors, same geometry, same machine. Right: where each size's time actually goes, split into uploading the images, extracting search areas, correlating them, and refining the peaks.</figcaption>
+    <figcaption><strong>Figure 10.2-1:</strong> Left: batched PyTorch against <a href="getting_started/./timing_at_scale.html">Timing at Scale</a>'s own three executors, same geometry, same machine. Right: where each size's time actually goes, split into uploading the images, extracting search areas, correlating them, and refining the peaks.</figcaption>
 </figure>
 <p>The Apple GPU wins at every size, but not by a constant factor. The way
 that factor moves is the most interesting thing in the table.</p>
@@ -9558,7 +9606,7 @@ already built exactly that jump:</p>
             <span>(b)</span>
         </div>
     </div>
-    <figcaption><strong>Figure 10-1:</strong> Crack Dislocation, the same image pair as <a href="getting_started/./transformation.html#fig-crack-dislocation">Figure 6-8</a>. (a) Original. (b) offset=4 pixels.</figcaption>
+    <figcaption><strong>Figure 11-1:</strong> Crack Dislocation, the same image pair as <a href="getting_started/./transformation.html#fig-crack-dislocation">Figure 6-8</a>. (a) Original. (b) offset=4 pixels.</figcaption>
 </figure>
 <p>A vertical crack splits the image at its vertical midline. The left half
 shifts down 4 pixels. The right half shifts up 4 pixels. Standard DIC
@@ -9641,11 +9689,11 @@ write(arr=current_image, path="synthetic_dislocation_current.png")
             <span>(b)</span>
         </div>
     </div>
-    <figcaption><strong>Figure 10.1-1:</strong> Synthetic Dislocation. (a) Original, <a href="getting_started/synthetic_dislocation_reference.png"><code>synthetic_dislocation_reference.png</code></a>. (b) offset=4 pixels, <a href="getting_started/synthetic_dislocation_current.png"><code>synthetic_dislocation_current.png</code></a>.</figcaption>
+    <figcaption><strong>Figure 11.1-1:</strong> Synthetic Dislocation. (a) Original, <a href="getting_started/synthetic_dislocation_reference.png"><code>synthetic_dislocation_reference.png</code></a>. (b) offset=4 pixels, <a href="getting_started/synthetic_dislocation_current.png"><code>synthetic_dislocation_current.png</code></a>.</figcaption>
 </figure>
 <p>Both carry the same <code>rosta</code> speckle pattern — only the dislocation
 differs. <a href="getting_started/./discontinuities.html">Discontinuities</a>'s plain-photo version,
-<a href="getting_started/./discontinuities.html#fig-crack-dislocation-repeat">Figure 10-1</a>, showed the
+<a href="getting_started/./discontinuities.html#fig-crack-dislocation-repeat">Figure 11-1</a>, showed the
 geometry alone; this pair is what a correlation actually
 sees.</p>
 <h2 id="a-window-straddling-the-crack"><a class="header" href="#a-window-straddling-the-crack">A Window Straddling the Crack</a></h2>
@@ -9679,9 +9727,9 @@ subimage_comparison_plot(
 </code></pre>
 <pre><code class="language-text">Saved: synthetic_dislocation_kernel.png
 </code></pre>
-<figure id="figure-10.1-2">
+<figure id="figure-11.1-2">
     <img src="getting_started/synthetic_dislocation_kernel.png" alt="the kernel window as a green box centered at x=150, y=150 on reference_image, with the extracted kernel subimage shown alongside it" />
-    <figcaption><strong>Figure 10.1-2:</strong> The kernel window (green box), a 50x50 pixel region of <code>reference_image</code> centered on the crack at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6886em;vertical-align:-0.2441em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">150</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span></span></span></span>, with origin <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">O</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.09931em;">F</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">125</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">125</span><span class="mclose">)</span></span></span></span> pixels (green dot). Because the window straddles the crack instead of sitting on one side of it, it contains pixels from both displacements on the left and right halves of the current image. This follows the nomenclature and convention established in <a href="getting_started/./cross_correlation.html#kernel">Cross Correlation (CC)</a>.</figcaption>
+    <figcaption><strong>Figure 11.1-2:</strong> The kernel window (green box), a 50x50 pixel region of <code>reference_image</code> centered on the crack at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6886em;vertical-align:-0.2441em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">150</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span></span></span></span>, with origin <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">O</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.09931em;">F</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">125</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">125</span><span class="mclose">)</span></span></span></span> pixels (green dot). Because the window straddles the crack instead of sitting on one side of it, it contains pixels from both displacements on the left and right halves of the current image. This follows the nomenclature and convention established in <a href="getting_started/./cross_correlation.html#kernel">Cross Correlation (CC)</a>.</figcaption>
 </figure>
 <pre><code class="language-python">from dictk.image import subimage, PixelCoordinate
 from dictk.correlation import zncc
@@ -9714,13 +9762,13 @@ phase_correlation_quadrant_plot(
 </code></pre>
 <pre><code class="language-text">Saved: synthetic_dislocation_reference.png, synthetic_dislocation_current.png, synthetic_dislocation_zncc.png, synthetic_dislocation_phase.png
 </code></pre>
-<figure id="figure-10.1-3">
+<figure id="figure-11.1-3">
     <img src="getting_started/synthetic_dislocation_zncc.png" alt="ZNCC quadrant plot: correlation surface shows two separate bright yellow peaks, one near (20, 16) and one near (20, 24), rather than one" />
-    <figcaption><strong>Figure 10.1-3:</strong> ZNCC's Correlation Surface panel: two (not one) comparably-tall peaks at (x=20, y=16) and (x=20, y=24), with heights 0.528 and 0.519, respectively. Both sit at the same x offset, 20, the center index that matches the crack's own zero horizontal shift. They differ only in y, by 8 pixels.</figcaption>
+    <figcaption><strong>Figure 11.1-3:</strong> ZNCC's Correlation Surface panel: two (not one) comparably-tall peaks at (x=20, y=16) and (x=20, y=24), with heights 0.528 and 0.519, respectively. Both sit at the same x offset, 20, the center index that matches the crack's own zero horizontal shift. They differ only in y, by 8 pixels.</figcaption>
 </figure>
-<figure id="figure-10.1-4">
+<figure id="figure-11.1-4">
     <img src="getting_started/synthetic_dislocation_phase.png" alt="Phase correlation quadrant plot: correlation surface is otherwise flat except for two isolated bright pixels at the same two locations the ZNCC surface found" />
-    <figcaption><strong>Figure 10.1-4:</strong> Phase correlation's Correlation Surface panel shows the same pattern as <a href="getting_started/./correlation_visualization.html#phase-correlation">Phase Correlation</a>: flat except for one sharp pixel. Here, though, there are two sharp pixels, at (x=20, y=16) and (x=20, y=24), with heights 0.206 and 0.173, respectively. These are the same two locations ZNCC found.</figcaption>
+    <figcaption><strong>Figure 11.1-4:</strong> Phase correlation's Correlation Surface panel shows the same pattern as <a href="getting_started/./correlation_visualization.html#phase-correlation">Phase Correlation</a>: flat except for one sharp pixel. Here, though, there are two sharp pixels, at (x=20, y=16) and (x=20, y=24), with heights 0.206 and 0.173, respectively. These are the same two locations ZNCC found.</figcaption>
 </figure>
 <p>Two comparably-tall peaks appear, not one, because a single-peak
 correlation answer can't represent two different true displacements at
@@ -9750,9 +9798,9 @@ each surface's two-peak separation still equals twice the offset:</p>
 </tbody></table>
 </div>
 <p>Saved: synthetic_dislocation_sweep.png</p>
-<figure id="figure-10.1-5">
+<figure id="figure-11.1-5">
     <img src="getting_started/synthetic_dislocation_sweep.png" alt="scatter plot of peak separation vs dislocation offset, both ZNCC circles and phase-correlation crosses landing exactly on a dashed separation-equals-two-times-offset reference line from 2 to 32 pixels" />
-    <figcaption><strong>Figure 10.1-5:</strong> Every offset from 2 to 32 pixels lands exactly on the separation = 2 x offset line, for both criteria. Only at offset=1 does ZNCC miss. There, the two peaks sit one pixel apart, too close for this integer-pixel surface to resolve as two separate local maxima. Phase correlation still resolves them at that offset.</figcaption>
+    <figcaption><strong>Figure 11.1-5:</strong> Every offset from 2 to 32 pixels lands exactly on the separation = 2 x offset line, for both criteria. Only at offset=1 does ZNCC miss. There, the two peaks sit one pixel apart, too close for this integer-pixel surface to resolve as two separate local maxima. Phase correlation still resolves them at that offset.</figcaption>
 </figure>
 <p>The encoding holds reliably across a 32x range of offsets, for both
 criteria. One exception sits at the low end: once the two true
@@ -9784,18 +9832,18 @@ right half's own shift), at each step:</p>
 </tbody></table>
 </div>
 <p>Saved: synthetic_dislocation_x_sweep.png</p>
-<figure id="figure-10.1-6">
+<figure id="figure-11.1-6">
     <img src="getting_started/synthetic_dislocation_x_sweep.png" alt="line plot of ZNCC peak magnitude vs. window center x from 100 to 200: the left-half peak pins at exactly 1.0 until x=125, both peaks cross near x=148, then the right-half peak pins at exactly 1.0 from x=175 onward while the left-half peak fades to a fluctuating 0.2-0.3 band" />
-    <figcaption><strong>Figure 10.1-6:</strong> Peak magnitude vs. kernel window center x, dotted lines at x=125 and x=175 marking the geometric boundary, dashed line at x=150 marking the crack. Below x=125 there's exactly one peak, at Δy=+4, pinned at 1.0: the "lower" peak, further down the page. That confirms it's the only one present, not merely the tallest. Above x=175 the mirror image holds: one peak, at Δy=-4, pinned at 1.0. Between them, the two trade dominance smoothly, crossing near x=148, both close to 0.52 there, matching <a href="getting_started/synthetic_dislocation.html#a-window-straddling-the-crack">the single point already measured at x=150</a>.</figcaption>
+    <figcaption><strong>Figure 11.1-6:</strong> Peak magnitude vs. kernel window center x, dotted lines at x=125 and x=175 marking the geometric boundary, dashed line at x=150 marking the crack. Below x=125 there's exactly one peak, at Δy=+4, pinned at 1.0: the "lower" peak, further down the page. That confirms it's the only one present, not merely the tallest. Above x=175 the mirror image holds: one peak, at Δy=-4, pinned at 1.0. Between them, the two trade dominance smoothly, crossing near x=148, both close to 0.52 there, matching <a href="getting_started/synthetic_dislocation.html#a-window-straddling-the-crack">the single point already measured at x=150</a>.</figcaption>
 </figure>
 <p>The line plot only reads two fixed points on the surface. The surface
 itself tells the same story directly: the Correlation Surface panel at
 five kernel window center positions, <code>x = 130, 140, 150, 160, 170</code>,
 sharing one colorbar:</p>
 <p>Saved: synthetic_dislocation_x_sweep_panels.png</p>
-<figure id="figure-10.1-7">
+<figure id="figure-11.1-7">
     <img src="getting_started/synthetic_dislocation_x_sweep_panels.png" alt="five ZNCC Correlation Surface panels side by side at kernel window center x=130, 140, 150, 160, and 170, sharing one viridis colorbar from 0 to 1: a single bright peak near the bottom at x=130, a second peak emerging and growing through x=140 and x=150 where both are comparable, then the first peak fading while the second dominates by x=160 and x=170" />
-    <figcaption><strong>Figure 10.1-7:</strong> The Correlation Surface panel itself, at five kernel window center positions. At x=130 one peak, near the bottom, clearly dominates. A second, fainter peak sits just above it. The two left-most panels (x=130, x=140) circle that lower peak, at (x=20, y=24) px. By x=150 the two are close enough to call a tie; the argmax circle lands on whichever is barely taller. The two right-most panels (x=160, x=170) circle the upper peak instead, at (x=20, y=16) px. The roles have now fully reversed: it dominates, and the lower peak is nearly gone.</figcaption>
+    <figcaption><strong>Figure 11.1-7:</strong> The Correlation Surface panel itself, at five kernel window center positions. At x=130 one peak, near the bottom, clearly dominates. A second, fainter peak sits just above it. The two left-most panels (x=130, x=140) circle that lower peak, at (x=20, y=24) px. By x=150 the two are close enough to call a tie; the argmax circle lands on whichever is barely taller. The two right-most panels (x=160, x=170) circle the upper peak instead, at (x=20, y=16) px. The roles have now fully reversed: it dominates, and the lower peak is nearly gone.</figcaption>
 </figure>
 <p>ZNCC hits exactly 1.0, not just a high value, wherever the window sits
 fully inside one half. That's not a coincidence: a window entirely
@@ -9859,7 +9907,7 @@ point_displacement_plot(
 </code></pre>
 <figure id="fig-synthetic-displacement-field">
     <img src="getting_started/synthetic_dislocation_displacement_field.png" alt="displacement field: a dense grid of small square points colored by dy, split into a red (+4 pixel) region on the left half of the field and a blue (-4 pixel) region on the right half, with a sharp boundary between them right at the crack" />
-    <figcaption><strong>Figure 10.1-8:</strong> The <code>dy</code> field over all 1849 tracked points. Not a gradient: two flat colors, solid <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">δy</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">+</span><span class="mord">4</span></span></span></span> (left) and solid <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">δy</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">−</span><span class="mord">4</span></span></span></span> (right), meeting at a boundary within one grid column (5 pixels) of the crack at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">150</span></span></span></span>, for every row.</figcaption>
+    <figcaption><strong>Figure 11.1-8:</strong> The <code>dy</code> field over all 1849 tracked points. Not a gradient: two flat colors, solid <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">δy</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">+</span><span class="mord">4</span></span></span></span> (left) and solid <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">δy</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">−</span><span class="mord">4</span></span></span></span> (right), meeting at a boundary within one grid column (5 pixels) of the crack at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">150</span></span></span></span>, for every row.</figcaption>
 </figure>
 <p>Zooming into that boundary shows small gaps: spots where the gray and
 black speckle image shows through, neither red nor blue. None of the
@@ -9907,12 +9955,12 @@ already measured:</p>
 <p><code>dx</code> does stay trivially small: every one of the 1849 points comes back
 within 0.07 pixels of zero, well under a tenth of a pixel, as the first
 table above shows. The full distribution, not just its extremes:</p>
-<figure id="figure-10.1-9">
+<figure id="figure-11.1-9">
     <img src="getting_started/synthetic_dislocation_displacement_field_dx_histogram.png" alt="histogram of dx across all 1849 points: a single narrow peak centered at zero, spanning roughly -0.07 to 0.07 pixels, with a shaded band marking one std on either side of the mean and a dashed black line at the mean itself" />
-    <figcaption><strong>Figure 10.1-9:</strong> The <code>dx</code> distribution across all 1849 tracked points: a single peak centered on zero, no second mode. The shaded band marks one std on either side of the mean; the dashed line marks the mean itself. The 0.01-pixel steps are <code>upsample_factor=100</code>'s own subpixel quantization, the same effect <a href="getting_started/./high_point_density.html">High Point Density</a> found for <code>dy</code>.</figcaption>
+    <figcaption><strong>Figure 11.1-9:</strong> The <code>dx</code> distribution across all 1849 tracked points: a single peak centered on zero, no second mode. The shaded band marks one std on either side of the mean; the dashed line marks the mean itself. The 0.01-pixel steps are <code>upsample_factor=100</code>'s own subpixel quantization, the same effect <a href="getting_started/./high_point_density.html">High Point Density</a> found for <code>dy</code>.</figcaption>
 </figure>
 <h3 id="displacement-dy"><a class="header" href="#displacement-dy">Displacement dy</a></h3>
-<p>That boundary in <a href="getting_started/synthetic_dislocation.html#fig-synthetic-displacement-field">Figure 10.1-8</a> is sharper than "Moving the
+<p>That boundary in <a href="getting_started/synthetic_dislocation.html#fig-synthetic-displacement-field">Figure 11.1-8</a> is sharper than "Moving the
 Window Off the Crack" would suggest. Windows straddle the crack for
 every point with <code>125 &lt; x &lt; 175</code> -- 387 of the 1849 points here -- yet
 none of them return a value between the two true displacements. Each
@@ -9928,14 +9976,14 @@ same two groups directly: 921 points read a positive displacement, 928
 read a negative one, and none read zero. The second and third tables
 above cover each group on its own.</p>
 <p>The <code>+4</code> group:</p>
-<figure id="figure-10.1-10">
+<figure id="figure-11.1-10">
     <img src="getting_started/synthetic_dislocation_displacement_field_dy_positive_histogram.png" alt="histogram of dy for the 921 points reading a positive displacement: a single narrow peak centered near 4.00 pixels, with a shaded band marking one std on either side of the mean and a dashed black line at the mean itself" />
-    <figcaption><strong>Figure 10.1-10:</strong> The <code>dy</code> distribution for the 921 points in the <code>+4</code> group: a single peak at 4.00 pixels, std 0.017 pixels -- the shaded band and dashed line mark that mean and its one-std spread directly.</figcaption>
+    <figcaption><strong>Figure 11.1-10:</strong> The <code>dy</code> distribution for the 921 points in the <code>+4</code> group: a single peak at 4.00 pixels, std 0.017 pixels -- the shaded band and dashed line mark that mean and its one-std spread directly.</figcaption>
 </figure>
 <p>The <code>-4</code> group:</p>
-<figure id="figure-10.1-11">
+<figure id="figure-11.1-11">
     <img src="getting_started/synthetic_dislocation_displacement_field_dy_negative_histogram.png" alt="histogram of dy for the 928 points reading a negative displacement: a single narrow peak centered near -4.00 pixels, with a shaded band marking one std on either side of the mean and a dashed black line at the mean itself" />
-    <figcaption><strong>Figure 10.1-11:</strong> The <code>dy</code> distribution for the 928 points in the <code>-4</code> group: a single peak at -4.00 pixels, std 0.016 pixels -- the shaded band and dashed line mark that mean and its one-std spread directly.</figcaption>
+    <figcaption><strong>Figure 11.1-11:</strong> The <code>dy</code> distribution for the 928 points in the <code>-4</code> group: a single peak at -4.00 pixels, std 0.016 pixels -- the shaded band and dashed line mark that mean and its one-std spread directly.</figcaption>
 </figure>
 <p>Both groups are tight, single-mode distributions, each barely 0.15
 pixels wide start to finish. The largest deviation from a clean <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">±</span><span class="mord">4</span></span></span></span>,
@@ -9973,9 +10021,9 @@ points_vic2d = generate(
 )
 </code></pre>
 <p>Saved: synthetic_dislocation_grid_kernel_panels.png</p>
-<figure id="figure-10.1-12">
+<figure id="figure-11.1-12">
     <img src="getting_started/synthetic_dislocation_grid_kernel_panels.png" alt="two panels side by side over the same reference image: the left shows the current 43x43 grid of bold orange dots with a green 50x50 pixel kernel box around its first point, labeled K at the box's origin and P at the point; the right shows the denser VIC-2D-style 53x54 grid with the same labeling around a smaller green 26x26 pixel kernel box" />
-    <figcaption><strong>Figure 10.1-12:</strong> The two grids from the code above, drawn over <code>reference_image</code>. Left: the current 43x43 grid (1849 points, 5-pixel spacing), with a green box around <code>points_current[0]</code> showing its 50x50 pixel kernel window (<code>kernel_margin=25</code>). Right: the denser VIC-2D-style 53x54 grid (2862 points, same 5-pixel spacing), with a green box around <code>points_vic2d[0]</code> showing its smaller 26x26 pixel kernel window (<code>kernel_margin=13</code>). In both, the box's origin <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">O</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.09931em;">F</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span></span></span></span> is marked <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span></span></span></span> (green dot) and its tracked point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span> (orange dot), matching <a href="getting_started/synthetic_dislocation.html#a-window-straddling-the-crack">A Window Straddling the Crack</a>'s own labeling convention.</figcaption>
+    <figcaption><strong>Figure 11.1-12:</strong> The two grids from the code above, drawn over <code>reference_image</code>. Left: the current 43x43 grid (1849 points, 5-pixel spacing), with a green box around <code>points_current[0]</code> showing its 50x50 pixel kernel window (<code>kernel_margin=25</code>). Right: the denser VIC-2D-style 53x54 grid (2862 points, same 5-pixel spacing), with a green box around <code>points_vic2d[0]</code> showing its smaller 26x26 pixel kernel window (<code>kernel_margin=13</code>). In both, the box's origin <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7996em;vertical-align:-0.3552em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.03194em;">r</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">O</span><span class="mord mathnormal mtight" style="margin-right:0.07153em;">K</span><span class="mord mtight">/</span><span class="mord mathcal mtight" style="margin-right:0.09931em;">F</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span></span></span></span> is marked <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">K</span></span></span></span> (green dot) and its tracked point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span> (orange dot), matching <a href="getting_started/synthetic_dislocation.html#a-window-straddling-the-crack">A Window Straddling the Crack</a>'s own labeling convention.</figcaption>
 </figure>
 <div class="table-wrapper"><table><thead><tr><th>grid</th><th>points</th><th>kernel (px)</th><th>clipped</th><th>max dev (px)</th><th>mean dev (px)</th></tr></thead><tbody>
 <tr><td>Current (43x43, kernel_margin=25)</td><td>1849</td><td>50x50</td><td>0</td><td>0.0900</td><td>0.0119</td></tr>
@@ -10792,7 +10840,7 @@ write(arr=current_image, path="experimental_dislocation_current_preview.png")
 </code></pre>
 <pre><code class="language-text">Saved: experimental_dislocation_reference_preview.png, experimental_dislocation_current_preview.png
 </code></pre>
-<figure id="figure-10.2-1">
+<figure id="figure-11.2-1">
     <div style="display: flex; gap: 1em;">
         <a href="getting_started/experimental_dislocation_reference_preview.png" target="_blank" rel="noopener" style="flex: 1 1 0; min-width: 0;">
             <img src="getting_started/experimental_dislocation_reference_preview.png" alt="reference configuration: a real 512x512 experimental micrograph of a speckled surface, no crack visible" style="width: 100%;" />
@@ -10801,7 +10849,7 @@ write(arr=current_image, path="experimental_dislocation_current_preview.png")
             <img src="getting_started/experimental_dislocation_current_preview.png" alt="deformed configuration: the same surface after loading, now showing a diagonal crack running through it from upper-left to lower-right" style="width: 100%;" />
         </a>
     </div>
-    <figcaption><strong>Figure 10.2-1:</strong> Reference configuration (left) and deformed configuration (right), the same real image pair <a href="getting_started/experimental_dislocation.html#data-download">downloaded above</a> (click either for the full-size version). No crack is visible in the reference image at all. It only appears in the deformed image, as a diagonal band running through the surface. Closed and invisible before loading, open and visible after.</figcaption>
+    <figcaption><strong>Figure 11.2-1:</strong> Reference configuration (left) and deformed configuration (right), the same real image pair <a href="getting_started/experimental_dislocation.html#data-download">downloaded above</a> (click either for the full-size version). No crack is visible in the reference image at all. It only appears in the deformed image, as a diagonal band running through the surface. Closed and invisible before loading, open and visible after.</figcaption>
 </figure>
 <h2 id="a-window-straddling-the-real-crack"><a class="header" href="#a-window-straddling-the-real-crack">A Window Straddling the Real Crack</a></h2>
 <p>Unlike the synthetic case, the true displacement field here isn't known
@@ -10836,9 +10884,9 @@ spatial_correlation_quadrant_plot(
 </code></pre>
 <pre><code class="language-text">Saved: experimental_dislocation_zncc.png, experimental_dislocation_phase.png
 </code></pre>
-<figure id="figure-10.2-2">
+<figure id="figure-11.2-2">
     <img src="getting_started/experimental_dislocation_zncc.png" alt="ZNCC quadrant plot on the real crack image pair: a bumpy, noisy correlation surface with two clearly-distinct bright peaks along the same column, well above a third, smaller local maximum and the general noise floor" />
-    <figcaption><strong>Figure 10.2-2:</strong> ZNCC's Correlation Surface panel on real data: noisier throughout than <a href="getting_started/./synthetic_dislocation.html">Synthetic Dislocation</a>'s near-flat background, as expected for real texture, but the same signature still stands out. Along the column through the tallest value, three local maxima appear at Δy = 9, 31, and 53 pixels, with heights 0.09, 0.19, and 0.28. The two tallest, at Δy = 31 and 53, sit 22 pixels apart. Both clearly exceed the third peak and the surrounding noise, and both are comparably tall (0.19 vs. 0.28). They straddle the crack the same way <a href="getting_started/./synthetic_dislocation.html">Synthetic Dislocation</a>'s did.</figcaption>
+    <figcaption><strong>Figure 11.2-2:</strong> ZNCC's Correlation Surface panel on real data: noisier throughout than <a href="getting_started/./synthetic_dislocation.html">Synthetic Dislocation</a>'s near-flat background, as expected for real texture, but the same signature still stands out. Along the column through the tallest value, three local maxima appear at Δy = 9, 31, and 53 pixels, with heights 0.09, 0.19, and 0.28. The two tallest, at Δy = 31 and 53, sit 22 pixels apart. Both clearly exceed the third peak and the surrounding noise, and both are comparably tall (0.19 vs. 0.28). They straddle the crack the same way <a href="getting_started/./synthetic_dislocation.html">Synthetic Dislocation</a>'s did.</figcaption>
 </figure>
 <h2 id="fft-on-real-texture-noisier-not-just-smaller"><a class="header" href="#fft-on-real-texture-noisier-not-just-smaller">FFT on Real Texture: Noisier, Not Just Smaller</a></h2>
 <pre><code class="language-python">phase_correlation_quadrant_plot(
@@ -10847,9 +10895,9 @@ spatial_correlation_quadrant_plot(
     path="experimental_dislocation_phase.png",
 )
 </code></pre>
-<figure id="figure-10.2-3">
+<figure id="figure-11.2-3">
     <img src="getting_started/experimental_dislocation_phase.png" alt="Phase correlation quadrant plot on the same real crack image pair: a speckled, noisy correlation surface with no clean isolated peak, values an order of magnitude smaller than ZNCC's, and its single reported maximum sitting at a different position than ZNCC's own tallest peak" />
-    <figcaption><strong>Figure 10.2-3:</strong> Phase correlation's Correlation Surface panel on the same window: speckled with noise across its entire extent, not the "flat except one sharp peak" pattern <a href="getting_started/./correlation_visualization.html#phase-correlation">Phase Correlation</a> and <a href="getting_started/./synthetic_dislocation.html">Synthetic Dislocation</a> both showed. Its single reported maximum, 0.04, is an order of magnitude below ZNCC's 0.28, and lands at a different position than ZNCC's own tallest peak.</figcaption>
+    <figcaption><strong>Figure 11.2-3:</strong> Phase correlation's Correlation Surface panel on the same window: speckled with noise across its entire extent, not the "flat except one sharp peak" pattern <a href="getting_started/./correlation_visualization.html#phase-correlation">Phase Correlation</a> and <a href="getting_started/./synthetic_dislocation.html">Synthetic Dislocation</a> both showed. Its single reported maximum, 0.04, is an order of magnitude below ZNCC's 0.28, and lands at a different position than ZNCC's own tallest peak.</figcaption>
 </figure>
 <p>Both criteria agreed exactly on synthetic data. They don't here. Real,
 non-periodic texture is exactly the case
@@ -10963,9 +11011,9 @@ Error vs. known x=150: 5.0px
 
 Saved: discontinuity_localization_baseline.png
 </code></pre>
-<figure id="figure-10.3-1">
+<figure id="figure-11.3-1">
     <img src="getting_started/discontinuity_localization_baseline.png" alt="step plot of recovered y-displacement vs grid point x: a flat line at +4 pixels for x=100 through 140, then a sharp step down to -4 pixels for x=150 through 200, with the estimated crossing at x=145 marked slightly left of the true crack at x=150" />
-    <figcaption><strong>Figure 10.3-1:</strong> Recovered y-displacement at 11 grid points, spaced 10 pixels apart. The jump between x=140 and x=150 is unmistakable: +4 pixels on one side, -4 on the other. The midpoint between them, x=145, lands 5 pixels from the true crack at x=150. That's half the grid spacing: exactly the resolution this approach can offer, no better.</figcaption>
+    <figcaption><strong>Figure 11.3-1:</strong> Recovered y-displacement at 11 grid points, spaced 10 pixels apart. The jump between x=140 and x=150 is unmistakable: +4 pixels on one side, -4 on the other. The midpoint between them, x=145, lands 5 pixels from the true crack at x=150. That's half the grid spacing: exactly the resolution this approach can offer, no better.</figcaption>
 </figure>
 <p>It works, in the sense that it flags roughly the right neighborhood.
 It's also a proxy, not a measurement of the thing itself. Nothing here
@@ -11019,9 +11067,9 @@ already swept by hand:</p>
 Located crack position: x=149.804
 Error vs. known x=150: 0.196px</p>
 <p>Saved: discontinuity_localization_sweep.png</p>
-<figure id="figure-10.3-2">
+<figure id="figure-11.3-2">
     <img src="getting_started/discontinuity_localization_sweep.png" alt="line plot of peak_ratio vs window center x from 100 to 200, rising from 0 at x=130 to a sharp peak near 1.0 at x=150, then falling and settling into a fluctuating 0.2-0.3 band past x=170" />
-    <figcaption><strong>Figure 10.3-2:</strong> peak_ratio vs. window center x. A single, sharp maximum at x=149.8, subpixel-refined from a 101-point sweep. The known crack sits at x=150, 0.2 pixels away. Past x=170, peak_ratio settles into the same 0.2-0.3 band Synthetic Dislocation's own sweep already found and attributed to the underlying image content on that side, not the crack.</figcaption>
+    <figcaption><strong>Figure 11.3-2:</strong> peak_ratio vs. window center x. A single, sharp maximum at x=149.8, subpixel-refined from a 101-point sweep. The known crack sits at x=150, 0.2 pixels away. Past x=170, peak_ratio settles into the same 0.2-0.3 band Synthetic Dislocation's own sweep already found and attributed to the underlying image content on that side, not the crack.</figcaption>
 </figure>
 <p>101 evaluations, one per swept position, land 0.2 pixels from the known
 crack. No offset, no hand-picked center. The sweep finds the crossing
@@ -11042,9 +11090,9 @@ Error vs. known x=150: 0.251px</p>
 </tbody></table>
 </div>
 <p>Saved: discontinuity_localization_bisection.png</p>
-<figure id="figure-10.3-3">
+<figure id="figure-11.3-3">
     <img src="getting_started/discontinuity_localization_bisection.png" alt="the same peak_ratio curve as the dense sweep figure, with red x markers showing golden-section search's 12 sampled points clustered tightly around the true peak at x=150" />
-    <figcaption><strong>Figure 10.3-3:</strong> Golden-section search's own 12 sampled points, against the dense sweep's full curve for reference. All 12 cluster near the true maximum. The search needed no help finding it.</figcaption>
+    <figcaption><strong>Figure 11.3-3:</strong> Golden-section search's own 12 sampled points, against the dense sweep's full curve for reference. All 12 cluster near the true maximum. The search needed no help finding it.</figcaption>
 </figure>
 <p>12 evaluations instead of 101, landing 0.25 pixels from the known crack.
 That's barely worse than the dense sweep, for roughly a tenth of the
@@ -11064,9 +11112,9 @@ golden-section, bracket (150, 300): x=217.25, evaluations=13
 golden-section, bracket (100, 350): x=308.11, evaluations=14</p>
 <p>The tight and moderate brackets land within 1px of the dense sweep's own answer. The wide bracket -- the one that assumes no prior knowledge of roughly where the crack is -- converges instead to a smaller, secondary peak_ratio bump far from the real crack, confidently and silently.
 Saved: discontinuity_localization_experimental.png</p>
-<figure id="figure-10.3-4">
+<figure id="figure-11.3-4">
     <img src="getting_started/discontinuity_localization_experimental.png" alt="line plot of peak_ratio vs window center x from 100 to 350 on real data: a tall sharp peak near x=219, plus three smaller, shorter bumps around x=130, x=300-315, and x=325-340" />
-    <figcaption><strong>Figure 10.3-4:</strong> peak_ratio across a wide real-data range. One peak clearly stands above the rest, at x=218.7, 0.7 pixels from Experimental Dislocation's own by-eye x=218. Three smaller bumps sit elsewhere in the image, each shorter than the real crack's peak, but not by a wide margin.</figcaption>
+    <figcaption><strong>Figure 11.3-4:</strong> peak_ratio across a wide real-data range. One peak clearly stands above the rest, at x=218.7, 0.7 pixels from Experimental Dislocation's own by-eye x=218. Three smaller bumps sit elsewhere in the image, each shorter than the real crack's peak, but not by a wide margin.</figcaption>
 </figure>
 <p>The dense sweep's global maximum lands within a pixel of the known
 location, no matter how wide a range it searches. Golden-section search
@@ -12051,6 +12099,16 @@ Postponed item above.</p>
 <code>dictk.grid.locate_warp</code>. On the 2862-point grid it took 1.9 s,
 against <code>locate_subpixel</code>'s 1.7 s. The strain window moves to
 Postponed above. 409 tests (380 + 29).</p>
+<h2 id="2026-09-25"><a class="header" href="#2026-09-25">2026-09-25</a></h2>
+<p><strong>Chapters reordered.</strong> The chapter that held Subpixel Accuracy, High
+Point Density, and Kernel Warping was named Parallelization, although
+none of those three pages is about speed. It is now 9 Prediction
+Improvement, with a new placeholder page, 9.4 Strain Window, for the
+Postponed strain-window item above. Parallelization becomes chapter 10,
+with Timing at Scale (10.1, was 9.4) and Parallelism with PyTorch
+(10.2, was 9.5). Discontinuities moves from 10 to 11, Path Forward
+from 11 to 12, and Contributing from 12 to 13. Dated entries above
+keep the numbers that were current when they were written.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="contributing-to-dictk"><a class="header" href="#contributing-to-dictk">Contributing to <code>dictk</code></a></h1>
 <p><code>dictk</code> is developed on <a href="https://github.com/hovey/dictk">GitHub</a> using

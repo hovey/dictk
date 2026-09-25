@@ -536,9 +536,9 @@ before that run finished. <strong>not run</strong> means the ladder never reache
 size, because the device had already stopped one rung earlier. The
 remaining dash, in the speedup column, marks a ratio with no denominator
 to compute it from.</p>
-<figure id="figure-9.5-1">
+<figure id="figure-10.2-1">
     <img src="parallelism_pytorch_bench.png" alt="two log-log panels: left compares tracking cost against point count, with Timing at Scale's sequential, threads and processes as dashed lines and this page's torch CPU and torch MPS as solid lines; torch MPS runs lowest at every point count, while torch CPU starts below that page's threads line and crosses above it near 100,000 points; right breaks each size's time into upload, extract, correlate and refine, showing correlate highest and upload and refine lowest throughout" />
-    <figcaption><strong>Figure 9.5-1:</strong> Left: batched PyTorch against <a href="./timing_at_scale.html">Timing at Scale</a>'s own three executors, same geometry, same machine. Right: where each size's time actually goes, split into uploading the images, extracting search areas, correlating them, and refining the peaks.</figcaption>
+    <figcaption><strong>Figure 10.2-1:</strong> Left: batched PyTorch against <a href="./timing_at_scale.html">Timing at Scale</a>'s own three executors, same geometry, same machine. Right: where each size's time actually goes, split into uploading the images, extracting search areas, correlating them, and refining the peaks.</figcaption>
 </figure>
 <p>The Apple GPU wins at every size, but not by a constant factor. The way
 that factor moves is the most interesting thing in the table.</p>
