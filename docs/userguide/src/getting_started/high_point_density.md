@@ -122,7 +122,7 @@ element_strain_plot(
 
 <!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, stretch; from dictk.plot import element_strain_plot; from dictk.grid import generate, locate_subpixel, elements; from dictk.element import gauss_point_coordinates, gauss_point_log_strains; reference_image = read(path='astronaut0.png'); factor_x = 1.02; current_image = stretch(arr=reference_image, factor_x=factor_x); points = generate(origin=PixelCoordinate(x=18, y=16), count_x=53, count_y=54, spacing_x=5, spacing_y=5); found = locate_subpixel(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=13, kernel_margin_height=13, search_margin_width=25, search_margin_height=25, upsample_factor=100); element_indices = elements(count_x=53, count_y=54); values, coordinates = [], []; [ (values.extend(strain[0, 0] for strain in gauss_point_log_strains(reference_points=[points[i] for i in element], current_points=[found[i] for i in element])), coordinates.extend(gauss_point_coordinates(points=[found[i] for i in element]))) for element in element_indices ]; element_strain_plot(points=found, elements=element_indices, coordinates=coordinates, values=values, label=r'Log Strain, \$E_{11}\$', dot_size=6, marker='s', show_mesh_lines=False, path='high_point_density_strain_gauss_points.png'); element_strain_plot(points=found, elements=element_indices, coordinates=coordinates, values=values, label=r'Log Strain, \$E_{11}\$', dot_size=6, marker='s', show_mesh_lines=False, image=current_image, path='high_point_density_strain_on_current.png')" -->
 
-<figure>
+<figure id="fig-hpd-strain-field">
     <img src="high_point_density_strain_gauss_points.png" alt="a dense field of small colored dots at 53x54 point density, colored by log strain E11, no mesh outline, no node numbers, no background image, reading as a continuous field with visible vertical striations" />
     <figcaption>The full 2862-point mesh's 11024 Gauss points, colored by log strain $E_{11}$.</figcaption>
 </figure>
@@ -287,7 +287,7 @@ fig.savefig("high_point_density_strain_histogram.png", dpi=300)
 
 <!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, stretch; from dictk.grid import generate, locate_subpixel, elements; from dictk.element import gauss_point_log_strains; import numpy as np; import matplotlib.pyplot as plt; reference_image = read(path='astronaut0.png'); factor_x = 1.02; current_image = stretch(arr=reference_image, factor_x=factor_x); points = generate(origin=PixelCoordinate(x=18, y=16), count_x=53, count_y=54, spacing_x=5, spacing_y=5); found = locate_subpixel(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=13, kernel_margin_height=13, search_margin_width=25, search_margin_height=25, upsample_factor=100); element_indices = elements(count_x=53, count_y=54); values = []; [values.extend(strain[0, 0] for strain in gauss_point_log_strains(reference_points=[points[i] for i in element], current_points=[found[i] for i in element])) for element in element_indices]; micro = np.array(values) * 1e6; analytical = np.log(factor_x) * 1e6; plt.rcParams.update({'font.family': 'serif', 'mathtext.fontset': 'cm'}); fig, ax = plt.subplots(figsize=(7, 4), constrained_layout=True); ax.hist(micro, bins=60, color='gray', alpha=0.8); ax.axvline(analytical, color='red', linestyle='--', linewidth=1.5); ax.set_xlabel(r'Log strain \$E_{11}\$ (microstrain)'); ax.set_ylabel('frequency'); fig.savefig('high_point_density_strain_histogram.png', dpi=300); print('Saved: high_point_density_strain_histogram.png')" -->
 
-<figure>
+<figure id="fig-hpd-strain-histogram">
     <img src="high_point_density_strain_histogram.png" alt="histogram of dictk's own 11024 Gauss-point E11 measurements in microstrain, a single smooth right-skewed peak just left of the analytical value, with a long tail toward high positive strain and a sharper cutoff on the negative side, spanning roughly -16400 to 106100 microstrain, with a dashed red vertical line at the analytical value near 19803 microstrain landing just past the peak" />
     <figcaption>Distribution of <code>dictk</code>'s own $E_{11}$ across all 11024 Gauss points at full VIC-2D density (gray, 60 bins). The dashed red line marks the same analytical value as <a href="./simple_stretch.html#verification-against-vic-2d">Verification Against VIC-2D</a>'s own histogram, $E_{11} = \ln(1.02) \approx 19803$ microstrain. Unlike that page's multi-clustered distribution, this one is a single smooth, right-skewed peak — but a much wider one: individual Gauss points range from about -16400 to 106100 microstrain, over 21 times VIC-2D's own roughly 17300-23100 microstrain spread.</figcaption>
 </figure>
@@ -304,7 +304,7 @@ analytical value, noisier than VIC-2D's own 0.4%. Averaging over more
 points doesn't fix this: the histogram's long right tail, not evenly
 spread noise, is what pulls the mean away from the true value.
 
-One methodological detail behind this figure is worth stating plainly.
+One methodological detail behind [Figure](#fig-hpd-strain-histogram) is worth stating plainly.
 At `upsample_factor = 10` — [Subpixel Accuracy](./subpixel_accuracy.md#measuring-the-difference)'s
 own choice, adequate there — this same histogram doesn't look like the
 smooth curve above. It separates into sharp, evenly-spaced spikes,
@@ -342,8 +342,8 @@ inside the kernel at that particular location. Strong, varied speckle
 contrast pins the peak precisely. A locally flatter or more repetitive
 patch leaves it ambiguous, and the estimated position drifts toward
 whichever direction the ambiguity favors. That drift is a deterministic
-function of local image content, not a random draw — exactly why the
-field figure above shows *structured* striations instead of uniform
+function of local image content, not a random draw — exactly why
+[Figure](#fig-hpd-strain-field) shows *structured* striations instead of uniform
 static, and why this page's own histogram leans right instead of
 sitting symmetric around the true value. It's also consistent with part
 of why `dictk`'s own spread grew on this page: matching VIC-2D's own

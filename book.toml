@@ -16,5 +16,11 @@ after = ["links"]
 
 [preprocessor.cmdrun]
 
+# Numbers every <figure> as "Figure <section>-<n>". Runs after cmdrun so
+# any figure a cmdrun script prints gets numbered too.
+[preprocessor.figure-number]
+command = "python3 docs/userguide/figure_number.py"
+after = ["cmdrun"]
+
 [build]
 build-dir = "docs/userguide/book"

@@ -87,10 +87,37 @@ for name, profile in weight_profiles.items():
 <!-- cmdrun python3 -c "import numpy as np; import matplotlib.pyplot as plt; from dictk.image import read, PixelCoordinate, subimage, write; from dictk.correlation import window, WindowingMethod; reference_image = read(path='checkerboard0.png'); p0 = PixelCoordinate(x=100, y=75); kernel_margin = 25; kernel = subimage(image=reference_image, origin=PixelCoordinate(x=p0.x - kernel_margin, y=p0.y - kernel_margin), width=2 * kernel_margin, height=2 * kernel_margin); write(arr=kernel, path='windowing_kernel_original.png'); kernel_hann = window(arr=kernel, method=WindowingMethod.HANN); write(arr=kernel_hann.astype(np.uint8), path='windowing_kernel_hann.png'); kernel_hamming = window(arr=kernel, method=WindowingMethod.HAMMING); write(arr=kernel_hamming.astype(np.uint8), path='windowing_kernel_hamming.png'); mid_row = kernel.shape[0] // 2; ones = np.ones_like(kernel, dtype=np.float64); weight_profiles = {'none': np.ones(kernel.shape[1]), 'hann': window(arr=ones, method=WindowingMethod.HANN)[mid_row, :], 'hamming': window(arr=ones, method=WindowingMethod.HAMMING)[mid_row, :]}; [(fig := plt.subplots(figsize=(4, 2.5), constrained_layout=True)[0], ax := fig.axes[0], ax.plot(profile, color='black'), ax.set_ylim(-0.05, 1.05), ax.set_xlabel('x (pixels)'), ax.set_ylabel('window weight'), fig.savefig(f'windowing_kernel_cut_{name}.png', dpi=300), plt.close(fig)) for name, profile in weight_profiles.items()]; print('Saved: windowing_kernel_original.png, windowing_kernel_hann.png, windowing_kernel_hamming.png, windowing_kernel_cut_none.png, windowing_kernel_cut_hann.png, windowing_kernel_cut_hamming.png')" -->
 ```
 
-none | Hann | Hamming
---- | --- | ---
-<img src="windowing_kernel_original.png" alt="original kernel" style="display: block; margin: 0 auto;"> | <img src="windowing_kernel_hann.png" alt="Hann-windowed kernel" style="display: block; margin: 0 auto;"> | <img src="windowing_kernel_hamming.png" alt="Hamming-windowed kernel" style="display: block; margin: 0 auto;">
-![none weight cut-through](windowing_kernel_cut_none.png) | ![Hann weight cut-through](windowing_kernel_cut_hann.png) | ![Hamming weight cut-through](windowing_kernel_cut_hamming.png)
+<figure id="fig-windowed-kernels">
+    <div class="figure-row">
+        <div>
+            <img src="windowing_kernel_original.png" alt="original kernel" />
+            <span>(a)</span>
+        </div>
+        <div>
+            <img src="windowing_kernel_hann.png" alt="Hann-windowed kernel" />
+            <span>(b)</span>
+        </div>
+        <div>
+            <img src="windowing_kernel_hamming.png" alt="Hamming-windowed kernel" />
+            <span>(c)</span>
+        </div>
+    </div>
+    <div class="figure-row">
+        <div>
+            <img src="windowing_kernel_cut_none.png" alt="none weight cut-through" />
+            <span>(d)</span>
+        </div>
+        <div>
+            <img src="windowing_kernel_cut_hann.png" alt="Hann weight cut-through" />
+            <span>(e)</span>
+        </div>
+        <div>
+            <img src="windowing_kernel_cut_hamming.png" alt="Hamming weight cut-through" />
+            <span>(f)</span>
+        </div>
+    </div>
+    <figcaption>Windowed kernel. (a) none. (b) Hann. (c) Hamming. (d)–(f) Window weight along the kernel's mid-height row, for (a)–(c).</figcaption>
+</figure>
 
 Every edge fades toward black; Hann's corners go fully black (tapers to
 exactly 0), while Hamming's stay a faint gray (tapers to $0.08 \times

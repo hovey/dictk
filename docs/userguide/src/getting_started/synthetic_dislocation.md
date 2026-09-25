@@ -21,14 +21,24 @@ write(arr=current_image, path="synthetic_dislocation_current.png")
 <!-- cmdrun python3 -c "import dictk; from dictk.image import combine, crack_dislocation, write; speckle = dictk.rosta(width=300, height=300, density=0.5); photo = dictk.astronaut(width=300, height=300); reference_image = combine(a=speckle, b=photo); current_image = crack_dislocation(arr=reference_image, offset=4.0); write(arr=reference_image, path='synthetic_dislocation_reference.png'); write(arr=current_image, path='synthetic_dislocation_current.png'); print('Saved: synthetic_dislocation_reference.png, synthetic_dislocation_current.png')" -->
 ```
 
-Synthetic Dislocation | Image
---- | ---
-Original<br>[synthetic_dislocation_reference.png](synthetic_dislocation_reference.png) | ![original](synthetic_dislocation_reference.png)
-offset=4 pixels<br>[synthetic_dislocation_current.png](synthetic_dislocation_current.png) | ![crack dislocation](synthetic_dislocation_current.png)
+<figure id="fig-synthetic-dislocation-pair">
+    <div class="figure-row">
+        <div>
+            <img src="synthetic_dislocation_reference.png" alt="original" />
+            <span>(a)</span>
+        </div>
+        <div>
+            <img src="synthetic_dislocation_current.png" alt="crack dislocation" />
+            <span>(b)</span>
+        </div>
+    </div>
+    <figcaption>Synthetic Dislocation. (a) Original, <a href="synthetic_dislocation_reference.png"><code>synthetic_dislocation_reference.png</code></a>. (b) offset=4 pixels, <a href="synthetic_dislocation_current.png"><code>synthetic_dislocation_current.png</code></a>.</figcaption>
+</figure>
 
 Both carry the same `rosta` speckle pattern — only the dislocation
-differs. [Discontinuities](./discontinuities.md)'s plain-photo version
-showed the geometry alone; this pair is what a correlation actually
+differs. [Discontinuities](./discontinuities.md)'s plain-photo version,
+[Figure](./discontinuities.md#fig-crack-dislocation-repeat), showed the
+geometry alone; this pair is what a correlation actually
 sees.
 
 ## A Window Straddling the Crack
@@ -250,7 +260,7 @@ point_displacement_plot(
 )
 ```
 
-<figure>
+<figure id="fig-synthetic-displacement-field">
     <img src="synthetic_dislocation_displacement_field.png" alt="displacement field: a dense grid of small square points colored by dy, split into a red (+4 pixel) region on the left half of the field and a blue (-4 pixel) region on the right half, with a sharp boundary between them right at the crack" />
     <figcaption>The <code>dy</code> field over all 1849 tracked points. Not a gradient: two flat colors, solid $\delta y = +4$ (left) and solid $\delta y = -4$ (right), meeting at a boundary within one grid column (5 pixels) of the crack at $x=150$, for every row.</figcaption>
 </figure>
@@ -294,7 +304,7 @@ table above shows. The full distribution, not just its extremes:
 
 ### Displacement dy
 
-That boundary in the field figure above is sharper than "Moving the
+That boundary in [Figure](#fig-synthetic-displacement-field) is sharper than "Moving the
 Window Off the Crack" would suggest. Windows straddle the crack for
 every point with `125 < x < 175` -- 387 of the 1849 points here -- yet
 none of them return a value between the two true displacements. Each

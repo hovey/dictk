@@ -46,10 +46,19 @@ write(arr=translated, path="astronaut_translate_rigid_body.png")
 <!-- cmdrun python3 -c "import dictk; from dictk.image import translate, write; photo = dictk.astronaut(width=300, height=300); write(arr=photo, path='astronaut_translate_original.png'); translated = translate(arr=photo, dx=-60, dy=80); write(arr=translated, path='astronaut_translate_rigid_body.png'); print('Saved: astronaut_translate_original.png, astronaut_translate_rigid_body.png')" -->
 ```
 
-Translation | Image
---- | ---
-Original | ![original](astronaut_translate_original.png)
-dx=-60, dy=+80 | ![rigid-body translation](astronaut_translate_rigid_body.png)
+<figure>
+    <div class="figure-row">
+        <div>
+            <img src="astronaut_translate_original.png" alt="original" />
+            <span>(a)</span>
+        </div>
+        <div>
+            <img src="astronaut_translate_rigid_body.png" alt="rigid-body translation" />
+            <span>(b)</span>
+        </div>
+    </div>
+    <figcaption>Translation. (a) Original. (b) dx=-60, dy=+80.</figcaption>
+</figure>
 
 ## Pure Rotation
 
@@ -76,10 +85,19 @@ write(arr=rotated, path="astronaut_rotate_30deg.png")
 <!-- cmdrun python3 -c "import dictk; from dictk.image import rotate, write; photo = dictk.astronaut(width=300, height=300); write(arr=photo, path='astronaut_rotate_original.png'); rotated = rotate(arr=photo, angle=30.0); write(arr=rotated, path='astronaut_rotate_30deg.png'); print('Saved: astronaut_rotate_original.png, astronaut_rotate_30deg.png')" -->
 ```
 
-Rotation | Image
---- | ---
-Original | ![original](astronaut_rotate_original.png)
-30° (origin-pivoted) | ![30 degree rotation](astronaut_rotate_30deg.png)
+<figure>
+    <div class="figure-row">
+        <div>
+            <img src="astronaut_rotate_original.png" alt="original" />
+            <span>(a)</span>
+        </div>
+        <div>
+            <img src="astronaut_rotate_30deg.png" alt="30 degree rotation" />
+            <span>(b)</span>
+        </div>
+    </div>
+    <figcaption>Rotation. (a) Original. (b) 30° (origin-pivoted).</figcaption>
+</figure>
 
 ## X-Axis Stretch (Extension)
 
@@ -111,11 +129,23 @@ write(arr=stretch_50pct, path="astronaut_stretch_x_50pct.png")
 <!-- cmdrun python3 -c "import dictk; from dictk.image import stretch, write; photo = dictk.astronaut(width=300, height=300); write(arr=photo, path='astronaut_stretch_original.png'); write(arr=stretch(arr=photo, factor_x=1.05), path='astronaut_stretch_x_5pct.png'); write(arr=stretch(arr=photo, factor_x=1.50), path='astronaut_stretch_x_50pct.png'); print('Saved: astronaut_stretch_original.png, astronaut_stretch_x_5pct.png, astronaut_stretch_x_50pct.png')" -->
 ```
 
-Stretch | Image
---- | ---
-Original | ![original](astronaut_stretch_original.png)
-5% (factor_x=1.05) | ![5% x-axis stretch](astronaut_stretch_x_5pct.png)
-50% (factor_x=1.50) | ![50% x-axis stretch](astronaut_stretch_x_50pct.png)
+<figure>
+    <div class="figure-row">
+        <div>
+            <img src="astronaut_stretch_original.png" alt="original" />
+            <span>(a)</span>
+        </div>
+        <div>
+            <img src="astronaut_stretch_x_5pct.png" alt="5% x-axis stretch" />
+            <span>(b)</span>
+        </div>
+        <div>
+            <img src="astronaut_stretch_x_50pct.png" alt="50% x-axis stretch" />
+            <span>(c)</span>
+        </div>
+    </div>
+    <figcaption>Stretch. (a) Original. (b) 5% (factor_x=1.05). (c) 50% (factor_x=1.50).</figcaption>
+</figure>
 
 ## Y-Axis Stretch (Compression)
 
@@ -144,11 +174,23 @@ write(arr=compress_neg50pct, path="astronaut_compress_y_neg50pct.png")
 <!-- cmdrun python3 -c "import dictk; from dictk.image import stretch, write; photo = dictk.astronaut(width=300, height=300); write(arr=photo, path='astronaut_compress_original.png'); write(arr=stretch(arr=photo, factor_y=0.95), path='astronaut_compress_y_neg5pct.png'); write(arr=stretch(arr=photo, factor_y=0.50), path='astronaut_compress_y_neg50pct.png'); print('Saved: astronaut_compress_original.png, astronaut_compress_y_neg5pct.png, astronaut_compress_y_neg50pct.png')" -->
 ```
 
-Compression | Image
---- | ---
-Original | ![original](astronaut_compress_original.png)
--5% (factor_y=0.95) | ![-5% y-axis compression](astronaut_compress_y_neg5pct.png)
--50% (factor_y=0.50) | ![-50% y-axis compression](astronaut_compress_y_neg50pct.png)
+<figure>
+    <div class="figure-row">
+        <div>
+            <img src="astronaut_compress_original.png" alt="original" />
+            <span>(a)</span>
+        </div>
+        <div>
+            <img src="astronaut_compress_y_neg5pct.png" alt="-5% y-axis compression" />
+            <span>(b)</span>
+        </div>
+        <div>
+            <img src="astronaut_compress_y_neg50pct.png" alt="-50% y-axis compression" />
+            <span>(c)</span>
+        </div>
+    </div>
+    <figcaption>Compression. (a) Original. (b) -5% (factor_y=0.95). (c) -50% (factor_y=0.50).</figcaption>
+</figure>
 
 ## Simple Shear
 
@@ -174,10 +216,19 @@ write(arr=sheared, path="astronaut_shear_x_0.5.png")
 <!-- cmdrun python3 -c "import dictk; from dictk.image import shear, write; photo = dictk.astronaut(width=300, height=300); write(arr=photo, path='astronaut_shear_original.png'); sheared = shear(arr=photo, shear_x=0.5); write(arr=sheared, path='astronaut_shear_x_0.5.png'); print('Saved: astronaut_shear_original.png, astronaut_shear_x_0.5.png')" -->
 ```
 
-Shear | Image
---- | ---
-Original | ![original](astronaut_shear_original.png)
-γ = 0.5 (shear_x=0.5) | ![simple shear](astronaut_shear_x_0.5.png)
+<figure>
+    <div class="figure-row">
+        <div>
+            <img src="astronaut_shear_original.png" alt="original" />
+            <span>(a)</span>
+        </div>
+        <div>
+            <img src="astronaut_shear_x_0.5.png" alt="simple shear" />
+            <span>(b)</span>
+        </div>
+    </div>
+    <figcaption>Shear. (a) Original. (b) γ = 0.5 (shear_x=0.5).</figcaption>
+</figure>
 
 ## Complex Deformation
 
@@ -206,10 +257,19 @@ write(arr=combined, path="astronaut_complex_deform.png")
 <!-- cmdrun python3 -c "import dictk; from dictk.image import complex_deform, write; photo = dictk.astronaut(width=300, height=300); write(arr=photo, path='astronaut_complex_original.png'); combined = complex_deform(arr=photo, factor_x=1.3, factor_y=0.8, angle=15.0); write(arr=combined, path='astronaut_complex_deform.png'); print('Saved: astronaut_complex_original.png, astronaut_complex_deform.png')" -->
 ```
 
-Composed Deformation | Image
---- | ---
-Original | ![original](astronaut_complex_original.png)
-factor_x=1.3, factor_y=0.8, angle=15° | ![composed deformation](astronaut_complex_deform.png)
+<figure>
+    <div class="figure-row">
+        <div>
+            <img src="astronaut_complex_original.png" alt="original" />
+            <span>(a)</span>
+        </div>
+        <div>
+            <img src="astronaut_complex_deform.png" alt="composed deformation" />
+            <span>(b)</span>
+        </div>
+    </div>
+    <figcaption>Composed Deformation. (a) Original. (b) factor_x=1.3, factor_y=0.8, angle=15°.</figcaption>
+</figure>
 
 ## Crack Dislocation
 
@@ -240,10 +300,19 @@ write(arr=cracked_plain, path="astronaut_crack_plain_dislocation.png")
 <!-- cmdrun python3 -c "import dictk; from dictk.image import crack_dislocation, write; photo = dictk.astronaut(width=300, height=300); write(arr=photo, path='astronaut_crack_plain_original.png'); cracked_plain = crack_dislocation(arr=photo, offset=4.0); write(arr=cracked_plain, path='astronaut_crack_plain_dislocation.png'); print('Saved: astronaut_crack_plain_original.png, astronaut_crack_plain_dislocation.png')" -->
 ```
 
-Crack Dislocation | Image
---- | ---
-Original | ![original](astronaut_crack_plain_original.png)
-offset=4 pixels | ![crack dislocation](astronaut_crack_plain_dislocation.png)
+<figure id="fig-crack-dislocation">
+    <div class="figure-row">
+        <div>
+            <img src="astronaut_crack_plain_original.png" alt="original" />
+            <span>(a)</span>
+        </div>
+        <div>
+            <img src="astronaut_crack_plain_dislocation.png" alt="crack dislocation" />
+            <span>(b)</span>
+        </div>
+    </div>
+    <figcaption>Crack Dislocation. (a) Original. (b) offset=4 pixels.</figcaption>
+</figure>
 
 ## References
 

@@ -135,7 +135,7 @@ A shift then moves the point by a fractional number of pixels. A
 whole-pixel shift would hand `locate` an exact answer by construction,
 since `locate` only returns whole pixels. So the first table tracks
 the point under 30 random fractional shifts, each between 4 and 8 px
-along $x$ and between 2 and 6 px along $y$. The figure uses the one
+along $x$ and between 2 and 6 px along $y$. [Figure](#fig-kernel-panels) uses the one
 shift whose three errors sit closest to the three median errors in
 that table. The second table tracks that shift. Then come the warp
 matrices, $\boldsymbol{W}$, from `locate_subpixel` and `locate_warp`,
@@ -143,7 +143,7 @@ followed by the true one:
 
 <!-- cmdrun python3 kernel_warping_panels.py -->
 
-<figure>
+<figure id="fig-kernel-panels">
     <img src="kernel_warping_panels.png" alt="two zoomed panels of the same deformed speckle image around one point. In both, a dashed white square marks the reference kernel at (150, 150), an orange arrow points to the tracked position, and a red cross marks the true position at (156.43, 154.92). Left: an orange axis-aligned square with a 10x10 grid of orange dots, the same shape as the reference square, moved by the arrow. Right: an orange parallelogram, slightly wider than the square and leaning right toward the bottom, with its 10x10 grid of dots stretched and sheared to match" />
     <figcaption>Both panels show the deformed image around one point. The dashed white square marks the reference kernel at its original position. The orange arrow points to each function's tracked position, and the red cross marks the true one. Left: <code>locate</code> and <code>locate_subpixel</code> move the square without changing its shape (drawn at <code>locate_subpixel</code>'s position). Right: <code>locate_warp</code> also stretches and shears the kernel. Its outline and sample points use the warp IC-GN fitted, $\boldsymbol{W}_\text{locate\_warp}$.</figcaption>
 </figure>

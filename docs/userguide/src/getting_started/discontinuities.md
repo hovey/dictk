@@ -13,10 +13,19 @@ interface can produce a genuine jump in displacement instead of a
 continuous displacement. [Image Transformation](./transformation.md#crack-dislocation)
 already built exactly that jump:
 
-Crack Dislocation | Image
---- | ---
-Original | ![original](astronaut_crack_plain_original.png)
-offset=4 pixels | ![crack dislocation](astronaut_crack_plain_dislocation.png)
+<figure id="fig-crack-dislocation-repeat">
+    <div class="figure-row">
+        <div>
+            <img src="astronaut_crack_plain_original.png" alt="original" />
+            <span>(a)</span>
+        </div>
+        <div>
+            <img src="astronaut_crack_plain_dislocation.png" alt="crack dislocation" />
+            <span>(b)</span>
+        </div>
+    </div>
+    <figcaption>Crack Dislocation, the same image pair as <a href="./transformation.html#fig-crack-dislocation">Figure</a>. (a) Original. (b) offset=4 pixels.</figcaption>
+</figure>
 
 A vertical crack splits the image at its vertical midline. The left half
 shifts down 4 pixels. The right half shifts up 4 pixels. Standard DIC
