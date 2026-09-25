@@ -112,6 +112,21 @@ Noted, not being pursued right now:
   Parallelization) leaves `windowing` at its default `None` — the one
   parameter of `grid.locate`'s own signature with no live worked
   example yet.
+* **Strain window.** Commercial DIC codes fit displacement over a
+  neighborhood of points before differentiating it. That trades
+  spatial resolution for a smaller strain spread. A 15x15-point
+  least-squares window cut [Kernel Warping](./kernel_warping.md)'s
+  2862-point strain spread from 1161 to 39 microstrain, in an
+  exploratory test. `dictk` doesn't ship one yet.
+* **A deformation-aware seed for `warp.fit`.** IC-GN starts from
+  `translation.locate`'s whole-pixel match, and that match uses a
+  rigid, unwarped kernel. On a fine speckle pattern, a 10% stretch plus
+  shear put that starting point 20 px off. IC-GN then converged to a
+  wrong warp with no error raised. Two remedies are worth testing.
+  Seeding each point from a neighbor's fitted warp would start IC-GN
+  with the local stretch already included. A ZNSSD threshold would flag
+  a fit that converged to the wrong place. This pairs with the dynamic search-window sizing
+  direction above.
 
 ## 2026-08-18
 
@@ -473,3 +488,57 @@ try-and-reject pattern earlier chapters have used for a rejected
 
 **Still not resolved:** a located discontinuity still isn't consumed by
 anything. The postponed item below is split to reflect exactly that.
+
+## 2026-09-24
+
+**Kernel Warping (9.3), shipped.** New page, inserted after High Point
+Density. Timing at Scale and Parallelism with PyTorch shift to 9.4 and
+9.5.
+
+**The finding: High Point Density's wide strain spread came from
+tracking bias, not element size.** `grid.locate_subpixel` shows pixel
+locking. Its $x$ error follows a wave of about ±0.13 px, set by each
+true position's fractional part. Under a 2% stretch, that wave repeats
+every 51 px, and its slope reaches about 16000 microstrain. That
+matches the scale of the measured 16531 microstrain standard deviation.
+Simple Stretch Revisited's 50 px spacing hid the wave, since every
+node sat at the same point on it.
+
+**Three approaches, compared on the same 2862-point grid.** A 15x15
+strain window on the old positions cut the spread to 595 microstrain.
+It works here because the window spans a full bias cycle. It hides
+the bias and leaves it in the tracked positions. IC-GN kernel warping
+cut the displacement error from 0.109 px to 0.008 px. With the existing Q4
+element code unchanged, the spread fell to 1161 microstrain. VIC-2D's
+own is 1385. Combining both reached 39 microstrain.
+
+**The test image's bilinear interpolation roughly doubled
+`locate_subpixel`'s error and quintupled `locate_warp`'s.**
+`image.stretch` uses bilinear interpolation. A quintic-spline stretch
+cut `locate_warp`'s $x$ error from 0.008 px to 0.0015 px, and its
+strain spread from 1161 to 260 microstrain. It cut `locate_subpixel`'s
+error only from 0.109 px to 0.057 px. So phase correlation keeps about
+half of its bias on the quintic-spline image.
+
+**IC-GN is H-DIC's continuous half.** Bourdin et al. (2018) write each
+Heaviside-DIC kernel (the paper's subset) as a rigid-body translation
+plus a first gradient, the same six-parameter affine warp `dictk.warp`
+solves for, plus a jump times a Heaviside function.
+[Discontinuities](./discontinuities.md#relation-to-heaviside-dic) now
+lays out that relation. The Postponed Heaviside item above now has
+a foundation. Its remaining pieces are the jump vector and the line's
+distance and angle from the kernel center.
+
+**New public `warp.fit`, and a limit it exposed.** `fit` returns the
+fitted 3x3 warp matrix, and Kernel Warping's figure now prints it. Its
+whole-pixel seed is a rigid-kernel match. On a fine speckle pattern, a
+10% stretch plus shear put that seed 20 px off. On `astronaut0`, a
+15% stretch plus 0.15 shear defeated it on 11 of 30 random shifts, and
+`locate_warp` then missed by more than 2 px on 8 of them. A 7% stretch
+plus 0.05 shear defeated it on none. That limit now has its own
+Postponed item above.
+
+**IC-GN ships.** New module `dictk.warp` (`locate`), plus
+`dictk.grid.locate_warp`. On the 2862-point grid it took 1.9 s,
+against `locate_subpixel`'s 1.7 s. The strain window moves to
+Postponed above. 409 tests (380 + 29).

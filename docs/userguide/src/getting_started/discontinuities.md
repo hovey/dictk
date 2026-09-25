@@ -39,3 +39,47 @@ signature shows up outside a synthetic setup.
 Neither section proposes a discontinuity-aware correlation algorithm on
 its own. [Discontinuity
 Localization](./discontinuity_localization.md) addresses that challenge.
+
+## Relation to Heaviside-DIC
+
+Heaviside-DIC (H-DIC)[^Bourdin_2018] can represent a displacement jump
+like the crack dislocation above. For the continuous part of its
+displacement, it uses the same affine kernel warp that [Kernel
+Warping](./kernel_warping.md) introduced. The paper calls each kernel
+a subset. Its Eq. (1) writes each kernel point's deformed position as
+the sum of three terms: the reference position, a rigid-body
+translation, and a first-gradient term. The paper labels those terms
+"Conventional DIC method." They are the six parameters
+$\boldsymbol{p}$ of Kernel Warping's warp, $\boldsymbol{W}$.
+$(u, v)$ is the translation, and
+$(u_x, u_y, v_x, v_y)$ is the first gradient. The paper's Fig. 2 draws
+the same two steps as Kernel Warping's [rigid versus warped kernel
+figure](./kernel_warping.md#inverse-compositional-gauss-newton): a
+rigid-body displacement, then a first-gradient warp.
+
+H-DIC then adds one term, a jump $\boldsymbol{u}'$ times a Heaviside
+function $H$:
+
+$$
+\boldsymbol{x} = \boldsymbol{X} + \boldsymbol{u}
++ \nabla\boldsymbol{u} \, (\boldsymbol{X} - \boldsymbol{X}_0)
++ \boldsymbol{u}' \, H(r - r^*),
+\qquad
+r = \Delta x \cos\theta^* + \Delta y \sin\theta^*.
+$$
+
+$H$ is 0 on one side of a line and 1 on the other. The line sits a
+distance $r^*$ from the kernel center, at angle $\theta^*$. Pixels on
+the far side of the line shift by an extra $\boldsymbol{u}'$. When the
+optimized jump is zero, H-DIC reduces to the conventional (continuous)
+affine warp. The paper optimizes all parameters together with a
+Newton-based method. It doesn't say whether that method uses the inverse
+compositional form.
+
+So [`dictk.warp`](../api/dictk/warp.html) covers H-DIC's continuous
+half. The missing half is the jump and its line: $\boldsymbol{u}'$,
+$r^*$, and $\theta^*$. [Discontinuity
+Localization](./discontinuity_localization.md) finds where such a line
+crosses a chosen path.
+
+[^Bourdin_2018]: Bourdin F, Stinville JC, Echlin MP, Callahan PG, Lenthe WC, Torbet CJ, Texier D, Bridier F, Cormier J, Villechaise P, Pollock TM. Measurements of plastic localization by heaviside-digital image correlation. Acta Materialia. 2018 Sep 15;157:307-25. [link](https://doi.org/10.1016/j.actamat.2018.07.013)

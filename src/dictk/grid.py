@@ -7,7 +7,7 @@ from functools import partial
 
 import numpy as np
 
-from dictk import translation
+from dictk import translation, warp
 from dictk.correlation import WindowingMethod
 from dictk.image import PixelCoordinate, SubpixelCoordinate
 
@@ -89,6 +89,53 @@ def _locate_subpixel_worker(
         search_margin_height=search_margin_height,
         windowing=windowing,
         upsample_factor=upsample_factor,
+    )
+
+
+def _locate_warp_worker(
+    args: tuple[PixelCoordinate, PixelCoordinate],
+    *,
+    reference_image: np.ndarray,
+    current_image: np.ndarray,
+    reference_gradients: tuple[np.ndarray, np.ndarray],
+    current_coefficients: np.ndarray,
+    kernel_margin_width: int,
+    kernel_margin_height: int,
+    search_margin_width: int,
+    search_margin_height: int,
+    windowing: WindowingMethod | None,
+    max_iterations: int,
+    tolerance: float,
+) -> SubpixelCoordinate:
+    """One point's worth of `warp.locate`, reusing gradients and spline
+    coefficients computed once per batch -- see `_locate_worker`'s own
+    docstring for why this is a module-level function taking a single
+    positional argument, not a closure."""
+    reference_point, search_center = args
+    start = translation.locate(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_point=reference_point,
+        search_center=search_center,
+        kernel_margin_width=kernel_margin_width,
+        kernel_margin_height=kernel_margin_height,
+        search_margin_width=search_margin_width,
+        search_margin_height=search_margin_height,
+        windowing=windowing,
+    )
+    fitted = warp._refine(
+        reference_image=reference_image,
+        reference_gradients=reference_gradients,
+        current_coefficients=current_coefficients,
+        reference_point=reference_point,
+        start=start,
+        kernel_margin_width=kernel_margin_width,
+        kernel_margin_height=kernel_margin_height,
+        max_iterations=max_iterations,
+        tolerance=tolerance,
+    )
+    return SubpixelCoordinate(
+        x=reference_point.x + fitted[0, 2], y=reference_point.y + fitted[1, 2]
     )
 
 
@@ -421,6 +468,109 @@ def locate_subpixel(
         windowing=windowing,
         upsample_factor=upsample_factor,
     )
+    executor_cls = (
+        ThreadPoolExecutor if executor is Executor.THREAD else ProcessPoolExecutor
+    )
+    with executor_cls(max_workers=max_workers) as pool:
+        return list(pool.map(worker, zip(reference_points, search_centers)))
+
+
+def locate_warp(
+    *,
+    reference_image: np.ndarray,
+    current_image: np.ndarray,
+    reference_points: Sequence[PixelCoordinate],
+    search_centers: Sequence[PixelCoordinate] | None = None,
+    kernel_margin_width: int,
+    kernel_margin_height: int,
+    search_margin_width: int,
+    search_margin_height: int,
+    windowing: WindowingMethod | None = None,
+    max_iterations: int = 50,
+    tolerance: float = 1e-6,
+    max_workers: int | None = None,
+    executor: Executor = Executor.THREAD,
+) -> list[SubpixelCoordinate]:
+    """Batch version of `dictk.warp.locate`: track many points at once
+    by warping an affine kernel.
+
+    Same structure as [`locate_subpixel`](#locate_subpixel) -- see
+    [`locate`](#locate)'s own docstring for the full explanation of
+    `search_centers`, `windowing`, `max_workers`, and `executor`.
+    `reference_image`'s gradients and `current_image`'s spline
+    coefficients are computed once per call, then shared by every point.
+
+    Args:
+        reference_image: The reference (undeformed) 2D grayscale image.
+        current_image: The current (deformed) 2D grayscale image.
+        reference_points: Each point's fixed, known position, in
+            `reference_image`'s pixel reference frame.
+        search_centers: Where to center each point's whole-pixel search
+            -- see `locate`'s own docstring. If `None` (default), each
+            point's own `reference_points` entry is used.
+        kernel_margin_width: Half each kernel's width, in pixels, not
+            counting its center column. Must be >= 1.
+        kernel_margin_height: Half each kernel's height, in pixels, not
+            counting its center row. Must be >= 1.
+        search_margin_width: Half each whole-pixel search area's width,
+            in pixels. Must be greater than `kernel_margin_width`.
+        search_margin_height: Half each whole-pixel search area's
+            height, in pixels. Must be greater than
+            `kernel_margin_height`.
+        windowing: Passed straight through to each point's whole-pixel
+            stage. Default `None` applies no windowing.
+        max_iterations: The most IC-GN updates per point. Default `50`.
+            Must be >= 1.
+        tolerance: IC-GN stops once every warp parameter's update falls
+            below this. Default `1e-6`. Must be > 0.
+        max_workers: If given, points are tracked concurrently across
+            this many workers instead of one at a time.
+        executor: Which pool type `max_workers` runs on. Ignored if
+            `max_workers` is `None`. Default `Executor.THREAD`.
+
+    Returns:
+        Each point's location, in `current_image`'s pixel reference
+        frame, generally fractional, in the same order as
+        `reference_points`.
+
+    Raises:
+        ValueError: If `search_centers` is given but its length doesn't
+            match `reference_points`, `max_workers` is less than 1,
+            `max_iterations` is less than 1, `tolerance` is not
+            positive, or any margin fails `dictk.translation.locate`'s
+            own checks.
+    """
+    if search_centers is None:
+        search_centers = reference_points
+    elif len(search_centers) != len(reference_points):
+        raise ValueError(
+            f"search_centers length ({len(search_centers)}) must match "
+            f"reference_points length ({len(reference_points)})"
+        )
+    if max_workers is not None and max_workers < 1:
+        raise ValueError(f"max_workers {max_workers} must be >= 1")
+    if max_iterations < 1:
+        raise ValueError(f"max_iterations {max_iterations} must be >= 1")
+    if tolerance <= 0:
+        raise ValueError(f"tolerance {tolerance} must be > 0")
+
+    worker = partial(
+        _locate_warp_worker,
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_gradients=warp._gradients(reference_image),
+        current_coefficients=warp._spline_coefficients(current_image),
+        kernel_margin_width=kernel_margin_width,
+        kernel_margin_height=kernel_margin_height,
+        search_margin_width=search_margin_width,
+        search_margin_height=search_margin_height,
+        windowing=windowing,
+        max_iterations=max_iterations,
+        tolerance=tolerance,
+    )
+    if max_workers is None:
+        return [worker(pair) for pair in zip(reference_points, search_centers)]
+
     executor_cls = (
         ThreadPoolExecutor if executor is Executor.THREAD else ProcessPoolExecutor
     )

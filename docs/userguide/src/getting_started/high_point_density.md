@@ -252,6 +252,15 @@ mesh is accurate on average and honestly noisy point to point, not
 silently smoothed into looking better than the underlying tracking
 supports.
 
+The next page, [Kernel Warping](./kernel_warping.md), revisits this
+diagnosis. The tracking error behind this spread isn't random noise.
+`locate_subpixel`'s $x$ error follows a wave, about ±0.13 px tall, set
+by where each point's true position falls within its pixel. Kernel
+Warping introduces `locate_warp`, which cuts that $x$ error's standard
+deviation from 0.109 px to 0.008 px. On this page's 2862-point grid,
+it cuts the $E_{11}$ standard deviation from 16531 to 1161
+microstrain.
+
 ## Distribution Across the Full Mesh
 
 The mean/std/range summary above collapses the 11024 Gauss point
@@ -342,6 +351,14 @@ small $26 \times 26$ px kernel, instead of earlier pages' generously
 oversized ones, means averaging over less independent texture per
 point. Some of that extra spread is the expected cost of matching
 VIC-2D's own geometry, not a shortcoming unique to `dictk`.
+
+[Kernel Warping](./kernel_warping.md) measures that tracking error
+against known true positions and traces it to two sources of about
+equal size. One is pixel locking in `locate_subpixel` itself. The
+other is the bilinear interpolation `image.stretch` uses to build the
+current image. On a current image built with a quintic spline instead,
+`locate_subpixel`'s $x$ error falls from 0.109 px to 0.057 px, about
+half.
 
 Point count, tracking accuracy, and now strain precision have all been
 free variables throughout Simple Stretch, Subpixel Accuracy, and this

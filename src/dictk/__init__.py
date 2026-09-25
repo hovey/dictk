@@ -46,4 +46,5 @@ __all__ = [
     "image",
     "plot",
     "translation",
+    "warp",
 ]

@@ -2,9 +2,17 @@ import numpy as np
 import pytest
 
 from dictk.correlation import WindowingMethod
-from dictk.grid import Executor, elements, generate, locate, locate_subpixel
+from dictk.grid import (
+    Executor,
+    elements,
+    generate,
+    locate,
+    locate_subpixel,
+    locate_warp,
+)
 from dictk.image import PixelCoordinate, stretch, translate
 from dictk.rosta import rosta
+from dictk.warp import locate as warp_locate
 
 
 def test_generate_row_major_order():
@@ -491,3 +499,104 @@ def test_locate_subpixel_recovers_true_fractional_target_more_closely_than_locat
     integer_error = np.mean([abs(f.x - tx) for f, tx in zip(integer_found, true_x)])
     subpixel_error = np.mean([abs(f.x - tx) for f, tx in zip(subpixel_found, true_x)])
     assert subpixel_error < integer_error
+
+
+def _warp_kwargs(ref, cur):
+    points = generate(
+        origin=PixelCoordinate(x=40, y=40),
+        count_x=3,
+        count_y=3,
+        spacing_x=20,
+        spacing_y=20,
+    )
+    return dict(
+        reference_image=ref,
+        current_image=cur,
+        reference_points=points,
+        kernel_margin_width=15,
+        kernel_margin_height=15,
+        search_margin_width=30,
+        search_margin_height=30,
+    )
+
+
+def test_locate_warp_requires_keyword_arguments():
+    arr = np.zeros((50, 50), dtype=np.uint8)
+    points = [PixelCoordinate(x=25, y=25)]
+    with pytest.raises(TypeError):
+        locate_warp(arr, arr, points, None, 10, 10, 20, 20)
+
+
+def test_locate_warp_matches_per_point_warp_locate():
+    ref, cur = _reference_and_current(dx=-6, dy=8)
+    kwargs = _warp_kwargs(ref, cur)
+    found = locate_warp(**kwargs)
+    points = kwargs.pop("reference_points")
+    expected = [
+        warp_locate(**kwargs, reference_point=p, search_center=p) for p in points
+    ]
+    assert found == expected
+
+
+def test_locate_warp_empty_points_returns_empty_list():
+    ref, cur = _reference_and_current(dx=0, dy=0)
+    kwargs = _warp_kwargs(ref, cur) | dict(reference_points=[])
+    assert locate_warp(**kwargs) == []
+
+
+def test_locate_warp_mismatched_search_centers_length_raises():
+    ref, cur = _reference_and_current(dx=0, dy=0)
+    kwargs = _warp_kwargs(ref, cur)
+    with pytest.raises(ValueError):
+        locate_warp(**kwargs, search_centers=kwargs["reference_points"][:2])
+
+
+@pytest.mark.parametrize("executor", [Executor.THREAD, Executor.PROCESS])
+@pytest.mark.parametrize("max_workers", [1, 2, 4])
+def test_locate_warp_max_workers_matches_sequential(max_workers, executor):
+    ref, cur = _reference_and_current(dx=-6, dy=8)
+    kwargs = _warp_kwargs(ref, cur)
+    sequential = locate_warp(**kwargs)
+    concurrent = locate_warp(**kwargs, max_workers=max_workers, executor=executor)
+    assert concurrent == sequential
+
+
+@pytest.mark.parametrize(
+    "overrides, match",
+    [
+        (dict(max_workers=0), "max_workers"),
+        (dict(max_iterations=0), "max_iterations"),
+        (dict(tolerance=0.0), "tolerance"),
+    ],
+)
+def test_locate_warp_invalid_arguments_raise(overrides, match):
+    ref, cur = _reference_and_current(dx=0, dy=0)
+    with pytest.raises(ValueError, match=match):
+        locate_warp(**_warp_kwargs(ref, cur), **overrides)
+
+
+def test_locate_warp_recovers_stretch_more_closely_than_locate_subpixel():
+    reference_image = rosta(width=200, height=200, density=0.4)
+    factor_x = 1.02
+    current_image = stretch(arr=reference_image, factor_x=factor_x)
+    points = generate(
+        origin=PixelCoordinate(x=18, y=16),
+        count_x=10,
+        count_y=10,
+        spacing_x=5,
+        spacing_y=5,
+    )
+    kwargs = dict(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_points=points,
+        kernel_margin_width=13,
+        kernel_margin_height=13,
+        search_margin_width=25,
+        search_margin_height=25,
+    )
+    true_x = np.array([p.x * factor_x for p in points])
+    warp_error = np.array([f.x for f in locate_warp(**kwargs)]) - true_x
+    phase_error = np.array([f.x for f in locate_subpixel(**kwargs)]) - true_x
+    assert np.std(warp_error) < 0.02
+    assert np.std(warp_error) < np.std(phase_error)
