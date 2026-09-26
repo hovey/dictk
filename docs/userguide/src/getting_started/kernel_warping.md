@@ -120,6 +120,180 @@ point, not once per iteration. Cubic B-splines sample $g$ at the
 warped, fractional positions. The tracked position is the warp's own
 translation, $(u, v)$.
 
+### Deriving the Update
+
+Four steps lead from $C(\boldsymbol{p})$ to the update IC-GN applies.
+[`dictk.warp`](../api/dictk/warp.html)'s refinement follows them in
+order. Below, $\boldsymbol{\xi} = (\Delta x, \Delta y)$ names one
+pixel's offset in the kernel, and every sum runs over all
+$(2 \cdot 13 + 1)^2 = 729$ pixels.
+
+**1. Reduce ZNSSD to least squares.** Write $\tilde{f} = f - \bar{f}$
+and $\tilde{g} = g - \bar{g}$ for the zero-mean kernels. Expanding the
+square in $C$ gives
+
+$$
+C(\boldsymbol{p}) = 2 - 2\,
+\frac{\sum \tilde{f}\,\tilde{g}}{\lVert \tilde{f} \rVert\, \lVert \tilde{g} \rVert}
+= 2\,\bigl[1 - \mathrm{ZNCC}(\boldsymbol{p})\bigr].
+$$
+
+So minimizing $C$ maximizes ZNCC, the criterion from [Correlation
+Criteria](./correlation_criteria.md). $C$ runs from 0, a perfect
+match, to 4. Multiplying $C$ by the constant $\lVert \tilde{f} \rVert^2$
+leaves its minimizer unchanged:
+
+$$
+\lVert \tilde{f} \rVert^2\, C(\boldsymbol{p})
+= \sum_{\boldsymbol{\xi}} \bigl[\tilde{f}(\boldsymbol{\xi}) - \lambda\, \tilde{g}(\boldsymbol{\xi}; \boldsymbol{p})\bigr]^2,
+\qquad
+\lambda = \frac{\lVert \tilde{f} \rVert}{\lVert \tilde{g} \rVert}.
+$$
+
+**2. Put the increment on the reference kernel.** A forward, additive
+Gauss-Newton step would perturb the current side,
+$g(\boldsymbol{W}(\boldsymbol{\xi}; \boldsymbol{p} + \Delta\boldsymbol{p}))$.
+Its linearization needs the gradient of $g$ at the warped positions.
+Those positions move every iteration, so the 6x6 Hessian would need
+rebuilding every iteration too. The inverse compositional form
+perturbs $f$ instead. It seeks the incremental warp
+$\boldsymbol{W}(\boldsymbol{\xi}; \Delta\boldsymbol{p})$ that makes the
+reference kernel match the current one:
+
+$$
+\min_{\Delta\boldsymbol{p}}\; \sum_{\boldsymbol{\xi}}
+\bigl[\tilde{f}(\boldsymbol{W}(\boldsymbol{\xi}; \Delta\boldsymbol{p}))
+- \lambda\, \tilde{g}(\boldsymbol{\xi}; \boldsymbol{p})\bigr]^2 .
+$$
+
+If $f \circ \boldsymbol{W}(\Delta\boldsymbol{p})$ matches
+$g \circ \boldsymbol{W}(\boldsymbol{p})$, then $f$ matches
+$g \circ \boldsymbol{W}(\boldsymbol{p}) \circ \boldsymbol{W}(\Delta\boldsymbol{p})^{-1}$.
+That gives the update,
+$\boldsymbol{W}(\boldsymbol{p}) \leftarrow \boldsymbol{W}(\boldsymbol{p}) \circ \boldsymbol{W}(\Delta\boldsymbol{p})^{-1}$.
+In the $3 \times 3$ matrix form above, composition is matrix
+multiplication. At convergence, $\Delta\boldsymbol{p} = \boldsymbol{0}$,
+and the two forms share the same minimum.
+
+**3. Linearize about $\Delta\boldsymbol{p} = \boldsymbol{0}$.**
+$\boldsymbol{W}(\boldsymbol{\xi}; \boldsymbol{0})$ is the identity, so
+a first-order Taylor expansion gives
+
+$$
+f(\boldsymbol{W}(\boldsymbol{\xi}; \Delta\boldsymbol{p}))
+\approx f(\boldsymbol{\xi})
++ \nabla f(\boldsymbol{\xi})\,
+\frac{\partial \boldsymbol{W}}{\partial \boldsymbol{p}}\,
+\Delta\boldsymbol{p},
+\qquad
+\frac{\partial \boldsymbol{W}}{\partial \boldsymbol{p}} =
+\begin{bmatrix}
+1 & \Delta x & \Delta y & 0 & 0 & 0 \\
+0 & 0 & 0 & 1 & \Delta x & \Delta y
+\end{bmatrix},
+$$
+
+with $\nabla f = (f_x, f_y)$, the reference image's gradient. The
+product is one row of six numbers per pixel, its steepest-descent row:
+
+$$
+\boldsymbol{s}(\boldsymbol{\xi}) =
+\bigl[\, f_x,\; f_x \Delta x,\; f_x \Delta y,\;
+f_y,\; f_y \Delta x,\; f_y \Delta y \,\bigr].
+$$
+
+The expansion holds $\bar{f}$ and $\lVert \tilde{f} \rVert$ fixed. That
+approximation vanishes as $\Delta\boldsymbol{p} \to \boldsymbol{0}$.
+
+[Figure](#fig-steepest-descent) shows the six components of
+$\boldsymbol{s}$ as images, for the reference kernel at $(150, 150)$.
+[Rigid Versus Warped Kernel](#rigid-versus-warped-kernel) below tracks
+that same kernel. The $u$ and $v$ images are the
+image gradient itself. The other four multiply that gradient by
+$\Delta x$ or $\Delta y$. So they vanish along the kernel's center
+column or center row. A pixel 13 px from the center weighs 13 times
+more than a pixel 1 px from it. The kernel's edges carry the
+information about stretch and shear.
+
+<!-- cmdrun python3 kernel_warping_steepest.py -->
+
+<figure id="fig-steepest-descent">
+    <img src="kernel_warping_steepest.png" alt="six square heat maps, 27 by 27 pixels each, in two rows of three, colored blue for negative and red for positive with white at zero. Top row: f_x, f_x times delta x, f_x times delta y. Bottom row: f_y, f_y times delta x, f_y times delta y. The f_x and f_y panels show speckle-scale structure everywhere. The four weighted panels fade to white along the center row or column and grow strongest toward the kernel edges" />
+    <figcaption>The six steepest-descent images for the reference kernel at $(150, 150)$, one per component of $\boldsymbol{p} = (u, u_x, u_y, v, v_x, v_y)$. Each panel uses its own symmetric color scale. The Hessian $\boldsymbol{H}$ sums products of these six images, pixel by pixel.</figcaption>
+</figure>
+
+**4. Solve the normal equations.** Define the residual
+$r(\boldsymbol{\xi}) = \lambda\, \tilde{g}(\boldsymbol{\xi}; \boldsymbol{p}) - \tilde{f}(\boldsymbol{\xi})$.
+Substituting step 3 into step 2 leaves a linear least-squares problem,
+
+$$
+\min_{\Delta\boldsymbol{p}}\; \sum_{\boldsymbol{\xi}}
+\bigl[\boldsymbol{s}(\boldsymbol{\xi})\, \Delta\boldsymbol{p} - r(\boldsymbol{\xi})\bigr]^2 .
+$$
+
+Setting its gradient with respect to $\Delta\boldsymbol{p}$ to zero
+gives
+
+$$
+\boldsymbol{H}\, \Delta\boldsymbol{p} = \sum_{\boldsymbol{\xi}} \boldsymbol{s}(\boldsymbol{\xi})^{\top} r(\boldsymbol{\xi}),
+\qquad
+\boldsymbol{H} = \sum_{\boldsymbol{\xi}} \boldsymbol{s}(\boldsymbol{\xi})^{\top} \boldsymbol{s}(\boldsymbol{\xi}).
+$$
+
+$\boldsymbol{H}$ is $6 \times 6$. It depends only on $f$ and
+$\boldsymbol{\xi}$, never on $\boldsymbol{p}$. So IC-GN builds and
+inverts it once per point, before the first iteration. That is the
+payoff of step 2.
+
+**Iterating.** The first $\boldsymbol{p}$ comes from `locate`'s
+whole-pixel answer: $u$ and $v$ take its displacement, and all four
+gradient terms start at zero. Each iteration then does five things:
+
+1. Sample $g$ at the 729 warped positions with cubic B-splines.
+2. Form $\tilde{g}$, $\lambda$, and the residual $r$.
+3. Solve for $\Delta\boldsymbol{p} = \boldsymbol{H}^{-1} \sum \boldsymbol{s}^{\top} r$.
+4. Build $\boldsymbol{W}(\Delta\boldsymbol{p})$, invert that $3 \times 3$
+   matrix, and compose it into $\boldsymbol{W}(\boldsymbol{p})$.
+5. Stop once every component of $\Delta\boldsymbol{p}$ falls below
+   $10^{-6}$, or after 50 iterations.
+
+One example shows those iterations in action: the point at
+$(150, 150)$, under a 7% stretch, a 0.05 shear, and a $(6.43, 4.92)$ px
+shift. [Rigid Versus Warped Kernel](#rigid-versus-warped-kernel) below
+explains how that example was chosen.
+[`dictk.warp.fit`](../api/dictk/warp.html#fit) with `max_iterations`
+set to $k$ returns the warp after $k$ iterations. Iteration 0 is
+`locate`'s whole-pixel start. [Figure](#fig-ic-gn-residuals) shows the
+residual after each iteration, and [Figure](#fig-ic-gn-convergence)
+the error:
+
+<!-- cmdrun python3 kernel_warping_iterations.py -->
+
+<figure id="fig-ic-gn-residuals">
+    <img src="kernel_warping_residuals.png" alt="four square heat maps of the residual r, 27 by 27 pixels each, on one shared blue-white-red color scale from about -130 to 130. At k = 0, with C = 0.18, strong red and blue speckles cover the kernel. At k = 1, 2, and 3, with C = 0.0022, 0.0012, and 0.0012, the maps are almost entirely white" />
+    <figcaption>The residual $r = \lambda \tilde{g} - \tilde{f}$ after $k$ iterations, on one shared color scale, with each panel's ZNSSD $C$ in its title. At $k = 0$, the whole-pixel start, speckle structure fills the kernel. One iteration removes it.</figcaption>
+</figure>
+
+<figure id="fig-ic-gn-convergence">
+    <img src="kernel_warping_convergence.png" alt="two line plots against iteration k from 0 to 9, both with logarithmic vertical axes. Left, translation error: 0.44 px at k = 0, 0.018 px at k = 1, then flat near 0.003 px from k = 2 on. Right, gradient error: 0.07 at k = 0, falling steadily to about 0.00012 by k = 6, then flat" />
+    <figcaption>Error against iteration $k$. Left: the distance from the fitted translation to the true shift $(6.43, 4.92)$. Right: the largest difference between the fitted gradient terms and the true deformation, $1.07$ stretch and $0.05$ shear.</figcaption>
+</figure>
+
+One iteration cuts $C$ from 0.18 to 0.0022, and the translation error
+from 0.44 px to 0.018 px. By $k = 2$, $C$ levels off at 0.0012, and the
+translation error settles at about 0.003 px. The gradient terms take
+until $k = 6$ to settle, at about $1.2 \times 10^{-4}$. IC-GN reaches
+its exact final warp after 9 iterations, far below the 50-iteration
+cap.
+
+Neither error reaches zero. This example's current image comes from a
+quintic spline, while IC-GN samples it with a cubic one. That mismatch
+sets the 0.003 px floor. [Rigid Versus Warped
+Kernel](#rigid-versus-warped-kernel) below finds the same 0.003 px as
+`locate_warp`'s median error across 30 shifts.
+
+### Rigid Versus Warped Kernel
+
 `locate` and `locate_subpixel` never warp their kernel. Each cuts an
 axis-aligned square from `reference_image`. Each slides that square,
 unchanged, across the search area. The only thing either one finds is
@@ -295,6 +469,18 @@ Continue to [Strain Window](./strain_window.md).
 
 ```python
 <!-- cmdrun cat kernel_warping_panels.py -->
+```
+
+### `kernel_warping_steepest.py`
+
+```python
+<!-- cmdrun cat kernel_warping_steepest.py -->
+```
+
+### `kernel_warping_iterations.py`
+
+```python
+<!-- cmdrun cat kernel_warping_iterations.py -->
 ```
 
 ### `kernel_warping_bias.py`
