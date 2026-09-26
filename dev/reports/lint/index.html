@@ -135,24 +135,7 @@ src/dictk/discontinuity.py:1:0: R0801: Similar lines in 2 files
         search_margin_width=search_margin_width,
         search_margin_height=search_margin_height,
         windowing=windowing,
-    )
-
-
-def _locate_subpixel_worker(
-    args: tuple[PixelCoordinate, PixelCoordinate],
-    *,
-    reference_image: np.ndarray,
-    current_image: np.ndarray,
-    kernel_margin_width: int,
-    kernel_margin_height: int,
-    search_margin_width: int,
-    search_margin_height: int,
-    windowing: WindowingMethod | None,
-    upsample_factor: int,
-) -&gt; SubpixelCoordinate:
-    &quot;&quot;&quot;One point&#x27;s worth of `translation.locate_subpixel` -- see
-    `_locate_worker`&#x27;s own docstring for why this is a module-level
-    function taking a single positional argument, not a closure.&quot;&quot;&quot; (duplicate-code)
+    ) (duplicate-code)
 src/dictk/discontinuity.py:1:0: R0801: Similar lines in 2 files
 ==dictk.grid:[52:61]
 ==dictk.warp:[230:239]
