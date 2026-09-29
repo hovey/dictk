@@ -36,5 +36,6 @@ The four pages of this chapter take that on in order:
   its pixel. It adds `locate_warp`, which lets the kernel stretch and
   shear along with the material. The $E_{11}$ standard deviation falls
   from 16531 to 1161 microstrain, against VIC-2D's 1385.
-* [Strain Window](./strain_window.md) is a placeholder for fitting
-  displacement over a neighborhood of points before computing strain.
+* [Strain Window](./strain_window.md) derives a least-squares fit of
+  displacement over a neighborhood of points, taken before computing
+  strain. It sizes the noise reduction, the bias, and the edge cost.
