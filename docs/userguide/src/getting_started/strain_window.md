@@ -8,4 +8,4 @@ differentiating it. In an exploratory test, a 15x15-point
 least-squares window cut [Kernel Warping](./kernel_warping.md)'s
 2862-point $E_{11}$ standard deviation from 1161 to 39 microstrain.
 
-Continue to [Parallelization](./parallelization.md).
+Continue to [Discontinuities](./discontinuities.md).

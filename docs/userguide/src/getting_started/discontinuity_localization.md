@@ -187,7 +187,9 @@ anything: [Path Forward](./path_forward.md#postponed)'s Heaviside
 DIC/XFEM item asked for detection and localization, not a finite-element
 formulation that acts on the result. That half stays open.
 
-Continue to [Path Forward](./path_forward.md) for where this leaves it.
+Continue to [Parallelization](./parallelization.md).
+[Path Forward](./path_forward.md) records where this leaves the
+discontinuity work.
 
 ### `discontinuity_localization_baseline.py`
 

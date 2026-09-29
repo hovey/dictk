@@ -2,7 +2,7 @@
 
 Every correlation criterion since [Correlation
 Criteria](./correlation_criteria.md), and every worked example through
-[Parallelism with PyTorch](./parallelism_pytorch.md), depends on one
+[Kernel Warping](./kernel_warping.md), depends on one
 tacit assumption: the true displacement field is smooth.
 A kernel window moves as a rigid or gently stretching patch. The search
 for its match assumes one answer exists.

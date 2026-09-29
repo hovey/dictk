@@ -555,3 +555,16 @@ with Timing at Scale (10.1, was 9.4) and Parallelism with PyTorch
 from 11 to 12, and Contributing from 12 to 13. Dated entries above
 keep the numbers that were current when they were written.
 
+
+## 2026-09-29
+
+**Chapters 10 and 11 swapped.** Discontinuities is now chapter 10 and
+Parallelization is chapter 11. Discontinuities builds on Prediction
+Improvement's tracking methods. Parallelization does not depend on
+Discontinuities. Path Forward stays at 12 and Contributing at 13.
+Three links changed to match. Strain Window now continues to
+Discontinuities. Discontinuity Localization now continues to
+Parallelization. The Discontinuities introduction now says its
+smoothness assumption held through Kernel Warping, not through
+Parallelism with PyTorch. Dated entries above keep the numbers that were
+current when they were written.
