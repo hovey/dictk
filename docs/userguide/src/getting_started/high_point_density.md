@@ -1,14 +1,13 @@
 # High Point Density
 
 [Simple Stretch Revisited](./simple_stretch.html#simple-stretch-revisited)
-capped out at 250 points — the most `x` values that stay integer-safe
-at `factor_x = 1.02`, within the image's own margins. [Subpixel
-Accuracy](./subpixel_accuracy.md) removed that ceiling: once tracking
-doesn't need its answer to be a whole pixel, `x` doesn't need to be a
-multiple of 50 either. This page pushes all the way to VIC-2D's own
-density — 5 pixels apart, the same 53x54, 2862-point grid [Verification
-Against VIC-2D](./simple_stretch.html#verification-against-vic-2d) and
-Subpixel Accuracy both already used.
+used 250 sample points, the largest number of integer-safe points
+at `factor_x = 1.02` that stay within the image's own margins during the stretch.
+[Subpixel Accuracy](./subpixel_accuracy.md) removed that ceiling because the current
+configurations no longer need to land on pixel coordinates that are integers.
+Below we use VIC-2D's 53x54 (=2864) point grid, five pixels apart
+[Verification Against VIC-2D](./simple_stretch.html#verification-against-vic-2d) to
+illustrate the `locate_subpixel` functionality.
 
 ## Tracking at Full Density
 
@@ -263,11 +262,13 @@ microstrain.
 
 ## Distribution Across the Full Mesh
 
-The mean/std/range summary above collapses the 11024 Gauss point
-numbers into four.
-The full distribution, the same way
-[Verification Against VIC-2D](./simple_stretch.html#verification-against-vic-2d)
-plotted one for VIC-2D's own 2682 measurements, shows more:
+<figure id="fig-hpd-strain-histogram">
+    <img src="high_point_density_strain_histogram.png" alt="histogram of dictk's own 11024 Gauss-point E11 measurements in microstrain, a single smooth right-skewed peak just left of the analytical value, with a long tail toward high positive strain and a sharper cutoff on the negative side, spanning roughly -16400 to 106100 microstrain, with a dashed red vertical line at the analytical value near 19803 microstrain landing just past the peak" />
+    <figcaption>Distribution of <code>dictk</code>'s $E_{11}$ across all 11024 Gauss points at full VIC-2D density (gray, 60 bins). The dashed red line marks the exact $E_{11}$ of a 2% stretch, $\ln(1.02) \approx 19803$ microstrain. The solid black line marks the mean of the 11024 values, 20464 microstrain. The blue band spans one standard deviation, 16531 microstrain, on each side of that mean. Range is [-16400, 106100] microstrain, over 21$\times$ the VIC-2D [17300, 23100] microstrain range.</figcaption>
+</figure>
+
+<details>
+<summary>Show the figure-generating code</summary>
 
 ```python
 import numpy as np
@@ -275,22 +276,39 @@ import matplotlib.pyplot as plt
 
 micro = np.array(values) * 1e6
 analytical = np.log(factor_x) * 1e6
+mean = micro.mean()
+std = micro.std()
 
 plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
 fig, ax = plt.subplots(figsize=(7, 4), constrained_layout=True)
-ax.hist(micro, bins=60, color="gray", alpha=0.8)
-ax.axvline(analytical, color="red", linestyle="--", linewidth=1.5)
+ax.hist(micro, bins=60, color="gray", alpha=0.8, label=r"$E_{11}$ at 11024 Gauss points")
+ax.axvspan(
+    mean - std,
+    mean + std,
+    color="royalblue",
+    alpha=0.15,
+    label=rf"$\pm$ 1 standard deviation, {std:.0f} microstrain",
+)
+ax.axvline(mean, color="black", linewidth=1.5, label=rf"mean ({mean:.0f} $\mu\varepsilon$)")
+ax.axvline(
+    analytical,
+    color="red",
+    linestyle="--",
+    linewidth=1.5,
+    label=r"exact $E_{11}$ of a 2% stretch, $\ln(1.02) \approx 19803\ \mu\varepsilon$",
+)
 ax.set_xlabel(r"Log strain $E_{11}$ (microstrain)")
 ax.set_ylabel("frequency")
+legend = ax.legend(loc="upper right", framealpha=1.0)
+legend.set_zorder(10)
 fig.savefig("high_point_density_strain_histogram.png", dpi=300)
 ```
 
-<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, stretch; from dictk.grid import generate, locate_subpixel, elements; from dictk.element import gauss_point_log_strains; import numpy as np; import matplotlib.pyplot as plt; reference_image = read(path='astronaut0.png'); factor_x = 1.02; current_image = stretch(arr=reference_image, factor_x=factor_x); points = generate(origin=PixelCoordinate(x=18, y=16), count_x=53, count_y=54, spacing_x=5, spacing_y=5); found = locate_subpixel(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=13, kernel_margin_height=13, search_margin_width=25, search_margin_height=25, upsample_factor=100); element_indices = elements(count_x=53, count_y=54); values = []; [values.extend(strain[0, 0] for strain in gauss_point_log_strains(reference_points=[points[i] for i in element], current_points=[found[i] for i in element])) for element in element_indices]; micro = np.array(values) * 1e6; analytical = np.log(factor_x) * 1e6; plt.rcParams.update({'font.family': 'serif', 'mathtext.fontset': 'cm'}); fig, ax = plt.subplots(figsize=(7, 4), constrained_layout=True); ax.hist(micro, bins=60, color='gray', alpha=0.8); ax.axvline(analytical, color='red', linestyle='--', linewidth=1.5); ax.set_xlabel(r'Log strain \$E_{11}\$ (microstrain)'); ax.set_ylabel('frequency'); fig.savefig('high_point_density_strain_histogram.png', dpi=300); print('Saved: high_point_density_strain_histogram.png')" -->
+```text
+<!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, stretch; from dictk.grid import generate, locate_subpixel, elements; from dictk.element import gauss_point_log_strains; import numpy as np; import matplotlib.pyplot as plt; reference_image = read(path='astronaut0.png'); factor_x = 1.02; current_image = stretch(arr=reference_image, factor_x=factor_x); points = generate(origin=PixelCoordinate(x=18, y=16), count_x=53, count_y=54, spacing_x=5, spacing_y=5); found = locate_subpixel(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=13, kernel_margin_height=13, search_margin_width=25, search_margin_height=25, upsample_factor=100); element_indices = elements(count_x=53, count_y=54); values = []; [values.extend(strain[0, 0] for strain in gauss_point_log_strains(reference_points=[points[i] for i in element], current_points=[found[i] for i in element])) for element in element_indices]; micro = np.array(values) * 1e6; analytical = np.log(factor_x) * 1e6; mean = micro.mean(); std = micro.std(); plt.rcParams.update({'font.family': 'serif', 'mathtext.fontset': 'cm'}); fig, ax = plt.subplots(figsize=(7, 4), constrained_layout=True); ax.hist(micro, bins=60, color='gray', alpha=0.8, label=r'\$E_{11}\$ at 11024 Gauss points'); ax.axvspan(mean - std, mean + std, color='royalblue', alpha=0.15, label=rf'\$\pm\$ 1 standard deviation, {std:.0f} microstrain'); ax.axvline(mean, color='black', linewidth=1.5, label=f'mean, {mean:.0f} microstrain'); ax.axvline(analytical, color='red', linestyle='--', linewidth=1.5, label=rf'exact \$E_{{11}}\$ of a 2% stretch, {analytical:.0f} microstrain'); ax.set_xlabel(r'Log strain \$E_{11}\$ (microstrain)'); ax.set_ylabel('frequency'); legend = ax.legend(loc='upper right', framealpha=1.0); legend.set_zorder(10); fig.savefig('high_point_density_strain_histogram.png', dpi=300); print('Saved: high_point_density_strain_histogram.png')" -->
+```
 
-<figure id="fig-hpd-strain-histogram">
-    <img src="high_point_density_strain_histogram.png" alt="histogram of dictk's own 11024 Gauss-point E11 measurements in microstrain, a single smooth right-skewed peak just left of the analytical value, with a long tail toward high positive strain and a sharper cutoff on the negative side, spanning roughly -16400 to 106100 microstrain, with a dashed red vertical line at the analytical value near 19803 microstrain landing just past the peak" />
-    <figcaption>Distribution of <code>dictk</code>'s own $E_{11}$ across all 11024 Gauss points at full VIC-2D density (gray, 60 bins). The dashed red line marks the same analytical value as <a href="./simple_stretch.html#verification-against-vic-2d">Verification Against VIC-2D</a>'s own histogram, $E_{11} = \ln(1.02) \approx 19803$ microstrain. Unlike that page's multi-clustered distribution, this one is a single smooth, right-skewed peak — but a much wider one: individual Gauss points range from about -16400 to 106100 microstrain, over 21 times VIC-2D's own roughly 17300-23100 microstrain spread.</figcaption>
-</figure>
+</details>
 
 `dictk`'s own mean, 20464.3 microstrain, is close to VIC-2D's own
 measured mean, 19875.8 microstrain, but not as close as
