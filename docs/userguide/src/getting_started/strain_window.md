@@ -15,9 +15,9 @@ trade.
 ## Local Displacement Model
 
 The tracked points sit on a regular reference grid with spacing $h$.
-Point $i$ has reference position $\mathbf{X}_i$ and tracked current
-position $\mathbf{x}_i$. Its displacement is
-$\mathbf{u}_i = \mathbf{x}_i - \mathbf{X}_i$.
+Point $i$ has reference position $\boldsymbol{X}_i$ and tracked current
+position $\boldsymbol{x}_i$. Its displacement is
+$\boldsymbol{u}_i = \boldsymbol{x}_i - \boldsymbol{X}_i$.
 
 A window holds $n \times n$ points, with $n = 2m + 1$. It centers on
 point $c$. Its **extent** is $nh$. For $n = 15$ and $h = 5$ px, the
@@ -28,39 +28,39 @@ book uses the extent $nh$.
 Point $k$ in the window has local coordinates
 
 $$
-\mathbf{s}_k = \mathbf{X}_k - \mathbf{X}_c = h\,(j_k,\; l_k),
+\boldsymbol{s}_k = \boldsymbol{X}_k - \boldsymbol{X}_c = h\,(j_k,\; l_k),
 \qquad j_k,\, l_k \in \{-m, \dots, m\}.
 $$
 
 Each displacement component $\alpha \in \{x, y\}$ gets an affine fit:
 
 $$
-u_\alpha(\mathbf{s}) \approx a_\alpha + H_{\alpha x}\, s_x + H_{\alpha y}\, s_y .
+u_\alpha(\boldsymbol{s}) \approx a_\alpha + H_{\alpha x}\, s_x + H_{\alpha y}\, s_y .
 $$
 
 The coefficients $H_{\alpha\beta}$ form the displacement gradient
-$\mathbf{H} = \partial \mathbf{u} / \partial \mathbf{X}$ at the window
-center. The fit uses reference coordinates, so $\mathbf{H}$ is the
+$\boldsymbol{H} = \partial \boldsymbol{u} / \partial \boldsymbol{X}$ at the window
+center. The fit uses reference coordinates, so $\boldsymbol{H}$ is the
 Lagrangian gradient. The deformation gradient follows directly:
 
 $$
-\mathbf{F} = \mathbf{I} + \mathbf{H} .
+\boldsymbol{F} = \boldsymbol{I} + \boldsymbol{H} .
 $$
 
-Fitting the current positions $x_\alpha$ instead gives $\mathbf{F}$ as
-the slope. Both routes agree, because $\mathbf{X}$ is exactly affine in
-$\mathbf{s}$.
+Fitting the current positions $x_\alpha$ instead gives $\boldsymbol{F}$ as
+the slope. Both routes agree, because $\boldsymbol{X}$ is exactly affine in
+$\boldsymbol{s}$.
 
 ## Least-Squares Estimator
 
 Stack the $n^2$ window points. The design matrix
-$\mathbf{A} \in \mathbb{R}^{n^2 \times 3}$ has one row
-$(1,\; s_{x,k},\; s_{y,k})$ per point. The vector $\mathbf{u}_\alpha$
+$\boldsymbol{A} \in \mathbb{R}^{n^2 \times 3}$ has one row
+$(1,\; s_{x,k},\; s_{y,k})$ per point. The vector $\boldsymbol{u}_\alpha$
 holds component $\alpha$ of the $n^2$ displacements. The weights
-$w_k$ fill the diagonal matrix $\mathbf{W}$. The fit minimizes
+$w_k$ fill the diagonal matrix $\boldsymbol{W}$. The fit minimizes
 
 $$
-\sum_{k} w_k \left( u_{\alpha,k} - \mathbf{A}_k\, \boldsymbol{\theta}_\alpha \right)^2,
+\sum_{k} w_k \left( u_{\alpha,k} - \boldsymbol{A}_k\, \boldsymbol{\theta}_\alpha \right)^2,
 \qquad
 \boldsymbol{\theta}_\alpha =
 \begin{pmatrix} a_\alpha \\ H_{\alpha x} \\ H_{\alpha y} \end{pmatrix}.
@@ -70,13 +70,13 @@ The normal equations give the solution:
 
 $$
 \boldsymbol{\theta}_\alpha =
-\left( \mathbf{A}^\top \mathbf{W} \mathbf{A} \right)^{-1}
-\mathbf{A}^\top \mathbf{W}\, \mathbf{u}_\alpha .
+\left( \boldsymbol{A}^\top \boldsymbol{W} \boldsymbol{A} \right)^{-1}
+\boldsymbol{A}^\top \boldsymbol{W}\, \boldsymbol{u}_\alpha .
 $$
 
 The grid is regular, so the matrix
-$\left( \mathbf{A}^\top \mathbf{W} \mathbf{A} \right)^{-1} \mathbf{A}^\top \mathbf{W}$
-depends only on $n$, $h$, and $\mathbf{W}$. It does not depend on the
+$\left( \boldsymbol{A}^\top \boldsymbol{W} \boldsymbol{A} \right)^{-1} \boldsymbol{A}^\top \boldsymbol{W}$
+depends only on $n$, $h$, and $\boldsymbol{W}$. It does not depend on the
 images.
 
 ### Uniform Weights
@@ -89,7 +89,7 @@ stage. Neither appears here.
 
 A full window is symmetric about its center. So
 $\sum_k s_{x,k} = \sum_k s_{y,k} = \sum_k s_{x,k} s_{y,k} = 0$, and
-$\mathbf{A}^\top \mathbf{A}$ becomes diagonal. Each gradient component
+$\boldsymbol{A}^\top \boldsymbol{A}$ becomes diagonal. Each gradient component
 reduces to one sum:
 
 $$
@@ -105,19 +105,19 @@ kernel along one axis and a box average along the other.
 
 ## Strain
 
-The strain measures reuse $\mathbf{F}$ from the previous section.
+The strain measures reuse $\boldsymbol{F}$ from the previous section.
 Green-Lagrange strain is
 
 $$
-\mathbf{E} = \tfrac{1}{2} \left( \mathbf{F}^\top \mathbf{F} - \mathbf{I} \right).
+\boldsymbol{E} = \tfrac{1}{2} \left( \boldsymbol{F}^\top \boldsymbol{F} - \boldsymbol{I} \right).
 $$
 
 Log strain, also called Hencky strain, is
 
 $$
-\mathbf{E}_{\log} = \ln \mathbf{U},
+\boldsymbol{E}_{\log} = \ln \boldsymbol{U},
 \qquad
-\mathbf{U} = \sqrt{\mathbf{F}^\top \mathbf{F}} .
+\boldsymbol{U} = \sqrt{\boldsymbol{F}^\top \boldsymbol{F}} .
 $$
 
 This page reports log strain, to match the figures on the pages before
@@ -137,7 +137,7 @@ coefficients. The redundancy does the averaging.
 
 Suppose the tracked displacements carry independent errors with
 variance $\sigma^2$. The estimator's variance follows from the
-diagonal $\mathbf{A}^\top \mathbf{A}$:
+diagonal $\boldsymbol{A}^\top \boldsymbol{A}$:
 
 $$
 \operatorname{Var}(H_{\alpha x}) =
@@ -223,7 +223,7 @@ $T$ sizes that residue.
 
 Near the grid boundary, the window truncates. Every tracked point
 keeps a strain. The affine fit uses the general normal equations,
-because $\mathbf{A}^\top \mathbf{A}$ is no longer diagonal.
+because $\boldsymbol{A}^\top \boldsymbol{A}$ is no longer diagonal.
 
 Truncation costs precision in two ways. Take the $x$ gradient of a
 window that lost its $-x$ half, with $m + 1$ columns left.
