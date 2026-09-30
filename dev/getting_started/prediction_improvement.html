@@ -214,8 +214,9 @@ in <code>locate_subpixel</code> tied to where each true position falls within
 its pixel. It adds <code>locate_warp</code>, which lets the kernel stretch and
 shear along with the material. The <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> standard deviation falls
 from 16531 to 1161 microstrain, against VIC-2D's 1385.</li>
-<li><a href="./strain_window.html">Strain Window</a> is a placeholder for fitting
-displacement over a neighborhood of points before computing strain.</li>
+<li><a href="./strain_window.html">Strain Window</a> derives a least-squares fit of
+displacement over a neighborhood of points, taken before computing
+strain. It sizes the noise reduction, the bias, and the edge cost.</li>
 </ul>
 
                     </main>
