@@ -1,0 +1,2 @@
+#!/bin/sh
+exec "$DICTK_REAL_PYTHON" "$(dirname "$0")/../cache_run.py" "$@"

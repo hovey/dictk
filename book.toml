@@ -15,6 +15,7 @@ additional-css = ["docs/userguide/theme/custom.css"]
 after = ["links"]
 
 [preprocessor.cmdrun]
+command = "docs/userguide/cmdrun_cached.sh"
 
 # Numbers every <figure> as "Figure <section>-<n>". Runs after cmdrun so
 # any figure a cmdrun script prints gets numbered too.

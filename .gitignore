@@ -268,3 +268,6 @@ __marimo__/
 # real micrograph)
 !docs/userguide/src/getting_started/experimental_dislocation_reference.tiff
 !docs/userguide/src/getting_started/experimental_dislocation_current.tiff
+
+# mdbook cmdrun output cache
+docs/userguide/.cmdrun_cache/

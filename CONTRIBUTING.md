@@ -237,6 +237,161 @@ uv run mdbook serve --open    # live preview at http://localhost:3000
 `uv run` puts `dictk`'s own CLI on `PATH` for the build, since some
 `cmdrun` directives invoke `dictk` directly.
 
+### Caching `cmdrun` output
+
+A full `mdbook build` runs 119 `<!-- cmdrun python3 ... -->` blocks across
+22 pages. Each block starts its own Python process. A cold build takes
+about 155 s on an M1 Pro. `mdbook-cmdrun` has no cache of its own, so
+editing one sentence would otherwise re-run all 119 blocks.
+
+`dictk` adds a cache in front of `mdbook-cmdrun`. A warm build takes
+about 16 s, and its HTML output is identical to the cold build's. The
+cache needs no change to any page. It stays out of the way in CI.
+
+#### How the pieces connect
+
+`book.toml` points the `cmdrun` preprocessor at a wrapper script:
+
+```toml
+[preprocessor.cmdrun]
+command = "docs/userguide/cmdrun_cached.sh"
+```
+
+Four files and one directory implement the cache, all under
+`docs/userguide/`:
+
+| Path | Role |
+|---|---|
+| `cmdrun_cached.sh` | Entry point mdbook calls instead of `mdbook-cmdrun`. Puts `cache_shim/` first on `PATH`, then runs `mdbook-cmdrun`. |
+| `cache_shim/python3` | A two-line shell script. Every `python3` that a `cmdrun` block calls lands here. It forwards to `cache_run.py` with the real interpreter. |
+| `cache_run.py` | The cache itself: computes the key, replays a hit, or runs and stores a miss. |
+| `cache_exclude.txt` | Commands that must never be cached (see below). |
+| `.cmdrun_cache/` | The stored entries. Git ignores it. Delete it to reset the cache. |
+
+`cmdrun` blocks that call `cat` or `dictk` directly never reach the shim.
+They run uncached. The `cat` blocks only print a script's source.
+
+#### The cache key
+
+`cache_run.py` hashes the following into one SHA-256 key:
+
+1. The full command, including inline `python3 -c "..."` source.
+2. The page's directory path.
+3. Every file in that directory that git sees, except `.md` pages. That
+   means tracked files, plus untracked files that `.gitignore` does not
+   ignore. This covers scripts, helper modules, committed CSV data, and
+   committed images. It leaves out `.md` pages because no script reads
+   one. Including them would make every prose edit re-run every block.
+4. Every `.py` file under `src/dictk`.
+5. `uv.lock` and `pyproject.toml`.
+6. The Python version.
+
+The key is deliberately wider than any one script needs. Editing any
+`dictk` module re-runs every block. All 22 pages with `cmdrun` blocks
+share one directory, `docs/userguide/src/getting_started/`. So editing
+any script or data file there also re-runs every block in the book. A
+narrow key would need to know which files each script reads, and a wrong
+guess would show stale figures. Editing a page's prose re-runs nothing.
+Measured on this book, a rebuild after a prose edit takes 13 s, against
+143 to 156 s for a rebuild that misses every entry.
+
+Item 3 uses git's view of the directory for one reason. The blocks write
+their own figures into the same directory as their inputs. Those
+generated PNGs are gitignored, so they stay out of the key. If they were
+in it, the first build's output would change the second build's key, and
+the second build would miss every entry. Generated inputs, such as
+`astronaut0.png`, are also ignored. The key covers them through the
+`src/dictk` hash, because `dictk` code creates them.
+
+File hashes are memoized in `.cmdrun_cache/hashmemo.json`, keyed on each
+file's modification time and size. Hashing about 100 small files costs
+milliseconds.
+
+#### What an entry stores
+
+Each entry is a directory named by its key:
+
+```text
+.cmdrun_cache/<sha256>/
+    stdout.bin      # bytes the script printed
+    meta.json       # command string and the list of files the run wrote
+    files/          # copies of those files, in their relative paths
+```
+
+On a miss, `cache_run.py` snapshots the page directory (path,
+modification time, size), runs the script, and snapshots again. Every
+file that is new or changed is an output. It copies those files into
+`files/`, writes `stdout.bin`, and passes the script's stdout through to
+`cmdrun`. It writes an entry to a temporary directory first, then
+renames it, so an interrupted build never leaves a half-written entry.
+
+On a hit, it replays `stdout.bin` and restores each stored file. It skips
+any file whose bytes already match on disk. That leaves the modification
+time alone and avoids a rebuild loop under `mdbook serve`, which watches
+the source directory.
+
+A run that exits non-zero is never stored. Its stdout and exit code pass
+through, and `cmdrun` reports the failure as before.
+
+A file lock in `.cmdrun_cache/lock` serializes every cached run. Two
+runs at once would see each other's output files in their snapshots and
+store the wrong ones. The uncached build already ran one block at a time,
+so the lock costs no speed.
+
+#### Commands that must not be cached
+
+A cached block replays what it printed the first time. That is wrong for
+a block whose output depends on something other than its inputs. List
+such commands in `cache_exclude.txt`, one substring per line. Any command
+containing a listed substring always runs.
+
+Today the list holds one entry, `kernel_warping_bias.py`. It prints how
+many seconds each tracker took, and that number changes from run to run.
+A new script that prints a measured time, reads the clock, or depends on
+the machine's hardware belongs in the list. Scripts with seeded random
+draws, such as `kernel_warping_panels.py` (`default_rng(0)`), cache
+safely.
+
+#### Controlling the cache
+
+Set `DICTK_BOOK_CACHE` before `mdbook build` or `mdbook serve`:
+
+| Value | Behavior |
+|---|---|
+| unset | Use the cache. |
+| `off` | Skip the cache. Every block runs, as in a plain `mdbook-cmdrun` build. |
+| `verify` | Run every block anyway, then compare its stdout and output files with the stored entry. Write one `ok` or `MISMATCH` line per block to `docs/userguide/.cmdrun_cache/verify_report.txt`. Zip files compare by member contents, because zips embed timestamps. |
+
+```bash
+DICTK_BOOK_CACHE=off mdbook build      # ignore the cache
+DICTK_BOOK_CACHE=verify mdbook build   # check the cache against fresh runs
+rm -r docs/userguide/.cmdrun_cache     # reset the cache
+```
+
+The wrapper also bypasses the cache whenever the `CI` environment
+variable is set. GitHub Actions sets it. The deployed book therefore
+always comes from fresh runs, and a stale local entry cannot reach it.
+
+#### When the cache can go stale
+
+The key includes everything `cache_run.py` knows a script can depend on.
+It cannot see anything else. A block that reads a file outside its page
+directory, calls a system tool, or reads an environment variable can
+return a stale result after that input changes. Two cases to remember:
+
+- A script that reads another script's output. Output PNGs are not in
+  the key, so changing the first script re-runs it, but the second script
+  keeps its old entry. Re-run with `DICTK_BOOK_CACHE=off` after changing
+  a script whose figure another block reads.
+- A block that prints a timing and is not in `cache_exclude.txt`. It
+  shows the first run's number forever.
+
+Run `DICTK_BOOK_CACHE=verify mdbook build` before you commit a change that
+touches several scripts or `src/dictk`. It takes as long as an uncached
+build. Then search `verify_report.txt` for `MISMATCH`. Each such line
+names the command whose cached result differs from a fresh run. The
+report is a file because `mdbook-cmdrun` discards a command's stderr.
+
 ### Building the API docs
 
 Python API reference docs (function signatures, docstrings) are generated
