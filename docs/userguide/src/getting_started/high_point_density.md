@@ -69,8 +69,8 @@ error. [Figure](#fig-hpd-x-error-histogram) shows all 2862 of them:
 <!-- cmdrun python3 high_point_density_x_error_histogram.py -->
 
 <figure id="fig-hpd-x-error-histogram">
-    <img src="high_point_density_x_error_histogram.png" alt="histogram of dictk's own 2862 x errors in pixels, a broad flat-topped distribution, nearly symmetric about zero, spanning roughly -0.29 to +0.32 px, with a black vertical line at the mean of -0.0109 px, a pale blue band one standard deviation of 0.1090 px either side of it, and a dashed red vertical line at exact tracking, 0 px" />
-    <figcaption>Distribution of <code>dictk</code>'s $x$ error across all 2862 points at full VIC-2D density (gray, 60 bins). The dashed red line marks exact tracking, 0 px. The solid black line marks the mean of the 2862 errors, -0.0109 px. The blue band spans one standard deviation, 0.1090 px, on each side of that mean. Range is [-0.29, +0.32] px.</figcaption>
+    <img src="high_point_density_x_error_histogram.png" alt="histogram of dictk.grid.locate_subpixel's 2862 x errors in pixels, a broad flat-topped distribution, nearly symmetric about zero, spanning roughly -0.29 to +0.32 px, with a black vertical line at the mean of -0.0109 px, a pale blue band one standard deviation of 0.1090 px either side of it, and a dashed red vertical line at exact tracking, 0 px" />
+    <figcaption>Distribution of <code>dictk.grid.locate_subpixel</code>'s $x$ error across all 2862 points at full VIC-2D density (gray, 60 bins). The dashed red line marks exact tracking, 0 px. The solid black line marks the mean of the 2862 errors, -0.0109 px. The blue band spans one standard deviation, 0.1090 px, on each side of that mean. Range is [-0.29, +0.32] px.</figcaption>
 </figure>
 
 <details>
