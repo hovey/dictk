@@ -118,10 +118,21 @@ labels = [
     ("Mean $E_{11}$ (microstrain)", lambda v: f"{v:.0f}"),
     ("Std $E_{11}$ (microstrain)", lambda v: f"{v:.0f}"),
 ]
-FIGURE_LINK = '<a href="./high_point_density.html#{}">Figure</a>'
 figure_rows = {
-    0: ("$x$ error Figure", "fig-hpd-x-error-histogram"),
-    3: ("$E_{11}$ Figure", "fig-hpd-strain-histogram"),
+    0: (
+        "$x$ error Figure",
+        {
+            "VIC-2D": "./simple_stretch.html#fig-vic-x-error-histogram",
+            "<code>locate_subpixel</code>": "./high_point_density.html#fig-hpd-x-error-histogram",
+            "<code>locate_warp</code>": "#fig-kw-x-error-histogram",
+        },
+    ),
+    3: (
+        "$E_{11}$ Figure",
+        {
+            "<code>locate_subpixel</code>": "./high_point_density.html#fig-hpd-strain-histogram"
+        },
+    ),
 }
 
 print('<table class="progression">')
@@ -132,10 +143,10 @@ print("</tr></thead>")
 print("<tbody>")
 for row, (label, fmt) in enumerate(labels):
     if row in figure_rows:
-        figure_label, figure_id = figure_rows[row]
+        figure_label, targets = figure_rows[row]
         print(f"<tr><td>{figure_label}</td>", end="")
         for name, _, css in columns:
-            link = FIGURE_LINK.format(figure_id) if "locate_subpixel" in name else ""
+            link = f'<a href="{targets[name]}">Figure</a>' if name in targets else ""
             print(f"<td{css}>{link}</td>", end="")
         print("</tr>")
     print(f"<tr><td>{label}</td>", end="")
