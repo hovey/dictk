@@ -22,22 +22,23 @@ microstrain.
 ## Pixel Locking
 
 The subject 2% stretch sends every reference point to a new known $x$ location,
-$x = 1.02\,X$ ($y = Y$ remains constant for all points). High Point
-Density's own `locate_subpixel` call already tracked all 2862 of those
-points. Subtracting each point's known true
+$x = 1.02\,X$ ($y = Y$ remains constant for all points). The
+[High Point Density](./high_point_density.md) page's own `locate_subpixel`
+call already tracked all 2862 of those points. Subtracting each point's known true
 position from its tracked one gives the tracking error:
 
 <!-- cmdrun python3 kernel_warping_pixel_locking.py -->
 
 <figure>
-    <img src="kernel_warping_pixel_locking.png" alt="two panels. Left: x error of every tracked point plotted against the fractional part of its true x position, gray dots with black binned means tracing one full sine-like cycle, about -0.14 px near 0.3 and +0.12 px near 0.7, crossing zero near 0.5. Right: x error along one grid row against true x, oscillating between about -0.18 and +0.17 px, with dotted vertical lines every 51 px marking where each cycle begins" />
-    <figcaption>Left: each point's $x$ error against the fractional part of its true $x$ (gray), with the mean of each tenth of a pixel (black). Right: the same error along row 27 of the grid, at $y = 151$ px. Row 27 is the middle of the grid's 54 rows, chosen to stay clear of the image's top and bottom edges. The wave depends only on $x$, so every row shows it. Each row's error correlates 0.82 to 0.94 with the average over all rows. Row 27 sits at the low end, 0.82. So this panel shows the least regular of the 54 rows. Dotted lines mark every 51 px, the distance over which the true position's fractional part completes one cycle.</figcaption>
+    <img src="kernel_warping_pixel_locking.png" alt="two panels. Left: x error along one grid row against true x, oscillating between about -0.18 and +0.17 px, with dotted vertical lines every 51 px marking where each cycle begins. Right: x error of every tracked point plotted against the fractional part of its true x position, gray dots with black binned means tracing one full sine-like cycle, about -0.14 px near 0.3 and +0.12 px near 0.7, crossing zero near 0.5" />
+    <figcaption>Left: each point's $x$ error along row 27 of the grid, at $y = 151$ px. Right: the same error for all points, against the fractional part of the true $x$ (gray), with the mean of each tenth of a pixel (black). Row 27 is the middle of the grid's 54 rows, chosen to stay clear of the image's top and bottom edges. The wave depends only on $x$, so every row shows it. Each row's error correlates 0.82 to 0.94 with the average over all rows. Row 27 sits at the low end, 0.82. So the left panel shows the least regular of the 54 rows. Dotted lines mark every 51 px, the distance over which the true position's fractional part completes one cycle.</figcaption>
 </figure>
 
-The left panel shows the error depends on where the true position sits
-within its pixel. Points just past a whole pixel read low. Points just
-short of the next whole pixel read high. Points at an exact half pixel
-read about right. This is **pixel locking**: a subpixel estimator's
+The right panel shows the error depends on where the true position sits
+within its pixel. Points with a fractional part between 0 and 0.5 read
+low, by as much as 0.14 px near 0.3. Points between 0.5 and 1 read high,
+by as much as 0.12 px near 0.7. Points at an exact half pixel read about
+right. This is **pixel locking**: a subpixel estimator's
 answer drifts toward whole-pixel values. `locate_subpixel` refines the
 peak of an upsampled phase correlation surface. That surface comes from
 a zero-padded kernel, and its peak shifts in a way that depends on the
@@ -46,7 +47,7 @@ from how the stretched image itself was made: `image.stretch` uses
 bilinear interpolation. [The Residual
 Wave](#the-residual-wave) separates the two causes.
 
-The right panel shows why this matters for strain. Every reference
+The left panel shows why this matters for strain. Every reference
 position $X$ on the grid is a whole pixel. So the true position,
 $x = 1.02\,X = X + 0.02\,X$, has the same fractional part as
 $0.02\,X$. That fractional part climbs from 0 to 1, then wraps back to
@@ -74,13 +75,12 @@ element.
 Commercial DIC codes such as VIC-2D warp the kernel itself, instead of
 refining a correlation peak (as done by `locate_subpixel`).
 [`dictk.grid.locate_warp`](../api/dictk/grid.html#locate_warp) warps
-the kernel too, as VIC-2D does. It works in two stages.
+the kernel too, as VIC-2D does. It works in two stages:
 
-First, [`dictk.translation.locate`](../api/dictk/translation.html#locate)
-finds the nearest whole pixel. Second, **inverse compositional
-Gauss-Newton (IC-GN)** refines it. IC-GN lets the reference kernel
-deform by an affine warp, $\boldsymbol{W}$, with six
-parameters: $u$, $u_x$, $u_y$, $v$,
+* First, [`dictk.translation.locate`](../api/dictk/translation.html#locate) finds the nearest whole pixel.
+* Second, **inverse compositional Gauss-Newton (IC-GN)** refines it.
+
+IC-GN lets the reference kernel deform by an affine warp, $\boldsymbol{W}$, with six parameters: $u$, $u_x$, $u_y$, $v$,
 $v_x$, and $v_y$. $u$ and $v$ are the displacements along $x$ and $y$.
 The subscripts mark their gradients across the kernel, so
 $u_x = \partial u / \partial x$ and $v_y = \partial v / \partial y$:
@@ -103,13 +103,18 @@ here. The warp maps each such pixel to its position in the current
 image. IC-GN searches for the $\boldsymbol{p}$ that minimizes the
 zero-normalized sum of squared differences (ZNSSD) between the
 reference kernel $f$ and the current image sampled through the warp,
-$g$:
+$g = g(\boldsymbol{W})$:
 
 $$
 C(\boldsymbol{p}) = \sum_{\Delta x, \Delta y}
 \left[ \frac{f - \bar{f}}{\lVert f - \bar{f} \rVert}
-- \frac{g(\boldsymbol{W}) - \bar{g}}{\lVert g - \bar{g} \rVert} \right]^2 .
+- \frac{g - \bar{g}}{\lVert g - \bar{g} \rVert} \right]^2 .
 $$
+
+Here $\bar{f}$ and $\bar{g}$ are the mean intensities over the 729 pixels
+of $f$ and $g$ (the kernel spans 13 px on each side of its center pixel,
+so $(2 \cdot 13 + 1)^2 = 729$). The double bars $\lVert \cdot \rVert$
+denote the Euclidean norm of those pixel values.
 
 Each iteration solves for a small update $\Delta\boldsymbol{p}$ to
 the *reference* kernel. It then composes that update's inverse into the
@@ -129,19 +134,33 @@ pixel's offset in the kernel, and every sum runs over all
 $(2 \cdot 13 + 1)^2 = 729$ pixels.
 
 **1. Reduce ZNSSD to least squares.** Write $\tilde{f} = f - \bar{f}$
-and $\tilde{g} = g - \bar{g}$ for the zero-mean kernels. Expanding the
-square in $C$ gives
+and $\tilde{g} = g - \bar{g}$ for the zero-mean kernels. Then write
+$a = \tilde{f} / \lVert \tilde{f} \rVert$ and
+$b = \tilde{g} / \lVert \tilde{g} \rVert$ for the same kernels scaled
+to unit length, so $\sum a^2 = 1$ and $\sum b^2 = 1$. The bracket in $C$
+is $a - b$. Its square expands to $(a - b)^2 = a^2 - 2ab + b^2$.
+Summing over the pixels gives
 
 $$
-C(\boldsymbol{p}) = 2 - 2\,
+C(\boldsymbol{p}) = \underbrace{\sum a^2}_{1}
+- 2 \sum a\,b
++ \underbrace{\sum b^2}_{1}
+= 2 - 2\,
 \frac{\sum \tilde{f}\,\tilde{g}}{\lVert \tilde{f} \rVert\, \lVert \tilde{g} \rVert}
 = 2\,\bigl[1 - \mathrm{ZNCC}(\boldsymbol{p})\bigr].
 $$
 
 So minimizing $C$ maximizes ZNCC, the criterion from [Correlation
-Criteria](./correlation_criteria.md). $C$ runs from 0, a perfect
-match, to 4. Multiplying $C$ by the constant $\lVert \tilde{f} \rVert^2$
-leaves its minimizer unchanged:
+Criteria](./correlation_criteria.md). ZNCC runs from $-1$ to $+1$,
+because $\sum a\,b$ is the dot product of two unit-length vectors.
+So $C = 2\,[1 - \mathrm{ZNCC}]$ runs from 0 to 4. $C = 0$ is a perfect
+match, where $\mathrm{ZNCC} = 1$. $C = 4$ is a perfectly inverted
+pattern, where $\mathrm{ZNCC} = -1$.
+
+Next, let $\lVert \tilde{f} \rVert^2 = \sum_{\boldsymbol{\xi}} \tilde{f}(\boldsymbol{\xi})^2$,
+the sum of the squared zero-mean reference intensities. It depends only
+on the reference kernel, not on $\boldsymbol{p}$, so it is a constant.
+Multiplying $C$ by it leaves the minimizer unchanged:
 
 $$
 \lVert \tilde{f} \rVert^2\, C(\boldsymbol{p})
@@ -282,9 +301,11 @@ the error:
 One iteration cuts $C$ from 0.18 to 0.0022, and the translation error
 from 0.44 px to 0.018 px. By $k = 2$, $C$ levels off at 0.0012, and the
 translation error settles at about 0.003 px. The gradient terms take
-until $k = 6$ to settle, at about $1.2 \times 10^{-4}$. IC-GN reaches
-its exact final warp after 9 iterations, far below the 50-iteration
-cap.
+until $k = 6$ to settle, at about $1.2 \times 10^{-4}$. IC-GN stops
+after 9 iterations, the first one where every parameter's update falls
+below the default tolerance of $10^{-6}$. The error stops improving at
+$k = 6$, but the updates take three more iterations to shrink below that
+tolerance. The 50-iteration cap never applies.
 
 Neither error reaches zero. This example's current image comes from a
 quintic spline, while IC-GN samples it with a cubic one. That mismatch
@@ -298,7 +319,7 @@ Kernel](#rigid-versus-warped-kernel) below finds the same 0.003 px as
 axis-aligned square from `reference_image`. Each slides that square,
 unchanged, across the search area. The only thing either one finds is
 a translation. In contrast, `locate_warp` finds how the kernel
-translates and deforms.
+translates *and* deforms.
 
 One point, at $(150, 150)$, under an exaggerated deformation shows the
 difference. The current image stretches 7% along $x$ and shears by
@@ -383,7 +404,8 @@ at each Gauss point. Only the tracked positions change:
 
 <!-- cmdrun python3 kernel_warping_strain.py -->
 
-The spread falls from 16531 to 1161 microstrain. The range now sits
+The spread falls from 16531 microstrain for `locate_subpixel` to 1161
+microstrain for `locate_warp`. The range now sits
 where VIC-2D's does. Of the 11024 Gauss points, 97.4% land inside
 VIC-2D's own colorbar range, up from 9.5%. The standard deviation,
 1161 microstrain, comes in under VIC-2D's 1385. The element code is
@@ -418,14 +440,20 @@ Neither result is smoothed. Commercial codes usually also apply a
 **strain window**, fitting displacement over a neighborhood of points
 before differentiating. That trades spatial resolution for a smaller strain spread. A 15x15-point
 window, spanning 75 px here, cut `locate_warp`'s spread from 1161 to
-39 microstrain in an exploratory test. [Path Forward](./path_forward.md) records it as a next step.
+39 microstrain in an exploratory test.
 Fixing the bias first matters. A window spanning a whole bias cycle
 would also flatten High Point Density's stripes. That averaging would
 hide the error while leaving it in the tracked positions.
 
 ## The Residual Wave
 
-`locate_warp`'s leftover 0.01 px wave starts outside the tracker.
+Until now, this page treated the **tracker** as the source of the error. It
+compared `locate_subpixel` with `locate_warp`, and `locate_warp` left a
+0.01 px wave. This section isolates the other error contributor, the
+**generator**: the bilinear interpolation `image.stretch` uses to build
+the deformed image. [Pixel Locking](#pixel-locking) flagged it earlier.
+The measurement here separates the two causes.
+
 `dictk.image.stretch` builds the current image with bilinear
 interpolation. Bilinear interpolation moves content by a fractional
 pixel, and it also blurs that content. The blur depends on the
@@ -449,13 +477,42 @@ too, from 0.109 px to 0.057 px, but its strain spread stays above 10000
 microstrain. About half of phase correlation's error came from the
 generator. The other half belongs to the tracker.
 
-Every other figure on this page keeps `image.stretch`. VIC-2D measured
-those same bilinear images, so the comparison with VIC-2D stays fair.
+Every other figure on this page keeps `image.stretch`. Every synthetic
+image in this book uses bilinear interpolation, not a quintic spline,
+and VIC-2D measured those same bilinear images. Setting `locate_warp` on
+the quintic image (260 microstrain) against VIC-2D on a bilinear image
+(1385 microstrain) would be an unfair comparison. The two tools would
+track different images. So the drop from 1161 to 260 microstrain shows
+how much of `locate_warp`'s spread the generator causes. It does not
+belong next to VIC-2D's result. The fair comparison stays `locate_warp`
+on the bilinear image, 1161 against VIC-2D's 1385 microstrain.
+
 `dictk`'s own tests of fractional translation avoid the generator
 entirely. They shift a smoothed speckle image by an exact fraction of
 a pixel, in the Fourier domain. There, `locate_warp` recovers every
 tested shift to within 0.005 px, and beats `locate_subpixel` every
 time.
+
+## Summary
+
+The table collects this page's results, one column per approach, in the
+order the book introduced them. `locate` rounds to whole pixels. VIC-2D
+is the reference tool. `locate_subpixel` and `locate_warp` track the same
+bilinear image. The shaded column tracks the quintic-spline image
+instead, so none of the other tools could reach it. VIC-2D measured the
+bilinear images. The shaded numbers show what removing the generator's
+error would leave. They do not belong next to VIC-2D's.
+
+<!-- cmdrun python3 kernel_warping_summary.py -->
+
+Each $x$ error is the tracked $x$ minus the true $x = 1.02\,X$. The
+closed-form strain for this 2% stretch is
+$E_{11} = \ln(1.02) \approx 19803$ microstrain. Each mean $E_{11}$ above
+reads against that value. The `locate_subpixel` column uses
+`upsample_factor=100`, which refines the correlation peak to within
+0.01 px. High Point Density uses the same value. The VIC-2D column uses
+its 2682 valid points for both rows. The `dictk` columns use all 2862
+points for $x$ and 11024 Gauss points for $E_{11}$.
 
 Continue to [Strain Window](./strain_window.md).
 
@@ -499,4 +556,10 @@ Continue to [Strain Window](./strain_window.md).
 
 ```python
 <!-- cmdrun cat kernel_warping_generator.py -->
+```
+
+### `kernel_warping_summary.py`
+
+```python
+<!-- cmdrun cat kernel_warping_summary.py -->
 ```

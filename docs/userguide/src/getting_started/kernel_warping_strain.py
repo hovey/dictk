@@ -68,11 +68,11 @@ analytical = np.log(FACTOR_X) * 1e6
 print(
     f"| Source | Mean (µε) | Std (µε) | Min (µε) | Max (µε) | Inside [{VMIN}, {VMAX}] |"
 )
-print("|---|---|---|---|---|---|")
+print("|---|---:|---:|---:|---:|---:|")
 for name, values in [
     ("`locate_subpixel` + Q4", phase),
-    ("`locate_warp` + Q4", warp),
     ("VIC-2D", vic),
+    ("`locate_warp` + Q4", warp),
 ]:
     inside = np.mean((values >= VMIN) & (values <= VMAX)) * 100
     print(
