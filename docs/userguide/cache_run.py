@@ -3,7 +3,9 @@
 Keys each run on the command, every file git sees in the page
 directory except `.md` pages (tracked, or untracked and not ignored), every .py under
 `src/dictk`, `uv.lock`, and the Python version. A hit replays the
-stored stdout and restores the files the run wrote. A miss runs the
+stored stdout and restores the generated files the run wrote. Only
+image, data, and archive suffixes count as output, so a `.md` or `.py`
+file saved during a run is never stored or restored. A miss runs the
 script and stores both.
 
 DICTK_BOOK_CACHE=verify ignores the cache, re-runs, and reports any
@@ -36,7 +38,23 @@ DATA_SUFFIXES = {
     ".json",
     ".txt",
 }
-VERSION = "1"
+OUTPUT_SUFFIXES = {
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".tif",
+    ".tiff",
+    ".gif",
+    ".svg",
+    ".pdf",
+    ".csv",
+    ".json",
+    ".txt",
+    ".npy",
+    ".npz",
+    ".zip",
+}
+VERSION = "2"
 
 
 def file_hash(path, memo):
@@ -129,6 +147,8 @@ def main():
     if entry.is_dir() and mode == "on":
         meta = load_json(entry / "meta.json", {"files": []})
         for rel in meta["files"]:
+            if Path(rel).suffix not in OUTPUT_SUFFIXES:
+                continue
             stored = entry / "files" / rel
             target = cwd / rel
             if not target.exists() or target.read_bytes() != stored.read_bytes():
@@ -146,7 +166,7 @@ def main():
     changed = sorted(
         str(Path(p).relative_to(cwd))
         for p, sig in after.items()
-        if before.get(p) != sig
+        if before.get(p) != sig and Path(p).suffix in OUTPUT_SUFFIXES
     )
 
     if mode == "verify" and entry.is_dir():

@@ -320,7 +320,10 @@ Each entry is a directory named by its key:
 
 On a miss, `cache_run.py` snapshots the page directory (path,
 modification time, size), runs the script, and snapshots again. Every
-file that is new or changed is an output. It copies those files into
+file that is new or changed, and has a generated-file suffix, is an
+output. The suffixes are `.png`, `.jpg`, `.jpeg`, `.tif`, `.tiff`,
+`.gif`, `.svg`, `.pdf`, `.csv`, `.json`, `.txt`, `.npy`, `.npz`, and
+`.zip`. It copies those files into
 `files/`, writes `stdout.bin`, and passes the script's stdout through to
 `cmdrun`. It writes an entry to a temporary directory first, then
 renames it, so an interrupted build never leaves a half-written entry.
@@ -337,6 +340,13 @@ A file lock in `.cmdrun_cache/lock` serializes every cached run. Two
 runs at once would see each other's output files in their snapshots and
 store the wrong ones. The uncached build already ran one block at a time,
 so the lock costs no speed.
+
+The suffix list keeps source files out of the cache. A snapshot sees every
+file that changes while a script runs, including a page you save in your
+editor. A `mdbook serve` session rebuilds on each save, so its builds
+overlap your edits. An earlier version stored such a `.md` file as the
+script's output and later restored the stale copy over your edit. Now a
+`.md` or `.py` file is never stored and never restored.
 
 #### Commands that must not be cached
 
