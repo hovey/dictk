@@ -102,7 +102,7 @@ Motion](./multi_point_motion.md) moved every point by the same $(\delta x,
 $x = 50$ moves 1 pixel. A point at $x = 150$ moves 3 pixels. The grid
 spreads apart under the stretch. It does not translate as one block.
 
-## Locating the Stretched Grid
+## Displacement
 
 [`dictk.grid.locate`](../api/dictk/grid.html#locate) tracks the stretched
 grid the same way it tracked the translated one in [Tracking the
@@ -474,23 +474,42 @@ with open("../verification/simple_stretch_vic_out.csv") as f:
     rows = [{k.strip(' "'): v for k, v in row.items()} for row in csv.DictReader(f)]
 exx = np.array([float(r["exx"]) * 1e6 for r in rows if float(r["sigma"]) != -1])
 analytical = np.log(1.02) * 1e6
+mean = exx.mean()
+std = exx.std()
 
 plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
 fig, ax = plt.subplots(figsize=(7, 4), constrained_layout=True)
-ax.hist(exx, bins=60, color="gray", alpha=0.8)
-ax.axvline(analytical, color="red", linestyle="--", linewidth=1.5)
+ax.hist(exx, bins=60, color="gray", alpha=0.8, label=r"$e_{xx}$ at 2682 valid points")
+ax.axvspan(
+    mean - std,
+    mean + std,
+    color="royalblue",
+    alpha=0.15,
+    label=rf"$\pm$ 1 standard deviation, {std:.0f} microstrain",
+)
+ax.axvline(mean, color="black", linewidth=1.5, label=f"mean, {mean:.0f} microstrain")
+ax.axvline(
+    analytical,
+    color="red",
+    linestyle="--",
+    linewidth=1.5,
+    label=rf"exact $e_{{xx}}$ of a 2% stretch, {analytical:.0f} microstrain",
+)
 ax.set_xlabel(r"Log strain $e_{xx}$ (microstrain)")
 ax.set_ylabel("frequency")
+ax.set_ylim(top=ax.get_ylim()[1] * 1.45)
+legend = ax.legend(loc="upper right", framealpha=1.0)
+legend.set_zorder(10)
 fig.savefig("simple_stretch_vic_exx_histogram.png", dpi=300)
 ```
 
 ```text
-<!-- cmdrun python3 -c "import csv; import numpy as np; import matplotlib.pyplot as plt; rows = [{k.strip(' \"'): v for k, v in row.items()} for row in csv.DictReader(open('../verification/simple_stretch_vic_out.csv'))]; exx = np.array([float(r['exx']) * 1e6 for r in rows if float(r['sigma']) != -1]); analytical = np.log(1.02) * 1e6; plt.rcParams.update({'font.family': 'serif', 'mathtext.fontset': 'cm'}); fig, ax = plt.subplots(figsize=(7, 4), constrained_layout=True); ax.hist(exx, bins=60, color='gray', alpha=0.8); ax.axvline(analytical, color='red', linestyle='--', linewidth=1.5); ax.set_xlabel(r'Log strain \$e_{xx}\$ (microstrain)'); ax.set_ylabel('frequency'); fig.savefig('simple_stretch_vic_exx_histogram.png', dpi=300); print('Saved: simple_stretch_vic_exx_histogram.png')" -->
+<!-- cmdrun python3 -c "import csv; import numpy as np; import matplotlib.pyplot as plt; rows = [{k.strip(' \"'): v for k, v in row.items()} for row in csv.DictReader(open('../verification/simple_stretch_vic_out.csv'))]; exx = np.array([float(r['exx']) * 1e6 for r in rows if float(r['sigma']) != -1]); analytical = np.log(1.02) * 1e6; mean = exx.mean(); std = exx.std(); plt.rcParams.update({'font.family': 'serif', 'mathtext.fontset': 'cm'}); fig, ax = plt.subplots(figsize=(7, 4), constrained_layout=True); ax.hist(exx, bins=60, color='gray', alpha=0.8, label=r'\$e_{xx}\$ at 2682 valid points'); ax.axvspan(mean - std, mean + std, color='royalblue', alpha=0.15, label=rf'\$\pm\$ 1 standard deviation, {std:.0f} microstrain'); ax.axvline(mean, color='black', linewidth=1.5, label=f'mean, {mean:.0f} microstrain'); ax.axvline(analytical, color='red', linestyle='--', linewidth=1.5, label=rf'exact \$e_{{xx}}\$ of a 2% stretch, {analytical:.0f} microstrain'); ax.set_xlabel(r'Log strain \$e_{xx}\$ (microstrain)'); ax.set_ylabel('frequency'); ax.set_ylim(top=ax.get_ylim()[1] * 1.45); legend = ax.legend(loc='upper right', framealpha=1.0); legend.set_zorder(10); fig.savefig('simple_stretch_vic_exx_histogram.png', dpi=300); print('Saved: simple_stretch_vic_exx_histogram.png')" -->
 ```
 
 <figure>
-    <img src="simple_stretch_vic_exx_histogram.png" alt="histogram of VIC-2D's 2682 valid e_xx measurements in microstrain, showing several separated clusters rather than one smooth bell curve, spanning roughly 17300 to 23100 microstrain, with a dashed red vertical line at the analytical value near 19803 microstrain landing inside the central cluster" />
-    <figcaption>Distribution of VIC-2D's own $e_{xx}$ across all 2682 valid subsets (gray, 60 bins). The dashed red line marks the analytical value, $e_{xx} = \ln(1.02) \approx 19803$ microstrain. The distribution isn't one smooth bell curve — it separates into several clusters, echoing the striped pattern already visible in the field image above. The analytical line lands inside the central cluster, not at the extremes, but the spread around it is real: individual subsets range from about 17300 to 23100 microstrain, over 5x the true 19803 value's own distance from zero.</figcaption>
+    <img src="simple_stretch_vic_exx_histogram.png" alt="histogram of VIC-2D's 2682 valid e_xx measurements in microstrain, showing several separated clusters rather than one smooth bell curve, spanning roughly 17300 to 23100 microstrain, with a black vertical line at the mean near 19876 microstrain, a pale blue band one standard deviation either side of it, and a dashed red vertical line at the analytical value near 19803 microstrain landing inside the central cluster" />
+    <figcaption>Distribution of VIC-2D's own $e_{xx}$ across all 2682 valid subsets (gray, 60 bins). The black line marks the mean, 19876 microstrain, and the blue band spans one standard deviation, 1385 microstrain, on either side of it. The dashed red line marks the analytical value, $e_{xx} = \ln(1.02) \approx 19803$ microstrain. The distribution isn't one smooth bell curve — it separates into several clusters, echoing the striped pattern already visible in the field image above. The analytical line lands inside the central cluster, not at the extremes, but the spread around it is real: individual subsets range from about 17300 to 23100 microstrain, over 5x the true 19803 value's own distance from zero.</figcaption>
 </figure>
 
 Three values agree closely: VIC-2D's own measured mean, 19875.8
