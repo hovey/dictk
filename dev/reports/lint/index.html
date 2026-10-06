@@ -180,7 +180,38 @@ src/dictk/discontinuity.py:1:0: R0801: Similar lines in 2 files
         kernel_margin_height=kernel_margin_height,
         max_iterations=max_iterations,
         tolerance=tolerance,
-    ) (duplicate-code)
+    )
+
+
+def locate(
+    *,
+    reference_image: np.ndarray,
+    current_image: np.ndarray,
+    reference_point: PixelCoordinate,
+    search_center: PixelCoordinate,
+    kernel_margin_width: int,
+    kernel_margin_height: int,
+    search_margin_width: int,
+    search_margin_height: int,
+    windowing: WindowingMethod | None = None,
+    max_iterations: int = 50,
+    tolerance: float = 1e-6,
+) -&gt; SubpixelCoordinate:
+    &quot;&quot;&quot;Subpixel point tracking by warping an affine kernel, free of the
+    pixel-locking bias of
+    [`dictk.translation.locate_subpixel`](./translation.html#locate_subpixel).
+
+    Runs [`fit`](#fit) and returns only the fitted warp&#x27;s translation,
+    as a position. Every argument passes straight through to `fit` --
+    see its own docstring for each one, and for the method.
+
+    Returns:
+        The point&#x27;s location, in `current_image`&#x27;s pixel reference
+        frame, generally fractional.
+
+    Raises:
+        ValueError: Under the same conditions as `fit`.
+    &quot;&quot;&quot; (duplicate-code)
 src/dictk/discontinuity.py:1:0: R0801: Similar lines in 2 files
 ==dictk.grid:[354:360]
 ==dictk.warp:[181:187]
@@ -222,7 +253,8 @@ src/dictk/discontinuity.py:1:0: R0801: Similar lines in 2 files
     if height &lt; 1:
         raise ValueError(f&quot;height {height} must be &gt;= 1&quot;)
 
-    image_height, image_width = image.shape (duplicate-code)
+    image_height, image_width = image.shape
+ (duplicate-code)
 
 
 Report

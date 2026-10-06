@@ -1,7 +1,7 @@
 """Pixel locking: `grid.locate_subpixel`'s own x-error against each
 point's known true position, at High Point Density's full 53x54 grid.
-Plots the error against the true position's fractional part, and along
-one row of the grid.
+Plots the error along one row of the grid, and against the true
+position's fractional part.
 """
 
 import matplotlib.pyplot as plt
@@ -59,20 +59,23 @@ means = [
     error_x[(fraction >= a) & (fraction < b)].mean() for a, b in zip(bins, bins[1:])
 ]
 
-fig, (left, right) = plt.subplots(1, 2, figsize=(10, 4), constrained_layout=True)
-left.scatter(fraction, error_x, s=2, color="gray", alpha=0.4)
-left.plot(centers, means, color="black", marker="o")
-left.axhline(0, color="red", linestyle="--", linewidth=1)
-left.set_xlabel(r"fractional part of true $x$ (px)")
-left.set_ylabel(r"$x$ error (px)")
-
+fig, (row_axes, fraction_axes) = plt.subplots(
+    1, 2, figsize=(10, 4), constrained_layout=True
+)
 row_x = true_x.reshape(54, 53)[row]
-right.plot(row_x, error_x.reshape(54, 53)[row], color="black", marker=".")
-right.axhline(0, color="red", linestyle="--", linewidth=1)
+row_axes.plot(row_x, error_x.reshape(54, 53)[row], color="black", marker=".")
+row_axes.axhline(0, color="red", linestyle="--", linewidth=1)
 for boundary in np.arange(np.ceil(row_x[0]), row_x[-1], 50 * FACTOR_X):
-    right.axvline(boundary, color="gray", linestyle=":", linewidth=1)
-right.set_xlabel(r"true $x$ (px)")
-right.set_ylabel(r"$x$ error (px)")
+    row_axes.axvline(boundary, color="gray", linestyle=":", linewidth=1)
+row_axes.set_xlabel(r"true $x$ (px)")
+row_axes.set_ylabel(r"$x$ error (px)")
+
+fraction_axes.scatter(fraction, error_x, s=2, color="gray", alpha=0.4)
+fraction_axes.plot(centers, means, color="black", marker="o")
+fraction_axes.axhline(0, color="red", linestyle="--", linewidth=1)
+fraction_axes.set_xlabel(r"fractional part of true $x$ (px)")
+fraction_axes.set_ylabel(r"$x$ error (px)")
+
 
 fig.savefig("kernel_warping_pixel_locking.png", dpi=300)
 print()

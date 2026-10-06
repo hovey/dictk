@@ -351,6 +351,139 @@ uv run mdbook serve --open    # live preview at http://localhost:3000
 </code></pre>
 <p><code>uv run</code> puts <code>dictk</code>'s own CLI on <code>PATH</code> for the build, since some
 <code>cmdrun</code> directives invoke <code>dictk</code> directly.</p>
+<h3 id="caching-cmdrun-output"><a class="header" href="#caching-cmdrun-output">Caching <code>cmdrun</code> output</a></h3>
+<p>A full <code>mdbook build</code> runs 119 <code>&lt;!-- cmdrun python3 ... --&gt;</code> blocks across
+22 pages. Each block starts its own Python process. A cold build takes
+about 155 s on an M1 Pro. <code>mdbook-cmdrun</code> has no cache of its own, so
+editing one sentence would otherwise re-run all 119 blocks.</p>
+<p><code>dictk</code> adds a cache in front of <code>mdbook-cmdrun</code>. A warm build takes
+about 16 s, and its HTML output is identical to the cold build's. The
+cache needs no change to any page. It stays out of the way in CI.</p>
+<h4 id="how-the-pieces-connect"><a class="header" href="#how-the-pieces-connect">How the pieces connect</a></h4>
+<p><code>book.toml</code> points the <code>cmdrun</code> preprocessor at a wrapper script:</p>
+<pre><code class="language-toml">[preprocessor.cmdrun]
+command = "docs/userguide/cmdrun_cached.sh"
+</code></pre>
+<p>Four files and one directory implement the cache, all under
+<code>docs/userguide/</code>:</p>
+<div class="table-wrapper"><table><thead><tr><th>Path</th><th>Role</th></tr></thead><tbody>
+<tr><td><code>cmdrun_cached.sh</code></td><td>Entry point mdbook calls instead of <code>mdbook-cmdrun</code>. Puts <code>cache_shim/</code> first on <code>PATH</code>, then runs <code>mdbook-cmdrun</code>.</td></tr>
+<tr><td><code>cache_shim/python3</code></td><td>A two-line shell script. Every <code>python3</code> that a <code>cmdrun</code> block calls lands here. It forwards to <code>cache_run.py</code> with the real interpreter.</td></tr>
+<tr><td><code>cache_run.py</code></td><td>The cache itself: computes the key, replays a hit, or runs and stores a miss.</td></tr>
+<tr><td><code>cache_exclude.txt</code></td><td>Commands that must never be cached (see below).</td></tr>
+<tr><td><code>.cmdrun_cache/</code></td><td>The stored entries. Git ignores it. Delete it to reset the cache.</td></tr>
+</tbody></table>
+</div>
+<p><code>cmdrun</code> blocks that call <code>cat</code> or <code>dictk</code> directly never reach the shim.
+They run uncached. The <code>cat</code> blocks only print a script's source.</p>
+<h4 id="the-cache-key"><a class="header" href="#the-cache-key">The cache key</a></h4>
+<p><code>cache_run.py</code> hashes the following into one SHA-256 key:</p>
+<ol>
+<li>The full command, including inline <code>python3 -c "..."</code> source.</li>
+<li>The page's directory path.</li>
+<li>Every file in that directory that git sees, except <code>.md</code> pages. That
+means tracked files, plus untracked files that <code>.gitignore</code> does not
+ignore. This covers scripts, helper modules, committed CSV data, and
+committed images. It leaves out <code>.md</code> pages because no script reads
+one. Including them would make every prose edit re-run every block.</li>
+<li>Every <code>.py</code> file under <code>src/dictk</code>.</li>
+<li><code>uv.lock</code> and <code>pyproject.toml</code>.</li>
+<li>The Python version.</li>
+</ol>
+<p>The key is deliberately wider than any one script needs. Editing any
+<code>dictk</code> module re-runs every block. All 22 pages with <code>cmdrun</code> blocks
+share one directory, <code>docs/userguide/src/getting_started/</code>. So editing
+any script or data file there also re-runs every block in the book. A
+narrow key would need to know which files each script reads, and a wrong
+guess would show stale figures. Editing a page's prose re-runs nothing.
+Measured on this book, a rebuild after a prose edit takes 13 s, against
+143 to 156 s for a rebuild that misses every entry.</p>
+<p>Item 3 uses git's view of the directory for one reason. The blocks write
+their own figures into the same directory as their inputs. Those
+generated PNGs are gitignored, so they stay out of the key. If they were
+in it, the first build's output would change the second build's key, and
+the second build would miss every entry. Generated inputs, such as
+<code>astronaut0.png</code>, are also ignored. The key covers them through the
+<code>src/dictk</code> hash, because <code>dictk</code> code creates them.</p>
+<p>File hashes are memoized in <code>.cmdrun_cache/hashmemo.json</code>, keyed on each
+file's modification time and size. Hashing about 100 small files costs
+milliseconds.</p>
+<h4 id="what-an-entry-stores"><a class="header" href="#what-an-entry-stores">What an entry stores</a></h4>
+<p>Each entry is a directory named by its key:</p>
+<pre><code class="language-text">.cmdrun_cache/&lt;sha256&gt;/
+    stdout.bin      # bytes the script printed
+    meta.json       # command string and the list of files the run wrote
+    files/          # copies of those files, in their relative paths
+</code></pre>
+<p>On a miss, <code>cache_run.py</code> snapshots the page directory (path,
+modification time, size), runs the script, and snapshots again. Every
+file that is new or changed, and has a generated-file suffix, is an
+output. The suffixes are <code>.png</code>, <code>.jpg</code>, <code>.jpeg</code>, <code>.tif</code>, <code>.tiff</code>,
+<code>.gif</code>, <code>.svg</code>, <code>.pdf</code>, <code>.csv</code>, <code>.json</code>, <code>.txt</code>, <code>.npy</code>, <code>.npz</code>, and
+<code>.zip</code>. It copies those files into
+<code>files/</code>, writes <code>stdout.bin</code>, and passes the script's stdout through to
+<code>cmdrun</code>. It writes an entry to a temporary directory first, then
+renames it, so an interrupted build never leaves a half-written entry.</p>
+<p>On a hit, it replays <code>stdout.bin</code> and restores each stored file. It skips
+any file whose bytes already match on disk. That leaves the modification
+time alone and avoids a rebuild loop under <code>mdbook serve</code>, which watches
+the source directory.</p>
+<p>A run that exits non-zero is never stored. Its stdout and exit code pass
+through, and <code>cmdrun</code> reports the failure as before.</p>
+<p>A file lock in <code>.cmdrun_cache/lock</code> serializes every cached run. Two
+runs at once would see each other's output files in their snapshots and
+store the wrong ones. The uncached build already ran one block at a time,
+so the lock costs no speed.</p>
+<p>The suffix list keeps source files out of the cache. A snapshot sees every
+file that changes while a script runs, including a page you save in your
+editor. A <code>mdbook serve</code> session rebuilds on each save, so its builds
+overlap your edits. An earlier version stored such a <code>.md</code> file as the
+script's output and later restored the stale copy over your edit. Now a
+<code>.md</code> or <code>.py</code> file is never stored and never restored.</p>
+<h4 id="commands-that-must-not-be-cached"><a class="header" href="#commands-that-must-not-be-cached">Commands that must not be cached</a></h4>
+<p>A cached block replays what it printed the first time. That is wrong for
+a block whose output depends on something other than its inputs. List
+such commands in <code>cache_exclude.txt</code>, one substring per line. Any command
+containing a listed substring always runs.</p>
+<p>Today the list holds one entry, <code>kernel_warping_bias.py</code>. It prints how
+many seconds each tracker took, and that number changes from run to run.
+A new script that prints a measured time, reads the clock, or depends on
+the machine's hardware belongs in the list. Scripts with seeded random
+draws, such as <code>kernel_warping_panels.py</code> (<code>default_rng(0)</code>), cache
+safely.</p>
+<h4 id="controlling-the-cache"><a class="header" href="#controlling-the-cache">Controlling the cache</a></h4>
+<p>Set <code>DICTK_BOOK_CACHE</code> before <code>mdbook build</code> or <code>mdbook serve</code>:</p>
+<div class="table-wrapper"><table><thead><tr><th>Value</th><th>Behavior</th></tr></thead><tbody>
+<tr><td>unset</td><td>Use the cache.</td></tr>
+<tr><td><code>off</code></td><td>Skip the cache. Every block runs, as in a plain <code>mdbook-cmdrun</code> build.</td></tr>
+<tr><td><code>verify</code></td><td>Run every block anyway, then compare its stdout and output files with the stored entry. Write one <code>ok</code> or <code>MISMATCH</code> line per block to <code>docs/userguide/.cmdrun_cache/verify_report.txt</code>. Zip files compare by member contents, because zips embed timestamps.</td></tr>
+</tbody></table>
+</div>
+<pre><code class="language-bash">DICTK_BOOK_CACHE=off mdbook build      # ignore the cache
+DICTK_BOOK_CACHE=verify mdbook build   # check the cache against fresh runs
+rm -r docs/userguide/.cmdrun_cache     # reset the cache
+</code></pre>
+<p>The wrapper also bypasses the cache whenever the <code>CI</code> environment
+variable is set. GitHub Actions sets it. The deployed book therefore
+always comes from fresh runs, and a stale local entry cannot reach it.</p>
+<h4 id="when-the-cache-can-go-stale"><a class="header" href="#when-the-cache-can-go-stale">When the cache can go stale</a></h4>
+<p>The key includes everything <code>cache_run.py</code> knows a script can depend on.
+It cannot see anything else. A block that reads a file outside its page
+directory, calls a system tool, or reads an environment variable can
+return a stale result after that input changes. Two cases to remember:</p>
+<ul>
+<li>A script that reads another script's output. Output PNGs are not in
+the key, so changing the first script re-runs it, but the second script
+keeps its old entry. Re-run with <code>DICTK_BOOK_CACHE=off</code> after changing
+a script whose figure another block reads.</li>
+<li>A block that prints a timing and is not in <code>cache_exclude.txt</code>. It
+shows the first run's number forever.</li>
+</ul>
+<p>Run <code>DICTK_BOOK_CACHE=verify mdbook build</code> before you commit a change that
+touches several scripts or <code>src/dictk</code>. It takes as long as an uncached
+build. Then search <code>verify_report.txt</code> for <code>MISMATCH</code>. Each such line
+names the command whose cached result differs from a fresh run. The
+report is a file because <code>mdbook-cmdrun</code> discards a command's stderr.</p>
 <h3 id="building-the-api-docs"><a class="header" href="#building-the-api-docs">Building the API docs</a></h3>
 <p>Python API reference docs (function signatures, docstrings) are generated
 from source with <a href="https://pdoc.dev/">pdoc</a>, a dev dependency:</p>

@@ -189,7 +189,7 @@ configurations no longer need to land on pixel coordinates that are integers.
 Below we use VIC-2D's 53x54 (=2864) point grid, five pixels apart
 <a href="./simple_stretch.html#verification-against-vic-2d">Verification Against VIC-2D</a> to
 illustrate the <code>locate_subpixel</code> functionality.</p>
-<h2 id="tracking-at-full-density"><a class="header" href="#tracking-at-full-density">Tracking at Full Density</a></h2>
+<h2 id="displacement-locate_subpixel"><a class="header" href="#displacement-locate_subpixel">Displacement <code>locate_subpixel</code></a></h2>
 <p><a href="./simple_stretch.html#verification-against-vic-2d">Verification Against VIC-2D</a>
 noted VIC-2D's own kernel size: <code>25 x 25</code> px. Earlier pages' tracking
 calls all used a much larger, generously-sized kernel and search area,
@@ -234,7 +234,89 @@ found = locate_subpixel(
 )
 </code></pre>
 <p>2862 points tracked</p>
-<h2 id="strain-at-full-density"><a class="header" href="#strain-at-full-density">Strain at Full Density</a></h2>
+<p>The tracked <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> minus the true <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">1.02</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span> gives each point's <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span>
+error. <a href="#fig-hpd-x-error-histogram">Figure 9.2-1</a> shows all 2862 of them:</p>
+<p>2862 points: mean x error -0.0110 px, std 0.1091 px, range [-0.29, +0.32] px</p>
+<figure id="fig-hpd-x-error-histogram">
+    <img src="high_point_density_x_error_histogram.png" alt="histogram of dictk.grid.locate_subpixel's 2862 x errors in pixels, a broad flat-topped distribution, nearly symmetric about zero, spanning roughly -0.29 to +0.32 px, with a black vertical line at the mean of -0.0109 px, a pale blue band one standard deviation of 0.1090 px either side of it, and a dashed red vertical line at exact tracking, 0 px" />
+    <figcaption><strong>Figure 9.2-1:</strong> Distribution of <code>dictk.grid.locate_subpixel</code>'s <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error across all 2862 points at full VIC-2D density (gray, 60 bins). The dashed red line marks exact tracking, 0 px. The solid black line marks the mean of the 2862 errors, -0.0109 px. The blue band spans one standard deviation, 0.1090 px, on each side of that mean. Range is [-0.29, +0.32] px.</figcaption>
+</figure>
+<details>
+<summary>Show the figure-generating code</summary>
+<pre><code class="language-python">"""Distribution of `grid.locate_subpixel`'s x error across High Point
+Density's full 53x54 grid: the tracked x minus the true x = 1.02 X, with
+the mean and one standard deviation marked.
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from dictk.grid import generate, locate_subpixel
+from dictk.image import PixelCoordinate, read, stretch
+
+FACTOR_X = 1.02
+
+reference_image = read(path="astronaut0.png")
+current_image = stretch(arr=reference_image, factor_x=FACTOR_X)
+points = generate(
+    origin=PixelCoordinate(x=18, y=16),
+    count_x=53,
+    count_y=54,
+    spacing_x=5,
+    spacing_y=5,
+)
+found = locate_subpixel(
+    reference_image=reference_image,
+    current_image=current_image,
+    reference_points=points,
+    kernel_margin_width=13,
+    kernel_margin_height=13,
+    search_margin_width=25,
+    search_margin_height=25,
+    upsample_factor=100,
+)
+
+error_x = np.array([f.x for f in found]) - np.array([p.x * FACTOR_X for p in points])
+mean = error_x.mean()
+std = error_x.std()
+print(
+    f"{len(points)} points: mean x error {mean:+.4f} px, std {std:.4f} px, "
+    f"range [{error_x.min():+.2f}, {error_x.max():+.2f}] px"
+)
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+fig, ax = plt.subplots(figsize=(7, 4), constrained_layout=True)
+ax.hist(error_x, bins=60, color="gray", alpha=0.8, label=r"$x$ error at 2862 points")
+ax.axvspan(
+    mean - std,
+    mean + std,
+    color="royalblue",
+    alpha=0.15,
+    label=rf"$\pm$ 1 standard deviation, {std:.4f} px",
+)
+ax.axvline(mean, color="black", linewidth=1.5, label=f"mean, {mean:+.4f} px")
+ax.axvline(
+    0,
+    color="red",
+    linestyle="--",
+    linewidth=1.5,
+    label="exact tracking, 0 px",
+)
+ax.set_xlabel(r"$x$ error (px)")
+ax.set_ylabel("frequency")
+ax.set_ylim(top=ax.get_ylim()[1] * 1.45)
+legend = ax.legend(loc="upper right", framealpha=1.0)
+legend.set_zorder(10)
+fig.savefig("high_point_density_x_error_histogram.png", dpi=300)
+</code></pre>
+</details>
+<p>The mean error, -0.0109 px, sits one tenth of a standard deviation from
+zero. The spread is the problem. The standard deviation is 0.1090 px,
+and individual errors reach -0.29 and +0.32 px. The histogram is
+flat-topped, not a bell curve. Strain differences positions 5 px apart.
+Dividing 0.1090 px by that 5 px spacing gives 21800 microstrain. That
+is 1.3 times the 16531 microstrain strain spread measured next.</p>
+<h2 id="strain-locate_subpixel"><a class="header" href="#strain-locate_subpixel">Strain <code>locate_subpixel</code></a></h2>
 <p>Same recipe as Simple Stretch Revisited:</p>
 <ul>
 <li><a href="../api/dictk/grid.html#elements"><code>dictk.grid.elements</code></a>
@@ -298,11 +380,11 @@ element_strain_plot(
 </code></pre>
 <figure id="fig-hpd-strain-field">
     <img src="high_point_density_strain_gauss_points.png" alt="a dense field of small colored dots at 53x54 point density, colored by log strain E11, no mesh outline, no node numbers, no background image, reading as a continuous field with visible vertical striations" />
-    <figcaption><strong>Figure 9.2-1:</strong> The full 2862-point mesh's 11024 Gauss points, colored by log strain <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</figcaption>
+    <figcaption><strong>Figure 9.2-2:</strong> The full 2862-point mesh's 11024 Gauss points, colored by log strain <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</figcaption>
 </figure>
-<figure id="figure-9.2-2">
+<figure id="figure-9.2-3">
     <img src="high_point_density_strain_on_current.png" alt="the same dense field of colored dots overlaid on current_image, the stretched astronaut photo, no mesh outline" />
-    <figcaption><strong>Figure 9.2-2:</strong> The same Gauss points, overlaid on <code>current_image</code>.</figcaption>
+    <figcaption><strong>Figure 9.2-3:</strong> The same Gauss points, overlaid on <code>current_image</code>.</figcaption>
 </figure>
 <p><a href="./simple_stretch.html#verification-against-vic-2d">Verification Against VIC-2D</a>'s
 own field image has a fixed colorbar, <code>17560</code> to <code>22360</code> microstrain —
@@ -310,7 +392,7 @@ and its own particular 16-band color scale, not a generic rainbow.
 Sampled directly from that image's own legend (not approximated by a
 built-in colormap name), the same 16 colors, forced onto <code>dictk</code>'s own
 field at the same <code>vmin</code>/<code>vmax</code>, make the two directly comparable:</p>
-<figure id="figure-9.2-3">
+<figure id="figure-9.2-4">
     <div style="display: flex; gap: 1em;">
         <a href="../verification/simple_stretch_result_vic.png" target="_blank" rel="noopener" style="flex: 1 1 0; min-width: 0;">
             <img src="../verification/simple_stretch_result_vic.png" alt="VIC-2D's measured exx field, colorbar 17560 to 22360 microstrain, a striped pattern in VIC-2D's own 16-band magenta-blue-cyan-green-yellow-orange-red color scale" style="width: 100%;" />
@@ -319,7 +401,7 @@ field at the same <code>vmin</code>/<code>vmax</code>, make the two directly com
             <img src="high_point_density_strain_vic_colorbar.png" alt="dictk's own E11 field forced onto the same 17560-22360 microstrain range and VIC-2D's own extracted 16-band colormap, mostly saturated solid magenta and solid red with only scattered patches of the in-between colors, vertical striations still visible through the clipping" style="width: 100%;" />
         </a>
     </div>
-    <figcaption><strong>Figure 9.2-3:</strong> The same comparison as above, forced onto VIC-2D's own
+    <figcaption><strong>Figure 9.2-4:</strong> The same comparison as above, forced onto VIC-2D's own
     colorbar (left, VIC-2D's <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">xx</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>; right, <code>dictk</code>'s own
     <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>; both `17560`-`22360` microstrain, both VIC-2D's own
     16-band color scale, sampled directly from its own legend). Most of
@@ -427,7 +509,7 @@ microstrain.</p>
 <h2 id="distribution-across-the-full-mesh"><a class="header" href="#distribution-across-the-full-mesh">Distribution Across the Full Mesh</a></h2>
 <figure id="fig-hpd-strain-histogram">
     <img src="high_point_density_strain_histogram.png" alt="histogram of dictk's own 11024 Gauss-point E11 measurements in microstrain, a single smooth right-skewed peak just left of the analytical value, with a long tail toward high positive strain and a sharper cutoff on the negative side, spanning roughly -16400 to 106100 microstrain, with a dashed red vertical line at the analytical value near 19803 microstrain landing just past the peak" />
-    <figcaption><strong>Figure 9.2-4:</strong> Distribution of <code>dictk</code>'s <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> across all 11024 Gauss points at full VIC-2D density (gray, 60 bins). The dashed red line marks the exact <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> of a 2% stretch, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">ln</span><span class="mopen">(</span><span class="mord">1.02</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">19803</span></span></span></span> microstrain. The solid black line marks the mean of the 11024 values, 20464 microstrain. The blue band spans one standard deviation, 16531 microstrain, on each side of that mean. Range is [-16400, 106100] microstrain, over 21<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord">×</span></span></span></span> the VIC-2D [17300, 23100] microstrain range.</figcaption>
+    <figcaption><strong>Figure 9.2-5:</strong> Distribution of <code>dictk</code>'s <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> across all 11024 Gauss points at full VIC-2D density (gray, 60 bins). The dashed red line marks the exact <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> of a 2% stretch, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">ln</span><span class="mopen">(</span><span class="mord">1.02</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">19803</span></span></span></span> microstrain. The solid black line marks the mean of the 11024 values, 20464 microstrain. The blue band spans one standard deviation, 16531 microstrain, on each side of that mean. Range is [-16400, 106100] microstrain, over 21<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord">×</span></span></span></span> the VIC-2D [17300, 23100] microstrain range.</figcaption>
 </figure>
 <details>
 <summary>Show the figure-generating code</summary>
@@ -477,7 +559,7 @@ kind of measurement VIC-2D itself makes — and lands 3.3% from the
 analytical value, noisier than VIC-2D's own 0.4%. Averaging over more
 points doesn't fix this: the histogram's long right tail, not evenly
 spread noise, is what pulls the mean away from the true value.</p>
-<p>One methodological detail behind <a href="#fig-hpd-strain-histogram">Figure 9.2-4</a> is worth stating plainly.</p>
+<p>One methodological detail behind <a href="#fig-hpd-strain-histogram">Figure 9.2-5</a> is worth stating plainly.</p>
 <ul>
 <li>At <code>upsample_factor = 10</code> — <a href="./subpixel_accuracy.html#measuring-the-difference">Subpixel Accuracy</a>'s
 own choice, adequate there — this same histogram doesn't look like the
@@ -522,16 +604,16 @@ subpixel estimators</em>.
 <li>How sharply that peak is defined depends on how much distinctive texture falls inside the kernel at that particular location.</li>
 <li>Strong, varied speckle contrast pins the peak precisely.</li>
 <li>A locally flatter or more repetitive patch leaves it ambiguous, and the estimated position drifts toward whichever direction the ambiguity favors.</li>
-<li>That drift is a deterministic function of local image content, not a random draw — exactly why <a href="#fig-hpd-strain-field">Figure 9.2-1</a> shows <em>structured</em> striations instead of uniform static, and why this page's own histogram leans right instead of sitting symmetric around the true value.</li>
+<li>That drift is a deterministic function of local image content, not a random draw — exactly why <a href="#fig-hpd-strain-field">Figure 9.2-2</a> shows <em>structured</em> striations instead of uniform static, and why this page's own histogram leans right instead of sitting symmetric around the true value.</li>
 <li>It's also consistent with part of why <code>dictk</code>'s own spread grew on this page: matching VIC-2D's own small <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">26</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">26</span></span></span></span> px kernel, instead of earlier pages' generously oversized ones, means averaging over less independent texture per point. Some of that extra spread is the expected cost of matching VIC-2D's own geometry, not a shortcoming unique to <code>dictk</code>.</li>
 </ul>
 </li>
 </ul>
 <p>The next section, <a href="./kernel_warping.html">Kernel Warping</a> measures that tracking error against known true positions and traces it to <strong>two sources</strong> of about equal size.</p>
-<ul>
+<ol>
 <li>One is <strong>pixel locking</strong> in <code>locate_subpixel</code> itself.</li>
 <li>The other is the <strong>bilinear interpolation</strong> <code>image.stretch</code> uses to build the current image. On a current image built with a quintic spline instead, <code>locate_subpixel</code>'s <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error falls from 0.109 px to 0.057 px, about half.</li>
-</ul>
+</ol>
 
                     </main>
 

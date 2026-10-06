@@ -61,3 +61,25 @@ main figure .figure-row > div {
     color: var(--fg);
     font-size: 0.9em;
 }
+
+/* Progression table: numbers right-aligned, row labels left-aligned. The
+ * "unreachable" column marks a result from a different image than the
+ * other columns, so it takes an orange tint mixed into the theme's own
+ * background and header colors. That keeps it legible in every theme.
+ */
+table.progression td,
+table.progression th {
+    text-align: right;
+}
+
+table.progression td:first-child {
+    text-align: left;
+}
+
+table.progression td.unreachable {
+    background-color: color-mix(in srgb, var(--bg), #e08a2e 22%);
+}
+
+table.progression th.unreachable {
+    background-color: color-mix(in srgb, var(--table-header-bg), #e08a2e 45%);
+}
