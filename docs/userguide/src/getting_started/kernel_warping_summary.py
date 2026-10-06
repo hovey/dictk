@@ -130,7 +130,8 @@ figure_rows = {
     3: (
         "$E_{11}$ Figure",
         {
-            "<code>locate_subpixel</code>": "./high_point_density.html#fig-hpd-strain-histogram"
+            "VIC-2D": "./simple_stretch.html#fig-vic-exx-histogram",
+            "<code>locate_subpixel</code>": "./high_point_density.html#fig-hpd-strain-histogram",
         },
     ),
 }
