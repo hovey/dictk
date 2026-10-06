@@ -365,6 +365,9 @@ affine warp also lets the kernel stretch along with the material,
 instead of forcing a rigid match. The call mirrors `locate_subpixel`,
 with the same grid and margins:
 
+<details>
+<summary>Show the <code>locate_warp</code> call</summary>
+
 ```python
 from dictk.grid import locate_warp
 
@@ -378,6 +381,8 @@ found = locate_warp(
     search_margin_height=25,
 )
 ```
+
+</details>
 
 The same fractional-position error curve, now for both trackers:
 
@@ -541,54 +546,99 @@ Continue to [Strain Window](./strain_window.md).
 
 ### `kernel_warping_pixel_locking.py`
 
+<details>
+<summary>Show the code</summary>
+
 ```python
 <!-- cmdrun cat kernel_warping_pixel_locking.py -->
 ```
 
+</details>
+
 ### `kernel_warping_panels.py`
+
+<details>
+<summary>Show the code</summary>
 
 ```python
 <!-- cmdrun cat kernel_warping_panels.py -->
 ```
 
+</details>
+
 ### `kernel_warping_steepest.py`
+
+<details>
+<summary>Show the code</summary>
 
 ```python
 <!-- cmdrun cat kernel_warping_steepest.py -->
 ```
 
+</details>
+
 ### `kernel_warping_iterations.py`
+
+<details>
+<summary>Show the code</summary>
 
 ```python
 <!-- cmdrun cat kernel_warping_iterations.py -->
 ```
 
+</details>
+
 ### `kernel_warping_bias.py`
+
+<details>
+<summary>Show the code</summary>
 
 ```python
 <!-- cmdrun cat kernel_warping_bias.py -->
 ```
 
+</details>
+
 ### `kernel_warping_strain.py`
+
+<details>
+<summary>Show the code</summary>
 
 ```python
 <!-- cmdrun cat kernel_warping_strain.py -->
 ```
 
+</details>
+
 ### `kernel_warping_generator.py`
+
+<details>
+<summary>Show the code</summary>
 
 ```python
 <!-- cmdrun cat kernel_warping_generator.py -->
 ```
 
+</details>
+
 ### `kernel_warping_x_error_histogram.py`
+
+<details>
+<summary>Show the code</summary>
 
 ```python
 <!-- cmdrun cat kernel_warping_x_error_histogram.py -->
 ```
 
+</details>
+
 ### `kernel_warping_summary.py`
+
+<details>
+<summary>Show the code</summary>
 
 ```python
 <!-- cmdrun cat kernel_warping_summary.py -->
 ```
+
+</details>
