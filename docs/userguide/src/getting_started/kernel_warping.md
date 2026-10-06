@@ -394,6 +394,23 @@ than a second. A residual wave,
 about 0.01 px tall, remains. [The Residual Wave](#the-residual-wave)
 traces it to the test image.
 
+[Figure](#fig-kw-x-error-histogram) shows the 2862 `locate_warp` errors
+behind that 0.008 px. They come from the same points as
+[Figure](./high_point_density.md#fig-hpd-x-error-histogram)'s
+`locate_subpixel` errors:
+
+<!-- cmdrun python3 kernel_warping_x_error_histogram.py -->
+
+<figure id="fig-kw-x-error-histogram">
+    <img src="kernel_warping_x_error_histogram.png" alt="histogram of dictk.grid.locate_warp's 2862 x errors in pixels, a narrow distribution with two broad lobes either side of zero, spanning roughly -0.023 to +0.021 px, with a black vertical line at the mean of 0.0000 px, a pale blue band one standard deviation of 0.0080 px either side of it, and a dashed red vertical line at exact tracking, 0 px" />
+    <figcaption>Distribution of <code>dictk.grid.locate_warp</code>'s $x$ error across all 2862 points (gray, 60 bins). The dashed red line marks exact tracking, 0 px. The solid black line marks the mean of the 2862 errors, 0.0000 px. The blue band spans one standard deviation, 0.0080 px, on each side of that mean. Range is [-0.023, +0.021] px.</figcaption>
+</figure>
+
+The mean error is 0.0000 px to four decimals. The standard deviation is
+0.0080 px, 13.6 times smaller than `locate_subpixel`'s 0.1090 px. The
+errors span [-0.023, +0.021] px, against `locate_subpixel`'s
+[-0.29, +0.32] px.
+
 ## Strain at Full Density, Again
 
 High Point Density's strain pipeline stays the same:
@@ -556,6 +573,12 @@ Continue to [Strain Window](./strain_window.md).
 
 ```python
 <!-- cmdrun cat kernel_warping_generator.py -->
+```
+
+### `kernel_warping_x_error_histogram.py`
+
+```python
+<!-- cmdrun cat kernel_warping_x_error_histogram.py -->
 ```
 
 ### `kernel_warping_summary.py`
