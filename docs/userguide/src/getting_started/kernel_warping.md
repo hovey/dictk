@@ -411,7 +411,7 @@ The mean error is 0.0000 px to four decimals. The standard deviation is
 errors span [-0.023, +0.021] px, against `locate_subpixel`'s
 [-0.29, +0.32] px.
 
-## Strain at Full Density, Again
+## Strain `locate_warp`
 
 High Point Density's strain pipeline stays the same:
 [`dictk.grid.elements`](../api/dictk/grid.html#elements) for
