@@ -512,8 +512,9 @@ time.
 
 ## Summary
 
-The table collects this page's results, one column per approach, in the
-order the book introduced them. The table leaves out whole-pixel
+The table collects this page's results, one column per approach. Each
+column has a smaller $x$ error standard deviation and a smaller $E_{11}$
+standard deviation than the column before it. The table leaves out whole-pixel
 `locate`, the baseline. `locate` rounds every position, so its $x$ error
 has a standard deviation of 0.30 px on these 2862 points, with the same
 margins. Rounding to the nearest integer alone gives
