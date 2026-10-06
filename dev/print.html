@@ -5599,9 +5599,11 @@ the right answer entirely. A <code>24 x 24</code> px window is apparently too
 small, at this image's own speckle density, to always contain enough
 distinctive texture for a unique correlation match. <code>kernel_margin = 13</code>
 (<code>26 x 26</code> px, one pixel larger than VIC-2D's own kernel) tracks cleanly
-— zero mismatches across all 2862 points. VIC-2D's own search area size
+— zero mismatches across all 2862 points.</p>
+<p>VIC-2D's own search area size
 isn't published; <code>search_margin = 25</code> (a generous <code>50 x 50</code> px) is
-chosen for headroom, not to match an unknown number. One more change
+chosen for headroom, not to match an unknown number.</p>
+<p>One more change
 from earlier pages: <code>upsample_factor = 100</code>, not <a href="getting_started/./subpixel_accuracy.html#measuring-the-difference">Subpixel
 Accuracy</a>'s own <code>10</code> —
 <a href="getting_started/high_point_density.html#distribution-across-the-full-mesh">Distribution Across the Full Mesh</a>
@@ -5629,21 +5631,27 @@ found = locate_subpixel(
 </code></pre>
 <p>2862 points tracked</p>
 <h2 id="strain-at-full-density"><a class="header" href="#strain-at-full-density">Strain at Full Density</a></h2>
-<p>Same recipe as Simple Stretch Revisited: <a href="getting_started/../api/dictk/grid.html#elements"><code>dictk.grid.elements</code></a>
+<p>Same recipe as Simple Stretch Revisited:</p>
+<ul>
+<li><a href="getting_started/../api/dictk/grid.html#elements"><code>dictk.grid.elements</code></a>
 for connectivity (2756 elements this time, not 196), then
 <a href="getting_started/../api/dictk/element.html#gauss_point_log_strains"><code>gauss_point_log_strains</code></a>/<a href="getting_started/../api/dictk/element.html#gauss_point_coordinates"><code>gauss_point_coordinates</code></a>
-at each of the resulting 11024 Gauss points. Node numbers stay off —
+at each of the resulting 11024 Gauss points.</li>
+<li>Node numbers stay off —
 2862 of them would be unreadable. <code>element_strain_plot</code>'s default
 marker size (<code>s=150</code>) was sized for sparse meshes; at 5px point
 spacing it draws neighboring Gauss points as one solid overlapping
-mass, not a legible field. <code>dot_size=6</code> keeps individual markers from
+mass, not a legible field.</li>
+<li><code>dot_size=6</code> keeps individual markers from
 overlapping, and <code>marker="s"</code> (square, not the default circle) tiles
 them edge to edge with no gaps — circles, even sized to just touch,
 leave small diamond-shaped gaps at their corners, since tangent circles
-never fully cover a plane. <code>show_mesh_lines=False</code> drops the element
+never fully cover a plane.</li>
+<li><code>show_mesh_lines=False</code> drops the element
 outlines too — at this density the black grid lines fight the colored
 points for attention without adding information, and the tiled squares
-already read as a continuous field on their own:</p>
+already read as a continuous field on their own:</li>
+</ul>
 <pre><code class="language-python">from dictk.element import gauss_point_coordinates, gauss_point_log_strains
 from dictk.grid import elements
 from dictk.plot import element_strain_plot
@@ -5865,8 +5873,9 @@ kind of measurement VIC-2D itself makes — and lands 3.3% from the
 analytical value, noisier than VIC-2D's own 0.4%. Averaging over more
 points doesn't fix this: the histogram's long right tail, not evenly
 spread noise, is what pulls the mean away from the true value.</p>
-<p>One methodological detail behind <a href="getting_started/high_point_density.html#fig-hpd-strain-histogram">Figure 9.2-4</a> is worth stating plainly.
-At <code>upsample_factor = 10</code> — <a href="getting_started/./subpixel_accuracy.html#measuring-the-difference">Subpixel Accuracy</a>'s
+<p>One methodological detail behind <a href="getting_started/high_point_density.html#fig-hpd-strain-histogram">Figure 9.2-4</a> is worth stating plainly.</p>
+<ul>
+<li>At <code>upsample_factor = 10</code> — <a href="getting_started/./subpixel_accuracy.html#measuring-the-difference">Subpixel Accuracy</a>'s
 own choice, adequate there — this same histogram doesn't look like the
 smooth curve above. It separates into sharp, evenly-spaced spikes,
 roughly 20000 microstrain apart. That spacing isn't a coincidence:
@@ -5874,56 +5883,51 @@ roughly 20000 microstrain apart. That spacing isn't a coincidence:
 <code>0.1 / 5 = 0.02</code>, or 20000 microstrain, at this mesh's own 5px element
 spacing — exactly the gap between spikes. The clusters are an artifact
 of how finely displacement gets quantized, not a real feature of the
-tracked field. <code>upsample_factor = 100</code> shrinks that same step to 2000
+tracked field.</li>
+<li><code>upsample_factor = 100</code> shrinks that same step to 2000
 microstrain, well under the histogram's own bin width, and the spikes
 disappear into the smooth distribution shown above. Mean and std barely
 move between the two (std actually falls slightly, from 17776 to 16531
 microstrain) — the real spread was already present at
 <code>upsample_factor = 10</code>; only its artificially blocky <em>shape</em> needed the
-finer value to go away. Subpixel Accuracy uses this same 5px grid and
+finer value to go away.</li>
+<li>Subpixel Accuracy uses this same 5px grid and
 the same <code>10</code>, without hitting this problem, because it only ever
 measures raw displacement error directly — it never divides by an
-element size. This page does, computing strain as <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">Δ</span><span class="mord mathnormal">u</span><span class="mord">/</span><span class="mord mathnormal">L</span></span></span></span>, and
+element size.</li>
+<li>This page does does divide by an element size,
+computing strain as <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">Δ</span><span class="mord mathnormal">u</span><span class="mord">/</span><span class="mord mathnormal">L</span></span></span></span>, and
 dividing by a small <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">L</span></span></span></span> turns a small, fixed quantization step into a
 large one. That's the actual reason <code>upsample_factor</code> needed to change
 here and not there — not point density, but what gets computed from
-the tracked positions afterward.</p>
+the tracked positions afterward.</li>
+</ul>
 <p>That leaves a real question: why does a genuine, non-artifactual spread
 show up in both tools, when each measured the exact same noiseless
-synthetic deformation? <a href="getting_started/high_point_density.html#a-real-trade-off-not-a-bug">A Real Trade-Off, Not a
+synthetic deformation?</p>
+<ul>
+<li><a href="getting_started/high_point_density.html#a-real-trade-off-not-a-bug">A Real Trade-Off, Not a
 Bug</a> above already covered half of it:
-strain amplifies whatever tracking error already exists. The other half
+strain amplifies whatever tracking error already exists.</li>
+<li>The other half
 is why tracking error exists at all, for both tools. <code>dictk</code>'s
-<code>locate_subpixel</code> and VIC-2D's own optimizer are both correlation-based
-subpixel estimators. Each locates a peak in a similarity surface built
-from real image content, not a value handed to it directly. How sharply
-that peak is defined depends on how much distinctive texture falls
-inside the kernel at that particular location. Strong, varied speckle
-contrast pins the peak precisely. A locally flatter or more repetitive
-patch leaves it ambiguous, and the estimated position drifts toward
-whichever direction the ambiguity favors. That drift is a deterministic
-function of local image content, not a random draw — exactly why
-<a href="getting_started/high_point_density.html#fig-hpd-strain-field">Figure 9.2-1</a> shows <em>structured</em> striations instead of uniform
-static, and why this page's own histogram leans right instead of
-sitting symmetric around the true value. It's also consistent with part
-of why <code>dictk</code>'s own spread grew on this page: matching VIC-2D's own
-small <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">26</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">26</span></span></span></span> px kernel, instead of earlier pages' generously
-oversized ones, means averaging over less independent texture per
-point. Some of that extra spread is the expected cost of matching
-VIC-2D's own geometry, not a shortcoming unique to <code>dictk</code>.</p>
-<p><a href="getting_started/./kernel_warping.html">Kernel Warping</a> measures that tracking error
-against known true positions and traces it to two sources of about
-equal size. One is pixel locking in <code>locate_subpixel</code> itself. The
-other is the bilinear interpolation <code>image.stretch</code> uses to build the
-current image. On a current image built with a quintic spline instead,
-<code>locate_subpixel</code>'s <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error falls from 0.109 px to 0.057 px, about
-half.</p>
-<p>Point count, tracking accuracy, and now strain precision have all been
-free variables throughout Simple Stretch, Subpixel Accuracy, and this
-page. How <code>dictk</code>'s own tracking time scales as point count grows —
-across sequential, threaded, and multi-process execution — is
-<a href="getting_started/./parallelization.html">Parallelization</a>'s own question, still not
-attempted here either.</p>
+<code>locate_subpixel</code> and VIC-2D's own optimizer are both <em>correlation-based
+subpixel estimators</em>.
+<ul>
+<li>Each locates a peak in a similarity surface built from real image content, not a value handed to it directly.</li>
+<li>How sharply that peak is defined depends on how much distinctive texture falls inside the kernel at that particular location.</li>
+<li>Strong, varied speckle contrast pins the peak precisely.</li>
+<li>A locally flatter or more repetitive patch leaves it ambiguous, and the estimated position drifts toward whichever direction the ambiguity favors.</li>
+<li>That drift is a deterministic function of local image content, not a random draw — exactly why <a href="getting_started/high_point_density.html#fig-hpd-strain-field">Figure 9.2-1</a> shows <em>structured</em> striations instead of uniform static, and why this page's own histogram leans right instead of sitting symmetric around the true value.</li>
+<li>It's also consistent with part of why <code>dictk</code>'s own spread grew on this page: matching VIC-2D's own small <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">26</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">26</span></span></span></span> px kernel, instead of earlier pages' generously oversized ones, means averaging over less independent texture per point. Some of that extra spread is the expected cost of matching VIC-2D's own geometry, not a shortcoming unique to <code>dictk</code>.</li>
+</ul>
+</li>
+</ul>
+<p>The next section, <a href="getting_started/./kernel_warping.html">Kernel Warping</a> measures that tracking error against known true positions and traces it to <strong>two sources</strong> of about equal size.</p>
+<ul>
+<li>One is <strong>pixel locking</strong> in <code>locate_subpixel</code> itself.</li>
+<li>The other is the <strong>bilinear interpolation</strong> <code>image.stretch</code> uses to build the current image. On a current image built with a quintic spline instead, <code>locate_subpixel</code>'s <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error falls from 0.109 px to 0.057 px, about half.</li>
+</ul>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="kernel-warping"><a class="header" href="#kernel-warping">Kernel Warping</a></h1>
 <p><a href="getting_started/./high_point_density.html">High Point Density</a> left a wide strain
@@ -6212,8 +6216,8 @@ found = locate_warp(
 </code></pre>
 <p>The same fractional-position error curve, now for both trackers:</p>
 <div class="table-wrapper"><table><thead><tr><th>Tracker</th><th>Time (s)</th><th>Mean <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error (px)</th><th>Std <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error (px)</th><th>Max |<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error| (px)</th></tr></thead><tbody>
-<tr><td><code>locate_subpixel</code></td><td>3.6</td><td>-0.0110</td><td>0.1091</td><td>0.3200</td></tr>
-<tr><td><code>locate_warp</code></td><td>3.8</td><td>-0.0000</td><td>0.0080</td><td>0.0234</td></tr>
+<tr><td><code>locate_subpixel</code></td><td>1.8</td><td>-0.0110</td><td>0.1091</td><td>0.3200</td></tr>
+<tr><td><code>locate_warp</code></td><td>1.7</td><td>-0.0000</td><td>0.0080</td><td>0.0234</td></tr>
 </tbody></table>
 </div><figure id="figure-9.3-6">
     <img src="getting_started/kernel_warping_bias.png" alt="mean x error against the fractional part of true x for two trackers. locate_subpixel, circles, swings from about -0.14 to +0.12 px. locate_warp, squares, stays within about 0.01 px of zero across the whole pixel" />
