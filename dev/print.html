@@ -6102,21 +6102,21 @@ subpixel estimators</em>.
 distribution unexplained. Its 11024 Gauss points ranged from about
 -16400 to 106100 microstrain. VIC-2D's own measurements of the same
 stretch stayed between about 17300 and 23100. That page blamed element
-size: a fixed tracking error, divided by a small <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">L</span></span></span></span>, becomes a large
-strain error.</p>
+size: a fixed tracking error, divided by a small element size <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">L</span></span></span></span>, becomes
+a large strain error.</p>
 <p>That explanation leaves out the tracking error's shape. This page
 measures the error against each point's known true position. The <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error
-follows a wave, about ±0.13 px tall, tied to where each point's true
-position falls within its pixel. That wave explains High Point Density's
-vertical stripes.
-This page introduces <code>locate_warp</code>, a subpixel method different from
+follows a wave, with an amplitude of about 0.13 px, tied to where each
+point's true position falls within its pixel. That wave explains High Point Density's
+vertical stripes.</p>
+<p>This page introduces <code>locate_warp</code>, a subpixel method different from
 <code>locate_subpixel</code>. It cuts the <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error's standard deviation from
 0.109 px to 0.008 px. Relative
 to the <code>locate_subpixel</code> baseline, <code>locate_warp</code> shrinks the strain
 spread by a factor of 14, from a standard deviation of 16531 to 1161
 microstrain.</p>
 <h2 id="pixel-locking"><a class="header" href="#pixel-locking">Pixel Locking</a></h2>
-<p>The subject 2% stretch sends every reference point to a new known <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> location,
+<p>This page's 2% stretch sends every reference point to a new known <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> location,
 <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">1.02</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span> (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.22222em;">Y</span></span></span></span> remains constant for all points). The
 <a href="getting_started/./high_point_density.html">High Point Density</a> page's own <code>locate_subpixel</code>
 call already tracked all 2862 of those points. Subtracting each point's known true
@@ -6151,10 +6151,10 @@ position <span class="katex"><span class="katex-html" aria-hidden="true"><span c
 <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">Δ</span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1/0.02</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">50</span></span></span></span> reference pixels. The stretch scales those
 50 px by 1.02, so one cycle spans <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1.02</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">50</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">51</span></span></span></span> pixels in the
 current image. So the bias itself forms a wave
-along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span>, about 0.13 px tall and 51 px long. Strain measures the slope
+along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span>, with an amplitude of about 0.13 px and a period of 51 px. Strain measures the slope
 of displacement. The slope of that wave swings to about
 <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">±</span><span class="mord">0.13</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.03588em;">π</span><span class="mord">/51</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">±</span><span class="mord">0.016</span></span></span></span>, or 16000 microstrain.
-That matches the scale of High Point Density's measured standard
+That is the same order as High Point Density's measured standard
 deviation, 16531 microstrain. The same wave explains the vertical stripes
 in that page's field figure, one stripe pair per cycle.</p>
 <p>It also explains why
@@ -6380,13 +6380,15 @@ its upper left. A rigid kernel can only translate, so its four
 gradient terms stay at zero. <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0531em;vertical-align:-0.367em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">locate_warp</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.367em;"><span></span></span></span></span></span></span></span></span></span> is
 the warp IC-GN fitted.
 <a href="getting_started/../api/dictk/warp.html#fit"><code>dictk.warp.fit</code></a> returns it directly.
-Its gradient block matches <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8361em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">true</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> to within
+Its gradient block matches <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8361em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.15972em;">W</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord text mtight"><span class="mord mtight">true</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> to about
 0.0001. Its translation matches to within 0.003 px.</p>
-<p>Two things remove the bias. The spline samples the image itself at
+<p>Two things reduce the bias. The spline samples the image itself at
 fractional positions, so no correlation peak needs interpolating. The
 affine warp also lets the kernel stretch along with the material,
 instead of forcing a rigid match. The call mirrors <code>locate_subpixel</code>,
 with the same grid and margins:</p>
+<details>
+<summary>Show the <code>locate_warp</code> call</summary>
 <pre><code class="language-python">from dictk.grid import locate_warp
 
 found = locate_warp(
@@ -6399,10 +6401,11 @@ found = locate_warp(
     search_margin_height=25,
 )
 </code></pre>
+</details>
 <p>The same fractional-position error curve, now for both trackers:</p>
 <div class="table-wrapper"><table><thead><tr><th>Tracker</th><th>Time (s)</th><th>Mean <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error (px)</th><th>Std <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error (px)</th><th>Max |<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error| (px)</th></tr></thead><tbody>
-<tr><td><code>locate_subpixel</code></td><td>2.6</td><td>-0.0110</td><td>0.1091</td><td>0.3200</td></tr>
-<tr><td><code>locate_warp</code></td><td>2.5</td><td>-0.0000</td><td>0.0080</td><td>0.0234</td></tr>
+<tr><td><code>locate_subpixel</code></td><td>3.4</td><td>-0.0110</td><td>0.1091</td><td>0.3200</td></tr>
+<tr><td><code>locate_warp</code></td><td>3.2</td><td>-0.0000</td><td>0.0080</td><td>0.0234</td></tr>
 </tbody></table>
 </div><figure id="figure-9.3-6">
     <img src="getting_started/kernel_warping_bias.png" alt="mean x error against the fractional part of true x for two trackers. locate_subpixel, circles, swings from about -0.14 to +0.12 px. locate_warp, squares, stays within about 0.01 px of zero across the whole pixel" />
@@ -6455,7 +6458,7 @@ whole drop from 16531 to 1161 microstrain.</p>
             <img src="getting_started/kernel_warping_strain_vic_colorbar.png" alt="dictk's own E11 field from locate_warp, on the same 17560-22360 microstrain range and VIC-2D's 16-band colormap, showing the full range of colors in narrow vertical stripes, with almost no clipped solid magenta or solid red" style="width: 100%;" />
         </a>
     </div>
-    <figcaption><strong>Figure 9.3-8:</strong> VIC-2D's <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">xx</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> (left) and <code>dictk</code>'s <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> from <code>locate_warp</code> (right). Both use `17560`-`22360` microstrain and VIC-2D's own 16-band color scale. In High Point Density's version of the right panel, only 9.5% of the Gauss points fell inside this range. The rest clipped to solid magenta or solid red. This one uses the whole scale.</figcaption>
+    <figcaption><strong>Figure 9.3-8:</strong> VIC-2D's <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">xx</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> (left) and <code>dictk</code>'s <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> from <code>locate_warp</code> (right). Both use 17560 to 22360 microstrain and VIC-2D's own 16-band color scale. In High Point Density's version of the right panel, only 9.5% of the Gauss points fell inside this range. The rest clipped to solid magenta or solid red. This one uses the whole scale.</figcaption>
 </figure>
 <figure id="fig-kw-strain-histogram">
     <img src="getting_started/kernel_warping_strain_histogram.png" alt="two overlaid normalized histograms of log strain in microstrain. dictk, gray filled, one broad peak from about 17000 to 23000 centered near 20000. VIC-2D, black outline, five separated clusters over the same 17300 to 23100 range. A dashed red line at 19803 microstrain" />
@@ -6524,17 +6527,22 @@ time.</p>
 <h2 id="summary"><a class="header" href="#summary">Summary</a></h2>
 <p>The table collects this page's results, one column per approach. Each
 column has a smaller <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error standard deviation and a smaller <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>
-standard deviation than the column before it. The table leaves out whole-pixel
+standard deviation than the column before it.</p>
+<p>The table leaves out whole-pixel
 <code>locate</code>, the baseline. <code>locate</code> rounds every position, so its <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error
 has a standard deviation of 0.30 px on these 2862 points, with the same
-margins. Rounding to the nearest integer alone gives
-<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.1572em;vertical-align:-0.25em;"></span><span class="mord">1/</span><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9072em;"><span class="svg-align" style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord" style="padding-left:0.833em;"><span class="mord">12</span></span></span><span style="top:-2.8672em;"><span class="pstrut" style="height:3em;"></span><span class="hide-tail" style="min-width:0.853em;height:1.08em;"><svg xmlns="http://www.w3.org/2000/svg" width='400em' height='1.08em' viewBox='0 0 400000 1080' preserveAspectRatio='xMinYMin slice'><path d='M95,702 c-2.7,0,-7.17,-2.7,-13.5,-8c-5.8,-5.3,-9.5,-10,-9.5,-14 c0,-2,0.3,-3.3,1,-4c1.3,-2.7,23.83,-20.7,67.5,-54 c44.2,-33.3,65.8,-50.3,66.5,-51c1.3,-1.3,3,-2,5,-2c4.7,0,8.7,3.3,12,10 s173,378,173,378c0.7,0,35.3,-71,104,-213c68.7,-142,137.5,-285,206.5,-429 c69,-144,104.5,-217.7,106.5,-221 l0 -0 c5.3,-9.3,12,-14,20,-14 H400000v40H845.2724 s-225.272,467,-225.272,467s-235,486,-235,486c-2.7,4.7,-9,7,-19,7 c-6,0,-10,-1,-12,-3s-194,-422,-194,-422s-65,47,-65,47z M834 80h400000v40h-400000z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1328em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.29</span></span></span></span> px.
-<a href="getting_started/./subpixel_accuracy.html">Subpixel Accuracy</a> compares <code>locate</code> with
+kernel and search margins as the other columns. Rounding to the nearest integer alone gives
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.1572em;vertical-align:-0.25em;"></span><span class="mord">1/</span><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9072em;"><span class="svg-align" style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord" style="padding-left:0.833em;"><span class="mord">12</span></span></span><span style="top:-2.8672em;"><span class="pstrut" style="height:3em;"></span><span class="hide-tail" style="min-width:0.853em;height:1.08em;"><svg xmlns="http://www.w3.org/2000/svg" width='400em' height='1.08em' viewBox='0 0 400000 1080' preserveAspectRatio='xMinYMin slice'><path d='M95,702 c-2.7,0,-7.17,-2.7,-13.5,-8c-5.8,-5.3,-9.5,-10,-9.5,-14 c0,-2,0.3,-3.3,1,-4c1.3,-2.7,23.83,-20.7,67.5,-54 c44.2,-33.3,65.8,-50.3,66.5,-51c1.3,-1.3,3,-2,5,-2c4.7,0,8.7,3.3,12,10 s173,378,173,378c0.7,0,35.3,-71,104,-213c68.7,-142,137.5,-285,206.5,-429 c69,-144,104.5,-217.7,106.5,-221 l0 -0 c5.3,-9.3,12,-14,20,-14 H400000v40H845.2724 s-225.272,467,-225.272,467s-235,486,-235,486c-2.7,4.7,-9,7,-19,7 c-6,0,-10,-1,-12,-3s-194,-422,-194,-422s-65,47,-65,47z M834 80h400000v40h-400000z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1328em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.29</span></span></span></span> px.</p>
+<p><a href="getting_started/./subpixel_accuracy.html">Subpixel Accuracy</a> compares <code>locate</code> with
 <code>locate_subpixel</code>. VIC-2D is the reference tool. <code>locate_subpixel</code> and
-<code>locate_warp</code> track the same bilinear image. The shaded column tracks the quintic-spline image
-instead, so none of the other tools could reach it. VIC-2D measured the
-bilinear images. The shaded numbers show what removing the generator's
-error would leave. They do not belong next to VIC-2D's.</p>
+<code>locate_warp</code> track the same bilinear image.</p>
+<p>The shaded column tracks a different image, a quintic-spline version of
+the same 2% stretch. It is not comparable with the other columns.
+VIC-2D, <code>locate_subpixel</code>, and <code>locate_warp</code> all tracked the bilinear
+images that <code>image.stretch</code> builds. The shaded column shows what
+<code>locate_warp</code> would reach if the generator did not distort the image:
+0.0015 px and 260 microstrain, down from 0.0080 px and 1161. VIC-2D was
+not run on the quintic image, so the table makes no comparison.</p>
 <table class="progression">
 <thead><tr><th></th><th><code>locate_subpixel</code></th><th>VIC-2D</th><th><code>locate_warp</code></th><th class="unreachable"><code>locate_warp</code>, quintic image</th></tr></thead>
 <tbody>
@@ -6551,13 +6559,14 @@ error would leave. They do not belong next to VIC-2D's.</p>
 <p>Each <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error is the tracked <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> minus the true <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">1.02</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span>. The
 closed-form strain for this 2% stretch is
 <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">ln</span><span class="mopen">(</span><span class="mord">1.02</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">19803</span></span></span></span> microstrain. Each mean <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> above
-reads against that value. The <code>locate_subpixel</code> column uses
+can be compared with that value. The <code>locate_subpixel</code> column uses
 <code>upsample_factor=100</code>, which refines the correlation peak to within
 0.01 px. High Point Density uses the same value. The VIC-2D column uses
-its 2682 valid points for both rows. The <code>dictk</code> columns use all 2862
+its 2682 valid points for every row. The <code>dictk</code> columns use all 2862
 points for <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and 11024 Gauss points for <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</p>
-<p>Continue to <a href="getting_started/./strain_window.html">Strain Window</a>.</p>
 <h3 id="kernel_warping_pixel_lockingpy"><a class="header" href="#kernel_warping_pixel_lockingpy"><code>kernel_warping_pixel_locking.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
 <pre><code class="language-python">"""Pixel locking: `grid.locate_subpixel`'s own x-error against each
 point's known true position, at High Point Density's full 53x54 grid.
 Plots the error along one row of the grid, and against the true
@@ -6641,7 +6650,10 @@ fig.savefig("kernel_warping_pixel_locking.png", dpi=300)
 print()
 print("Saved: kernel_warping_pixel_locking.png")
 </code></pre>
+</details>
 <h3 id="kernel_warping_panelspy"><a class="header" href="#kernel_warping_panelspy"><code>kernel_warping_panels.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
 <pre><code class="language-python">"""Side-by-side illustration of the kernel `locate`/`locate_subpixel`
 match (left) against the kernel `locate_warp` warps (right), on one
 point under an exaggerated affine deformation.
@@ -6843,7 +6855,10 @@ for ax, found, corners, dots, title in [
 
 fig.savefig("kernel_warping_panels.png", dpi=300)
 </code></pre>
+</details>
 <h3 id="kernel_warping_steepestpy"><a class="header" href="#kernel_warping_steepestpy"><code>kernel_warping_steepest.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
 <pre><code class="language-python">"""The six steepest-descent images of IC-GN's update, for the reference
 kernel at the point Kernel Warping's panel figure tracks. Each image is
 one component of s(xi), in the same order as p = (u, u_x, u_y, v, v_x,
@@ -6887,7 +6902,10 @@ for ax, (title, values) in zip(axes.flat, components):
     fig.colorbar(shown, ax=ax, shrink=0.8)
 fig.savefig("kernel_warping_steepest.png", dpi=200)
 </code></pre>
+</details>
 <h3 id="kernel_warping_iterationspy"><a class="header" href="#kernel_warping_iterationspy"><code>kernel_warping_iterations.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
 <pre><code class="language-python">"""IC-GN iteration by iteration, on Kernel Warping's panel-figure example:
 the point at (150, 150) under a 7% stretch, 0.05 shear, and the typical
 shift (6.43, 4.92) that kernel_warping_panels.py selects. warp.fit with
@@ -7002,7 +7020,10 @@ for ax in (left, right):
     ax.grid(True, which="major", color="0.85", linewidth=0.8)
 fig.savefig("kernel_warping_convergence.png", dpi=200)
 </code></pre>
+</details>
 <h3 id="kernel_warping_biaspy"><a class="header" href="#kernel_warping_biaspy"><code>kernel_warping_bias.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
 <pre><code class="language-python">"""The same fractional-position error curve as
 kernel_warping_pixel_locking.py, for both `grid.locate_subpixel` and
 `grid.locate_warp`, on the same axes.
@@ -7071,7 +7092,10 @@ ax.set_ylabel(r"mean $x$ error (px)")
 ax.legend(frameon=False)
 fig.savefig("kernel_warping_bias.png", dpi=300)
 </code></pre>
+</details>
 <h3 id="kernel_warping_strainpy"><a class="header" href="#kernel_warping_strainpy"><code>kernel_warping_strain.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
 <pre><code class="language-python">"""High Point Density's own strain pipeline, rerun on `grid.locate_warp`
 positions: a summary table against `grid.locate_subpixel` and VIC-2D,
 the field on VIC-2D's own colorbar, and the distribution against
@@ -7209,7 +7233,10 @@ ax.set_ylabel("density")
 ax.legend(loc="lower center", bbox_to_anchor=(0.5, 1.0), ncol=2, frameon=False)
 fig.savefig("kernel_warping_strain_histogram.png", dpi=300)
 </code></pre>
+</details>
 <h3 id="kernel_warping_generatorpy"><a class="header" href="#kernel_warping_generatorpy"><code>kernel_warping_generator.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
 <pre><code class="language-python">"""The same 2% stretch, generated two ways: `dictk.image.stretch`'s own
 bilinear interpolation, and a quintic spline. Tracks both with
 `grid.locate_subpixel` and `grid.locate_warp`, then reports each
@@ -7277,7 +7304,10 @@ for generator, current_image in generators.items():
             f"| {strains.std() * 1e6:.0f} |"
         )
 </code></pre>
+</details>
 <h3 id="kernel_warping_x_error_histogrampy"><a class="header" href="#kernel_warping_x_error_histogrampy"><code>kernel_warping_x_error_histogram.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
 <pre><code class="language-python">"""Distribution of `grid.locate_warp`'s x error across the full 53x54
 grid on `image.stretch`'s bilinear image: the tracked x minus the true
 x = 1.02 X, with the mean and one standard deviation marked.
@@ -7338,7 +7368,10 @@ legend = ax.legend(loc="upper right", framealpha=1.0)
 legend.set_zorder(10)
 fig.savefig("kernel_warping_x_error_histogram.png", dpi=300)
 </code></pre>
+</details>
 <h3 id="kernel_warping_summarypy"><a class="header" href="#kernel_warping_summarypy"><code>kernel_warping_summary.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
 <pre><code class="language-python">"""Summary of Kernel Warping's progression as one HTML table:
 `locate_subpixel`, VIC-2D, and `locate_warp` on `image.stretch`'s
 bilinear image, then `locate_warp` on a quintic-spline image. Reports the
@@ -7501,6 +7534,7 @@ for row, (label, fmt) in enumerate(labels):
 print("&lt;/tbody&gt;")
 print("&lt;/table&gt;")
 </code></pre>
+</details>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="strain-window"><a class="header" href="#strain-window">Strain Window</a></h1>
 <p><a href="getting_started/./kernel_warping.html">Kernel Warping</a> cut the <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> standard
