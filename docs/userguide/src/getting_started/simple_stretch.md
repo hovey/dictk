@@ -447,7 +447,34 @@ point_grid_plot(
     <figcaption>A 30x30-pixel crop from the top-left corner (image coordinates 10-40 in both directions), showing every one of the 25 grid points that fall inside it -- the same 5px spacing as the full overview in <a href="#fig-2862-overview">Figure</a>, just at true scale instead of compressed into a 300x300 thumbnail. The axes read <code>astronaut0</code>'s own pixel coordinates, not the crop's local 0-based ones, so a point here reads identically in the overview -- e.g. the top-left point is <code>(18, 16)</code> in both figures. The same red circle marked in the overview appears here too, now exactly touching all four edges of this figure's own extent -- the same visual correspondence <a href="./correlation_visualization.html">Correlation Visualization</a>'s Solution Vicinity panel uses.</figcaption>
 </figure>
 
-VIC-2D reports logarithmic (Euler) strain, so it's compared here
+VIC-2D's output file reports every valid point's displacement $u$. Its
+tracked $x$ is the reference $x$ plus $u$, and the true $x$ is
+$1.02\,X$. The difference is each point's $x$ error.
+[Figure](#fig-vic-x-error-histogram) shows all 2682 of them:
+
+<!-- cmdrun python3 simple_stretch_vic_x_error_histogram.py -->
+
+<figure id="fig-vic-x-error-histogram">
+    <img src="simple_stretch_vic_x_error_histogram.png" alt="histogram of VIC-2D's 2682 valid x errors in pixels, four separated clusters rather than one bell curve, spanning roughly -0.039 to +0.035 px, with a black vertical line at the mean of -0.0003 px, a pale blue band one standard deviation of 0.0154 px either side of it, and a dashed red vertical line at exact tracking, 0 px" />
+    <figcaption>Distribution of VIC-2D's own $x$ error across all 2682 valid points (gray, 60 bins). The dashed red line marks exact tracking, 0 px. The solid black line marks the mean of the 2682 errors, -0.0003 px. The blue band spans one standard deviation, 0.0154 px, on each side of that mean. Range is [-0.039, +0.035] px.</figcaption>
+</figure>
+
+<details>
+<summary>Show the figure-generating code</summary>
+
+```python
+<!-- cmdrun cat simple_stretch_vic_x_error_histogram.py -->
+```
+
+</details>
+
+The mean error, -0.0003 px, sits 2% of a standard deviation from zero.
+The standard deviation is 0.0154 px, and individual errors reach -0.039
+and +0.035 px. The errors separate into four clusters, not one bell
+curve. [Figure](#fig-vic-exx-histogram) shows the same clustering in
+VIC-2D's strain.
+
+VIC-2D also reports logarithmic (Euler) strain, so it's compared here
 against [the Strain section](#strain) above's own `dictk`-computed log
 strain. Across those 2682 valid subsets, $e_{xx}$ averages
 19875.8 microstrain — close to, but noisier than,
@@ -507,7 +534,7 @@ fig.savefig("simple_stretch_vic_exx_histogram.png", dpi=300)
 <!-- cmdrun python3 -c "import csv; import numpy as np; import matplotlib.pyplot as plt; rows = [{k.strip(' \"'): v for k, v in row.items()} for row in csv.DictReader(open('../verification/simple_stretch_vic_out.csv'))]; exx = np.array([float(r['exx']) * 1e6 for r in rows if float(r['sigma']) != -1]); analytical = np.log(1.02) * 1e6; mean = exx.mean(); std = exx.std(); plt.rcParams.update({'font.family': 'serif', 'mathtext.fontset': 'cm'}); fig, ax = plt.subplots(figsize=(7, 4), constrained_layout=True); ax.hist(exx, bins=60, color='gray', alpha=0.8, label=r'\$e_{xx}\$ at 2682 valid points'); ax.axvspan(mean - std, mean + std, color='royalblue', alpha=0.15, label=rf'\$\pm\$ 1 standard deviation, {std:.0f} microstrain'); ax.axvline(mean, color='black', linewidth=1.5, label=f'mean, {mean:.0f} microstrain'); ax.axvline(analytical, color='red', linestyle='--', linewidth=1.5, label=rf'exact \$e_{{xx}}\$ of a 2% stretch, {analytical:.0f} microstrain'); ax.set_xlabel(r'Log strain \$e_{xx}\$ (microstrain)'); ax.set_ylabel('frequency'); ax.set_ylim(top=ax.get_ylim()[1] * 1.45); legend = ax.legend(loc='upper right', framealpha=1.0); legend.set_zorder(10); fig.savefig('simple_stretch_vic_exx_histogram.png', dpi=300); print('Saved: simple_stretch_vic_exx_histogram.png')" -->
 ```
 
-<figure>
+<figure id="fig-vic-exx-histogram">
     <img src="simple_stretch_vic_exx_histogram.png" alt="histogram of VIC-2D's 2682 valid e_xx measurements in microstrain, showing several separated clusters rather than one smooth bell curve, spanning roughly 17300 to 23100 microstrain, with a black vertical line at the mean near 19876 microstrain, a pale blue band one standard deviation either side of it, and a dashed red vertical line at the analytical value near 19803 microstrain landing inside the central cluster" />
     <figcaption>Distribution of VIC-2D's own $e_{xx}$ across all 2682 valid subsets (gray, 60 bins). The black line marks the mean, 19876 microstrain, and the blue band spans one standard deviation, 1385 microstrain, on either side of it. The dashed red line marks the analytical value, $e_{xx} = \ln(1.02) \approx 19803$ microstrain. The distribution isn't one smooth bell curve — it separates into several clusters, echoing the striped pattern already visible in the field image above. The analytical line lands inside the central cluster, not at the extremes, but the spread around it is real: individual subsets range from about 17300 to 23100 microstrain, over 5x the true 19803 value's own distance from zero.</figcaption>
 </figure>
