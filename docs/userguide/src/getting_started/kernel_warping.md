@@ -513,9 +513,14 @@ time.
 ## Summary
 
 The table collects this page's results, one column per approach, in the
-order the book introduced them. `locate` rounds to whole pixels. VIC-2D
-is the reference tool. `locate_subpixel` and `locate_warp` track the same
-bilinear image. The shaded column tracks the quintic-spline image
+order the book introduced them. The table leaves out whole-pixel
+`locate`, the baseline. `locate` rounds every position, so its $x$ error
+has a standard deviation of 0.30 px on these 2862 points, with the same
+margins. Rounding to the nearest integer alone gives
+$1/\sqrt{12} \approx 0.29$ px.
+[Subpixel Accuracy](./subpixel_accuracy.md) compares `locate` with
+`locate_subpixel`. VIC-2D is the reference tool. `locate_subpixel` and
+`locate_warp` track the same bilinear image. The shaded column tracks the quintic-spline image
 instead, so none of the other tools could reach it. VIC-2D measured the
 bilinear images. The shaded numbers show what removing the generator's
 error would leave. They do not belong next to VIC-2D's.

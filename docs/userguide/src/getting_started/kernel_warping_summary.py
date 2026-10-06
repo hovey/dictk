@@ -1,6 +1,6 @@
-"""Summary of Kernel Warping's progression as one HTML table: `locate`,
-VIC-2D, `locate_subpixel`, and `locate_warp` on `image.stretch`'s
-bilinear image, then `locate_warp` on a quintic-spline image. Reports the
+"""Summary of Kernel Warping's progression as one HTML table: VIC-2D,
+`locate_subpixel`, and `locate_warp` on `image.stretch`'s bilinear
+image, then `locate_warp` on a quintic-spline image. Reports the
 mean and standard deviation of each tracker's x error and of its E11.
 """
 
@@ -10,7 +10,7 @@ import numpy as np
 from scipy.ndimage import map_coordinates
 
 from dictk.element import gauss_point_log_strains
-from dictk.grid import elements, generate, locate, locate_subpixel, locate_warp
+from dictk.grid import elements, generate, locate_subpixel, locate_warp
 from dictk.image import PixelCoordinate, read, stretch
 
 FACTOR_X = 1.02
@@ -80,7 +80,6 @@ vic_error_x = np.array(
 vic_strain = np.array([float(r["exx"]) * 1e6 for r in valid])
 
 columns = [
-    ("<code>locate</code>", statistics(track(locate, bilinear_image)), ""),
     (
         "VIC-2D",
         (
