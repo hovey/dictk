@@ -61,7 +61,13 @@ def statistics(found):
         )
         * 1e6
     )
-    return error_x.mean(), error_x.std(), strains.mean(), strains.std()
+    return (
+        error_x.mean(),
+        error_x.std(),
+        (error_x.min(), error_x.max()),
+        strains.mean(),
+        strains.std(),
+    )
 
 
 with open("../verification/simple_stretch_vic_out.csv") as f:
@@ -76,7 +82,13 @@ columns = [
     ("<code>locate</code>", statistics(track(locate, bilinear_image)), ""),
     (
         "VIC-2D",
-        (vic_error_x.mean(), vic_error_x.std(), vic_strain.mean(), vic_strain.std()),
+        (
+            vic_error_x.mean(),
+            vic_error_x.std(),
+            (vic_error_x.min(), vic_error_x.max()),
+            vic_strain.mean(),
+            vic_strain.std(),
+        ),
         "",
     ),
     (
@@ -91,12 +103,26 @@ columns = [
         ' class="unreachable"',
     ),
 ]
+
+
+def range_format(bounds):
+    decimals = 2 if max(abs(b) for b in bounds) >= 0.1 else 3
+    low, high = bounds
+    return f"[{low:+.{decimals}f}, {high:+.{decimals}f}]"
+
+
 labels = [
     ("Mean $x$ error (px)", lambda v: f"{v:+.4f}" if round(v, 4) else "0.0000"),
     ("Std $x$ error (px)", lambda v: f"{v:.4f}"),
+    ("$x$ error range (px)", range_format),
     ("Mean $E_{11}$ (microstrain)", lambda v: f"{v:.0f}"),
     ("Std $E_{11}$ (microstrain)", lambda v: f"{v:.0f}"),
 ]
+FIGURE_LINK = '<a href="./high_point_density.html#{}">Figure</a>'
+figure_rows = {
+    0: ("$x$ error Figure", "fig-hpd-x-error-histogram"),
+    3: ("$E_{11}$ Figure", "fig-hpd-strain-histogram"),
+}
 
 print('<table class="progression">')
 print("<thead><tr><th></th>", end="")
@@ -105,6 +131,13 @@ for name, _, css in columns:
 print("</tr></thead>")
 print("<tbody>")
 for row, (label, fmt) in enumerate(labels):
+    if row in figure_rows:
+        figure_label, figure_id = figure_rows[row]
+        print(f"<tr><td>{figure_label}</td>", end="")
+        for name, _, css in columns:
+            link = FIGURE_LINK.format(figure_id) if "locate_subpixel" in name else ""
+            print(f"<td{css}>{link}</td>", end="")
+        print("</tr>")
     print(f"<tr><td>{label}</td>", end="")
     for _, values, css in columns:
         print(f"<td{css}>{fmt(values[row])}</td>", end="")
