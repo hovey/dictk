@@ -9,7 +9,7 @@ Below we use VIC-2D's 53x54 (=2864) point grid, five pixels apart
 [Verification Against VIC-2D](./simple_stretch.html#verification-against-vic-2d) to
 illustrate the `locate_subpixel` functionality.
 
-## Tracking at Full Density
+## Displacement `locate_subpixel`
 
 [Verification Against VIC-2D](./simple_stretch.html#verification-against-vic-2d)
 noted VIC-2D's own kernel size: `25 x 25` px. Earlier pages' tracking
@@ -89,7 +89,7 @@ flat-topped, not a bell curve. Strain differences positions 5 px apart.
 Dividing 0.1090 px by that 5 px spacing gives 21800 microstrain. That
 is 1.3 times the 16531 microstrain strain spread measured next.
 
-## Strain at Full Density
+## Strain `locate_subpixel`
 
 Same recipe as Simple Stretch Revisited:
 
