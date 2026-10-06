@@ -4,14 +4,15 @@
 distribution unexplained. Its 11024 Gauss points ranged from about
 -16400 to 106100 microstrain. VIC-2D's own measurements of the same
 stretch stayed between about 17300 and 23100. That page blamed element
-size: a fixed tracking error, divided by a small $L$, becomes a large
-strain error.
+size: a fixed tracking error, divided by a small element size $L$, becomes
+a large strain error.
 
 That explanation leaves out the tracking error's shape. This page
 measures the error against each point's known true position. The $x$ error
-follows a wave, about ±0.13 px tall, tied to where each point's true
-position falls within its pixel. That wave explains High Point Density's
+follows a wave, with an amplitude of about 0.13 px, tied to where each
+point's true position falls within its pixel. That wave explains High Point Density's
 vertical stripes.
+
 This page introduces `locate_warp`, a subpixel method different from
 `locate_subpixel`. It cuts the $x$ error's standard deviation from
 0.109 px to 0.008 px. Relative
@@ -21,7 +22,7 @@ microstrain.
 
 ## Pixel Locking
 
-The subject 2% stretch sends every reference point to a new known $x$ location,
+This page's 2% stretch sends every reference point to a new known $x$ location,
 $x = 1.02\,X$ ($y = Y$ remains constant for all points). The
 [High Point Density](./high_point_density.md) page's own `locate_subpixel`
 call already tracked all 2862 of those points. Subtracting each point's known true
@@ -55,10 +56,10 @@ $0.02\,X$. That fractional part climbs from 0 to 1, then wraps back to
 $\Delta X = 1 / 0.02 = 50$ reference pixels. The stretch scales those
 50 px by 1.02, so one cycle spans $1.02 \times 50 = 51$ pixels in the
 current image. So the bias itself forms a wave
-along $x$, about 0.13 px tall and 51 px long. Strain measures the slope
+along $x$, with an amplitude of about 0.13 px and a period of 51 px. Strain measures the slope
 of displacement. The slope of that wave swings to about
 $\pm 0.13 \cdot 2\pi / 51 \approx \pm 0.016$, or 16000 microstrain.
-That matches the scale of High Point Density's measured standard
+That is the same order as High Point Density's measured standard
 deviation, 16531 microstrain. The same wave explains the vertical stripes
 in that page's field figure, one stripe pair per cycle.
 
@@ -356,10 +357,10 @@ its upper left. A rigid kernel can only translate, so its four
 gradient terms stay at zero. $\boldsymbol{W}_\text{locate\_warp}$ is
 the warp IC-GN fitted.
 [`dictk.warp.fit`](../api/dictk/warp.html#fit) returns it directly.
-Its gradient block matches $\boldsymbol{W}_\text{true}$ to within
+Its gradient block matches $\boldsymbol{W}_\text{true}$ to about
 0.0001. Its translation matches to within 0.003 px.
 
-Two things remove the bias. The spline samples the image itself at
+Two things reduce the bias. The spline samples the image itself at
 fractional positions, so no correlation peak needs interpolating. The
 affine warp also lets the kernel stretch along with the material,
 instead of forcing a rigid match. The call mirrors `locate_subpixel`,
@@ -443,7 +444,7 @@ whole drop from 16531 to 1161 microstrain.
             <img src="kernel_warping_strain_vic_colorbar.png" alt="dictk's own E11 field from locate_warp, on the same 17560-22360 microstrain range and VIC-2D's 16-band colormap, showing the full range of colors in narrow vertical stripes, with almost no clipped solid magenta or solid red" style="width: 100%;" />
         </a>
     </div>
-    <figcaption>VIC-2D's $e_{xx}$ (left) and <code>dictk</code>'s $E_{11}$ from <code>locate_warp</code> (right). Both use `17560`-`22360` microstrain and VIC-2D's own 16-band color scale. In High Point Density's version of the right panel, only 9.5% of the Gauss points fell inside this range. The rest clipped to solid magenta or solid red. This one uses the whole scale.</figcaption>
+    <figcaption>VIC-2D's $e_{xx}$ (left) and <code>dictk</code>'s $E_{11}$ from <code>locate_warp</code> (right). Both use 17560 to 22360 microstrain and VIC-2D's own 16-band color scale. In High Point Density's version of the right panel, only 9.5% of the Gauss points fell inside this range. The rest clipped to solid magenta or solid red. This one uses the whole scale.</figcaption>
 </figure>
 
 <figure id="fig-kw-strain-histogram">
@@ -519,30 +520,36 @@ time.
 
 The table collects this page's results, one column per approach. Each
 column has a smaller $x$ error standard deviation and a smaller $E_{11}$
-standard deviation than the column before it. The table leaves out whole-pixel
+standard deviation than the column before it.
+
+The table leaves out whole-pixel
 `locate`, the baseline. `locate` rounds every position, so its $x$ error
 has a standard deviation of 0.30 px on these 2862 points, with the same
-margins. Rounding to the nearest integer alone gives
+kernel and search margins as the other columns. Rounding to the nearest integer alone gives
 $1/\sqrt{12} \approx 0.29$ px.
+
 [Subpixel Accuracy](./subpixel_accuracy.md) compares `locate` with
 `locate_subpixel`. VIC-2D is the reference tool. `locate_subpixel` and
-`locate_warp` track the same bilinear image. The shaded column tracks the quintic-spline image
-instead, so none of the other tools could reach it. VIC-2D measured the
-bilinear images. The shaded numbers show what removing the generator's
-error would leave. They do not belong next to VIC-2D's.
+`locate_warp` track the same bilinear image.
+
+The shaded column tracks a different image, a quintic-spline version of
+the same 2% stretch. It is not comparable with the other columns.
+VIC-2D, `locate_subpixel`, and `locate_warp` all tracked the bilinear
+images that `image.stretch` builds. The shaded column shows what
+`locate_warp` would reach if the generator did not distort the image:
+0.0015 px and 260 microstrain, down from 0.0080 px and 1161. VIC-2D was
+not run on the quintic image, so the table makes no comparison.
 
 <!-- cmdrun python3 kernel_warping_summary.py -->
 
 Each $x$ error is the tracked $x$ minus the true $x = 1.02\,X$. The
 closed-form strain for this 2% stretch is
 $E_{11} = \ln(1.02) \approx 19803$ microstrain. Each mean $E_{11}$ above
-reads against that value. The `locate_subpixel` column uses
+can be compared with that value. The `locate_subpixel` column uses
 `upsample_factor=100`, which refines the correlation peak to within
 0.01 px. High Point Density uses the same value. The VIC-2D column uses
-its 2682 valid points for both rows. The `dictk` columns use all 2862
+its 2682 valid points for every row. The `dictk` columns use all 2862
 points for $x$ and 11024 Gauss points for $E_{11}$.
-
-Continue to [Strain Window](./strain_window.md).
 
 ### `kernel_warping_pixel_locking.py`
 
