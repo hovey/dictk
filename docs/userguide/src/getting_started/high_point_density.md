@@ -63,6 +63,32 @@ found = locate_subpixel(
 
 <!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, stretch; from dictk.grid import generate, locate_subpixel; reference_image = read(path='astronaut0.png'); factor_x = 1.02; current_image = stretch(arr=reference_image, factor_x=factor_x); points = generate(origin=PixelCoordinate(x=18, y=16), count_x=53, count_y=54, spacing_x=5, spacing_y=5); found = locate_subpixel(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=13, kernel_margin_height=13, search_margin_width=25, search_margin_height=25, upsample_factor=100); print(f'{len(points)} points tracked')" -->
 
+The tracked $x$ minus the true $x = 1.02\,X$ gives each point's $x$
+error. [Figure](#fig-hpd-x-error-histogram) shows all 2862 of them:
+
+<!-- cmdrun python3 high_point_density_x_error_histogram.py -->
+
+<figure id="fig-hpd-x-error-histogram">
+    <img src="high_point_density_x_error_histogram.png" alt="histogram of dictk's own 2862 x errors in pixels, a broad flat-topped distribution, nearly symmetric about zero, spanning roughly -0.29 to +0.32 px, with a black vertical line at the mean of -0.0109 px, a pale blue band one standard deviation of 0.1090 px either side of it, and a dashed red vertical line at exact tracking, 0 px" />
+    <figcaption>Distribution of <code>dictk</code>'s $x$ error across all 2862 points at full VIC-2D density (gray, 60 bins). The dashed red line marks exact tracking, 0 px. The solid black line marks the mean of the 2862 errors, -0.0109 px. The blue band spans one standard deviation, 0.1090 px, on each side of that mean. Range is [-0.29, +0.32] px.</figcaption>
+</figure>
+
+<details>
+<summary>Show the figure-generating code</summary>
+
+```python
+<!-- cmdrun cat high_point_density_x_error_histogram.py -->
+```
+
+</details>
+
+The mean error, -0.0109 px, sits one tenth of a standard deviation from
+zero. The spread is the problem. The standard deviation is 0.1090 px,
+and individual errors reach -0.29 and +0.32 px. The histogram is
+flat-topped, not a bell curve. Strain differences positions 5 px apart.
+Dividing 0.1090 px by that 5 px spacing gives 21800 microstrain. That
+is 1.3 times the 16531 microstrain strain spread measured next.
+
 ## Strain at Full Density
 
 Same recipe as Simple Stretch Revisited:
@@ -380,5 +406,5 @@ subpixel estimators*.
 
 The next section, [Kernel Warping](./kernel_warping.md) measures that tracking error against known true positions and traces it to **two sources** of about equal size.
 
-* One is **pixel locking** in `locate_subpixel` itself.
-* The other is the **bilinear interpolation** `image.stretch` uses to build the current image. On a current image built with a quintic spline instead, `locate_subpixel`'s $x$ error falls from 0.109 px to 0.057 px, about half.
+1. One is **pixel locking** in `locate_subpixel` itself.
+2. The other is the **bilinear interpolation** `image.stretch` uses to build the current image. On a current image built with a quintic spline instead, `locate_subpixel`'s $x$ error falls from 0.109 px to 0.057 px, about half.
