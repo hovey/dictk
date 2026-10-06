@@ -67,6 +67,7 @@ def statistics(found):
         (error_x.min(), error_x.max()),
         strains.mean(),
         strains.std(),
+        (strains.min(), strains.max()),
     )
 
 
@@ -88,6 +89,7 @@ columns = [
             (vic_error_x.min(), vic_error_x.max()),
             vic_strain.mean(),
             vic_strain.std(),
+            (vic_strain.min(), vic_strain.max()),
         ),
         "",
     ),
@@ -117,6 +119,7 @@ labels = [
     ("$x$ error range (px)", range_format),
     ("Mean $E_{11}$ (microstrain)", lambda v: f"{v:.0f}"),
     ("Std $E_{11}$ (microstrain)", lambda v: f"{v:.0f}"),
+    ("$E_{11}$ range (microstrain)", lambda v: f"[{round(v[0])}, {round(v[1])}]"),
 ]
 figure_rows = {
     0: (
