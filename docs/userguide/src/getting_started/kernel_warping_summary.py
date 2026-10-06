@@ -134,6 +134,7 @@ figure_rows = {
         {
             "VIC-2D": "./simple_stretch.html#fig-vic-exx-histogram",
             "<code>locate_subpixel</code>": "./high_point_density.html#fig-hpd-strain-histogram",
+            "<code>locate_warp</code>": "#fig-kw-strain-histogram",
         },
     ),
 }

@@ -441,7 +441,7 @@ whole drop from 16531 to 1161 microstrain.
     <figcaption>VIC-2D's $e_{xx}$ (left) and <code>dictk</code>'s $E_{11}$ from <code>locate_warp</code> (right). Both use `17560`-`22360` microstrain and VIC-2D's own 16-band color scale. In High Point Density's version of the right panel, only 9.5% of the Gauss points fell inside this range. The rest clipped to solid magenta or solid red. This one uses the whole scale.</figcaption>
 </figure>
 
-<figure>
+<figure id="fig-kw-strain-histogram">
     <img src="kernel_warping_strain_histogram.png" alt="two overlaid normalized histograms of log strain in microstrain. dictk, gray filled, one broad peak from about 17000 to 23000 centered near 20000. VIC-2D, black outline, five separated clusters over the same 17300 to 23100 range. A dashed red line at 19803 microstrain" />
     <figcaption>Distribution of <code>dictk</code>'s $E_{11}$ from <code>locate_warp</code> (gray, 11024 Gauss points) and VIC-2D's $e_{xx}$ (black outline, 2682 points), each normalized to unit area. The dashed red line marks $\ln(1.02) \approx 19803$ microstrain.</figcaption>
 </figure>
