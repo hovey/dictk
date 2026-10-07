@@ -487,8 +487,8 @@ found = locate_warp(
 </details>
 <p>The same fractional-position error curve, now for both trackers:</p>
 <div class="table-wrapper"><table><thead><tr><th>Tracker</th><th>Time (s)</th><th>Mean <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error (px)</th><th>Std <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error (px)</th><th>Max |<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error| (px)</th></tr></thead><tbody>
-<tr><td><code>locate_subpixel</code></td><td>3.4</td><td>-0.0110</td><td>0.1091</td><td>0.3200</td></tr>
-<tr><td><code>locate_warp</code></td><td>3.2</td><td>-0.0000</td><td>0.0080</td><td>0.0234</td></tr>
+<tr><td><code>locate_subpixel</code></td><td>2.6</td><td>-0.0110</td><td>0.1091</td><td>0.3200</td></tr>
+<tr><td><code>locate_warp</code></td><td>2.5</td><td>-0.0000</td><td>0.0080</td><td>0.0234</td></tr>
 </tbody></table>
 </div><figure id="figure-9.3-6">
     <img src="kernel_warping_bias.png" alt="mean x error against the fractional part of true x for two trackers. locate_subpixel, circles, swings from about -0.14 to +0.12 px. locate_warp, squares, stays within about 0.01 px of zero across the whole pixel" />
@@ -555,8 +555,9 @@ below shows those images carry a distortion of their own, tied to each
 point's fractional position. Each tracker responds to it differently.</p>
 <p>Neither result is smoothed. Commercial codes usually also apply a
 <strong>strain window</strong>, fitting displacement over a neighborhood of points
-before differentiating. That trades spatial resolution for a smaller strain spread. A 15x15-point
-window, spanning 75 px here, cut <code>locate_warp</code>'s spread from 1161 to
+before differentiating. The fit averages the tracking errors of every
+point in the window. It also blurs any real strain change inside the
+window into one value. A 15x15-point window, spanning 75 px here, cut <code>locate_warp</code>'s spread from 1161 to
 39 microstrain in an exploratory test.
 Fixing the bias first matters. A window spanning a whole bias cycle
 would also flatten High Point Density's stripes. That averaging would
