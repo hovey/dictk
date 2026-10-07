@@ -132,28 +132,88 @@ $$
 The slope is the central difference. The middle point gets zero
 weight in it.
 
-**Noise.** Give each tracked displacement an independent error with
-standard deviation $\sigma$. The slope's two terms each carry
-$\sigma / 2h$, and their variances add:
+### Noise
+
+How much does tracking error move the slope? Work it out in six steps.
+
+**Step 1: model the error.** Each tracked displacement is the true
+displacement plus an error:
+
+$$
+u_q = u_q^{\text{true}} + e_q .
+$$
+
+The three errors $e_{-1}$, $e_0$, and $e_1$ are independent. Each has
+mean 0 and standard deviation $\sigma$, so each has variance
+$\sigma^2$.
+
+**Step 2: find the error in the slope.** Substitute step 1 into the
+slope:
+
+$$
+\frac{\partial u}{\partial X}
+= \frac{u_1 - u_{-1}}{2h}
+= \underbrace{\frac{u_1^{\text{true}} - u_{-1}^{\text{true}}}{2h}}_{\text{true slope}}
++ \underbrace{\frac{e_1 - e_{-1}}{2h}}_{\text{slope error}} .
+$$
+
+The true part has no randomness. So the slope's variance is the
+variance of the slope error alone. The middle point's error $e_0$
+does not appear, because the middle point has zero weight.
+
+**Step 3: recall two variance rules.** For a constant $c$ and
+independent errors $e_a$ and $e_b$:
+
+$$
+\operatorname{Var}(c\, e_a) = c^2 \operatorname{Var}(e_a),
+\qquad
+\operatorname{Var}(e_a \pm e_b) = \operatorname{Var}(e_a) + \operatorname{Var}(e_b).
+$$
+
+Variances add for a difference too, because the sign flips with $c = -1$
+and $c^2 = 1$.
+
+**Step 4: apply the first rule to each term.** The slope error has
+two terms, $e_1 / 2h$ and $-e_{-1} / 2h$. Each one is an error scaled by
+$c = \pm 1/(2h)$:
+
+$$
+\operatorname{Var}\!\left(\frac{e_1}{2h}\right)
+= \operatorname{Var}\!\left(\frac{-e_{-1}}{2h}\right)
+= \frac{\sigma^2}{4h^2} .
+$$
+
+**Step 5: apply the second rule to add them.**
 
 $$
 \operatorname{Var}\!\left(\frac{\partial u}{\partial X}\right)
-= 2 \left(\frac{\sigma}{2h}\right)^2 = \frac{\sigma^2}{2h^2},
-\qquad
-\operatorname{std} = \frac{\sigma}{\sqrt{2}\,h} = 0.707\,\frac{\sigma}{h}.
+= \frac{\sigma^2}{4h^2} + \frac{\sigma^2}{4h^2}
+= \frac{\sigma^2}{2h^2} .
 $$
+
+**Step 6: take the square root.** The standard deviation is
+
+$$
+\operatorname{std}\!\left(\frac{\partial u}{\partial X}\right)
+= \frac{\sigma}{\sqrt{2}\, h}
+= 0.707\, \frac{\sigma}{h} .
+$$
+
+For example, take $\sigma = 0.01$ px and $h = 5$ px. The slope's
+standard deviation is $0.707 \times 0.01 / 5 = 0.00141$, or 1414
+microstrain.
 
 The slope uses only 2 of the 3 points. The 3x3 window below averages
 three such rows.
 
-## Worked Example: 3x3 Window
+## 2D Example
 
 The smallest square window with a center point holds 3x3 = 9 points.
 It is the general window with $m = 1$.
 
 ### Setup
 
-The points sit on a grid with spacing $h = 5$ px. Point $(q, p)$ sits
+The points sit on a grid with spacing $h$. Point $(q, p)$ sits
 at $x = qh$ and $y = ph$ pixels relative to the center point $(0, 0)$.
 The window fits a plane through the 9 tracked displacements:
 
@@ -178,11 +238,11 @@ at the minimum. Write $r_{q,p}$ for the residual inside the
 parentheses. The three derivatives are
 
 $$
-\frac{\partial R}{\partial u_c} = -2 \sum_{q,p} r_{q,p} = 0,
-\qquad
-\frac{\partial R}{\partial (\partial u / \partial X)} = -2 \sum_{q,p} q h\, r_{q,p} = 0,
-\qquad
-\frac{\partial R}{\partial (\partial u / \partial Y)} = -2 \sum_{q,p} p h\, r_{q,p} = 0 .
+\begin{aligned}
+\frac{\partial R}{\partial u_c} &= -2 \sum_{q,p} r_{q,p} = 0, \\[1em]
+\frac{\partial R}{\partial (\partial u / \partial X)} &= -2 \sum_{q,p} q h\, r_{q,p} = 0, \\[1em]
+\frac{\partial R}{\partial (\partial u / \partial Y)} &= -2 \sum_{q,p} p h\, r_{q,p} = 0 .
+\end{aligned}
 $$
 
 Dividing each by $-2$ and rearranging gives three normal equations. In
@@ -214,20 +274,20 @@ $$
 \begin{bmatrix} 9 & 0 & 0 \\ 0 & 6h^2 & 0 \\ 0 & 0 & 6h^2 \end{bmatrix}.
 $$
 
-At $h = 5$ px, the diagonal is $(9,\; 150,\; 150)$. The matrix is
-diagonal, so each unknown solves on its own.
+The matrix is diagonal, so each unknown solves on its own.
 
 ### Solution
 
 Each unknown divides one right-side entry by one diagonal entry:
 
 $$
-u_c = \frac{1}{9} \sum_{q,p} u_{q,p},
-\qquad
-\frac{\partial u}{\partial X} = \frac{h \sum q\, u_{q,p}}{6h^2}
-= \frac{1}{6h}\sum_{q,p} q\, u_{q,p},
-\qquad
-\frac{\partial u}{\partial Y} = \frac{1}{6h}\sum_{q,p} p\, u_{q,p}.
+\begin{aligned}
+u_c &= \frac{1}{9} \sum_{q,p} u_{q,p}, \\[1em]
+\frac{\partial u}{\partial X} &= \frac{h \sum q\, u_{q,p}}{6h^2}
+= \frac{1}{6h}\sum_{q,p} q\, u_{q,p}, \\[1em]
+\frac{\partial u}{\partial Y} &= \frac{h \sum p\, u_{q,p}}{6h^2}
+= \frac{1}{6h}\sum_{q,p} p\, u_{q,p}.
+\end{aligned}
 $$
 
 [Figure](#fig-sw-3x3-layout) draws the weights. In
@@ -250,7 +310,7 @@ differentiates along $X$ and averages along $Y$.
 
 ### One Noisy Draw
 
-The true field is $u_c = 0.3$ px, $\partial u / \partial X = 0.02$,
+The grid spacing is $h = 5$ px. The true field is $u_c = 0.3$ px, $\partial u / \partial X = 0.02$,
 and $\partial u / \partial Y = 0.01$. Each tracked displacement gets
 an independent Gaussian error with $\sigma = 0.01$ px. That $\sigma$
 is illustrative. It is not measured from a tracker. A tracker's
