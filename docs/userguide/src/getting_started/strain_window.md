@@ -123,10 +123,11 @@ $$
 The zero off the diagonal decouples the two unknowns:
 
 $$
-u_c = \frac{u_{-1} + u_0 + u_1}{3},
-\qquad
-\frac{\partial u}{\partial X} = \frac{h\,(-u_{-1} + u_1)}{2h^2}
+\begin{aligned}
+u_c &= \frac{u_{-1} + u_0 + u_1}{3}, \\[1em]
+\frac{\partial u}{\partial X} &= \frac{h\,(-u_{-1} + u_1)}{2h^2}
 = \frac{u_1 - u_{-1}}{2h}.
+\end{aligned}
 $$
 
 The slope is the central difference. The middle point gets zero
@@ -165,9 +166,10 @@ does not appear, because the middle point has zero weight.
 independent errors $e_a$ and $e_b$:
 
 $$
-\operatorname{Var}(c\, e_a) = c^2 \operatorname{Var}(e_a),
-\qquad
-\operatorname{Var}(e_a \pm e_b) = \operatorname{Var}(e_a) + \operatorname{Var}(e_b).
+\begin{aligned}
+\operatorname{Var}(c\, e_a) &= c^2 \operatorname{Var}(e_a), \\[1em]
+\operatorname{Var}(e_a \pm e_b) &= \operatorname{Var}(e_a) + \operatorname{Var}(e_b).
+\end{aligned}
 $$
 
 Variances add for a difference too, because the sign flips with $c = -1$
@@ -360,10 +362,11 @@ $(-1, 1)$. At a Gauss point, its
 gradient is
 
 $$
+\begin{aligned}
 \frac{\partial u}{\partial X}
-= \frac{1}{h}\left[ g_1 (u_2 - u_1) + g_2 (u_3 - u_4) \right],
-\qquad
-g_{1,2} = \frac{1 \mp 1/\sqrt{3}}{2}.
+&= \frac{1}{h}\left[ g_1 (u_2 - u_1) + g_2 (u_3 - u_4) \right], \\[1em]
+g_{1,2} &= \frac{1 \mp 1/\sqrt{3}}{2}.
+\end{aligned}
 $$
 
 So $g_1 + g_2 = 1$ and $g_1^2 + g_2^2 = 2/3$. Each node enters once,
@@ -424,12 +427,12 @@ $(9,\; 6h^2,\; 6h^2)$.
 ### Solution
 
 $$
-u_c = \frac{1}{n^2} \sum_{q,p} u_{q,p},
-\qquad
-\frac{\partial u}{\partial X} = \frac{h \sum q\, u_{q,p}}{h^2 n S_m}
-= \sum_{q,p} w_{q,p}\, u_{q,p},
-\qquad
-w_{q,p} = \frac{q}{h\, n\, S_m}.
+\begin{aligned}
+u_c &= \frac{1}{n^2} \sum_{q,p} u_{q,p}, \\[1em]
+\frac{\partial u}{\partial X} &= \frac{h \sum q\, u_{q,p}}{h^2 n S_m}
+= \sum_{q,p} w_{q,p}\, u_{q,p}, \\[1em]
+w_{q,p} &= \frac{q}{h\, n\, S_m}.
+\end{aligned}
 $$
 
 $\partial u / \partial Y$ uses $p$ in place of $q$. At $m = 1$, the
@@ -520,11 +523,11 @@ Lagrangian gradient. The rest follows
 [Continuum Mechanics](./continuum_mechanics.md):
 
 $$
-\boldsymbol{F} = \boldsymbol{I} + \boldsymbol{\nabla}_0\,\boldsymbol{u},
-\qquad
-\boldsymbol{U} = \sqrt{\boldsymbol{F}^\top \boldsymbol{F}},
-\qquad
-\boldsymbol{E}^{(0)} = \ln \boldsymbol{U}.
+\begin{aligned}
+\boldsymbol{F} &= \boldsymbol{I} + \boldsymbol{\nabla}_0\,\boldsymbol{u}, \\[1em]
+\boldsymbol{U} &= \sqrt{\boldsymbol{F}^\top \boldsymbol{F}}, \\[1em]
+\boldsymbol{E}^{(0)} &= \ln \boldsymbol{U}.
+\end{aligned}
 $$
 
 This page reports the log strain $\boldsymbol{E}^{(0)}$, to match the
@@ -587,10 +590,12 @@ continuum limit, the ratio of the fitted slope to the true slope at
 the window center is
 
 $$
-T(k) = \frac{3\left( \sin z - z \cos z \right)}{z^3}
+\begin{aligned}
+T(k) &= \frac{3\left( \sin z - z \cos z \right)}{z^3}
 \;\approx\; 1 - \frac{z^2}{10}
-\quad \text{for } z \ll 1,
-\qquad z = ka = \frac{knh}{2}.
+\quad \text{for } z \ll 1, \\[1em]
+z &= ka = \frac{knh}{2}.
+\end{aligned}
 $$
 
 The small-$z$ limit matches the cubic bias above. At $m = 7$, the two
