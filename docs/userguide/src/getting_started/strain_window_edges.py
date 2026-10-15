@@ -56,7 +56,7 @@ for ax, (name, center) in zip(axes, CENTERS.items(), strict=True):
         q.mean(), p.mean(), "x", color="red", ms=11, mew=2, label="centroid of points"
     )
     factor = std(q=q, p=p) / interior
-    ax.set_title(f"{name}: {q.size} points, std x {factor:.2f}", fontsize=11)
+    ax.set_title(f"{name}: {q.size} points, std $\\times$ {factor:.2f}", fontsize=11)
     ax.set_xlim(-M - 1, GRID)
     ax.set_ylim(GRID, -M - 1)
     ax.set_aspect("equal")

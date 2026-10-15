@@ -18,6 +18,8 @@ plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
 fig, ax = plt.subplots(figsize=(6, 3.8), constrained_layout=True)
 x_line = np.array([-1.35, 1.35])
 ax.plot(x_line, intercept + slope * x_line, color="black", lw=1.5, zorder=1)
+for ck, uk in zip(c, u, strict=True):
+    ax.plot([-1.45, ck], [uk, uk], color="lightgray", lw=0.6, zorder=0)
 for ck, uk, fk in zip(c, u, fitted, strict=True):
     ax.plot([ck, ck], [uk, fk], color="firebrick", ls="--", lw=1.2, zorder=2)
 ax.plot(c, u, "o", color="darkorange", ms=11, zorder=3)
@@ -50,7 +52,7 @@ ax.plot([run_end, run_end], [y_start, y_end], color="royalblue", lw=1.2)
 ax.text(
     (run_start + run_end) / 2,
     y_start - 0.012,
-    r"$\Delta x$",
+    r"$\Delta X$",
     ha="center",
     va="top",
     fontsize=12,
@@ -59,7 +61,7 @@ ax.text(
 ax.text(
     run_end + 0.05,
     (y_start + y_end) / 2,
-    r"$\dfrac{\partial u}{\partial X}\, \Delta x$",
+    r"$\dfrac{\partial u}{\partial X}\, \Delta X$",
     va="center",
     fontsize=13,
     color="royalblue",
@@ -68,8 +70,8 @@ ax.text(
 ax.set_xlim(-1.45, 1.6)
 ax.set_ylim(0.22, 0.7)
 ax.set_xticks([-1, 0, 1], ["$-h$", "$0$", "$h$"], fontsize=12)
-ax.set_yticks([])
-ax.set_xlabel("$x$", fontsize=13)
+ax.set_yticks(u, [f"${uk:.2f}h$" for uk in u], fontsize=12)
+ax.set_xlabel("$X$", fontsize=13)
 ax.set_ylabel("$u$", fontsize=13)
 ax.spines[["top", "right"]].set_visible(False)
 fig.savefig("strain_window_1d_fit.png", dpi=300)

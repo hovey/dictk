@@ -23,13 +23,13 @@ for m in HALF_WIDTHS:
 
 print(
     "| Window | Formula, units of $\\sigma/h$ | "
-    f"{TRIALS} draws, units of $\\sigma/h$ | Reduction vs Q4 |"
+    f"Monte Carlo, {TRIALS} draws, units of $\\sigma/h$ | Reduction vs Q4 |"
 )
 print("|---|---|---|---|")
 for m, f, s in zip(HALF_WIDTHS, formula, simulated, strict=True):
     if m in TABLE_HALF_WIDTHS:
         n = 2 * m + 1
-        print(f"| {n}x{n} ($m = {m}$) | {f:.4f} | {s:.4f} | {Q4 / f:.1f}x |")
+        print(f"| {n}x{n} ($m = {m}$) | {f:.4f} | {s:.4f} | ${Q4 / f:.1f}\\times$ |")
 
 n_values = [2 * m + 1 for m in HALF_WIDTHS]
 plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
@@ -44,7 +44,13 @@ ax.plot(
     color="black",
     label=r"formula $\frac{1}{n}\sqrt{3/(m(m+1))}$",
 )
-ax.plot(n_values, simulated, "o", color="royalblue", label=f"{TRIALS} draws per window")
+ax.plot(
+    n_values,
+    simulated,
+    "o",
+    color="royalblue",
+    label=f"Monte Carlo, {TRIALS} draws per window",
+)
 ax.set_yscale("log")
 ax.set_xticks(n_values)
 ax.set_xlabel("window points per side, $n = 2m + 1$")

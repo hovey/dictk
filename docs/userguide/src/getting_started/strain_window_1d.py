@@ -17,7 +17,7 @@ ax.annotate(
     xytext=(-1.45, 0),
     arrowprops={"arrowstyle": "->", "color": "black", "lw": 1.2},
 )
-ax.text(2.05, 0, "$x$", va="center", fontsize=14)
+ax.text(2.05, 0, "$X$", va="center", fontsize=14)
 
 for c, u in zip([-1, 0, 1], DISPLACEMENTS, strict=True):
     x = c * H
@@ -44,7 +44,7 @@ for c, u in zip([-1, 0, 1], DISPLACEMENTS, strict=True):
     ax.text(
         x,
         -0.3,
-        f"$x = ${position}",
+        f"$X = ${position}",
         ha="center",
         va="top",
         fontsize=12,
