@@ -15,34 +15,35 @@ This page derives that window.
    * With 15x15 points at 5 px spacing, the window covers 75 px. If the real strain changes inside those 75 px, the fit blurs that change into one number.
    * A larger window averages more errors and blurs more of the real field. A smaller window does the reverse.
 
-The derivation climbs in three steps. A row of 3 points shows the
+This derivation proceeds in three steps. A row of 3 points shows the
 idea with 3 numbers. A 3x3 window adds the second axis. A general
 window with $n = 2m + 1$ points per side repeats the 3x3 steps with 1
 replaced by $m$.
 
 ## Notation
 
-| Symbol | Meaning |
-|---|---|
-| $h$ | grid spacing, in px |
-| $m$ | window half-width, in points: the window reaches $m$ points out from its center along each axis |
-| $n = 2m + 1$ | points per window side |
-| $q,\ p$ | column and row of a point within the window, each from $-m$ to $m$ |
-| $qh,\ ph$ | the point's $x$ and $y$ position relative to the window center, in px |
-| $u,\ v$ | tracked $X$ and $Y$ displacement, in px |
-| $u_{q,p}$ | $u$ at column $q$ and row $p$ |
-| $u_c$ | fitted $u$ at the window center |
-| $\partial u / \partial X,\ \partial u / \partial Y$ | fitted gradient of $u$ at the window center |
-| $\boldsymbol{\nabla}_0\,\boldsymbol{u}$ | the $2 \times 2$ displacement gradient, as in [Finite Element Method](./finite_element_method.md#displacement-gradient) |
-| $\sigma$ | standard deviation of each point's tracking error, in px |
+| Symbol | Units | Meaning |
+|---|---|---|
+| $h$ | px | grid spacing |
+| $m$ | points | window half-width: the window reaches $m$ points out from its center along each axis |
+| $n = 2m + 1$ | points | points per window side, always odd so the window centers on a tracked point |
+| $c,\ r$ | points | column and row of a point within the window, each from $-m$ to $m$ |
+| $ch,\ rh$ | px | the point's $x$ and $y$ position relative to the window center |
+| $u,\ v$ | px | tracked $X$ and $Y$ displacement |
+| $u_{c,r}$ | px | $u$ at column $c$ and row $r$ |
+| $\hat{u}_0$ | px | fitted $u$ at the window center |
+| $\partial u / \partial X,\ \partial u / \partial Y$ | dimensionless | fitted gradient of $u$ at the window center |
+| $w^X_{c,r},\ w^Y_{c,r}$ | 1/px | weight of $u_{c,r}$ in the fitted $\partial u / \partial X$ and $\partial u / \partial Y$ |
+| $\boldsymbol{\nabla}_0\,\boldsymbol{u}$ | dimensionless | the $2 \times 2$ displacement gradient, as in [Finite Element Method](./finite_element_method.md#displacement-gradient) |
+| $\sigma$ | px | standard deviation of each point's tracking error |
 
 In an image,
 
 * $x$ runs across the page from left to right. The
-displacement $u$ points in the $x$ direction. Column $q$ grows from
+displacement $u$ points in the $x$ direction. Column $c$ grows from
 left to right.
 * $y$ runs down the page from top to bottom. The
-displacement $v$ points in the $y$ direction. Row $p$ grows from top to
+displacement $v$ points in the $y$ direction. Row $r$ grows from top to
 bottom.
 
 The steps below illustrate a fit for $u$. The fit for $v$ is an analogous process.
@@ -51,70 +52,88 @@ The steps below illustrate a fit for $u$. The fit for $v$ is an analogous proces
 
 Consider three points on the $x$ axis centered locally at the middle point, with relative $x$ coordinates $[-h, 0, h]$ pixels.
 Each of these points has tracked displacements $[u_{-1}, u_0, u_1]$. 
-Let $q$ be the index of the points $[-1, 0, 1]$.
+Let $c$ be the index of the points $[-1, 0, 1]$.
+[Figure](#fig-sw-1d) shows the three points and their displacements.
 
-Fit a straight line through the displacements. Point $q$ sits at
-$x = qh$ pixels relative to the middle point, so the line predicts
+<!-- cmdrun python3 strain_window_1d.py -->
+
+<figure id="fig-sw-1d">
+    <img src="strain_window_1d.png" alt="three filled orange dots on a horizontal x axis at x = -h, 0, and h, labeled below with index c = -1, 0, and 1. Two gray double arrows mark the equal spacing h between neighboring dots. Above each dot, an orange arrow points right to a hollow orange dot at the displaced position. The arrows are labeled u_-1, u_0, and u_1, and grow longer from left to right" />
+    <figcaption>The 1D Example. Filled dots mark the reference positions $x = ch$. Hollow dots mark the displaced positions $x = ch + u_c$. The displacements are illustrative, 0.30, 0.52, and 0.58 times $h$.</figcaption>
+</figure>
+
+Fit a straight line through the displacements. Point $c$ sits at
+$x = ch$ pixels relative to the middle point, so the line predicts
 
 $$
-u_q \approx u_c + \frac{\partial u}{\partial X}\, q h .
+u_c \approx \hat{u}_0 + \frac{\partial u}{\partial X}\, c h .
+\label{eq-sw-1d-model}
 $$
 
 The slope of the line is $\partial u / \partial X$. The intercept of
-the line is $u_c$, the fitted displacement at the middle point, where
-$q = 0$.
+the line is $\hat{u}_0$, the fitted displacement at the middle point, where
+$c = 0$.
+[Figure](#fig-sw-1d-fit) shows the line through the three displacements
+of [Figure](#fig-sw-1d).
 
-That is two unknowns, $u_c$ and $\partial u / \partial X$, for three
+<!-- cmdrun python3 strain_window_1d_fit.py -->
+
+<figure id="fig-sw-1d-fit">
+    <img src="strain_window_1d_fit.png" alt="plot of displacement u against position x, with ticks at -h, 0, and h. Three orange dots mark u_-1, u_0, and u_1. A black fitted line passes just above u_-1 and u_1 and below u_0. A hollow square on the line at x = 0 marks the intercept u-hat_0. A blue right triangle under the line, between -h and 0, marks a run delta x and a rise du/dX times delta x. Short dashed red segments join each dot to the line" />
+    <figcaption>The least-squares line through the three displacements of <a href="#fig-sw-1d">Figure</a>. The hollow square marks the intercept $\hat{u}_0 = 0.467h$. The blue triangle shows the slope $\partial u / \partial X = 0.14$. The dashed red segments are the residuals: $-0.027h$, $+0.053h$, and $-0.027h$.</figcaption>
+</figure>
+
+That is two unknowns, $\hat{u}_0$ and $\partial u / \partial X$, for three
 points. Least squares picks the two unknowns that minimize the sum of
 the three squared residuals:
 
 $$
 \begin{aligned}
-R &= \sum_{q=-1}^{1} \left( u_q - u_c - \frac{\partial u}{\partial X}\, q h \right)^2 \\
-&= \left( u_{-1} - u_c + \frac{\partial u}{\partial X}\, h \right)^2
-+ \left( u_0 - u_c \right)^2
-+ \left( u_1 - u_c - \frac{\partial u}{\partial X}\, h \right)^2 .
+R &= \sum_{c=-1}^{1} \left( u_c - \hat{u}_0 - \frac{\partial u}{\partial X}\, c h \right)^2 \\
+&= \left( u_{-1} - \hat{u}_0 + \frac{\partial u}{\partial X}\, h \right)^2
++ \left( u_0 - \hat{u}_0 \right)^2
++ \left( u_1 - \hat{u}_0 - \frac{\partial u}{\partial X}\, h \right)^2 .
 \end{aligned}
 $$
 
 At the minimum, the derivative of $R$ with respect to each unknown is
-zero. The derivative with respect to $u_c$ is
+zero. The derivative with respect to $\hat{u}_0$ is
 
 $$
-\frac{\partial R}{\partial u_c}
-= -2 \sum_{q} \left( u_q - u_c - \frac{\partial u}{\partial X}\, q h \right) = 0 .
+\frac{\partial R}{\partial \hat{u}_0}
+= -2 \sum_{c} \left( u_c - \hat{u}_0 - \frac{\partial u}{\partial X}\, c h \right) = 0 .
 $$
 
 Rearranged, that gives the first normal equation:
 
 $$
-u_c \sum_q 1 + \frac{\partial u}{\partial X}\, h \sum_q q = \sum_q u_q .
+\hat{u}_0 \sum_c 1 + \frac{\partial u}{\partial X}\, h \sum_c c = \sum_c u_c .
 $$
 
 The derivative with respect to the slope $\partial u / \partial X$ is
 
 $$
 \frac{\partial R}{\partial (\partial u / \partial X)}
-= -2 \sum_{q} q h \left( u_q - u_c - \frac{\partial u}{\partial X}\, q h \right) = 0 .
+= -2 \sum_{c} c h \left( u_c - \hat{u}_0 - \frac{\partial u}{\partial X}\, c h \right) = 0 .
 $$
 
 Dividing by $-2$ and rearranging gives the second normal equation:
 
 $$
-u_c\, h \sum_q q + \frac{\partial u}{\partial X}\, h^2 \sum_q q^2 = h \sum_q q\, u_q .
+\hat{u}_0\, h \sum_c c + \frac{\partial u}{\partial X}\, h^2 \sum_c c^2 = h \sum_c c\, u_c .
 $$
 
 In matrix form, the two normal equations are
 
 $$
-\begin{bmatrix} \sum_q 1 & h \sum_q q \\ h \sum_q q & h^2 \sum_q q^2 \end{bmatrix}
-\begin{Bmatrix} u_c \\ \partial u / \partial X \end{Bmatrix}
+\begin{bmatrix} \sum_c 1 & h \sum_c c \\ h \sum_c c & h^2 \sum_c c^2 \end{bmatrix}
+\begin{Bmatrix} \hat{u}_0 \\ \partial u / \partial X \end{Bmatrix}
 =
-\begin{Bmatrix} \sum_q u_q \\ h \sum_q q\, u_q \end{Bmatrix}.
+\begin{Bmatrix} \sum_c u_c \\ h \sum_c c\, u_c \end{Bmatrix}.
 $$
 
-The sums are $\sum_q 1 = 3$, $\sum_q q = -1 + 0 + 1 = 0$, and
-$\sum_q q^2 = 1 + 0 + 1 = 2$. So the matrix is
+The sums are $\sum_c 1 = 3$, $\sum_c c = -1 + 0 + 1 = 0$, and
+$\sum_c c^2 = 1 + 0 + 1 = 2$. So the matrix is
 
 $$
 \begin{bmatrix} 3 & 0 \\ 0 & 2h^2 \end{bmatrix}.
@@ -123,11 +142,14 @@ $$
 The zero off the diagonal decouples the two unknowns:
 
 $$
+\boxed{
 \begin{aligned}
-u_c &= \frac{u_{-1} + u_0 + u_1}{3}, \\[1em]
+\hat{u}_0 &= \frac{u_{-1} + u_0 + u_1}{3}, \\[1em]
 \frac{\partial u}{\partial X} &= \frac{h\,(-u_{-1} + u_1)}{2h^2}
 = \frac{u_1 - u_{-1}}{2h}.
 \end{aligned}
+}
+\label{eq-sw-1d-solution}
 $$
 
 The slope is the central difference. The middle point gets zero
@@ -141,7 +163,7 @@ How much does tracking error move the slope? Work it out in six steps.
 displacement plus an error:
 
 $$
-u_q = u_q^{\text{true}} + e_q .
+u_c = u_c^{\text{true}} + e_c .
 $$
 
 The three errors $e_{-1}$, $e_0$, and $e_1$ are independent. Each has
@@ -162,22 +184,22 @@ The true part has no randomness. So the slope's variance is the
 variance of the slope error alone. The middle point's error $e_0$
 does not appear, because the middle point has zero weight.
 
-**Step 3: recall two variance rules.** For a constant $c$ and
+**Step 3: recall two variance rules.** For a constant $\alpha$ and
 independent errors $e_a$ and $e_b$:
 
 $$
 \begin{aligned}
-\operatorname{Var}(c\, e_a) &= c^2 \operatorname{Var}(e_a), \\[1em]
+\operatorname{Var}(\alpha\, e_a) &= \alpha^2 \operatorname{Var}(e_a), \\[1em]
 \operatorname{Var}(e_a \pm e_b) &= \operatorname{Var}(e_a) + \operatorname{Var}(e_b).
 \end{aligned}
 $$
 
-Variances add for a difference too, because the sign flips with $c = -1$
-and $c^2 = 1$.
+Variances add for a difference too, because the sign flips with $\alpha = -1$
+and $\alpha^2 = 1$.
 
 **Step 4: apply the first rule to each term.** The slope error has
 two terms, $e_1 / 2h$ and $-e_{-1} / 2h$. Each one is an error scaled by
-$c = \pm 1/(2h)$:
+$\alpha = \pm 1/(2h)$:
 
 $$
 \operatorname{Var}\!\left(\frac{e_1}{2h}\right)
@@ -199,6 +221,7 @@ $$
 \operatorname{std}\!\left(\frac{\partial u}{\partial X}\right)
 = \frac{\sigma}{\sqrt{2}\, h}
 = 0.707\, \frac{\sigma}{h} .
+\label{eq-sw-1d-std}
 $$
 
 For example, take $\sigma = 0.01$ px and $h = 5$ px. The slope's
@@ -215,35 +238,45 @@ It is the general window with $m = 1$.
 
 ### Setup
 
-The points sit on a grid with spacing $h$. Point $(q, p)$ sits
-at $x = qh$ and $y = ph$ pixels relative to the center point $(0, 0)$.
+The points sit on a grid with spacing $h$. Point $(c, r)$ sits
+at $x = ch$ and $y = rh$ pixels relative to the center point $(0, 0)$.
 The window fits a plane through the 9 tracked displacements:
 
 $$
-u_{q,p} \approx u_c + \frac{\partial u}{\partial X}\, q h + \frac{\partial u}{\partial Y}\, p h .
+u_{c,r} \approx \hat{u}_0 + \frac{\partial u}{\partial X}\, c h + \frac{\partial u}{\partial Y}\, r h .
+\label{eq-sw-2d-model}
 $$
 
-That is three unknowns, $u_c$, $\partial u / \partial X$, and
+That is three unknowns, $\hat{u}_0$, $\partial u / \partial X$, and
 $\partial u / \partial Y$, for nine points.
+[Figure](#fig-sw-2d-fit) shows the plane through nine displacements.
+It extends [Figure](#fig-sw-1d-fit) from a line to a plane.
+
+<!-- cmdrun python3 strain_window_2d_fit.py -->
+
+<figure id="fig-sw-2d-fit">
+    <img src="strain_window_2d_fit.png" alt="3D plot of displacement u above a 3 by 3 grid of gray dots on the x-y floor, with x and y ticks at -h, 0, and h. A faint blue tilted plane rises toward positive x and positive y. Nine orange dots sit above the grid points, each joined to the plane by a short dashed red segment, some above the plane and some below. Each orange dot carries its label, u_c,r, from u_-1,-1 to u_1,1. A very light gray rectangle on the floor is the plane's shadow, parallel to the x and y axes, and it covers all nine gray dots. Gray shadows of the plane's lines cross the floor through the dots, darker for the two bold center lines. Two bold blue lines cross the plane through its center, labeled du/dX along x and du/dY along y. A hollow blue square at the crossing marks u-hat_0" />
+    <figcaption>The least-squares plane through nine displacements on the 3x3 grid. The hollow square marks the intercept $\hat{u}_0 = 0.469h$. The bold blue line along $x$ has slope $\partial u / \partial X = 0.124$. The bold blue line along $y$ has slope $\partial u / \partial Y = 0.093$. The dashed red segments are the residuals, from $0.033h$ to $0.101h$ in magnitude. The displacements are illustrative. They sample a true plane with intercept $0.47h$ and slopes $0.14$ in $x$ and $0.07$ in $y$. Each one adds a Gaussian error with $\sigma = 0.065h$, drawn with random seed 107.</figcaption>
+</figure>
 
 ### Normal Equations
 
 Least squares minimizes the sum of the nine squared residuals:
 
 $$
-R = \sum_{q=-1}^{1} \sum_{p=-1}^{1}
-\left( u_{q,p} - u_c - \frac{\partial u}{\partial X}\, q h - \frac{\partial u}{\partial Y}\, p h \right)^2 .
+R = \sum_{c=-1}^{1} \sum_{r=-1}^{1}
+\left( u_{c,r} - \hat{u}_0 - \frac{\partial u}{\partial X}\, c h - \frac{\partial u}{\partial Y}\, r h \right)^2 .
 $$
 
 As in the [1D Example](#1d-example), each derivative of $R$ is zero
-at the minimum. Write $r_{q,p}$ for the residual inside the
+at the minimum. Write $\hat{e}_{c,r}$ for the residual inside the
 parentheses. The three derivatives are
 
 $$
 \begin{aligned}
-\frac{\partial R}{\partial u_c} &= -2 \sum_{q,p} r_{q,p} = 0, \\[1em]
-\frac{\partial R}{\partial (\partial u / \partial X)} &= -2 \sum_{q,p} q h\, r_{q,p} = 0, \\[1em]
-\frac{\partial R}{\partial (\partial u / \partial Y)} &= -2 \sum_{q,p} p h\, r_{q,p} = 0 .
+\frac{\partial R}{\partial \hat{u}_0} &= -2 \sum_{c,r} \hat{e}_{c,r} = 0, \\[1em]
+\frac{\partial R}{\partial (\partial u / \partial X)} &= -2 \sum_{c,r} c h\, \hat{e}_{c,r} = 0, \\[1em]
+\frac{\partial R}{\partial (\partial u / \partial Y)} &= -2 \sum_{c,r} r h\, \hat{e}_{c,r} = 0 .
 \end{aligned}
 $$
 
@@ -252,23 +285,24 @@ matrix form, they are
 
 $$
 \begin{bmatrix}
-\sum 1 & h \sum q & h \sum p \\
-h \sum q & h^2 \sum q^2 & h^2 \sum q p \\
-h \sum p & h^2 \sum q p & h^2 \sum p^2
+\sum 1 & h \sum c & h \sum r \\
+h \sum c & h^2 \sum c^2 & h^2 \sum c r \\
+h \sum r & h^2 \sum c r & h^2 \sum r^2
 \end{bmatrix}
-\begin{Bmatrix} u_c \\ \partial u / \partial X \\ \partial u / \partial Y \end{Bmatrix}
+\begin{Bmatrix} \hat{u}_0 \\ \partial u / \partial X \\ \partial u / \partial Y \end{Bmatrix}
 =
-\begin{Bmatrix} \sum u_{q,p} \\ h \sum q\, u_{q,p} \\ h \sum p\, u_{q,p} \end{Bmatrix}.
+\begin{Bmatrix} \sum u_{c,r} \\ h \sum c\, u_{c,r} \\ h \sum r\, u_{c,r} \end{Bmatrix}.
+\label{eq-sw-2d-normal}
 $$
 
 Each sum runs over the 9 points:
 
 - $\sum 1 = 9$.
-- $\sum q = 0$. Three points sit at each of $q = -1$, $0$, and $1$, so
-  they cancel. $\sum p = 0$ for the same reason.
-- $\sum q p = 0$. Flipping $q$ to $-q$ flips the product's sign, so
+- $\sum c = 0$. Three points sit at each of $c = -1$, $0$, and $1$, so
+  they cancel. $\sum r = 0$ for the same reason.
+- $\sum c r = 0$. Flipping $c$ to $-c$ flips the product's sign, so
   the points cancel in pairs.
-- $\sum q^2 = 3 + 0 + 3 = 6$. $\sum p^2 = 6$ for the same reason.
+- $\sum c^2 = 3 + 0 + 3 = 6$. $\sum r^2 = 6$ for the same reason.
 
 So the matrix is
 
@@ -283,36 +317,50 @@ The matrix is diagonal, so each unknown solves on its own.
 Each unknown divides one right-side entry by one diagonal entry:
 
 $$
+\boxed{
 \begin{aligned}
-u_c &= \frac{1}{9} \sum_{q,p} u_{q,p}, \\[1em]
-\frac{\partial u}{\partial X} &= \frac{h \sum q\, u_{q,p}}{6h^2}
-= \frac{1}{6h}\sum_{q,p} q\, u_{q,p}, \\[1em]
-\frac{\partial u}{\partial Y} &= \frac{h \sum p\, u_{q,p}}{6h^2}
-= \frac{1}{6h}\sum_{q,p} p\, u_{q,p}.
+\hat{u}_0 &= \frac{1}{9} \sum_{c,r} u_{c,r}, \\[1em]
+\frac{\partial u}{\partial X} &= \frac{h \sum c\, u_{c,r}}{6h^2}
+= \frac{1}{6h}\sum_{c,r} c\, u_{c,r}, \\[1em]
+\frac{\partial u}{\partial Y} &= \frac{h \sum r\, u_{c,r}}{6h^2}
+= \frac{1}{6h}\sum_{c,r} r\, u_{c,r}.
 \end{aligned}
+}
+\label{eq-sw-3x3-solution}
 $$
 
 [Figure](#fig-sw-3x3-layout) draws the weights. In
 $\partial u / \partial X$, the right column enters with $+1$, the left
 column with $-1$, and the middle column with 0. Group the sum by row.
-Each row contributes $u_{1,p} - u_{-1,p}$, so
+Each row contributes $u_{1,r} - u_{-1,r}$. In
+$\partial u / \partial Y$, the bottom row enters with $+1$, the top
+row with $-1$, and the middle row with 0. Group that sum by column.
+Each column contributes $u_{c,1} - u_{c,-1}$. So
 
 $$
+\begin{aligned}
 \frac{\partial u}{\partial X}
-= \frac{1}{3} \sum_{p=-1}^{1} \frac{u_{1,p} - u_{-1,p}}{2h}.
+&= \frac{1}{3} \sum_{r=-1}^{1} \frac{u_{1,r} - u_{-1,r}}{2h}, \\[1em]
+\frac{\partial u}{\partial Y}
+&= \frac{1}{3} \sum_{c=-1}^{1} \frac{u_{c,1} - u_{c,-1}}{2h}.
+\end{aligned}
 $$
 
-That is the mean of three central differences, one per row. The window
-differentiates along $X$ and averages along $Y$.
+* $\partial u / \partial X$ is the mean of three central differences,
+  one per row. The window differentiates along $X$ and averages along
+  $Y$.
+* $\partial u / \partial Y$ is the mean of three central differences,
+  one per column. The window differentiates along $Y$ and averages along
+  $X$.
 
 <figure id="fig-sw-3x3-layout">
-    <img src="strain_window_3x3_layout.png" alt="three square panels, each a 3 by 3 grid of dots with column q and row p from -1 to 1. The left panel shows 9 orange dots labeled with their (q, p) index, with a ring around the center (0, 0). The middle panel shows the weights for du/dX: -1 in red for the left column, 0 in gray for the middle column, +1 in blue for the right column. The right panel shows the weights for du/dY: -1 in red for the top row, 0 in gray for the middle row, +1 in blue for the bottom row" />
-    <figcaption>The 3x3 window. Left: the 9 points, indexed by column $q$ and row $p$. Middle: the weight of each point in $\partial u / \partial X$, in units of $1/(6h)$. Right: the weight of each point in $\partial u / \partial Y$, in the same units.</figcaption>
+    <img src="strain_window_3x3_layout.png" alt="three square panels, each a 3 by 3 grid of dots with column c and row r from -1 to 1. The left panel shows 9 orange dots labeled with their (c, r) index, with a ring around the center (0, 0). The middle panel shows the weights for du/dX: -1 in red for the left column, 0 in gray for the middle column, +1 in blue for the right column. The right panel shows the weights for du/dY: -1 in red for the top row, 0 in gray for the middle row, +1 in blue for the bottom row" />
+    <figcaption>The 3x3 window. Left: the 9 points, indexed by column $c$ and row $r$. Middle: the weight of each point in $\partial u / \partial X$, in units of $1/(6h)$. Right: the weight of each point in $\partial u / \partial Y$, in the same units.</figcaption>
 </figure>
 
 ### One Noisy Draw
 
-The grid spacing is $h = 5$ px. The true field is $u_c = 0.3$ px, $\partial u / \partial X = 0.02$,
+The grid spacing is $h = 5$ px. The true field is $u_{0,0}^{\text{true}} = 0.3$ px, $\partial u / \partial X = 0.02$,
 and $\partial u / \partial Y = 0.01$. Each tracked displacement gets
 an independent Gaussian error with $\sigma = 0.01$ px. That $\sigma$
 is illustrative. It is not measured from a tracker. A tracker's
@@ -330,21 +378,22 @@ panel is the histogram of $\partial u / \partial X$ over all 10,000
 draws.
 
 <figure id="fig-sw-3x3-fit">
-    <img src="strain_window_3x3_fit.png" alt="two panels. Left: nine tracked x displacements in pixels against x = qh from -5 to 5 px, colored by row, with a solid black fitted line of slope 0.01944 and a dashed red true line of slope 0.02. Right: a histogram of the fitted du/dX over 10000 draws, centered on the true value of 20000 microstrain, with a blue band of plus or minus 819 microstrain for the 3x3 window and a wider pale red band of plus or minus 2309 microstrain for a Q4 element" />
-    <figcaption>Left: the draw from the table. Each point shows $u$ minus the fitted $(\partial u / \partial Y)\, ph$, which removes the row offset. The solid black line is the fit, and the dashed red line is the truth. Right: fitted $\partial u / \partial X$ over 10,000 draws, in microstrain. The blue band is $\pm 1$ standard deviation of the 3x3 window. The pale red band is $\pm 1$ standard deviation of a Q4 element, from the formula in <a href="#q4-baseline">Q4 Baseline</a>.</figcaption>
+    <img src="strain_window_3x3_fit.png" alt="two panels. Left: nine tracked x displacements in pixels against x = ch from -5 to 5 px, colored by row, with a solid black fitted line of slope 0.01944 and a dashed red true line of slope 0.02. Right: a histogram of the fitted du/dX over 10000 draws, centered on the true value of 20000 microstrain, with a blue band of plus or minus 819 microstrain for the 3x3 window and a wider pale red band of plus or minus 2309 microstrain for a Q4 element" />
+    <figcaption>Left: the draw from the table. Each point shows $u$ minus the fitted $(\partial u / \partial Y)\, rh$, which removes the row offset. The solid black line is the fit, and the dashed red line is the truth. Right: fitted $\partial u / \partial X$ over 10,000 draws, in microstrain. The blue band is $\pm 1$ standard deviation of the 3x3 window. The pale red band is $\pm 1$ standard deviation of a Q4 element, from the formula in <a href="#q4-baseline">Q4 Baseline</a>.</figcaption>
 </figure>
 
 ### Noise in the 3x3 Window
 
 The solution writes $\partial u / \partial X$ as a weighted sum
-$\sum w_{q,p}\, u_{q,p}$ with $w_{q,p} = q / 6h$. Independent errors
+$\sum w^X_{c,r}\, u_{c,r}$ with $w^X_{c,r} = c / (6h)$. Independent errors
 give
 
 $$
 \operatorname{Var}\!\left(\frac{\partial u}{\partial X}\right)
-= \sigma^2 \sum_{q,p} w_{q,p}^2
+= \sigma^2 \sum_{c,r} \left(w^X_{c,r}\right)^2
 = \sigma^2\, \frac{6}{(6h)^2}
 = \frac{\sigma^2}{6h^2}.
+\label{eq-sw-3x3-variance}
 $$
 
 The standard deviation is $\sigma / (\sqrt{6}\, h) = 0.408\,\sigma / h$.
@@ -367,6 +416,7 @@ $$
 &= \frac{1}{h}\left[ g_1 (u_2 - u_1) + g_2 (u_3 - u_4) \right], \\[1em]
 g_{1,2} &= \frac{1 \mp 1/\sqrt{3}}{2}.
 \end{aligned}
+\label{eq-sw-q4}
 $$
 
 So $g_1 + g_2 = 1$ and $g_1^2 + g_2^2 = 2/3$. Each node enters once,
@@ -384,11 +434,11 @@ recovers the 3x3 result.
 
 ### Setup
 
-Columns $q$ and rows $p$ each run from $-m$ to $m$. The fit is the
+Columns $c$ and rows $r$ each run from $-m$ to $m$. The fit is the
 same plane:
 
 $$
-u_{q,p} \approx u_c + \frac{\partial u}{\partial X}\, q h + \frac{\partial u}{\partial Y}\, p h .
+u_{c,r} \approx \hat{u}_0 + \frac{\partial u}{\partial X}\, c h + \frac{\partial u}{\partial Y}\, r h .
 $$
 
 That is three unknowns for $n^2$ points. For $n = 15$ and $h = 5$ px,
@@ -404,16 +454,17 @@ The residual sum $R$, its derivatives, and the matrix form match the
 $m$. One sum appears repeatedly. Call it $S_m$:
 
 $$
-S_m = \sum_{q=-m}^{m} q^2 = \frac{m(m+1)(2m+1)}{3}.
+S_m = \sum_{c=-m}^{m} c^2 = \frac{m(m+1)(2m+1)}{3}.
+\label{eq-sw-sm}
 $$
 
 The window's sums follow from it:
 
 - $\sum 1 = n^2$.
-- $\sum q = \sum p = \sum q p = 0$, by the same cancellations as the
+- $\sum c = \sum r = \sum c r = 0$, by the same cancellations as the
   3x3 window.
-- $\sum q^2 = n\, S_m$, because each of the $n$ rows contributes
-  $S_m$. $\sum p^2$ is the same.
+- $\sum c^2 = n\, S_m$, because each of the $n$ rows contributes
+  $S_m$. $\sum r^2$ is the same.
 
 So the matrix is
 
@@ -427,21 +478,27 @@ $(9,\; 6h^2,\; 6h^2)$.
 ### Solution
 
 $$
+\boxed{
 \begin{aligned}
-u_c &= \frac{1}{n^2} \sum_{q,p} u_{q,p}, \\[1em]
-\frac{\partial u}{\partial X} &= \frac{h \sum q\, u_{q,p}}{h^2 n S_m}
-= \sum_{q,p} w_{q,p}\, u_{q,p}, \\[1em]
-w_{q,p} &= \frac{q}{h\, n\, S_m}.
+\hat{u}_0 &= \frac{1}{n^2} \sum_{c,r} u_{c,r}, \\[1em]
+\frac{\partial u}{\partial X} &= \frac{h \sum c\, u_{c,r}}{h^2 n S_m}
+= \sum_{c,r} w^X_{c,r}\, u_{c,r}, \\[1em]
+\frac{\partial u}{\partial Y} &= \frac{h \sum r\, u_{c,r}}{h^2 n S_m}
+= \sum_{c,r} w^Y_{c,r}\, u_{c,r}, \\[1em]
+w^X_{c,r} &= \frac{c}{h\, n\, S_m}, \\[1em]
+w^Y_{c,r} &= \frac{r}{h\, n\, S_m}.
 \end{aligned}
+}
+\label{eq-sw-general-solution}
 $$
 
-$\partial u / \partial Y$ uses $p$ in place of $q$. At $m = 1$, the
-weight is $q / (6h)$.
+At $m = 1$, the weights are $w^X_{c,r} = c / (6h)$ and
+$w^Y_{c,r} = r / (6h)$.
 
-The weight grows linearly with $q$. The outermost columns, at
-$q = \pm m$, carry the largest weights. A displacement $mh$ from the
+The weight grows linearly with $c$. The outermost columns, at
+$c = \pm m$, carry the largest weights. A displacement $mh$ from the
 center changes by $mh$ times any change in slope, so it constrains the
-slope $m$ times as tightly as a point at $q = \pm 1$. The weight does not depend on $p$.
+slope $m$ times as tightly as a point at $c = \pm 1$. The weight does not depend on $r$.
 So the estimator fits one line per row and averages the $n$ row
 slopes. [Figure](#fig-sw-stencils) shows the weights for $m = 1$, 2,
 and 3. The script also solves the normal equations directly and
@@ -450,8 +507,8 @@ compares:
 <!-- cmdrun python3 strain_window_stencils.py -->
 
 <figure id="fig-sw-stencils">
-    <img src="strain_window_stencils.png" alt="three square heat maps of du/dX weights for windows of 3 by 3, 5 by 5, and 7 by 7 points. Each cell shows its column index q, from red negative values on the left through white zero in the middle column to blue positive values on the right. Every row is identical. The panel titles give the weights as q over 6h, q over 50h, and q over 196h" />
-    <figcaption>The weight of each point in $\partial u / \partial X$ for $m = 1$, 2, and 3. Each cell shows $q$. The title gives the weight, $q / (h\, n\, S_m)$. The square marks the window center.</figcaption>
+    <img src="strain_window_stencils.png" alt="three square heat maps of du/dX weights for windows of 3 by 3, 5 by 5, and 7 by 7 points. Each cell shows its column index c, from red negative values on the left through white zero in the middle column to blue positive values on the right. Every row is identical. The panel titles give the weights as c over 6h, c over 50h, and c over 196h" />
+    <figcaption>The weight of each point in $\partial u / \partial X$ for $m = 1$, 2, and 3. Each cell shows $c$. The title gives the weight, $c / (h\, n\, S_m)$. The square marks the window center.</figcaption>
 </figure>
 
 The weights depend only on $m$ and $h$. They do not depend on the
@@ -464,7 +521,7 @@ Independent errors give
 
 $$
 \operatorname{Var}\!\left(\frac{\partial u}{\partial X}\right)
-= \sigma^2 \sum_{q,p} w_{q,p}^2
+= \sigma^2 \sum_{c,r} \left(w^X_{c,r}\right)^2
 = \sigma^2\, \frac{n\, S_m}{(h\, n\, S_m)^2}
 = \frac{\sigma^2}{h^2\, n\, S_m}
 = \frac{3\,\sigma^2}{h^2 n^2\, m(m+1)}.
@@ -477,6 +534,7 @@ $$
 = \frac{\sigma}{h} \cdot \frac{1}{n} \sqrt{\frac{3}{m(m+1)}}
 \;\approx\; \frac{\sqrt{12}\,\sigma}{h\, n^2}
 \quad \text{for large } m.
+\label{eq-sw-general-std}
 $$
 
 At $m = 1$, it is $\sigma / (\sqrt{6}\, h)$. The standard deviation
@@ -516,9 +574,10 @@ $$
 \partial u / \partial X & \partial u / \partial Y \\
 \partial v / \partial X & \partial v / \partial Y
 \end{bmatrix}.
+\label{eq-sw-gradient}
 $$
 
-The fit uses reference positions $qh$ and $ph$, so this is the
+The fit uses reference positions $ch$ and $rh$, so this is the
 Lagrangian gradient. The rest follows
 [Continuum Mechanics](./continuum_mechanics.md):
 
@@ -528,6 +587,7 @@ $$
 \boldsymbol{U} &= \sqrt{\boldsymbol{F}^\top \boldsymbol{F}}, \\[1em]
 \boldsymbol{E}^{(0)} &= \ln \boldsymbol{U}.
 \end{aligned}
+\label{eq-sw-strain}
 $$
 
 This page reports the log strain $\boldsymbol{E}^{(0)}$, to match the
@@ -539,8 +599,8 @@ order, which covers the 2% stretch on these pages.
 
 Fitting the current positions $\boldsymbol{x}$ instead of $u$ and $v$
 gives $\boldsymbol{F}$ directly as the slope. Both routes agree,
-because the reference positions $qh$ and $ph$ are exactly linear in
-$q$ and $p$.
+because the reference positions $ch$ and $rh$ are exactly linear in
+$c$ and $r$.
 
 Each window yields one strain tensor, at its center. A Q4 element
 yields four, one per Gauss point. A Q4 element also has no
@@ -561,15 +621,16 @@ are candidate refinements for a later stage. Neither appears here.
 A window reduces variance and adds bias. Two results size the bias.
 
 **Cubic term.** Let the true field be
-$u_{q,p} = \tfrac{1}{6}\, u'''\, (qh)^3$, with
+$u_{c,r} = \tfrac{1}{6}\, u'''\, (ch)^3$, with
 $u''' = \partial^3 u / \partial X^3$. The true gradient at the center
 is 0. The fitted slope is
 
 $$
 \frac{\partial u}{\partial X}\bigg|_{\text{fit}}
-= \frac{h \sum q\, u_{q,p}}{h^2 \sum q^2}
-= \frac{u'''}{6}\, h^2\, \frac{\sum q^4}{\sum q^2}
+= \frac{h \sum c\, u_{c,r}}{h^2 \sum c^2}
+= \frac{u'''}{6}\, h^2\, \frac{\sum c^4}{\sum c^2}
 = \frac{u'''\, h^2\, (3m^2 + 3m - 1)}{30}.
+\label{eq-sw-cubic-bias}
 $$
 
 At $m = 1$, that is $u''' h^2 / 6$. The standard deviation falls as
@@ -578,7 +639,7 @@ variance plus squared bias, has a minimum. The window size at that
 minimum depends on $u'''$ and on $\sigma$.
 
 A quadratic fit gives the same center slope as the affine fit. A
-quadratic term is even about the center, and the slope weight $q$ is
+quadratic term is even about the center, and the slope weight $c$ is
 odd. In a symmetric window, the two are orthogonal. Only a cubic fit
 removes the bias above, and it raises the variance.
 
@@ -596,6 +657,7 @@ T(k) &= \frac{3\left( \sin z - z \cos z \right)}{z^3}
 \quad \text{for } z \ll 1, \\[1em]
 z &= ka = \frac{knh}{2}.
 \end{aligned}
+\label{eq-sw-frequency}
 $$
 
 The small-$z$ limit matches the cubic bias above. At $m = 7$, the two
@@ -621,10 +683,12 @@ The 51 px period sits 1.4 px below the zero crossing at 52.4 px. The
 
 Near the grid boundary, the window truncates. Every tracked point
 still gets a strain. A truncated window loses the cancellations, so
-$\sum q$ and $\sum p$ no longer vanish. The matrix is no longer
+$\sum c$ and $\sum r$ no longer vanish. The matrix is no longer
 diagonal, and the fit solves the full $3 \times 3$ normal equations.
 [Figure](#fig-sw-edges) shows interior, edge, and corner windows for
 $m = 3$.
+
+<!-- cmdrun python3 strain_window_edges.py -->
 
 <figure id="fig-sw-edges">
     <img src="strain_window_edges.png" alt="three panels showing a 7 by 7 window near the top-left corner of a grid of gray dots, with the area outside the grid shaded. Interior: 49 filled orange points, the window center and centroid coincide, std factor 1.00. Edge: the window centers on a point in the left column, 21 points fall outside the grid as hollow circles, 28 remain, the red centroid cross sits 1.5 columns right of the center, std factor 2.37. Corner: 33 points fall outside, 16 remain, the centroid sits 1.5 columns right and 1.5 rows down, std factor 3.13" />
@@ -635,12 +699,13 @@ Truncation costs precision in two ways. Take the $X$ gradient of a
 window that lost its $-X$ half, with $m + 1$ columns left.
 
 **Variance.** The slope variance is $\sigma^2$ divided by
-$h^2 \sum (q - \bar{q})^2$, where $\bar{q}$ is the mean column of the
+$h^2 \sum (c - \bar{c})^2$, where $\bar{c}$ is the mean column of the
 kept points. That sum falls from $h^2 n\, S_m$ to
 $h^2 n\, m(m+1)(m+2)/12$. The standard deviation rises by the factor
 
 $$
 \sqrt{\frac{4(2m + 1)}{m + 2}} .
+\label{eq-sw-edge-factor}
 $$
 
 At $m = 7$, the factor is 2.58. At a corner, the window also keeps only
@@ -648,6 +713,7 @@ $m + 1$ rows. The factor becomes
 
 $$
 \sqrt{\frac{4(2m + 1)^2}{(m + 1)(m + 2)}},
+\label{eq-sw-corner-factor}
 $$
 
 which is 3.54 at $m = 7$. At $m = 3$, the factors are 2.37 and 3.13,
@@ -658,7 +724,7 @@ in the interior, 0.0398 on an edge, and 0.0545 at a corner. The Q4
 element gives 1.155. The edge value is 29 times lower than that. The
 corner value is 21 times lower.
 
-**Location.** Take a quadratic field, $u_{q,p} = \tfrac{1}{2}\, u''\, (qh)^2$,
+**Location.** Take a quadratic field, $u_{c,r} = \tfrac{1}{2}\, u''\, (ch)^2$,
 with $u'' = \partial^2 u / \partial X^2$. An affine fit returns the
 true gradient at the centroid of the kept points, not at the window
 center. This holds for any point set symmetric about its own centroid,

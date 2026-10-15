@@ -31,7 +31,7 @@ noisy_u = true_u + errors[pick]
 uc_fit, dudx_fit, dudy_fit = fits[pick]
 
 print(
-    "| $q$ | $p$ | $qh$ (px) | $ph$ (px) | true $u$ (px) "
+    "| $c$ | $r$ | $ch$ (px) | $rh$ (px) | true $u$ (px) "
     "| error (px) | tracked $u$ (px) |"
 )
 print("|---|---|---|---|---|---|---|")
@@ -43,13 +43,13 @@ for k in range(9):
 row_differences = [(noisy_u[3 * i + 2] - noisy_u[3 * i]) / (2 * H) for i in range(3)]
 print()
 print(
-    f"The fit returns $u_c$ = {uc_fit:.4f} px, "
+    f"The fit returns $\\hat{{u}}_0$ = {uc_fit:.4f} px, "
     f"$\\partial u / \\partial X$ = {dudx_fit:.5f}, and "
     f"$\\partial u / \\partial Y$ = {dudy_fit:.5f}. "
     f"The true values are {TRUE_UC} px, {TRUE_DUDX}, and {TRUE_DUDY}. "
     f"The $\\partial u / \\partial X$ error is "
     f"{(dudx_fit - TRUE_DUDX) * 1e6:+.0f} microstrain. "
-    f"The three row differences $(u_{{1,p}} - u_{{-1,p}}) / 2h$ are "
+    f"The three row differences $(u_{{1,r}} - u_{{-1,r}}) / 2h$ are "
     f"{', '.join(f'{d:.5f}' for d in row_differences)}. "
     f"Their mean is {np.mean(row_differences):.5f}, the fitted "
     f"$\\partial u / \\partial X$."
@@ -102,8 +102,8 @@ for ax, title, weights in zip(
     ax.set_aspect("equal")
     ax.set_xticks([-1, 0, 1])
     ax.set_yticks([-1, 0, 1])
-    ax.set_xlabel(r"column $q$")
-    ax.set_ylabel(r"row $p$")
+    ax.set_xlabel(r"column $c$")
+    ax.set_ylabel(r"row $r$")
     ax.set_title(title, fontsize=11)
 axes[0].plot(0, 0, "o", mfc="none", mec="black", ms=22, mew=1.5)
 fig.savefig("strain_window_3x3_layout.png", dpi=300)
@@ -132,10 +132,10 @@ for row in [-1, 0, 1]:
         noisy_u[mask] - dudy_fit * s_y[mask],
         "o",
         color=colors[row],
-        label=f"row $p$ = {row}",
+        label=f"row $r$ = {row}",
     )
-ax_fit.set_xlabel(r"$x = qh$ (px)")
-ax_fit.set_ylabel(r"$u$ minus fitted $(\partial u / \partial Y)\, ph$ (px)")
+ax_fit.set_xlabel(r"$x = ch$ (px)")
+ax_fit.set_ylabel(r"$u$ minus fitted $(\partial u / \partial Y)\, rh$ (px)")
 ax_fit.set_title("one draw: nine tracked $u$, row offset removed", fontsize=11)
 ax_fit.legend(loc="upper left", fontsize=8)
 

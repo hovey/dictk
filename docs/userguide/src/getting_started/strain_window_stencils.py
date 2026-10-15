@@ -1,5 +1,5 @@
 """The du/dX weights of a full (2m + 1) x (2m + 1) window for m = 1, 2, 3,
-from the closed form q / (h n S_m), checked against a direct least-squares
+from the closed form c / (h n S_m), checked against a direct least-squares
 solve.
 """
 
@@ -12,7 +12,7 @@ HALF_WIDTHS = [1, 2, 3]
 plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
 fig, axes = plt.subplots(1, 3, figsize=(11, 4.2), constrained_layout=True)
 print(
-    "| $m$ | $n$ | $S_m$ | $n S_m$ | weight of column $q$ | largest gap to direct solve |"
+    "| $m$ | $n$ | $S_m$ | $n S_m$ | weight of column $c$ | largest gap to direct solve |"
 )
 print("|---|---|---|---|---|---|")
 for ax, m in zip(axes, HALF_WIDTHS, strict=True):
@@ -23,7 +23,7 @@ for ax, m in zip(axes, HALF_WIDTHS, strict=True):
     design = np.column_stack([np.ones(n * n), H * q.ravel(), H * p.ravel()])
     direct = (np.linalg.inv(design.T @ design) @ design.T)[1].reshape(n, n)
     gap = np.abs(closed_form - direct).max()
-    print(f"| {m} | {n} | {s_m} | {n * s_m} | $q / ({n * s_m}h)$ | {gap:.1e} |")
+    print(f"| {m} | {n} | {s_m} | {n * s_m} | $c / ({n * s_m}h)$ | {gap:.1e} |")
 
     ax.imshow(
         q,
@@ -45,7 +45,7 @@ for ax, m in zip(axes, HALF_WIDTHS, strict=True):
     ax.plot(0, 0, "s", mfc="none", mec="black", ms=26 if m < 3 else 18, mew=1.5)
     ax.set_xticks(range(-m, m + 1))
     ax.set_yticks(range(-m, m + 1))
-    ax.set_xlabel("column $q$")
-    ax.set_ylabel("row $p$")
-    ax.set_title(rf"$m = {m}$, $n = {n}$: weight $= q\,/\,({n * s_m}h)$", fontsize=11)
+    ax.set_xlabel("column $c$")
+    ax.set_ylabel("row $r$")
+    ax.set_title(rf"$m = {m}$, $n = {n}$: weight $= c\,/\,({n * s_m}h)$", fontsize=11)
 fig.savefig("strain_window_stencils.png", dpi=300)

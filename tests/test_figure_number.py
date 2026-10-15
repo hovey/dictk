@@ -138,3 +138,49 @@ def test_references_resolve_html_anchor_inside_caption():
         content=content, labels={"fig-a": "8.1-5"}, path="p.md"
     )
     assert resolved == '<figcaption>see <a href="#fig-a">Figure 8.1-5</a>.</figcaption>'
+
+
+def test_equations_number_requires_keyword_arguments():
+    with pytest.raises(TypeError):
+        figure_number.equations_number("", "1", {})  # type: ignore[misc]
+
+
+def test_equations_number_tags_labeled_blocks_in_page_order():
+    content = (
+        "$$\na = 1 \\label{eq-a}\n$$\n\n$$\nb = 2\n$$\n\n$$\nc = 3 \\label{eq-c}\n$$"
+    )
+    labels = {}
+    numbered = figure_number.equations_number(
+        content=content, section="9.4", labels=labels
+    )
+    assert '<span id="eq-a"></span>\n\n$$\na = 1 \\tag{9.4-1}\n$$' in numbered
+    assert "$$\nb = 2\n$$" in numbered
+    assert '<span id="eq-c"></span>\n\n$$\nc = 3 \\tag{9.4-2}\n$$' in numbered
+    assert "\\label" not in numbered
+    assert labels == {"eq-a": "9.4-1", "eq-c": "9.4-2"}
+
+
+def test_equations_number_counts_separately_from_figures():
+    sections = [
+        _chapter(
+            number=[2],
+            content=(
+                "<figure><figcaption>F.</figcaption></figure>\n\n$$x \\label{eq-x}$$"
+            ),
+        )
+    ]
+    figure_number.sections_number(sections=sections)
+    content = sections[0]["Chapter"]["content"]
+    assert "Figure 2-1" in content
+    assert "\\tag{2-1}" in content
+
+
+def test_references_resolve_equation_links():
+    labels = {"eq-a": "9.4-3"}
+    content = 'see [Equation](#eq-a) and <a href="#eq-a">Equation</a>.'
+    resolved = figure_number.references_resolve(
+        content=content, labels=labels, path="p.md"
+    )
+    assert resolved == (
+        'see [Equation 9.4-3](#eq-a) and <a href="#eq-a">Equation 9.4-3</a>.'
+    )
