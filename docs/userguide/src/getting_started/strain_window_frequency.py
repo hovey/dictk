@@ -79,5 +79,5 @@ ax.axvline(
 )
 ax.set_xlabel("wave period (px)")
 ax.set_ylabel("$T$, fitted slope / true slope")
-ax.legend(loc="lower right")
+ax.legend(loc="center right")
 fig.savefig("strain_window_frequency.png", dpi=300)
