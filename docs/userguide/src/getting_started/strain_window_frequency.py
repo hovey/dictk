@@ -52,14 +52,17 @@ ax.plot(
     periods,
     [continuum(period=x) for x in periods],
     "-",
-    color="black",
+    color="silver",
+    linewidth=7,
+    solid_capstyle="round",
     label="continuum, $a = nh/2$",
 )
 ax.plot(
     periods,
     [discrete(period=x) for x in periods],
-    "--",
-    color="royalblue",
+    "-",
+    color="navy",
+    linewidth=1.3,
     label=f"discrete, ${N}\\times{N}$ points, $h$ = {H:.0f} px",
 )
 ax.plot(
@@ -67,6 +70,8 @@ ax.plot(
     discrete(period=BIAS_PERIOD),
     "o",
     color="red",
+    markeredgecolor="white",
+    zorder=3,
     label=f"{BIAS_PERIOD:.0f} px wave, $T$ = {discrete(period=BIAS_PERIOD):+.3f}",
 )
 ax.axvline(

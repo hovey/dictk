@@ -675,8 +675,8 @@ The 51 px period sits 1.4 px below the zero crossing at 52.4 px. The
 230 px period keeps 90%.
 
 <figure id="fig-sw-frequency">
-    <img src="strain_window_frequency.png" alt="plot of T, fitted slope over true slope, against wave period from 20 to 400 px for a 15 by 15 window at 5 px spacing. A black continuum curve and a dashed blue discrete curve overlap. Both oscillate near zero below 60 px, cross zero near 52 px, and rise toward 1, reaching 0.9 near 230 px. A red dot marks the 51 px wave at T = -0.017. A dotted vertical line marks the 75 px window extent" />
-    <figcaption>Frequency response of a 15x15 window at $h = 5$ px. The black curve is the continuum formula with $a = nh/2$. The dashed blue curve is the discrete least-squares fit. The red dot marks Kernel Warping's 51 px bias wave. The dotted line marks the 75 px window extent.</figcaption>
+    <img src="strain_window_frequency.png" alt="plot of T, fitted slope over true slope, against wave period from 20 to 400 px for a 15 by 15 window at 5 px spacing. A wide light gray continuum band and a thin dark navy discrete line overlap, with the line running down the middle of the band. Both oscillate near zero below 60 px, cross zero near 52 px, and rise toward 1, reaching 0.9 near 230 px. A red dot marks the 51 px wave at T = -0.017. A dotted vertical line marks the 75 px window extent" />
+    <figcaption>Frequency response of a 15x15 window at $h = 5$ px. The wide gray band is the continuum formula with $a = nh/2$. The thin navy line is the discrete least-squares fit. The two differ by at most 0.004 in $T$, at an 81 px period, so the line stays inside the band. The red dot marks Kernel Warping's 51 px bias wave. The dotted line marks the 75 px window extent.</figcaption>
 </figure>
 
 ## Window Edges
