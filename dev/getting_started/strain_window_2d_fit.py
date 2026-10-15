@@ -108,8 +108,8 @@ ax.set_zticks([])
 ax.set_xlim(-1.4, 1.4)
 ax.set_ylim(1.4, -1.4)
 ax.set_zlim(FLOOR, 0.8)
-ax.set_xlabel("$x$", fontsize=13)
-ax.set_ylabel("$y$", fontsize=13)
+ax.set_xlabel("$X$", fontsize=13)
+ax.set_ylabel("$Y$", fontsize=13)
 ax.set_zlabel("$u$", fontsize=13)
 for axis in (ax.xaxis, ax.yaxis, ax.zaxis):
     axis.pane.fill = False

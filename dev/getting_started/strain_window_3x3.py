@@ -56,10 +56,11 @@ print(
 )
 print()
 print(
-    f"Over {TRIALS} draws, $\\partial u / \\partial X$ has a standard "
+    f"Over {TRIALS} Monte Carlo draws, $\\partial u / \\partial X$ has a standard "
     f"deviation of {std_window * 1e6:.0f} microstrain. "
-    f"The formula $\\sigma / (h\\sqrt{{6}})$ gives {std_formula * 1e6:.0f}. "
-    f"A Q4 element gives {std_q4 * 1e6:.0f}."
+    f"The square root of [Equation](#eq-sw-3x3-variance), $\\sigma / (h\\sqrt{{6}})$, gives {std_formula * 1e6:.0f} microstrain. "
+    f"A Q4 element gives {std_q4 * 1e6:.0f} microstrain. "
+    "[Q4 Noise](#q4-noise) derives that value."
 )
 
 plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
@@ -134,7 +135,7 @@ for row in [-1, 0, 1]:
         color=colors[row],
         label=f"row $r$ = {row}",
     )
-ax_fit.set_xlabel(r"$x = ch$ (px)")
+ax_fit.set_xlabel(r"$X = ch$ (px)")
 ax_fit.set_ylabel(r"$u$ minus fitted $(\partial u / \partial Y)\, rh$ (px)")
 ax_fit.set_title("one draw: nine tracked $u$, row offset removed", fontsize=11)
 ax_fit.legend(loc="upper left", fontsize=8)
@@ -157,6 +158,6 @@ ax_hist.axvspan(
 )
 ax_hist.set_xlabel(r"fitted $\partial u / \partial X$ (µε)")
 ax_hist.set_ylabel("frequency")
-ax_hist.set_title(f"{TRIALS} draws, $\\sigma$ = {SIGMA} px", fontsize=11)
+ax_hist.set_title(f"{TRIALS} Monte Carlo draws, $\\sigma$ = {SIGMA} px", fontsize=11)
 ax_hist.legend(loc="upper right", fontsize=8)
 fig.savefig("strain_window_3x3_fit.png", dpi=300)
