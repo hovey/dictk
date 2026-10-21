@@ -186,7 +186,10 @@ deviation of the 2862-point grid to 1161 microstrain. VIC-2D's own
 measurement of the same stretch has a standard deviation of 1385
 microstrain. That page also ran an exploratory test. A 15x15-point
 least-squares window cut the 1161 microstrain to 39 microstrain.</p>
-<p>This page derives that window.</p>
+<p>This page derives that window and measures it with
+<a href="../api/dictk/strain_window.html"><code>dictk.strain_window</code></a>. The 39
+microstrain holds at the 1560 points with a full window. Across all
+2862 points, the spread is 91 microstrain.</p>
 <ol>
 <li>Every tracked point has a tracking error.</li>
 <li>A strain needs a derivative, and a derivative amplifies those errors.</li>
@@ -569,7 +572,7 @@ compares the window with a Q4 element on the same grid.
 <a href="#window-versus-q4">Window versus Q4</a> splits it into a <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">14</span><span class="mord">×</span></span></span></span> gain from the larger
 footprint and a <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">5.35</span><span class="mord">×</span></span></span></span> gain from the least-squares fit.
 Matching resolution instead of footprint moves that split to
-<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">11.3</span><span class="mord">×</span></span></span></span> and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">6.6</span><span class="mord">×</span></span></span></span>. The exploratory test measured 39 microstrain, 2.5 times more. The tracking error is
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">11.3</span><span class="mord">×</span></span></span></span> and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">6.6</span><span class="mord">×</span></span></span></span>. <a href="#measured-result">Measured Result</a> measures 39 microstrain at the interior points, 2.5 times more. The tracking error is
 not independent. <a href="./kernel_warping.html">Kernel Warping</a> found a wave
 with a 51 px period. Points 5 px apart sit 35° apart on that wave's
 cycle, so their errors correlate at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mop">cos</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">35°</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.82</span></span></span></span>.

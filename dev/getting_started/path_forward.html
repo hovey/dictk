@@ -285,12 +285,13 @@ Simple Stretch, Recoverable Displacement Range, Pure Rotation,
 Parallelization) leaves <code>windowing</code> at its default <code>None</code> — the one
 parameter of <code>grid.locate</code>'s own signature with no live worked
 example yet.</li>
-<li><strong>Strain window.</strong> Commercial DIC codes fit displacement over a
-neighborhood of points before differentiating it. That trades
-spatial resolution for a smaller strain spread. A 15x15-point
-least-squares window cut <a href="./kernel_warping.html">Kernel Warping</a>'s
-2862-point strain spread from 1161 to 39 microstrain, in an
-exploratory test. <code>dictk</code> doesn't ship one yet.</li>
+<li><strong>Strain-window bias on a strain gradient.</strong> Every strain-window
+test so far uses a uniform 2% stretch. Its third derivative <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7519em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7519em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′′′</span></span></span></span></span></span></span></span></span></span></span></span> is
+zero, so the cubic bias from <a href="./strain_window.html#bias-and-resolution">Bias and
+Resolution</a> never appears. A
+synthetic field with a known <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7519em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7519em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′′′</span></span></span></span></span></span></span></span></span></span></span></span> would measure that bias. It would
+also locate the window size that minimizes the mean squared error,
+variance plus squared bias.</li>
 <li><strong>A deformation-aware seed for <code>warp.fit</code>.</strong> IC-GN starts from
 <code>translation.locate</code>'s whole-pixel match, and that match uses a
 rigid, unwarped kernel. On a fine speckle pattern, a 10% stretch plus
@@ -691,6 +692,24 @@ Parallelization. The Discontinuities introduction now says its
 smoothness assumption held through Kernel Warping, not through
 Parallelism with PyTorch. Dated entries above keep the numbers that were
 current when they were written.</p>
+<h2 id="2026-10-21"><a class="header" href="#2026-10-21">2026-10-21</a></h2>
+<p><strong>Strain window ships.</strong> New module <code>dictk.strain_window</code>
+(<code>displacement_gradients</code>, <code>log_strains</code>, <code>std_factors</code>) fits <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">u</span></span></span></span> and
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span></span></span></span> over each point's window and truncates the window at the grid
+boundary. <a href="./strain_window.html">Strain Window</a> now measures it on Kernel
+Warping's 2862 tracked positions. A 15x15 window gives 39 microstrain
+at the 1560 interior points, against Q4's 1161. That reproduces the
+exploratory result. Across all 2862 points, it gives 91 microstrain.</p>
+<p>Edges cost more than the independent-error model predicts. Within 5
+columns of an <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span> edge, the RMS error runs 2.9 to 6.0 times the
+interior's. <code>std_factors</code> predicts at most 2.58 there. A sweep from
+3x3 to 19x19 puts 15x15 at the minimum. The 13x13 window gives 79
+microstrain, and the 17x17 window gives 76. One source explains both
+results. The tracking error follows a 51 px wave in <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span>, and a full
+15x15 window at 5 px spacing passes only 1.7% of that wave's slope. A
+truncated window passes up to 52.3%.</p>
+<p>The Strain window item leaves Postponed. A new Postponed item tests the
+window's bias on a strain gradient. 441 tests (425 + 16).</p>
 
                     </main>
 

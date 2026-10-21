@@ -5568,7 +5568,10 @@ shear along with the material. The <span class="katex"><span class="katex-html" 
 from 16531 to 1161 microstrain, against VIC-2D's 1385.</li>
 <li><a href="getting_started/./strain_window.html">Strain Window</a> derives a least-squares fit of
 displacement over a neighborhood of points, taken before computing
-strain. It sizes the noise reduction, the bias, and the edge cost.</li>
+strain. It sizes the noise reduction, the bias, and the edge cost.
+It adds <code>dictk.strain_window</code>. A 15x15 window cuts the <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>
+standard deviation from 1161 to 39 microstrain at the 1560 points
+with a full window, and to 91 microstrain across all 2862 points.</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="subpixel-accuracy"><a class="header" href="#subpixel-accuracy">Subpixel Accuracy</a></h1>
@@ -5976,7 +5979,7 @@ noise, spread over a larger <span class="katex"><span class="katex-html" aria-hi
 This is exactly why VIC-2D and other commercial DIC packages offer a
 <strong>strain window</strong> — averaging displacement over several subsets before
 computing strain, trading spatial resolution for strain precision.
-<code>dictk</code> doesn't implement that averaging yet. This page's own dense
+<a href="getting_started/./strain_window.html">Strain Window</a> adds that averaging later. This page's own dense
 mesh is accurate on average and honestly noisy point to point, not
 silently smoothed into looking better than the underlying tracking
 supports.</p>
@@ -6404,8 +6407,8 @@ found = locate_warp(
 </details>
 <p>The same fractional-position error curve, now for both trackers:</p>
 <div class="table-wrapper"><table><thead><tr><th>Tracker</th><th>Time (s)</th><th>Mean <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error (px)</th><th>Std <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error (px)</th><th>Max |<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error| (px)</th></tr></thead><tbody>
-<tr><td><code>locate_subpixel</code></td><td>3.3</td><td>-0.0110</td><td>0.1091</td><td>0.3200</td></tr>
-<tr><td><code>locate_warp</code></td><td>3.1</td><td>-0.0000</td><td>0.0080</td><td>0.0234</td></tr>
+<tr><td><code>locate_subpixel</code></td><td>2.5</td><td>-0.0110</td><td>0.1091</td><td>0.3200</td></tr>
+<tr><td><code>locate_warp</code></td><td>2.4</td><td>-0.0000</td><td>0.0080</td><td>0.0234</td></tr>
 </tbody></table>
 </div><figure id="figure-9.3-6">
     <img src="getting_started/kernel_warping_bias.png" alt="mean x error against the fractional part of true x for two trackers. locate_subpixel, circles, swings from about -0.14 to +0.12 px. locate_warp, squares, stays within about 0.01 px of zero across the whole pixel" />
@@ -6475,7 +6478,8 @@ point's fractional position. Each tracker responds to it differently.</p>
 before differentiating. The fit averages the tracking errors of every
 point in the window. It also blurs any real strain change inside the
 window into one value. A 15x15-point window, spanning 75 px here, cut <code>locate_warp</code>'s spread from 1161 to
-39 microstrain in an exploratory test.
+39 microstrain in an exploratory test. See <a href="getting_started/./strain_window.html">Strain
+Window</a>.
 Fixing the bias first matters. A window spanning a whole bias cycle
 would also flatten High Point Density's stripes. That averaging would
 hide the error while leaving it in the tracked positions.</p>
@@ -7543,7 +7547,10 @@ deviation of the 2862-point grid to 1161 microstrain. VIC-2D's own
 measurement of the same stretch has a standard deviation of 1385
 microstrain. That page also ran an exploratory test. A 15x15-point
 least-squares window cut the 1161 microstrain to 39 microstrain.</p>
-<p>This page derives that window.</p>
+<p>This page derives that window and measures it with
+<a href="getting_started/../api/dictk/strain_window.html"><code>dictk.strain_window</code></a>. The 39
+microstrain holds at the 1560 points with a full window. Across all
+2862 points, the spread is 91 microstrain.</p>
 <ol>
 <li>Every tracked point has a tracking error.</li>
 <li>A strain needs a derivative, and a derivative amplifies those errors.</li>
@@ -7926,7 +7933,7 @@ compares the window with a Q4 element on the same grid.
 <a href="getting_started/strain_window.html#window-versus-q4">Window versus Q4</a> splits it into a <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">14</span><span class="mord">×</span></span></span></span> gain from the larger
 footprint and a <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">5.35</span><span class="mord">×</span></span></span></span> gain from the least-squares fit.
 Matching resolution instead of footprint moves that split to
-<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">11.3</span><span class="mord">×</span></span></span></span> and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">6.6</span><span class="mord">×</span></span></span></span>. The exploratory test measured 39 microstrain, 2.5 times more. The tracking error is
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">11.3</span><span class="mord">×</span></span></span></span> and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">6.6</span><span class="mord">×</span></span></span></span>. <a href="getting_started/strain_window.html#measured-result">Measured Result</a> measures 39 microstrain at the interior points, 2.5 times more. The tracking error is
 not independent. <a href="getting_started/./kernel_warping.html">Kernel Warping</a> found a wave
 with a 51 px period. Points 5 px apart sit 35° apart on that wave's
 cycle, so their errors correlate at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mop">cos</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">35°</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.82</span></span></span></span>.
@@ -13289,12 +13296,13 @@ Simple Stretch, Recoverable Displacement Range, Pure Rotation,
 Parallelization) leaves <code>windowing</code> at its default <code>None</code> — the one
 parameter of <code>grid.locate</code>'s own signature with no live worked
 example yet.</li>
-<li><strong>Strain window.</strong> Commercial DIC codes fit displacement over a
-neighborhood of points before differentiating it. That trades
-spatial resolution for a smaller strain spread. A 15x15-point
-least-squares window cut <a href="getting_started/./kernel_warping.html">Kernel Warping</a>'s
-2862-point strain spread from 1161 to 39 microstrain, in an
-exploratory test. <code>dictk</code> doesn't ship one yet.</li>
+<li><strong>Strain-window bias on a strain gradient.</strong> Every strain-window
+test so far uses a uniform 2% stretch. Its third derivative <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7519em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7519em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′′′</span></span></span></span></span></span></span></span></span></span></span></span> is
+zero, so the cubic bias from <a href="getting_started/./strain_window.html#bias-and-resolution">Bias and
+Resolution</a> never appears. A
+synthetic field with a known <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7519em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7519em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′′′</span></span></span></span></span></span></span></span></span></span></span></span> would measure that bias. It would
+also locate the window size that minimizes the mean squared error,
+variance plus squared bias.</li>
 <li><strong>A deformation-aware seed for <code>warp.fit</code>.</strong> IC-GN starts from
 <code>translation.locate</code>'s whole-pixel match, and that match uses a
 rigid, unwarped kernel. On a fine speckle pattern, a 10% stretch plus
@@ -13695,6 +13703,24 @@ Parallelization. The Discontinuities introduction now says its
 smoothness assumption held through Kernel Warping, not through
 Parallelism with PyTorch. Dated entries above keep the numbers that were
 current when they were written.</p>
+<h2 id="2026-10-21"><a class="header" href="#2026-10-21">2026-10-21</a></h2>
+<p><strong>Strain window ships.</strong> New module <code>dictk.strain_window</code>
+(<code>displacement_gradients</code>, <code>log_strains</code>, <code>std_factors</code>) fits <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">u</span></span></span></span> and
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span></span></span></span> over each point's window and truncates the window at the grid
+boundary. <a href="getting_started/./strain_window.html">Strain Window</a> now measures it on Kernel
+Warping's 2862 tracked positions. A 15x15 window gives 39 microstrain
+at the 1560 interior points, against Q4's 1161. That reproduces the
+exploratory result. Across all 2862 points, it gives 91 microstrain.</p>
+<p>Edges cost more than the independent-error model predicts. Within 5
+columns of an <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span> edge, the RMS error runs 2.9 to 6.0 times the
+interior's. <code>std_factors</code> predicts at most 2.58 there. A sweep from
+3x3 to 19x19 puts 15x15 at the minimum. The 13x13 window gives 79
+microstrain, and the 17x17 window gives 76. One source explains both
+results. The tracking error follows a 51 px wave in <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">X</span></span></span></span>, and a full
+15x15 window at 5 px spacing passes only 1.7% of that wave's slope. A
+truncated window passes up to 52.3%.</p>
+<p>The Strain window item leaves Postponed. A new Postponed item tests the
+window's bias on a strain gradient. 441 tests (425 + 16).</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="contributing-to-dictk"><a class="header" href="#contributing-to-dictk">Contributing to <code>dictk</code></a></h1>
 <p><code>dictk</code> is developed on <a href="https://github.com/hovey/dictk">GitHub</a> using
