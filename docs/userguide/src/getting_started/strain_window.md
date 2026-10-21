@@ -988,4 +988,60 @@ sits 73 microstrain below $\ln 1.02$. Over all 2862 points, the
 standard deviation is 91 microstrain. A full strain field includes its
 edges, so 91 microstrain is the spread a reader of that field sees.
 
+### Edges and Corners
+
+[Window Edges](#window-edges) predicts how truncation raises the spread
+for independent errors. The table tests that prediction on the measured
+field. It groups the 2862 points by distance to the grid boundary.
+$d_X$ counts columns to the nearest left or right edge. $d_Y$ counts
+rows to the nearest top or bottom edge. Both stop at $m = 7$, where the
+window no longer truncates. The table reports the root-mean-square
+(RMS) error of $E_{11}$ against $\ln 1.02$. The RMS includes bias, and
+the standard deviation does not. The independent prediction comes from
+[`std_factors`](../api/dictk/strain_window.html#std_factors). The last
+column gives the largest fraction of a 51 px wave's slope that each
+window passes, over all phases of the wave.
+
+<!-- cmdrun python3 strain_window_edges_measured.py -->
+
+The independent-error model underpredicts every $X$ edge group. At the
+edge column, $d_X = 0$, the RMS error is 158 microstrain, 4.03 times the
+interior's 39. The model predicts 2.58. The worst group sits 3 columns
+in. Its RMS error is 237 microstrain, 6.04 times the interior. The model
+predicts 1.60 there.
+
+$Y$ edges add 17% to the interior RMS. The top and bottom rows give 46
+microstrain, 1.17 times the interior, below the predicted 1.37. The 4
+corner points give 187 microstrain, 4.76 times the interior, against a
+predicted 3.54. The corners also sit at $d_X = 0$. Their 187
+microstrain sits within 29 microstrain of the $X$ edge's 158.
+
+The tracking error accounts for the gap. [Kernel
+Warping](./kernel_warping.md) found that the error follows a wave in
+$X$ with a 51 px period. Panel (a) of [Figure](#fig-sw-edges-measured)
+shows the strain error as vertical stripes. It depends on $X$, not on
+$Y$. Panel (b) averages each column over the 40 rows with a full $Y$
+window. The column-mean displacement error has an RMS of 0.0076 px. A
+window fit of that error predicts the column-mean $E_{11}$ error with
+correlation 0.9997.
+
+<figure id="fig-sw-edges-measured">
+    <img src="strain_window_edges_measured.png" alt="two panels. Left: a map of E11 minus ln 1.02 over the 53 by 54 grid, on a red-blue scale from -338 to +338 microstrain. The error forms vertical stripes. The leftmost column is dark red, the next six columns are blue, and the rightmost seven columns are dark blue. A dashed rectangle encloses the interior points with a full window, where every point stays within 105 microstrain. Right: column-mean E11 error against grid column 0 to 52. Blue dots follow a black line closely. The curve starts at +174 at column 0, dips to -210 at column 3, oscillates between -70 and +58 between the dashed lines at columns 6.5 and 45.5, then falls to -287 at column 50" />
+    <figcaption>(a) The $E_{11}$ error of a 15x15 window at each tracked point. The dashed rectangle encloses the 1560 points with a full window. (b) The column-mean $E_{11}$ error over the 40 rows with a full $Y$ window. The blue dots are measured. The black line is a window fit of the column-mean displacement error. The dashed lines separate truncated columns from full ones.</figcaption>
+</figure>
+
+A full window passes 1.7% of the wave's slope. The 51 px period sits
+1.4 px from the window's zero crossing at 52.4 px. A truncated window
+loses that cancellation. At the $X$ edge, it passes up to 52.3%. Three
+columns in, it passes up to 24.1%. These are upper bounds over the
+wave's phase. Each $d_X$ group holds only 2 columns, one per side. Its
+RMS depends on where those 2 columns fall on the wave, so it need not
+peak at the edge. Here it peaks at $d_X = 3$.
+
+The truncated points' 73 microstrain mean offset has the same cause.
+Their columns sample the wave at phases that do not cancel. Within 5
+columns of an $X$ edge, the RMS error runs 2.9 to 6.0 times the
+interior's. So a field-wide spread from this tracker should report
+interior and edge points separately.
+
 Continue to [Discontinuities](./discontinuities.md).

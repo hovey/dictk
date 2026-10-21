@@ -165,6 +165,14 @@ def std_factors(*, count_x: int, count_y: int, margin: int) -> np.ndarray:
     3.54. See [Window
     Edges](../getting_started/strain_window.html#window-edges).
 
+    Correlated tracking error can exceed these factors. A full window
+    cancels most of a periodic error, and a truncated window does not.
+    On `dictk.grid.locate_warp` positions under a 2% stretch, whose
+    error follows a 51 px wave, the measured $E_{11}$ error at an edge
+    point is 4.03 times the interior's, against a predicted 2.58. Three
+    columns in, it is 6.04 times, against a predicted 1.60. See [Edges
+    and Corners](../getting_started/strain_window.html#edges-and-corners).
+
     Args:
         count_x: Number of grid points along x.
         count_y: Number of grid points along y.
