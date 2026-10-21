@@ -1044,4 +1044,53 @@ columns of an $X$ edge, the RMS error runs 2.9 to 6.0 times the
 interior's. So a field-wide spread from this tracker should report
 interior and edge points separately.
 
+### Window Size
+
+The 15x15 window gives the smallest interior spread of the 9 windows
+from 3x3 to 19x19. The sweep below reruns the same positions with $m$
+from 1 to 9, stepping by 1 point. The independent-error prediction
+scales Q4's 1161 microstrain by the window's factor from
+[Noise in a General Window](#noise-in-a-general-window). The
+measured-error prediction combines two parts in quadrature. The first
+part fits each window to the column-mean displacement error from
+[Edges and Corners](#edges-and-corners). The second part treats the
+row-to-row displacement error as independent. That is an approximation.
+The last column is the discrete $T$ of
+[Frequency Response](#frequency-response) for a 51 px wave.
+
+<!-- cmdrun python3 strain_window_sweep.py -->
+
+[Figure](#fig-sw-sweep) plots the table's four spread columns.
+
+<figure id="fig-sw-sweep">
+    <img src="strain_window_sweep.png" alt="log-scale plot of the standard deviation of E11 in microstrain against window points per side n from 3 to 19. A dashed gray independent-error prediction falls smoothly from 410 at n = 3 to 9.7 at n = 19. Blue dots for interior points fall from 945 at n = 3 to a minimum of 39 at n = 15, marked by an arrow, then rise to 76 at n = 17 and 82 at n = 19. A solid black measured-error prediction passes through the blue dots. Hollow red squares for all points sit above the blue dots, with a minimum of 91 at n = 15" />
+    <figcaption>Standard deviation of $E_{11}$ against window size on Kernel Warping's tracked positions. The blue dots use interior points only. The red squares use all 2862 points. The dashed line assumes independent errors. The solid line comes from the measured displacement error. The arrow marks the 15x15 window's 39 microstrain.</figcaption>
+</figure>
+
+The 39 microstrain is a dip, not a trend. The 13x13 window gives 79
+microstrain, and the 17x17 window gives 76. Both are twice the 15x15
+value. The 19x19 window gives 82 microstrain, so it averages 1260
+points to do worse than 1560 points at $n = 15$. The 51 px column shows
+why. $T$ falls from $+0.089$ at $n = 13$ to $-0.017$ at $n = 15$, then
+grows to $-0.074$ at $n = 17$. The wave's slope passes through least at
+$n = 15$, and that wave dominates the error.
+
+The independent-error prediction misses that shape. It falls at every
+step, from 410 microstrain at $n = 3$ to 9.7 at $n = 19$. The measured
+spread sits 2.3 times above it at $n = 3$, 2.5 times at $n = 15$, and
+8.5 times at $n = 19$. The measured-error prediction stays within 19
+microstrain of the measured spread at $n = 3$, and within 5 microstrain
+from $n = 5$ to 19.
+
+The all-points spread also bottoms out at $n = 15$, at 91 microstrain.
+Its minimum is shallower. The 17x17 and 19x19 windows give 101 and 98
+microstrain, because those windows truncate at 1456 and 1602 of the
+2862 points.
+
+The best window size depends on the error's period. This tracker's
+error follows a 51 px wave, and a 15x15 window at 5 px spacing happens
+to land 1.4 px from that wave's zero crossing. A tracker or image with
+a different error period would move the dip. Choosing $n$ needs a sweep
+like this one, on data with a known answer.
+
 Continue to [Discontinuities](./discontinuities.md).
