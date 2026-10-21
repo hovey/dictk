@@ -464,7 +464,8 @@ Neither result is smoothed. Commercial codes usually also apply a
 before differentiating. The fit averages the tracking errors of every
 point in the window. It also blurs any real strain change inside the
 window into one value. A 15x15-point window, spanning 75 px here, cut `locate_warp`'s spread from 1161 to
-39 microstrain in an exploratory test.
+39 microstrain in an exploratory test. See [Strain
+Window](./strain_window.md).
 Fixing the bias first matters. A window spanning a whole bias cycle
 would also flatten High Point Density's stripes. That averaging would
 hide the error while leaving it in the tracked positions.

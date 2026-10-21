@@ -281,7 +281,7 @@ noise, spread over a larger $L$, moves less of the resulting strain.
 This is exactly why VIC-2D and other commercial DIC packages offer a
 **strain window** — averaging displacement over several subsets before
 computing strain, trading spatial resolution for strain precision.
-`dictk` doesn't implement that averaging yet. This page's own dense
+[Strain Window](./strain_window.md) adds that averaging later. This page's own dense
 mesh is accurate on average and honestly noisy point to point, not
 silently smoothed into looking better than the underlying tracking
 supports.

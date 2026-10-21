@@ -6,7 +6,10 @@ measurement of the same stretch has a standard deviation of 1385
 microstrain. That page also ran an exploratory test. A 15x15-point
 least-squares window cut the 1161 microstrain to 39 microstrain.
 
-This page derives that window.
+This page derives that window and measures it with
+[`dictk.strain_window`](../api/dictk/strain_window.html). The 39
+microstrain holds at the 1560 points with a full window. Across all
+2862 points, the spread is 91 microstrain.
 
 1. Every tracked point has a tracking error.
 2. A strain needs a derivative, and a derivative amplifies those errors.
@@ -647,7 +650,7 @@ compares the window with a Q4 element on the same grid.
 [Window versus Q4](#window-versus-q4) splits it into a $14\times$ gain from the larger
 footprint and a $5.35\times$ gain from the least-squares fit.
 Matching resolution instead of footprint moves that split to
-$11.3\times$ and $6.6\times$. The exploratory test measured 39 microstrain, 2.5 times more. The tracking error is
+$11.3\times$ and $6.6\times$. [Measured Result](#measured-result) measures 39 microstrain at the interior points, 2.5 times more. The tracking error is
 not independent. [Kernel Warping](./kernel_warping.md) found a wave
 with a 51 px period. Points 5 px apart sit 35° apart on that wave's
 cycle, so their errors correlate at $\cos 35° = 0.82$.

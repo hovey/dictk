@@ -39,3 +39,6 @@ The four pages of this chapter take that on in order:
 * [Strain Window](./strain_window.md) derives a least-squares fit of
   displacement over a neighborhood of points, taken before computing
   strain. It sizes the noise reduction, the bias, and the edge cost.
+  It adds `dictk.strain_window`. A 15x15 window cuts the $E_{11}$
+  standard deviation from 1161 to 39 microstrain at the 1560 points
+  with a full window, and to 91 microstrain across all 2862 points.

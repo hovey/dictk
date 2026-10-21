@@ -112,12 +112,13 @@ Noted, not being pursued right now:
   Parallelization) leaves `windowing` at its default `None` — the one
   parameter of `grid.locate`'s own signature with no live worked
   example yet.
-* **Strain window.** Commercial DIC codes fit displacement over a
-  neighborhood of points before differentiating it. That trades
-  spatial resolution for a smaller strain spread. A 15x15-point
-  least-squares window cut [Kernel Warping](./kernel_warping.md)'s
-  2862-point strain spread from 1161 to 39 microstrain, in an
-  exploratory test. `dictk` doesn't ship one yet.
+* **Strain-window bias on a strain gradient.** Every strain-window
+  test so far uses a uniform 2% stretch. Its third derivative $u'''$ is
+  zero, so the cubic bias from [Bias and
+  Resolution](./strain_window.md#bias-and-resolution) never appears. A
+  synthetic field with a known $u'''$ would measure that bias. It would
+  also locate the window size that minimizes the mean squared error,
+  variance plus squared bias.
 * **A deformation-aware seed for `warp.fit`.** IC-GN starts from
   `translation.locate`'s whole-pixel match, and that match uses a
   rigid, unwarped kernel. On a fine speckle pattern, a 10% stretch plus
@@ -568,3 +569,25 @@ Parallelization. The Discontinuities introduction now says its
 smoothness assumption held through Kernel Warping, not through
 Parallelism with PyTorch. Dated entries above keep the numbers that were
 current when they were written.
+
+## 2026-10-21
+
+**Strain window ships.** New module `dictk.strain_window`
+(`displacement_gradients`, `log_strains`, `std_factors`) fits $u$ and
+$v$ over each point's window and truncates the window at the grid
+boundary. [Strain Window](./strain_window.md) now measures it on Kernel
+Warping's 2862 tracked positions. A 15x15 window gives 39 microstrain
+at the 1560 interior points, against Q4's 1161. That reproduces the
+exploratory result. Across all 2862 points, it gives 91 microstrain.
+
+Edges cost more than the independent-error model predicts. Within 5
+columns of an $X$ edge, the RMS error runs 2.9 to 6.0 times the
+interior's. `std_factors` predicts at most 2.58 there. A sweep from
+3x3 to 19x19 puts 15x15 at the minimum. The 13x13 window gives 79
+microstrain, and the 17x17 window gives 76. One source explains both
+results. The tracking error follows a 51 px wave in $X$, and a full
+15x15 window at 5 px spacing passes only 1.7% of that wave's slope. A
+truncated window passes up to 52.3%.
+
+The Strain window item leaves Postponed. A new Postponed item tests the
+window's bias on a strain gradient. 441 tests (425 + 16).
