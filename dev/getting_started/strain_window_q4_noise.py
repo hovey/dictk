@@ -14,7 +14,7 @@ from dictk.element import (
 )
 
 H = 1.0
-M_VALUES = np.arange(1, 11)
+M_VALUES = np.arange(1, 10)
 N_VALUES = 2 * M_VALUES + 1
 
 
@@ -47,7 +47,7 @@ print(
 )
 print("|---|---|---|---|---|---|")
 for n, w, s, f in zip(N_VALUES, window, spacing, footprint, strict=True):
-    if n in (3, 7, 15, 21):
+    if n in (3, 7, 15, 19):
         print(f"| {n} | {w:.4f} | {s:.4f} | {f:.4f} | {s / w:.1f} | {f / w:.2f} |")
 print()
 print(
@@ -71,6 +71,16 @@ ax.plot(
 ax.plot(N_VALUES, window, "-", color="royalblue", marker="o", label="window")
 for n, w, s, f in zip(N_VALUES, window, spacing, footprint, strict=True):
     if n == 15:
+        for value in (s, f, w):
+            ax.text(
+                n - 0.2,
+                value / 1.12,
+                f"{value:.4f}",
+                ha="right",
+                va="top",
+                fontsize=10,
+                color="black",
+            )
         for y_top, y_bottom, text, dx in [
             (s, f, f"${s / f:.0f}\\times$\nfootprint", 0.35),
             (f, w, f"${f / w:.2f}\\times$\nleast-squares fit", 0.35),
