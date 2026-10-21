@@ -123,30 +123,34 @@ fig, ax = plt.subplots(figsize=(7, 4), constrained_layout=True)
 ax.plot(
     n_values,
     [r["independent"] for r in rows],
-    "--",
-    color="gray",
+    "-",
+    color="royalblue",
+    marker="o",
     label="independent-error prediction",
 )
 ax.plot(
     n_values,
     [r["measured_error"] for r in rows],
-    "-",
-    color="black",
+    "-.",
+    color="darkgreen",
     label="measured-error prediction",
 )
 ax.plot(
     n_values,
     [r["all"] for r in rows],
-    "s",
-    color="firebrick",
+    "^",
+    color="purple",
     mfc="white",
+    mew=1.6,
+    ms=9,
     label="measured, all points",
 )
 ax.plot(
     n_values,
     [r["interior"] for r in rows],
-    "o",
-    color="royalblue",
+    "D",
+    color="darkorange",
+    ms=6,
     label="measured, interior points",
 )
 best = next(r for r in rows if r["n"] == 15)
@@ -155,8 +159,8 @@ ax.annotate(
     xy=(15, best["interior"]),
     xytext=(15, best["interior"] / 2.2),
     ha="center",
-    arrowprops={"arrowstyle": "->", "color": "royalblue"},
-    color="royalblue",
+    arrowprops={"arrowstyle": "->", "color": "darkorange"},
+    color="darkorange",
 )
 ax.set_yscale("log")
 ax.set_xticks(n_values)

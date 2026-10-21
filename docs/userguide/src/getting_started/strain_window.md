@@ -988,6 +988,27 @@ sits 73 microstrain below $\ln 1.02$. Over all 2862 points, the
 standard deviation is 91 microstrain. A full strain field includes its
 edges, so 91 microstrain is the spread a reader of that field sees.
 
+### Strain Field
+
+[Figure](#fig-sw-field) redraws Kernel Warping's Q4 field next to the
+15x15 window's field. Both panels use the VIC-2D colorbar from
+[Kernel Warping](./kernel_warping.md), from 17560 to 22360
+microstrain in 16 bands:
+
+<!-- cmdrun python3 strain_window_field.py -->
+
+<figure id="fig-sw-field">
+    <img src="strain_window_field.png" alt="two strain maps over the gray speckled current image, sharing one 16-band VIC-2D colorbar from 17560 to 22360 microstrain. Left: the Q4 field at 11024 Gauss points shows vertical stripes in every color from magenta to red. Right: the 15x15 window field at 2862 points is a single mint-green band, 19660 to 19960 microstrain, across the interior. A cyan stripe covers grid columns 2 to 4 near the left edge, and column 0 is a brighter green. A cyan stripe covers columns 47 to 52 along the right edge" />
+    <figcaption>$E_{11}$ on Kernel Warping's tracked positions, over the current image. (a) Q4 elements at 11024 Gauss points. (b) The 15x15 window at 2862 tracked points. Both panels share VIC-2D's colorbar.</figcaption>
+</figure>
+
+The Q4 field touches all 16 bands, and 2.6% of its Gauss points fall
+outside the colorbar. The window field touches 3 bands. All 1560 of its
+interior points fall in one band, from 19660 to 19960 microstrain. The
+cyan stripes along the left and right sides are truncated columns.
+Each interior square in panel (b) comes from a fit to 225 tracked
+positions. Each Q4 Gauss point in panel (a) comes from 4.
+
 ### Edges and Corners
 
 [Window Edges](#window-edges) predicts how truncation raises the spread
@@ -1050,7 +1071,12 @@ The 15x15 window gives the smallest interior spread of the 9 windows
 from 3x3 to 19x19. The sweep below reruns the same positions with $m$
 from 1 to 9, stepping by 1 point. The independent-error prediction
 scales Q4's 1161 microstrain by the window's factor from
-[Noise in a General Window](#noise-in-a-general-window). The
+[Noise in a General Window](#noise-in-a-general-window). That
+scaling sets $\sigma / h$ to $1161 / 1.1547 = 1005$ microstrain, so
+$\sigma = 0.0050$ px at $h = 5$ px. The tracking error is not
+independent. Its column-mean wave has an RMS of 0.0076 px, against
+0.0029 px row to row. So this $\sigma$ is fitted to Q4's result. It is
+not a measured independent tracking error. The
 measured-error prediction combines two parts in quadrature. The first
 part fits each window to the column-mean displacement error from
 [Edges and Corners](#edges-and-corners). The second part treats the
@@ -1063,8 +1089,8 @@ The last column is the discrete $T$ of
 [Figure](#fig-sw-sweep) plots the table's four spread columns.
 
 <figure id="fig-sw-sweep">
-    <img src="strain_window_sweep.png" alt="log-scale plot of the standard deviation of E11 in microstrain against window points per side n from 3 to 19. A dashed gray independent-error prediction falls smoothly from 410 at n = 3 to 9.7 at n = 19. Blue dots for interior points fall from 945 at n = 3 to a minimum of 39 at n = 15, marked by an arrow, then rise to 76 at n = 17 and 82 at n = 19. A solid black measured-error prediction passes through the blue dots. Hollow red squares for all points sit above the blue dots, with a minimum of 91 at n = 15" />
-    <figcaption>Standard deviation of $E_{11}$ against window size on Kernel Warping's tracked positions. The blue dots use interior points only. The red squares use all 2862 points. The dashed line assumes independent errors. The solid line comes from the measured displacement error. The arrow marks the 15x15 window's 39 microstrain.</figcaption>
+    <img src="strain_window_sweep.png" alt="log-scale plot of the standard deviation of E11 in microstrain against window points per side n from 3 to 19. A solid blue independent-error prediction with dots falls smoothly from 410 at n = 3 to 9.7 at n = 19. Filled orange diamonds for interior points fall from 945 at n = 3 to a minimum of 39 at n = 15, marked by an arrow, then rise to 76 at n = 17 and 82 at n = 19. A dark green dash-dot measured-error prediction passes through the diamonds. Hollow purple triangles for all points sit above the diamonds, with a minimum of 91 at n = 15" />
+    <figcaption>Standard deviation of $E_{11}$ against window size on Kernel Warping's tracked positions. The orange diamonds use interior points only. The hollow purple triangles use all 2862 points. The blue line assumes independent errors, the same curve as <a href="#fig-sw-noise">Figure</a> and <a href="#fig-sw-q4-noise">Figure</a> scaled to microstrain. The green dash-dot line comes from the measured displacement error. The arrow marks the 15x15 window's 39 microstrain.</figcaption>
 </figure>
 
 The 39 microstrain is a dip, not a trend. The 13x13 window gives 79
