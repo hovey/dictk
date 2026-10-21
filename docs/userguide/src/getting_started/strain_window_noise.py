@@ -6,8 +6,8 @@ element's value.
 import matplotlib.pyplot as plt
 import numpy as np
 
-HALF_WIDTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-TABLE_HALF_WIDTHS = [1, 2, 3, 4, 5, 7]
+HALF_WIDTHS = list(range(1, 10))
+TABLE_N = [3, 7, 11, 15, 19]
 TRIALS = 4000
 Q4 = np.sqrt(4 / 3)
 
@@ -27,9 +27,17 @@ print(
 )
 print("|---|---|---|---|")
 for m, f, s in zip(HALF_WIDTHS, formula, simulated, strict=True):
-    if m in TABLE_HALF_WIDTHS:
-        n = 2 * m + 1
-        print(f"| {n}x{n} ($m = {m}$) | {f:.4f} | {s:.4f} | ${Q4 / f:.1f}\\times$ |")
+    n = 2 * m + 1
+    if n not in TABLE_N:
+        continue
+    half_width = f"($m = {m}$)"
+    if n == 15:
+        window = (
+            f"**{n}x{n}**<br>**<span style='white-space: nowrap'>{half_width}</span>**"
+        )
+    else:
+        window = f"{n}x{n}<br><span style='white-space: nowrap'>{half_width}</span>"
+    print(f"| {window} | {f:.4f} | {s:.4f} | ${Q4 / f:.1f}\\times$ |")
 
 n_values = [2 * m + 1 for m in HALF_WIDTHS]
 plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})

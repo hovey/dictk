@@ -632,12 +632,12 @@ $n^{-1/2}$.
 The table compares the formula with a Monte Carlo simulation of 4000
 random draws per window and
 with the Q4 element's $1.155\,\sigma / h$. [Figure](#fig-sw-noise)
-plots the same comparison for $n$ from 3 to 21:
+plots the same comparison for $n$ from 3 to 19:
 
 <!-- cmdrun python3 strain_window_noise.py -->
 
 <figure id="fig-sw-noise">
-    <img src="strain_window_noise.png" alt="log-scale plot of the standard deviation of du/dX, in units of sigma over h, against window points per side n from 3 to 21. A black formula curve falls from 0.41 at n = 3 to 0.008 at n = 21. Blue Monte Carlo dots sit on the curve. A dashed red horizontal line marks the Q4 element at 1.155" />
+    <img src="strain_window_noise.png" alt="log-scale plot of the standard deviation of du/dX, in units of sigma over h, against window points per side n from 3 to 19. A black formula curve falls from 0.41 at n = 3 to 0.0096 at n = 19. Blue Monte Carlo dots sit on the curve. A dashed red horizontal line marks the Q4 element at 1.155" />
     <figcaption>Standard deviation of $\partial u / \partial X$ for independent errors, in units of $\sigma / h$, against $n$. The black curve is the formula. The blue dots are a Monte Carlo simulation of 4000 random draws per window. The dashed red line is a Q4 element of side $h$, from <a href="#q4-baseline">Q4 Baseline</a>.</figcaption>
 </figure>
 
@@ -743,11 +743,11 @@ Together, $7.5 \times 0.617 \times 1.155 = 5.35$.
 
 <!-- cmdrun python3 strain_window_q4_noise.py -->
 
-[Figure](#fig-sw-q4-noise) plots all three for $n$ from 3 to 21.
+[Figure](#fig-sw-q4-noise) plots all three for $n$ from 3 to 19.
 
 <figure id="fig-sw-q4-noise">
-    <img src="strain_window_q4_noise.png" alt="log-scale plot of the standard deviation of du/dX, in units of sigma over h, against window points per side n from 3 to 21. A dashed red line holds at 1.155 for the equal-spacing Q4 element. A solid red line with hollow squares falls from 0.58 at n = 3 to 0.058 at n = 21 for the equal-footprint Q4 element. A solid blue line with dots falls faster, from 0.41 to 0.008, for the window. At n = 15, gray double arrows split the gap into 14× footprint, between the two red lines, and 5.35× fit, between the lower red line and the blue line" />
-    <figcaption>Standard deviation of $\partial u / \partial X$ against $n$ for the window and for Q4 elements at equal spacing and at equal footprint. At $n = 15$, the gray arrows split the $74.8\times$ equal-spacing ratio into a $14\times$ footprint gain and a $5.35\times$ least-squares fit gain.</figcaption>
+    <img src="strain_window_q4_noise.png" alt="log-scale plot of the standard deviation of du/dX, in units of sigma over h, against window points per side n from 3 to 19. A dashed red line holds at 1.155 for the equal-spacing Q4 element. A solid red line with hollow squares falls from 0.58 at n = 3 to 0.064 at n = 19 for the equal-footprint Q4 element. A solid blue line with dots falls faster, from 0.41 to 0.0096, for the window. At n = 15, labels give the values 1.1547, 0.0825, and 0.0154, and gray double arrows split the gap into 14× footprint, between the two red lines, and 5.35× fit, between the lower red line and the blue line" />
+    <figcaption>Standard deviation of $\partial u / \partial X$ against $n$ for the window and for Q4 elements at equal spacing and at equal footprint. At $n = 15$, the gray arrows split the $74.8\times$ equal-spacing ratio into a $14\times$ footprint gain and a $5.35\times$ least-squares fit gain. The labels give each series' value at $n = 15$, in units of $\sigma / h$.</figcaption>
 </figure>
 
 A larger footprint lowers noise and blurs the field. Two methods with
@@ -961,5 +961,31 @@ points. For $n = 15$, that is 210 of 225. Their errors correlate. The
 standard deviation across the field then describes the spread of the
 strain field. It does not describe the uncertainty of independent
 measurements. Every spread quoted on this page will name its step.
+
+## Measured Result
+
+[`dictk.strain_window.log_strains`](../api/dictk/strain_window.html#log_strains)
+runs the window on [Kernel Warping](./kernel_warping.md)'s tracked
+positions. The grid has 53x54 points at 5 px spacing. The current image
+stretches the reference 2% in $x$, so the true $E_{11}$ is
+$\ln 1.02 = 19803$ microstrain. The window has $m = 7$, so $n = 15$. It
+steps by 1 point. The Q4 row repeats Kernel Warping's baseline on the
+same positions.
+
+<!-- cmdrun python3 strain_window_measured.py -->
+
+The interior row reproduces the exploratory test. Each of its 1560
+points has a full 15x15 window. Their $E_{11}$ standard deviation is 39
+microstrain. Q4 gives 1161 microstrain on the same positions, so the
+window cuts the spread $30\times$. The interior mean matches
+$\ln 1.02$ to within 1 microstrain. The Q4 mean sits 48 microstrain
+above it.
+
+The 39 microstrain leaves out 45.5% of the grid. Those 1302 points sit
+within 7 points of an edge, so their windows truncate. Their standard
+deviation is 117 microstrain, 3.0 times the interior value. Their mean
+sits 73 microstrain below $\ln 1.02$. Over all 2862 points, the
+standard deviation is 91 microstrain. A full strain field includes its
+edges, so 91 microstrain is the spread a reader of that field sees.
 
 Continue to [Discontinuities](./discontinuities.md).
