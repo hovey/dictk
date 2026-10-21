@@ -45,6 +45,7 @@ __all__ = [
     "grid",
     "image",
     "plot",
+    "strain_window",
     "translation",
     "warp",
 ]
