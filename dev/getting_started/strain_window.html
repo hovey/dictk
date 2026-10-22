@@ -181,30 +181,54 @@
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="strain-window"><a class="header" href="#strain-window">Strain Window</a></h1>
-<p><a href="./kernel_warping.html">Kernel Warping</a> cut the <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> standard
-deviation of the 2862-point grid to 1161 microstrain. VIC-2D's own
-measurement of the same stretch has a standard deviation of 1385
-microstrain. That page also ran an exploratory test. A 15x15-point
-least-squares window cut the 1161 microstrain to 39 microstrain.</p>
-<p>This page derives that window and measures it with
-<a href="../api/dictk/strain_window.html"><code>dictk.strain_window</code></a>. The 39
-microstrain holds at the 1560 points with a full window. Across all
-2862 points, the spread is 91 microstrain.</p>
-<ol>
-<li>Every tracked point has a tracking error.</li>
-<li>A strain needs a derivative, and a derivative amplifies those errors.</li>
-<li>A window fits one straight line to many points. The line averages their errors, so the strain error drops.</li>
-<li>The line assumes the strain is uniform across the whole window.
+<p><a href="./kernel_warping.html">Kernel Warping</a> showed how <code>dictk</code>'s
+<code>locate_warp</code> reduced the <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> standard deviation for the 2%
+stretch to 1161 microstrain. <code>locate_subpixel</code> gave 16531 microstrain
+on the same stretch, and VIC-2D gave 1385 microstrain. Neither the
+<code>locate_subpixel</code> nor the <code>locate_warp</code> result used strain smoothing,
+the topic of this page. This page shows that strain smoothing reduces
+the strain error further.</p>
+<p>Strain spread starts with tracking error. Every tracked point carries
+an error. A strain needs a derivative of displacement, and the
+derivative divides the error by the point spacing. For example, a
+0.01 px error between two points 5 px apart puts 2000 microstrain
+(<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">0.01</span><span class="mspace"> </span><span class="mord text"><span class="mord">px</span></span><span class="mord">/5</span><span class="mspace"> </span><span class="mord text"><span class="mord">px</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.002</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2000</span></span></span></span> microstrain) into the
+slope.</p>
+<p>The Q4 elements behind the 1161 microstrain each differentiate across
+four neighboring points, 5 px apart. In contrast, a strain window
+differentiates across more points. It fits one plane to the
+displacements of every point in a square of neighboring points. The
+fit averages their errors, so the strain error drops. A 15x15-point
+window averages across 225 points.</p>
+<p>The averaging has a cost. The plane assumes the strain is uniform
+across the window. If the real strain changes inside the window, the
+fit blurs that change into one number. Each point stands for a cell
+one spacing wide, so a window with <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span> points per side covers a side
+length of <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span> times the spacing. At 5 px point spacing:</p>
 <ul>
-<li>With 15x15 points at 5 px spacing, the window covers 75 px. If the real strain changes inside those 75 px, the fit blurs that change into one number.</li>
-<li>A larger window averages more errors and blurs more of the real field. A smaller window does the reverse.</li>
+<li>A 3x3 window averages 9 points and blurs over a side length of
+15 px (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">3</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">5</span></span></span></span> px).</li>
+<li>A 15x15 window averages 225 points and blurs over a side length of
+75 px (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">15</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">5</span></span></span></span> px).</li>
+<li>A 19x19 window averages 361 points and blurs over a side length of
+95 px (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">19</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">5</span></span></span></span> px).</li>
 </ul>
-</li>
-</ol>
-<p>This derivation proceeds in three steps. A row of 3 points shows the
-idea with 3 numbers. A 3x3 window adds the second axis. A general
+<p>This page builds the window in three steps. A row of 3 points shows
+the idea with 3 numbers. A 3x3 window adds the second axis. A general
 window with <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2</span><span class="mord mathnormal">m</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span> points per side repeats the 3x3 steps with 1
-replaced by <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">m</span></span></span></span>.</p>
+replaced by <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">m</span></span></span></span>. The page then compares the window's noise with a Q4
+element's and measures the window with
+<a href="../api/dictk/strain_window.html"><code>dictk.strain_window</code></a> on Kernel
+Warping's tracked positions.</p>
+<p>The <a href="#measured-result">Measured Result</a> uses a 15x15-point window:</p>
+<ul>
+<li>At the 1560 points with a full window, the <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> standard
+deviation falls from 1161 microstrain to 39 microstrain.</li>
+<li>At all 2862 points (1560 full-window points + 1302 edge and corner
+points), the <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> standard deviation falls from 1161
+microstrain to 91 microstrain. The 1302 edge and corner points
+truncate their windows. Their spread alone is 117 microstrain.</li>
+</ul>
 <h2 id="notation"><a class="header" href="#notation">Notation</a></h2>
 <div class="table-wrapper"><table><thead><tr><th>Symbol</th><th>Units</th><th>Meaning</th></tr></thead><tbody>
 <tr><td><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">h</span></span></span></span></td><td>px</td><td>grid spacing</td></tr>
@@ -805,9 +829,8 @@ same positions.</p>
 <tr><td>Analytical, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mop">ln</span><span class="mopen">(</span><span class="mord">1.02</span><span class="mclose">)</span></span></span></span></td><td style="text-align: right"></td><td style="text-align: right">19803</td><td style="text-align: right">0</td><td style="text-align: right"></td><td style="text-align: right"></td></tr>
 </tbody></table>
 </div>
-<p>The interior row reproduces the exploratory test. Each of its 1560
-points has a full 15x15 window. Their <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> standard deviation is 39
-microstrain. Q4 gives 1161 microstrain on the same positions, so the
+<p>Each of the interior row's 1560 points has a full 15x15 window. Their
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">11</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> standard deviation is 39 microstrain. Q4 gives 1161 microstrain on the same positions, so the
 window cuts the spread <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">30</span><span class="mord">×</span></span></span></span>. The interior mean matches
 <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mop">ln</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1.02</span></span></span></span> to within 1 microstrain. The Q4 mean sits 48 microstrain
 above it.</p>
