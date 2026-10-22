@@ -459,13 +459,12 @@ same bilinear images, and [The Residual Wave](#the-residual-wave)
 below shows those images carry a distortion of their own, tied to each
 point's fractional position. Each tracker responds to it differently.
 
-Neither result is smoothed. Commercial codes usually also apply a
+The `dictk` result is not smoothed. Commercial codes usually also apply a
 **strain window**, fitting displacement over a neighborhood of points
 before differentiating. The fit averages the tracking errors of every
 point in the window. It also blurs any real strain change inside the
-window into one value. A 15x15-point window, spanning 75 px here, cut `locate_warp`'s spread from 1161 to
-39 microstrain in an exploratory test. See [Strain
-Window](./strain_window.md).
+window into one value. [Strain Window](./strain_window.md) derives a
+strain window and measures it on these tracked positions.
 Fixing the bias first matters. A window spanning a whole bias cycle
 would also flatten High Point Density's stripes. That averaging would
 hide the error while leaving it in the tracked positions.

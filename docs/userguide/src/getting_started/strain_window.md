@@ -1,27 +1,56 @@
 # Strain Window
 
-[Kernel Warping](./kernel_warping.md) cut the $E_{11}$ standard
-deviation of the 2862-point grid to 1161 microstrain. VIC-2D's own
-measurement of the same stretch has a standard deviation of 1385
-microstrain. That page also ran an exploratory test. A 15x15-point
-least-squares window cut the 1161 microstrain to 39 microstrain.
+[Kernel Warping](./kernel_warping.md) showed how `dictk`'s
+`locate_warp` reduced the $E_{11}$ standard deviation for the 2%
+stretch to 1161 microstrain. `locate_subpixel` gave 16531 microstrain
+on the same stretch, and VIC-2D gave 1385 microstrain. Neither the
+`locate_subpixel` nor the `locate_warp` result used strain smoothing,
+the topic of this page. This page shows that strain smoothing reduces
+the strain error further.
 
-This page derives that window and measures it with
-[`dictk.strain_window`](../api/dictk/strain_window.html). The 39
-microstrain holds at the 1560 points with a full window. Across all
-2862 points, the spread is 91 microstrain.
+Strain spread starts with tracking error. Every tracked point carries
+an error. A strain needs a derivative of displacement, and the
+derivative divides the error by the point spacing. For example, a
+0.01 px error between two points 5 px apart puts 2000 microstrain
+($0.01\ \text{px} / 5\ \text{px} = 0.002 = 2000$ microstrain) into the
+slope.
 
-1. Every tracked point has a tracking error.
-2. A strain needs a derivative, and a derivative amplifies those errors.
-3. A window fits one straight line to many points. The line averages their errors, so the strain error drops.
-4. The line assumes the strain is uniform across the whole window.
-   * With 15x15 points at 5 px spacing, the window covers 75 px. If the real strain changes inside those 75 px, the fit blurs that change into one number.
-   * A larger window averages more errors and blurs more of the real field. A smaller window does the reverse.
+The Q4 elements behind the 1161 microstrain each differentiate across
+four neighboring points, 5 px apart. In contrast, a strain window
+differentiates across more points. It fits one plane to the
+displacements of every point in a square of neighboring points. The
+fit averages their errors, so the strain error drops. A 15x15-point
+window averages across 225 points.
 
-This derivation proceeds in three steps. A row of 3 points shows the
-idea with 3 numbers. A 3x3 window adds the second axis. A general
+The averaging has a cost. The plane assumes the strain is uniform
+across the window. If the real strain changes inside the window, the
+fit blurs that change into one number. Each point stands for a cell
+one spacing wide, so a window with $n$ points per side covers a side
+length of $n$ times the spacing. At 5 px point spacing:
+
+* A 3x3 window averages 9 points and blurs over a side length of
+  15 px ($3 \times 5$ px).
+* A 15x15 window averages 225 points and blurs over a side length of
+  75 px ($15 \times 5$ px).
+* A 19x19 window averages 361 points and blurs over a side length of
+  95 px ($19 \times 5$ px).
+
+This page builds the window in three steps. A row of 3 points shows
+the idea with 3 numbers. A 3x3 window adds the second axis. A general
 window with $n = 2m + 1$ points per side repeats the 3x3 steps with 1
-replaced by $m$.
+replaced by $m$. The page then compares the window's noise with a Q4
+element's and measures the window with
+[`dictk.strain_window`](../api/dictk/strain_window.html) on Kernel
+Warping's tracked positions.
+
+The [Measured Result](#measured-result) uses a 15x15-point window:
+
+* At the 1560 points with a full window, the $E_{11}$ standard
+  deviation falls from 1161 microstrain to 39 microstrain.
+* At all 2862 points (1560 full-window points + 1302 edge and corner
+  points), the $E_{11}$ standard deviation falls from 1161
+  microstrain to 91 microstrain. The 1302 edge and corner points
+  truncate their windows. Their spread alone is 117 microstrain.
 
 ## Notation
 
@@ -977,9 +1006,8 @@ same positions.
 
 <!-- cmdrun python3 strain_window_measured.py -->
 
-The interior row reproduces the exploratory test. Each of its 1560
-points has a full 15x15 window. Their $E_{11}$ standard deviation is 39
-microstrain. Q4 gives 1161 microstrain on the same positions, so the
+Each of the interior row's 1560 points has a full 15x15 window. Their
+$E_{11}$ standard deviation is 39 microstrain. Q4 gives 1161 microstrain on the same positions, so the
 window cuts the spread $30\times$. The interior mean matches
 $\ln 1.02$ to within 1 microstrain. The Q4 mean sits 48 microstrain
 above it.

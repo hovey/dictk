@@ -577,8 +577,8 @@ current when they were written.
 $v$ over each point's window and truncates the window at the grid
 boundary. [Strain Window](./strain_window.md) now measures it on Kernel
 Warping's 2862 tracked positions. A 15x15 window gives 39 microstrain
-at the 1560 interior points, against Q4's 1161. That reproduces the
-exploratory result. Across all 2862 points, it gives 91 microstrain.
+at the 1560 interior points, against Q4's 1161. Across all 2862
+points, it gives 91 microstrain.
 
 Edges cost more than the independent-error model predicts. Within 5
 columns of an $X$ edge, the RMS error runs 2.9 to 6.0 times the
