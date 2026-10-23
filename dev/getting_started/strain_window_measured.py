@@ -1,6 +1,6 @@
 """Kernel Warping's tracked positions through a 15x15 strain window: a
 summary table against the Q4 baseline, split into interior and
-truncated windows.
+truncated windows, with Q4 also restricted to the interior.
 """
 
 import numpy as np
@@ -33,16 +33,24 @@ found = locate_warp(
     search_margin_height=25,
 )
 
-q4 = np.array(
-    [
+i, j = np.meshgrid(np.arange(COUNT_X), np.arange(COUNT_Y))
+interior = (
+    (i >= MARGIN) & (i < COUNT_X - MARGIN) & (j >= MARGIN) & (j < COUNT_Y - MARGIN)
+).ravel()
+
+q4, q4_interior = [], []
+for element in elements(count_x=COUNT_X, count_y=COUNT_Y):
+    strains = [
         strain[0, 0]
-        for element in elements(count_x=COUNT_X, count_y=COUNT_Y)
         for strain in gauss_point_log_strains(
             reference_points=[points[i] for i in element],
             current_points=[found[i] for i in element],
         )
     ]
-)
+    q4.extend(strains)
+    if interior[list(element)].all():
+        q4_interior.extend(strains)
+q4, q4_interior = np.array(q4), np.array(q4_interior)
 window = log_strains(
     reference_points=points,
     current_points=found,
@@ -51,15 +59,11 @@ window = log_strains(
     margin=MARGIN,
 )[:, 0, 0]
 
-i, j = np.meshgrid(np.arange(COUNT_X), np.arange(COUNT_Y))
-interior = (
-    (i >= MARGIN) & (i < COUNT_X - MARGIN) & (j >= MARGIN) & (j < COUNT_Y - MARGIN)
-).ravel()
-
 print("| Source | Points | Mean (µε) | Std (µε) | Min (µε) | Max (µε) |")
 print("|---|---:|---:|---:|---:|---:|")
 for name, values in [
     ("Q4, Gauss points", q4),
+    ("Q4, interior Gauss points", q4_interior),
     ("15x15 window, all points", window),
     ("15x15 window, interior", window[interior]),
     ("15x15 window, truncated", window[~interior]),

@@ -287,9 +287,10 @@ parameter of <code>grid.locate</code>'s own signature with no live worked
 example yet.</li>
 <li><strong>Strain-window bias on a strain gradient.</strong> Every strain-window
 test so far uses a uniform 2% stretch. Its third derivative <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7519em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7519em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′′′</span></span></span></span></span></span></span></span></span></span></span></span> is
-zero, so the cubic bias from <a href="./strain_window.html#bias-and-resolution">Bias and
-Resolution</a> never appears. A
-synthetic field with a known <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7519em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7519em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′′′</span></span></span></span></span></span></span></span></span></span></span></span> would measure that bias. It would
+zero, so a curved strain field never biases the fitted slope.
+<a href="./strain_window.html#frequency-response">Frequency Response</a> measures
+the window's bias on a sine wave only. A synthetic field with a known
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7519em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7519em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′′′</span></span></span></span></span></span></span></span></span></span></span></span> would measure the bias from curvature. It would
 also locate the window size that minimizes the mean squared error,
 variance plus squared bias.</li>
 <li><strong>A deformation-aware seed for <code>warp.fit</code>.</strong> IC-GN starts from
