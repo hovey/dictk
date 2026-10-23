@@ -114,9 +114,10 @@ Noted, not being pursued right now:
   example yet.
 * **Strain-window bias on a strain gradient.** Every strain-window
   test so far uses a uniform 2% stretch. Its third derivative $u'''$ is
-  zero, so the cubic bias from [Bias and
-  Resolution](./strain_window.md#bias-and-resolution) never appears. A
-  synthetic field with a known $u'''$ would measure that bias. It would
+  zero, so a curved strain field never biases the fitted slope.
+  [Frequency Response](./strain_window.md#frequency-response) measures
+  the window's bias on a sine wave only. A synthetic field with a known
+  $u'''$ would measure the bias from curvature. It would
   also locate the window size that minimizes the mean squared error,
   variance plus squared bias.
 * **A deformation-aware seed for `warp.fit`.** IC-GN starts from

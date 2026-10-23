@@ -35,15 +35,17 @@ length of $n$ times the spacing. At 5 px point spacing:
 * A 19x19 window averages 361 points and blurs over a side length of
   95 px ($19 \times 5$ px).
 
-This page builds the window in three steps. A row of 3 points shows
-the idea with 3 numbers. A 3x3 window adds the second axis. A general
-window with $n = 2m + 1$ points per side repeats the 3x3 steps with 1
-replaced by $m$. The page then compares the window's noise with a Q4
-element's and measures the window with
-[`dictk.strain_window`](../api/dictk/strain_window.html) on Kernel
-Warping's tracked positions.
+This page builds the strain window in three steps. In 1D, a row of
+three points shows the idea with three numbers. A 3x3 example then
+adds the second axis and gives the 2D result.
+Finally, a general window extends the 2D result to $n = 2m + 1$
+points per side. At $m = 1$, it recovers the 3x3 result.
+The page then compares the window's noise with the Q4 finite element's
+noise.
 
-The [Measured Result](#measured-result) uses a 15x15-point window:
+The [Measured Result](#measured-result) runs
+[`dictk.strain_window`](../api/dictk/strain_window.html) with a
+15x15-point window on Kernel Warping's tracked positions:
 
 * At the 1560 points with a full window, the $E_{11}$ standard
   deviation falls from 1161 microstrain to 39 microstrain.
@@ -78,14 +80,14 @@ left to right.
 displacement $v$ points in the $Y$ direction. Row $r$ grows from top to
 bottom.
 
-The steps below fit $u$. [Fit for $v$](#fit-for-v) shows why the fit
-for $v$ uses the same weights.
+The steps below fit $u$. The fit for $v$ uses the same weights, as
+[Fit for $v$](#fit-for-v) shows.
 
 ## 1D Example
 
-Consider three points on the $X$ axis centered locally at the middle point, with relative $X$ coordinates $[-h, 0, h]$ pixels.
-Each of these points has tracked displacements $[u_{-1}, u_0, u_1]$. 
-Let $c$ be the index of the points $[-1, 0, 1]$.
+Consider three points on the $X$ axis. Index them by $c = -1, 0, 1$.
+Point $c$ sits at $X = ch$ relative to the middle point. The three
+points have tracked displacements $u_{-1}$, $u_0$, and $u_1$.
 [Figure](#fig-sw-1d) shows the three points and their displacements.
 
 <!-- cmdrun python3 strain_window_1d.py -->
@@ -95,8 +97,8 @@ Let $c$ be the index of the points $[-1, 0, 1]$.
     <figcaption>The 1D Example. Filled dots mark the reference positions $X = ch$. Hollow dots mark the displaced positions $x = X + u_c = ch + u_c$. The displacements are illustrative, 0.30, 0.52, and 0.58 times $h$.</figcaption>
 </figure>
 
-Fit a straight line through the displacements. Point $c$ sits at
-$X = ch$ pixels relative to the middle point, so the line predicts
+Fit a straight line through the displacements. At $X = ch$, the line
+predicts
 
 $$
 u_c \approx \hat{u}_0 + \frac{\partial u}{\partial X}\, c h .
@@ -271,7 +273,8 @@ noise. [From Gradient to Strain](#from-gradient-to-strain) gives the
 full chain from slopes to strain.
 
 The slope uses only 2 of the 3 points. The 3x3 window below averages
-three such rows.
+three such rows. Before the 3x3 result, [Q4 Baseline](#q4-baseline)
+derives a Q4 element's noise for comparison in 2D.
 
 ## Q4 Baseline
 
@@ -349,7 +352,7 @@ It is the general window with $m = 1$.
 ### Setup
 
 The points sit on a grid with spacing $h$. Point $(c, r)$ sits
-at $X = ch$ and $Y = rh$ pixels relative to the center point $(0, 0)$.
+at $X = ch$ and $Y = rh$ relative to the center point $(0, 0)$.
 The window fits a plane through the 9 tracked displacements:
 
 $$
@@ -420,7 +423,7 @@ $$
 \begin{bmatrix} 9 & 0 & 0 \\ 0 & 6h^2 & 0 \\ 0 & 0 & 6h^2 \end{bmatrix}.
 $$
 
-The matrix is diagonal, so each unknown solves on its own.
+The matrix is diagonal, so each equation holds only one unknown.
 
 ### Solution
 
@@ -463,6 +466,8 @@ $$
   one per column. The window differentiates along $Y$ and averages along
   $X$.
 
+<!-- cmdrun python3 strain_window_3x3_layout.py -->
+
 <figure id="fig-sw-3x3-layout">
     <img src="strain_window_3x3_layout.png" alt="three square panels, each a 3 by 3 grid of dots with column c and row r from -1 to 1. The left panel shows 9 orange dots labeled with their (c, r) index, with a ring around the center (0, 0). The middle panel shows the weights for du/dX: -1 in red for the left column, 0 in gray for the middle column, +1 in blue for the right column. The right panel shows the weights for du/dY: -1 in red for the top row, 0 in gray for the middle row, +1 in blue for the bottom row" />
     <figcaption>The 3x3 window. Left: the 9 points, indexed by column $c$ and row $r$. Middle: the weight of each point in $\partial u / \partial X$, in units of $1/(6h)$. Right: the weight of each point in $\partial u / \partial Y$, in the same units.</figcaption>
@@ -489,31 +494,6 @@ $$
 The weights match [Figure](#fig-sw-3x3-layout). They multiply $v$
 instead of $u$.
 
-### One Noisy Draw
-
-The grid spacing is $h = 5$ px. The true field is $u_{0,0}^{\text{true}} = 0.3$ px, $\partial u / \partial X = 0.02$,
-and $\partial u / \partial Y = 0.01$. Each tracked displacement gets
-an independent Gaussian error with $\sigma = 0.01$ px. That $\sigma$
-is illustrative. It is not measured from a tracker. A tracker's
-errors also correlate between neighboring points, as
-[Noise in a General Window](#noise-in-a-general-window) shows.
-
-A Monte Carlo simulation checks the 3x3 window's noise. The script
-draws 10,000 sets of 9 errors with random seed 0. The table
-shows the draw whose $\partial u / \partial X$ error sits closest to
-the median error of the 10,000.
-
-<!-- cmdrun python3 strain_window_3x3.py -->
-
-[Figure](#fig-sw-3x3-fit) plots that draw on the left. The right
-panel is the histogram of $\partial u / \partial X$ over all 10,000
-draws.
-
-<figure id="fig-sw-3x3-fit">
-    <img src="strain_window_3x3_fit.png" alt="two panels. Left: nine tracked X displacements in pixels against X = ch from -5 to 5 px, colored by row, with a solid black fitted line of slope 0.01944 and a dashed red true line of slope 0.02. Right: a histogram of the fitted du/dX over 10000 Monte Carlo draws, centered on the true value of 20000 microstrain, with a blue band of plus or minus 819 microstrain for the 3x3 window and a wider pale red band of plus or minus 2309 microstrain for a Q4 element" />
-    <figcaption>Left: the draw from the table. Each point shows $u$ minus the fitted $(\partial u / \partial Y)\, rh$, which removes the row offset. The solid black line is the fit, and the dashed red line is the truth. Right: fitted $\partial u / \partial X$ over 10,000 Monte Carlo draws, in microstrain. The blue band is $\pm 1$ standard deviation of the 3x3 window. The pale red band is $\pm 1$ standard deviation of a Q4 element, from the formula in <a href="#q4-baseline">Q4 Baseline</a>.</figcaption>
-</figure>
-
 ### Noise in the 3x3 Window
 
 The solution writes $\partial u / \partial X$ as a weighted sum
@@ -531,8 +511,7 @@ $$
 The standard deviation is $\sigma / (\sqrt{6}\, h) = 0.408\,\sigma / h$.
 The row of three points gave $0.707\,\sigma / h$. Averaging three
 independent rows divides that by $\sqrt{3}$, and
-$0.707 / \sqrt{3} = 0.408$. For $\sigma = 0.01$ px and $h = 5$ px, the
-formula gives 816 microstrain. The 10,000 Monte Carlo draws give 819 microstrain.
+$0.707 / \sqrt{3} = 0.408$.
 
 The weights for $\partial u / \partial Y$ are $r / (6h)$. Their
 squares sum to the same $6 / (6h)^2$, so $\partial u / \partial Y$
@@ -541,11 +520,29 @@ uses the same weights. If the errors in $v$ have the same $\sigma$,
 $\partial v / \partial X$ and $\partial v / \partial Y$ have
 $0.408\,\sigma / h$ too.
 
+A Monte Carlo simulation checks the formula. The grid spacing is
+$h = 5$ px. The true field has $\hat{u}_0 = 0.3$ px,
+$\partial u / \partial X = 0.02$, and $\partial u / \partial Y = 0.01$.
+Each of 10,000 draws adds an independent Gaussian error with
+$\sigma = 0.01$ px to all 9 displacements, with random seed 0. That
+$\sigma$ is illustrative. It is not measured from a tracker. A
+tracker's errors also correlate between neighboring points, as
+[Noise in a General Window](#noise-in-a-general-window) shows.
+
+<!-- cmdrun python3 strain_window_3x3_noise.py -->
+
+[Figure](#fig-sw-3x3-noise) shows the 10,000 fitted slopes.
+
+<figure id="fig-sw-3x3-noise">
+    <img src="strain_window_3x3_noise.png" alt="a histogram of the fitted du/dX over 10000 Monte Carlo draws, centered on a dashed red line at the true value of 20000 microstrain. A blue band of plus or minus 819 microstrain marks the 3x3 window. A wider pale red band of plus or minus 2309 microstrain marks a Q4 element and covers nearly the whole histogram" />
+    <figcaption>Fitted $\partial u / \partial X$ of the 3x3 window over 10,000 Monte Carlo draws, in microstrain. The dashed red line is the true value. The blue band is $\pm 1$ standard deviation of the 3x3 window. The pale red band is $\pm 1$ standard deviation of a Q4 element, from <a href="#q4-noise">Q4 Noise</a>.</figcaption>
+</figure>
+
 ## General Window
 
 A general window holds $n \times n$ points, with $n = 2m + 1$. The
-steps match the 3x3 window's. Each one ends by setting $m = 1$, which
-recovers the 3x3 result.
+steps match the 3x3 window's. Each result reduces to the 3x3 result
+at $m = 1$.
 
 ### Setup
 
@@ -559,8 +556,10 @@ $$
 That is three unknowns for $n^2$ points. For $n = 15$ and $h = 5$ px,
 the window holds 225 points. Its **extent** is $nh = 75$ px, because
 each point stands for a cell $h$ wide. The two outermost points sit
-$(n - 1)h = 70$ px apart. Every "window spanning" figure in this book
-uses the extent $nh$.
+$(n - 1)h = 70$ px apart. This page uses the extent $nh$ for the
+region a window blurs over, and the outer-point distance $(n-1)h$ for
+the footprint that [Window versus Q4](#window-versus-q4) compares with
+a Q4 element.
 
 ### Normal Equations
 
@@ -615,8 +614,9 @@ $w^Y_{c,r} = r / (6h)$.
 
 The weight grows linearly with $c$. The outermost columns, at
 $c = \pm m$, carry the largest weights. A displacement $mh$ from the
-center changes by $mh$ times any change in slope, so it constrains the
-slope $m$ times as tightly as a point at $c = \pm 1$. The weight does not depend on $r$.
+center changes by $mh$ times any change in slope, so it gets $m$ times
+the weight of a point at $c = \pm 1$. The weight does not depend on
+$r$.
 So the estimator fits one line per row and averages the $n$ row
 slopes. [Figure](#fig-sw-stencils) shows the weights for $m = 1$, 2,
 and 3. The script also solves the normal equations directly and
@@ -673,14 +673,15 @@ plots the same comparison for $n$ from 3 to 19:
     <figcaption>Standard deviation of $\partial u / \partial X$ for independent errors, in units of $\sigma / h$, against $n$. The black curve is the formula. The blue dots are a Monte Carlo simulation of 4000 random draws per window. The dashed red line is a Q4 element of side $h$, from <a href="#q4-baseline">Q4 Baseline</a>.</figcaption>
 </figure>
 
-If the tracking errors were independent, the $75\times$ reduction at
-$n = 15$ would cut Kernel Warping's 1161 microstrain to 15.5 microstrain. That $75\times$
-compares the window with a Q4 element on the same grid.
-[Window versus Q4](#window-versus-q4) splits it into a $14\times$ gain from the larger
-footprint and a $5.35\times$ gain from the least-squares fit.
-Matching resolution instead of footprint moves that split to
-$11.3\times$ and $6.6\times$. [Measured Result](#measured-result) measures 39 microstrain at the interior points, 2.5 times more. The tracking error is
-not independent. [Kernel Warping](./kernel_warping.md) found a wave
+If the tracking errors were independent, the $74.8\times$ reduction at
+$n = 15$ would cut Kernel Warping's 1161 microstrain to 15.5
+microstrain. That $74.8\times$ compares the window with a Q4 element
+on the same grid. [Window versus Q4](#window-versus-q4) splits it by
+source.
+
+[Measured Result](#measured-result) measures 39 microstrain at the
+interior points, 2.5 times more. The tracking error is not
+independent. [Kernel Warping](./kernel_warping.md) found a wave
 with a 51 px period. Points 5 px apart sit 35° apart on that wave's
 cycle, so their errors correlate at $\cos 35° = 0.82$.
 [Frequency Response](#frequency-response) computes the fraction of a
@@ -765,8 +766,8 @@ points sit closer to its center. A change in slope moves a point in
 column $c$ by an amount proportional to $c$. So each point adds
 information about the slope in proportion to $c^2$. A point at
 $c = 1$ adds 1/49 as much as a point at $c = 7$. The 15 points at
-$c = 0$ add none. Over one row, $\sum c^2 = 0.381\, n m^2$, so the 225 points carry
-as much as 85.7 points in the outer columns would. That costs the
+$c = 0$ add none. Over one row, $\sum c^2 = 0.381\, n m^2$, so the
+225 points carry as much as 85.7 points in the outer columns would. That costs the
 window a factor $\sqrt{0.381} = 0.617$. Second, the Q4 element weights
 its corners unequally, with $g_1 = 0.211$ and $g_2 = 0.789$. Equal
 weights of 0.5 would give $1.0\,\sigma / L$ instead of
@@ -775,7 +776,8 @@ Together, $7.5 \times 0.617 \times 1.155 = 5.35$.
 
 <!-- cmdrun python3 strain_window_q4_noise.py -->
 
-[Figure](#fig-sw-q4-noise) plots all three for $n$ from 3 to 19.
+[Figure](#fig-sw-q4-noise) plots the window and both Q4 elements, at
+equal spacing and at equal footprint, for $n$ from 3 to 19.
 
 <figure id="fig-sw-q4-noise">
     <img src="strain_window_q4_noise.png" alt="log-scale plot of the standard deviation of du/dX, in units of sigma over h, against window points per side n from 3 to 19. A dashed red line holds at 1.155 for the equal-spacing Q4 element. A solid red line with hollow squares falls from 0.58 at n = 3 to 0.064 at n = 19 for the equal-footprint Q4 element. A solid blue line with dots falls faster, from 0.41 to 0.0096, for the window. At n = 15, labels give the values 1.1547, 0.0825, and 0.0154, and gray double arrows split the gap into 14× footprint, between the two red lines, and 5.35× fit, between the lower red line and the blue line" />
@@ -829,37 +831,37 @@ $c$ and $r$.
 
 ## Bias and Resolution
 
-A window reduces variance and adds bias. Two results size the bias.
-
-**Cubic term.** Let the true field be
-$u_{c,r} = \tfrac{1}{6}\, u'''\, (ch)^3$, with
-$u''' = \partial^3 u / \partial X^3$. The true gradient at the center
-is 0. The fitted slope is
-
-$$
-\frac{\partial u}{\partial X}\bigg|_{\text{fit}}
-= \frac{h \sum c\, u_{c,r}}{h^2 \sum c^2}
-= \frac{u'''}{6}\, h^2\, \frac{\sum c^4}{\sum c^2}
-= \frac{u'''\, h^2\, (3m^2 + 3m - 1)}{30}.
-\label{eq-sw-cubic-bias}
-$$
-
-At $m = 1$, that is $u''' h^2 / 6$. The standard deviation falls as
-$n^{-2}$, and this bias grows as $n^2$. So the mean squared error,
-variance plus squared bias, has a minimum. The window size at that
-minimum depends on $u'''$ and on $\sigma$.
-
-A quadratic fit gives the same center slope as the affine fit. A
-quadratic term is even about the center, and the slope weight $c$ is
-odd. In a symmetric window, the two are orthogonal. Only a cubic fit
-removes the bias above, and it raises the variance.
+A window reduces variance and blurs the real field. [Frequency
+Response](#frequency-response) measures that blur on a sine wave. [Q4
+at Equal Resolution](#q4-at-equal-resolution) measures a Q4 element's
+blur on the same wave.
 
 ### Frequency Response
 
 Take $u = b \sin(kX)$, with wavenumber $k = 2\pi / \text{period}$.
-The window's half-width is $a = nh/2$, half its extent. In the
-continuum limit, the ratio of the fitted slope to the true slope at
-the window center is
+The wave varies along $X$ only, so every row of the window is
+identical. The [General Window](#general-window) averages its row
+slopes, so one row's slope gives the window's:
+
+$$
+\frac{\partial u}{\partial X}\bigg|_{\text{fit}}
+= \frac{\sum_c c\, u_c}{h \sum_c c^2} .
+$$
+
+In the continuum limit, the $n$ points become an interval from $-a$
+to $a$. Each point stands for a cell $h$ wide, so $a = nh/2$, half the
+window's extent. With $X = ch$, the sums become integrals:
+
+$$
+\frac{\partial u}{\partial X}\bigg|_{\text{fit}}
+= \frac{\int_{-a}^{a} X\, b \sin(kX)\, dX}{\int_{-a}^{a} X^2\, dX}
+= \frac{(2b / k^2)\left( \sin z - z \cos z \right)}{2a^3 / 3},
+\qquad z = ka .
+$$
+
+The numerator comes from integration by parts. The true slope at the
+window center is $bk$. Dividing by it gives the ratio of the fitted
+slope to the true slope:
 
 $$
 \begin{aligned}
@@ -871,8 +873,37 @@ z &= ka = \frac{knh}{2}.
 \label{eq-sw-frequency}
 $$
 
-The small-$z$ limit matches the cubic bias above. At $m = 7$, the two
-slope errors agree within 1%.
+The small-$z$ limit follows from a Taylor expansion,
+$\sin z - z \cos z \approx z^3/3 - z^5/30$. The wave's phase does not
+change $T$. A wave shifted by $X_0$ splits into
+$\cos(kX_0) \sin(kX)$ plus $\sin(kX_0) \cos(kX)$. The $\cos(kX)$ part
+is even about the center, so the odd weight $X$ integrates it to zero.
+The fitted slope and the true slope then both scale by $\cos(kX_0)$.
+
+$T$ first reaches zero where $\tan z = z$, at $z = 4.493$. For
+$n = 15$ and $h = 5$ px, $a = 37.5$ px, so that zero falls at a period
+of $2\pi a / 4.493 = 52.4$ px.
+
+Integrating the same numerator by parts for a general $u$ shows what
+the fit does. Take $\tfrac{1}{2}(X^2 - a^2)$ as the antiderivative of
+$X$. It vanishes at $X = \pm a$, so the boundary term drops out:
+
+$$
+\begin{aligned}
+\frac{\partial u}{\partial X}\bigg|_{\text{fit}}
+&= \int_{-a}^{a} \phi(X)\, \frac{\partial u}{\partial X}\, dX, \\[1em]
+\phi(X) &= \frac{3\left( a^2 - X^2 \right)}{4a^3}.
+\end{aligned}
+\label{eq-sw-gradient-weight}
+$$
+
+The weight $\phi$ is positive and integrates to 1. So the fit averages
+the true gradient with a parabolic weight. The weight peaks at the
+center and falls to zero at $X = \pm a$. $T(k)$ is that average
+applied to the wave's gradient, $bk \cos(kX)$.
+
+The discrete fit skips the continuum limit. It gives
+$T = \sum_c c \sin(kch) / (kh \sum_c c^2)$.
 
 [Figure](#fig-sw-frequency) plots $T$ against the wave period for
 $n = 15$ and $h = 5$ px. [Kernel Warping](./kernel_warping.md) found a
@@ -881,9 +912,8 @@ bias wave in `locate_subpixel` with a 51 px period:
 <!-- cmdrun python3 strain_window_frequency.py -->
 
 So the window keeps 1.7% of that wave's slope, and reverses its sign.
-The 51 px period sits 1.4 px below the zero crossing at 52.4 px. The
-1.7% holds for that period only. A wave with a 94 px period keeps half its slope. A wave with a
-230 px period keeps 90%.
+The 51 px period sits 1.4 px below the zero crossing. The 1.7% holds
+for that period only.
 
 <figure id="fig-sw-frequency">
     <img src="strain_window_frequency.png" alt="plot of T, fitted slope over true slope, against wave period from 20 to 400 px for a 15 by 15 window at 5 px spacing. A wide light gray continuum band and a thin dark navy discrete line overlap, with the line running down the middle of the band. Both oscillate near zero below 60 px, cross zero near 52 px, and rise toward 1, reaching 0.9 near 230 px. A red dot marks the 51 px wave at T = -0.017. A dotted vertical line marks the 75 px window extent" />
@@ -892,10 +922,10 @@ The 51 px period sits 1.4 px below the zero crossing at 52.4 px. The
 
 ### Q4 at Equal Resolution
 
-For the same wave $u = b \sin(kX)$, a Q4 element of side $L$ reads
-the same edge difference on both of its edges. For a field that varies
-along $X$ only, all four Gauss points return the same gradient. Its
-ratio to the true slope at the element center is
+For the same wave $u = b \sin(kX)$, a Q4 element of side $L$ sees no
+change in $Y$. So its bottom-edge difference $u_2 - u_1$ equals its
+top-edge difference $u_3 - u_4$, and all four Gauss points return the
+same gradient. Its ratio to the true slope at the element center is
 
 $$
 T_{\text{Q4}}(k) = \frac{\sin z}{z} \;\approx\; 1 - \frac{z^2}{6}
@@ -943,7 +973,8 @@ $m = 3$.
     <figcaption>Interior, edge, and corner windows for $m = 3$. Filled points enter the fit. Hollow points fall outside the grid. The square marks the window center, where the strain is reported. The red cross marks the centroid of the kept points, where the fit measures the gradient. Each title gives the standard deviation of $\partial u / \partial X$ relative to the interior window.</figcaption>
 </figure>
 
-Truncation costs precision in two ways. Take the $X$ gradient of a
+Truncation has two costs. It loses precision, and it moves where the
+fit measures the gradient. Take the $X$ gradient of a
 window that lost its $-X$ half, with $m + 1$ columns left.
 
 **Variance.** The slope variance is $\sigma^2$ divided by
@@ -967,21 +998,23 @@ $$
 which is 3.54 at $m = 7$. At $m = 3$, the factors are 2.37 and 3.13,
 as [Figure](#fig-sw-edges) shows.
 
-In units of $\sigma/h$, a 15x15 window's standard deviation is 0.0154
-in the interior, 0.0398 on an edge, and 0.0545 at a corner. The Q4
+**In units of $\sigma/h$, a 15x15 window's standard deviation is 0.0154
+in the interior, 0.0398 on an edge, and 0.0545 at a corner.** The Q4
 element gives 1.155. The edge value is 29 times lower than that. The
 corner value is 21 times lower.
 
-**Location.** Take a quadratic field, $u_{c,r} = \tfrac{1}{2}\, u''\, (ch)^2$,
-with $u'' = \partial^2 u / \partial X^2$. An affine fit returns the
-true gradient at the centroid of the kept points, not at the window
-center. This holds for any point set symmetric about its own centroid,
-and a truncated window is one. The centroid sits $mh/2$ from the
-window center. At $m = 7$ and $h = 5$ px, that shift is 17.5 px. The
-gradient error at an edge point is $u'' \cdot mh/2$.
+**Location.** The fitted slope is a weighted average of the true
+gradient over the kept points, as [Equation](#eq-sw-gradient-weight)
+shows. The weights peak at the kept points' centroid and fall to zero at their ends. In a full window, that
+centroid is the window center. In a truncated window, it sits $mh/2$
+inward. At $m = 7$ and $h = 5$ px, that is 17.5 px. So an edge point
+reports the strain averaged around a point 17.5 px inside the
+specimen. If the strain grows by $g$ per pixel toward the edge, the
+edge value reads $g \cdot mh/2$ too low.
 
-Uniform stretch has $u'' = 0$, so this bias vanishes there. A field
-with curvature near an edge does show it.
+Uniform stretch has $g = 0$, so this bias vanishes there. At a hole or
+a notch, the strain peaks at the edge, so the window underreports the
+peak.
 
 ## Overlapping Windows
 
@@ -992,14 +1025,14 @@ At a step of 1, neighboring windows share $n^2 - n$ of their $n^2$
 points. For $n = 15$, that is 210 of 225. Their errors correlate. The
 standard deviation across the field then describes the spread of the
 strain field. It does not describe the uncertainty of independent
-measurements. Every spread quoted on this page will name its step.
+measurements. Every field spread on this page names its step.
 
 ## Measured Result
 
 [`dictk.strain_window.log_strains`](../api/dictk/strain_window.html#log_strains)
 runs the window on [Kernel Warping](./kernel_warping.md)'s tracked
 positions. The grid has 53x54 points at 5 px spacing. The current image
-stretches the reference 2% in $x$, so the true $E_{11}$ is
+stretches the reference 2% in $X$, so the true $E_{11}$ is
 $\ln 1.02 = 19803$ microstrain. The window has $m = 7$, so $n = 15$. It
 steps by 1 point. The Q4 row repeats Kernel Warping's baseline on the
 same positions.
@@ -1007,8 +1040,10 @@ same positions.
 <!-- cmdrun python3 strain_window_measured.py -->
 
 Each of the interior row's 1560 points has a full 15x15 window. Their
-$E_{11}$ standard deviation is 39 microstrain. Q4 gives 1161 microstrain on the same positions, so the
-window cuts the spread $30\times$. The interior mean matches
+$E_{11}$ standard deviation is 39 microstrain. Q4 gives 1161
+microstrain on the same positions, so the window cuts the spread
+$30\times$. Over the same interior region, Q4 gives 1181 microstrain,
+so the $30\times$ holds for matched points too. The interior mean matches
 $\ln 1.02$ to within 1 microstrain. The Q4 mean sits 48 microstrain
 above it.
 
@@ -1100,19 +1135,22 @@ interior and edge points separately.
 
 The 15x15 window gives the smallest interior spread of the 9 windows
 from 3x3 to 19x19. The sweep below reruns the same positions with $m$
-from 1 to 9, stepping by 1 point. The independent-error prediction
-scales Q4's 1161 microstrain by the window's factor from
+from 1 to 9, stepping by 1 point.
+
+The independent-error prediction scales Q4's 1161 microstrain by the
+window's factor from
 [Noise in a General Window](#noise-in-a-general-window). That
 scaling sets $\sigma / h$ to $1161 / 1.1547 = 1005$ microstrain, so
 $\sigma = 0.0050$ px at $h = 5$ px. The tracking error is not
 independent. Its column-mean wave has an RMS of 0.0076 px, against
 0.0029 px row to row. So this $\sigma$ is fitted to Q4's result. It is
-not a measured independent tracking error. The
-measured-error prediction combines two parts in quadrature. The first
-part fits each window to the column-mean displacement error from
+not a measured independent tracking error.
+
+The measured-error prediction combines two parts in quadrature. The
+first part fits each window to the column-mean displacement error from
 [Edges and Corners](#edges-and-corners). The second part treats the
-row-to-row displacement error as independent. That is an approximation.
-The last column is the discrete $T$ of
+row-to-row displacement error as independent. That is an
+approximation. The table's last column is the discrete $T$ of
 [Frequency Response](#frequency-response) for a 51 px wave.
 
 <!-- cmdrun python3 strain_window_sweep.py -->
@@ -1128,9 +1166,9 @@ The 39 microstrain is a dip, not a trend. The 13x13 window gives 79
 microstrain, and the 17x17 window gives 76. Both are twice the 15x15
 value. The 19x19 window gives 82 microstrain, so it averages 1260
 points to do worse than 1560 points at $n = 15$. The 51 px column shows
-why. $T$ falls from $+0.089$ at $n = 13$ to $-0.017$ at $n = 15$, then
-grows to $-0.074$ at $n = 17$. The wave's slope passes through least at
-$n = 15$, and that wave dominates the error.
+why. $T$ falls from $+0.089$ at $n = 13$ to $-0.017$ at $n = 15$, and
+then to $-0.074$ at $n = 17$. The window passes the least of the
+wave's slope at $n = 15$, and that wave dominates the error.
 
 The independent-error prediction misses that shape. It falls at every
 step, from 410 microstrain at $n = 3$ to 9.7 at $n = 19$. The measured
