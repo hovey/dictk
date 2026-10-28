@@ -13,36 +13,7 @@
 <p>Informational only: pylint runs alongside ruff (which gates CI) purely to
 produce this report and the README's pylint score badge. See
 <a href="https://github.com/hovey/dictk/blob/main/CONTRIBUTING.md#running-pylint-informational">CONTRIBUTING.md</a>.</p>
-<pre>************* Module dictk.element
-src/dictk/element.py:146:0: C0301: Line too long (112/100) (line-too-long)
-src/dictk/element.py:187:0: C0301: Line too long (113/100) (line-too-long)
-src/dictk/element.py:233:0: C0301: Line too long (105/100) (line-too-long)
-src/dictk/element.py:248:0: C0301: Line too long (121/100) (line-too-long)
-src/dictk/element.py:182:32: W0621: Redefining name &#x27;jacobian&#x27; from outer scope (line 164) (redefined-outer-name)
-src/dictk/element.py:232:28: W0621: Redefining name &#x27;displacement_gradient&#x27; from outer scope (line 211) (redefined-outer-name)
-src/dictk/element.py:247:29: W0621: Redefining name &#x27;deformation_gradient&#x27; from outer scope (line 232) (redefined-outer-name)
-src/dictk/element.py:262:18: W0621: Redefining name &#x27;deformation_gradient&#x27; from outer scope (line 232) (redefined-outer-name)
-************* Module dictk.rosta
-src/dictk/rosta.py:99:0: R0913: Too many arguments (6/5) (too-many-arguments)
-************* Module dictk.discontinuity
-src/dictk/discontinuity.py:135:0: C0301: Line too long (102/100) (line-too-long)
-src/dictk/discontinuity.py:226:0: C0301: Line too long (118/100) (line-too-long)
-src/dictk/discontinuity.py:231:0: C0301: Line too long (127/100) (line-too-long)
-src/dictk/discontinuity.py:120:0: R0913: Too many arguments (12/5) (too-many-arguments)
-src/dictk/discontinuity.py:120:0: R0914: Too many local variables (20/15) (too-many-locals)
-src/dictk/discontinuity.py:253:0: R0913: Too many arguments (12/5) (too-many-arguments)
-src/dictk/discontinuity.py:253:0: R0914: Too many local variables (18/15) (too-many-locals)
-src/dictk/discontinuity.py:325:7: R1714: Consider merging these comparisons with &#x27;in&#x27; by using &#x27;i in (0, len(ratios) - 1)&#x27;. Use a set instead if elements are hashable. (consider-using-in)
-************* Module dictk.translation
-src/dictk/translation.py:4:0: E0611: No name &#x27;phase_cross_correlation&#x27; in module &#x27;skimage.registration&#x27; (no-name-in-module)
-src/dictk/translation.py:10:0: R0913: Too many arguments (9/5) (too-many-arguments)
-src/dictk/translation.py:10:0: R0914: Too many local variables (23/15) (too-many-locals)
-src/dictk/translation.py:202:0: R0913: Too many arguments (10/5) (too-many-arguments)
-src/dictk/translation.py:202:0: R0914: Too many local variables (24/15) (too-many-locals)
-************* Module dictk.correlation
-src/dictk/correlation.py:46:0: C0301: Line too long (140/100) (line-too-long)
-src/dictk/correlation.py:493:10: E1101: Instance of &#x27;finfo&#x27; has no &#x27;eps&#x27; member (no-member)
-************* Module dictk.grid
+<pre>************* Module dictk.grid
 src/dictk/grid.py:203:0: C0301: Line too long (118/100) (line-too-long)
 src/dictk/grid.py:33:0: R0913: Too many arguments (8/5) (too-many-arguments)
 src/dictk/grid.py:65:0: R0913: Too many arguments (9/5) (too-many-arguments)
@@ -55,15 +26,41 @@ src/dictk/grid.py:478:0: R0913: Too many arguments (13/5) (too-many-arguments)
 src/dictk/grid.py:478:0: R0914: Too many local variables (16/15) (too-many-locals)
 src/dictk/grid.py:561:28: W0212: Access to a protected member _gradients of a client class (protected-access)
 src/dictk/grid.py:562:29: W0212: Access to a protected member _spline_coefficients of a client class (protected-access)
+************* Module dictk.cli
+src/dictk/cli.py:20:0: R0913: Too many arguments (6/5) (too-many-arguments)
+src/dictk/cli.py:20:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
 ************* Module dictk.warp
 src/dictk/warp.py:24:0: R0913: Too many arguments (9/5) (too-many-arguments)
 src/dictk/warp.py:24:0: R0914: Too many local variables (31/15) (too-many-locals)
 src/dictk/warp.py:44:13: E1101: Instance of &#x27;tuple&#x27; has no &#x27;astype&#x27; member (no-member)
 src/dictk/warp.py:89:0: R0913: Too many arguments (11/5) (too-many-arguments)
 src/dictk/warp.py:201:0: R0913: Too many arguments (11/5) (too-many-arguments)
-************* Module dictk.cli
-src/dictk/cli.py:20:0: R0913: Too many arguments (6/5) (too-many-arguments)
-src/dictk/cli.py:20:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
+************* Module dictk.rosta
+src/dictk/rosta.py:99:0: R0913: Too many arguments (6/5) (too-many-arguments)
+************* Module dictk.discontinuity
+src/dictk/discontinuity.py:135:0: C0301: Line too long (102/100) (line-too-long)
+src/dictk/discontinuity.py:226:0: C0301: Line too long (118/100) (line-too-long)
+src/dictk/discontinuity.py:231:0: C0301: Line too long (127/100) (line-too-long)
+src/dictk/discontinuity.py:120:0: R0913: Too many arguments (12/5) (too-many-arguments)
+src/dictk/discontinuity.py:120:0: R0914: Too many local variables (20/15) (too-many-locals)
+src/dictk/discontinuity.py:253:0: R0913: Too many arguments (12/5) (too-many-arguments)
+src/dictk/discontinuity.py:253:0: R0914: Too many local variables (18/15) (too-many-locals)
+src/dictk/discontinuity.py:325:7: R1714: Consider merging these comparisons with &#x27;in&#x27; by using &#x27;i in (0, len(ratios) - 1)&#x27;. Use a set instead if elements are hashable. (consider-using-in)
+************* Module dictk.element
+src/dictk/element.py:146:0: C0301: Line too long (112/100) (line-too-long)
+src/dictk/element.py:187:0: C0301: Line too long (113/100) (line-too-long)
+src/dictk/element.py:233:0: C0301: Line too long (105/100) (line-too-long)
+src/dictk/element.py:248:0: C0301: Line too long (121/100) (line-too-long)
+src/dictk/element.py:182:32: W0621: Redefining name &#x27;jacobian&#x27; from outer scope (line 164) (redefined-outer-name)
+src/dictk/element.py:232:28: W0621: Redefining name &#x27;displacement_gradient&#x27; from outer scope (line 211) (redefined-outer-name)
+src/dictk/element.py:247:29: W0621: Redefining name &#x27;deformation_gradient&#x27; from outer scope (line 232) (redefined-outer-name)
+src/dictk/element.py:262:18: W0621: Redefining name &#x27;deformation_gradient&#x27; from outer scope (line 232) (redefined-outer-name)
+************* Module dictk.translation
+src/dictk/translation.py:4:0: E0611: No name &#x27;phase_cross_correlation&#x27; in module &#x27;skimage.registration&#x27; (no-name-in-module)
+src/dictk/translation.py:10:0: R0913: Too many arguments (9/5) (too-many-arguments)
+src/dictk/translation.py:10:0: R0914: Too many local variables (23/15) (too-many-locals)
+src/dictk/translation.py:202:0: R0913: Too many arguments (10/5) (too-many-arguments)
+src/dictk/translation.py:202:0: R0914: Too many local variables (24/15) (too-many-locals)
 ************* Module dictk.plot
 src/dictk/plot.py:1085:0: C0301: Line too long (101/100) (line-too-long)
 src/dictk/plot.py:1834:0: C0301: Line too long (117/100) (line-too-long)
@@ -91,7 +88,10 @@ src/dictk/plot.py:1653:0: R0913: Too many arguments (12/5) (too-many-arguments)
 src/dictk/plot.py:1653:0: R0914: Too many local variables (19/15) (too-many-locals)
 src/dictk/plot.py:1768:0: R0913: Too many arguments (16/5) (too-many-arguments)
 src/dictk/plot.py:1768:0: R0914: Too many local variables (29/15) (too-many-locals)
-src/dictk/plot.py:1:0: R0801: Similar lines in 2 files
+************* Module dictk.correlation
+src/dictk/correlation.py:46:0: C0301: Line too long (140/100) (line-too-long)
+src/dictk/correlation.py:493:10: E1101: Instance of &#x27;finfo&#x27; has no &#x27;eps&#x27; member (no-member)
+src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
 ==dictk.discontinuity:[103:179]
 ==dictk.translation:[94:109]
     if kernel_margin_width &lt; 1:
@@ -108,8 +108,69 @@ src/dictk/plot.py:1:0: R0801: Similar lines in 2 files
             f&quot;search_margin_height {search_margin_height} must be greater than &quot;
             f&quot;kernel_margin_height {kernel_margin_height}&quot;
         )
- (duplicate-code)
-src/dictk/plot.py:1:0: R0801: Similar lines in 2 files
+
+
+def sweep(
+    *,
+    reference_image: np.ndarray,
+    current_image: np.ndarray,
+    start: PixelCoordinate,
+    end: PixelCoordinate,
+    samples: int,
+    kernel_margin_width: int,
+    kernel_margin_height: int,
+    search_margin_width: int,
+    search_margin_height: int,
+    windowing: WindowingMethod | None = None,
+    height_threshold: float = 0.2,
+    distance: int = 2,
+) -&gt; DiscontinuitySweep:
+    &quot;&quot;&quot;Evaluate `peak_ratio` at `samples` window-center positions evenly spaced from `start` to `end`.
+
+    At each position, extracts a kernel from `reference_image` and a
+    search area from `current_image`, both centered on that position
+    (the same &quot;center a window here&quot; step [Synthetic
+    Dislocation](../getting_started/synthetic_dislocation.html#moving-the-window-off-the-crack)
+    does by hand at one fixed row), computes their ZNCC surface, and
+    reads its `peak_ratio`. A discontinuity crossing the `start`-`end`
+    line shows up as a rise in `peak_ratios` near the crossing, high on
+    an ambiguous, straddling window and low everywhere else -- see
+    [`locate`](#locate) to turn that rise into a single position.
+
+    Args:
+        reference_image: The reference (undeformed) 2D grayscale image.
+        current_image: The current (deformed) 2D grayscale image.
+        start: The first window-center position, in both images&#x27; shared
+            pixel reference frame.
+        end: The last window-center position.
+        samples: Number of window-center positions, evenly spaced from
+            `start` to `end` inclusive. Must be &gt;= 2.
+        kernel_margin_width: Half each kernel&#x27;s width, in pixels. Must be
+            &gt;= 1.
+        kernel_margin_height: Half each kernel&#x27;s height, in pixels. Must
+            be &gt;= 1.
+        search_margin_width: Half each search area&#x27;s width, in pixels.
+            Must be greater than `kernel_margin_width`.
+        search_margin_height: Half each search area&#x27;s height, in pixels.
+            Must be greater than `kernel_margin_height`.
+        windowing: Passed straight through to
+            [`dictk.correlation.window`](./correlation.html#window) for
+            both the kernel and search area at every position. Default
+            `None` applies no windowing.
+        height_threshold: Passed straight through to each position&#x27;s own
+            [`peak_ratio`](#peak_ratio) call.
+        distance: Passed straight through to each position&#x27;s own
+            `peak_ratio` call.
+
+    Returns:
+        A `DiscontinuitySweep` pairing each swept position with its own
+        `peak_ratio`, in sweep order.
+
+    Raises:
+        ValueError: If `samples` is less than 2, or the margin arguments
+            are invalid (see `kernel_margin_width`/etc. above).
+    &quot;&quot;&quot; (duplicate-code)
+src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
 ==dictk.grid:[114:125]
 ==dictk.warp:[176:187]
     start = translation.locate(
@@ -123,7 +184,7 @@ src/dictk/plot.py:1:0: R0801: Similar lines in 2 files
         search_margin_height=search_margin_height,
         windowing=windowing,
     ) (duplicate-code)
-src/dictk/plot.py:1:0: R0801: Similar lines in 2 files
+src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
 ==dictk.grid:[52:79]
 ==dictk.warp:[177:187]
         reference_image=reference_image,
@@ -153,7 +214,7 @@ def _locate_subpixel_worker(
     &quot;&quot;&quot;One point&#x27;s worth of `translation.locate_subpixel` -- see
     `_locate_worker`&#x27;s own docstring for why this is a module-level
     function taking a single positional argument, not a closure.&quot;&quot;&quot; (duplicate-code)
-src/dictk/plot.py:1:0: R0801: Similar lines in 2 files
+src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
 ==dictk.grid:[52:61]
 ==dictk.warp:[230:239]
         reference_image=reference_image,
@@ -165,7 +226,7 @@ src/dictk/plot.py:1:0: R0801: Similar lines in 2 files
         search_margin_width=search_margin_width,
         search_margin_height=search_margin_height,
         windowing=windowing, (duplicate-code)
-src/dictk/plot.py:1:0: R0801: Similar lines in 2 files
+src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
 ==dictk.grid:[81:90]
 ==dictk.warp:[177:186]
         reference_image=reference_image,
@@ -177,7 +238,7 @@ src/dictk/plot.py:1:0: R0801: Similar lines in 2 files
         search_margin_width=search_margin_width,
         search_margin_height=search_margin_height,
         windowing=windowing, (duplicate-code)
-src/dictk/plot.py:1:0: R0801: Similar lines in 2 files
+src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
 ==dictk.grid:[562:570]
 ==dictk.warp:[234:242]
         kernel_margin_width=kernel_margin_width,
@@ -188,7 +249,7 @@ src/dictk/plot.py:1:0: R0801: Similar lines in 2 files
         max_iterations=max_iterations,
         tolerance=tolerance,
     ) (duplicate-code)
-src/dictk/plot.py:1:0: R0801: Similar lines in 2 files
+src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
 ==dictk.grid:[129:136]
 ==dictk.warp:[191:229]
         reference_point=reference_point,
@@ -197,39 +258,8 @@ src/dictk/plot.py:1:0: R0801: Similar lines in 2 files
         kernel_margin_height=kernel_margin_height,
         max_iterations=max_iterations,
         tolerance=tolerance,
-    )
-
-
-def locate(
-    *,
-    reference_image: np.ndarray,
-    current_image: np.ndarray,
-    reference_point: PixelCoordinate,
-    search_center: PixelCoordinate,
-    kernel_margin_width: int,
-    kernel_margin_height: int,
-    search_margin_width: int,
-    search_margin_height: int,
-    windowing: WindowingMethod | None = None,
-    max_iterations: int = 50,
-    tolerance: float = 1e-6,
-) -&gt; SubpixelCoordinate:
-    &quot;&quot;&quot;Subpixel point tracking by warping an affine kernel, free of the
-    pixel-locking bias of
-    [`dictk.translation.locate_subpixel`](./translation.html#locate_subpixel).
-
-    Runs [`fit`](#fit) and returns only the fitted warp&#x27;s translation,
-    as a position. Every argument passes straight through to `fit` --
-    see its own docstring for each one, and for the method.
-
-    Returns:
-        The point&#x27;s location, in `current_image`&#x27;s pixel reference
-        frame, generally fractional.
-
-    Raises:
-        ValueError: Under the same conditions as `fit`.
-    &quot;&quot;&quot; (duplicate-code)
-src/dictk/plot.py:1:0: R0801: Similar lines in 2 files
+    ) (duplicate-code)
+src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
 ==dictk.grid:[354:360]
 ==dictk.warp:[181:187]
         kernel_margin_width=kernel_margin_width,
@@ -238,7 +268,31 @@ src/dictk/plot.py:1:0: R0801: Similar lines in 2 files
         search_margin_height=search_margin_height,
         windowing=windowing,
     ) (duplicate-code)
-src/dictk/plot.py:1:0: R0801: Similar lines in 2 files
+src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
+==dictk.grid:[354:359]
+==dictk.warp:[234:239]
+        kernel_margin_width=kernel_margin_width,
+        kernel_margin_height=kernel_margin_height,
+        search_margin_width=search_margin_width,
+        search_margin_height=search_margin_height,
+        windowing=windowing, (duplicate-code)
+src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
+==dictk.grid:[463:468]
+==dictk.warp:[181:186]
+        kernel_margin_width=kernel_margin_width,
+        kernel_margin_height=kernel_margin_height,
+        search_margin_width=search_margin_width,
+        search_margin_height=search_margin_height,
+        windowing=windowing, (duplicate-code)
+src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
+==dictk.discontinuity:[314:319]
+==dictk.grid:[56:61]
+        kernel_margin_width=kernel_margin_width,
+        kernel_margin_height=kernel_margin_height,
+        search_margin_width=search_margin_width,
+        search_margin_height=search_margin_height,
+        windowing=windowing, (duplicate-code)
+src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
 ==dictk.image:[72:78]
 ==dictk.plot:[79:86]
     if width &lt; 1:
@@ -248,30 +302,6 @@ src/dictk/plot.py:1:0: R0801: Similar lines in 2 files
 
     image_height, image_width = image.shape
  (duplicate-code)
-src/dictk/plot.py:1:0: R0801: Similar lines in 2 files
-==dictk.discontinuity:[314:319]
-==dictk.grid:[56:61]
-        kernel_margin_width=kernel_margin_width,
-        kernel_margin_height=kernel_margin_height,
-        search_margin_width=search_margin_width,
-        search_margin_height=search_margin_height,
-        windowing=windowing, (duplicate-code)
-src/dictk/plot.py:1:0: R0801: Similar lines in 2 files
-==dictk.grid:[354:359]
-==dictk.warp:[234:239]
-        kernel_margin_width=kernel_margin_width,
-        kernel_margin_height=kernel_margin_height,
-        search_margin_width=search_margin_width,
-        search_margin_height=search_margin_height,
-        windowing=windowing, (duplicate-code)
-src/dictk/plot.py:1:0: R0801: Similar lines in 2 files
-==dictk.grid:[463:468]
-==dictk.warp:[181:186]
-        kernel_margin_width=kernel_margin_width,
-        kernel_margin_height=kernel_margin_height,
-        search_margin_width=search_margin_width,
-        search_margin_height=search_margin_height,
-        windowing=windowing, (duplicate-code)
 
 
 Report
@@ -372,17 +402,17 @@ Messages by category
 +--------------------+------+--------+---------+-----------+
 |module              |error |warning |refactor |convention |
 +====================+======+========+=========+===========+
+|dictk.correlation   |33.33 |0.00    |20.69    |8.33       |
++--------------------+------+--------+---------+-----------+
 |dictk.warp          |33.33 |0.00    |6.90     |0.00       |
 +--------------------+------+--------+---------+-----------+
 |dictk.translation   |33.33 |0.00    |6.90     |0.00       |
-+--------------------+------+--------+---------+-----------+
-|dictk.correlation   |33.33 |0.00    |0.00     |8.33       |
 +--------------------+------+--------+---------+-----------+
 |dictk.element       |0.00  |50.00   |0.00     |33.33      |
 +--------------------+------+--------+---------+-----------+
 |dictk.grid          |0.00  |37.50   |13.79    |8.33       |
 +--------------------+------+--------+---------+-----------+
-|dictk.plot          |0.00  |12.50   |58.62    |25.00      |
+|dictk.plot          |0.00  |12.50   |37.93    |25.00      |
 +--------------------+------+--------+---------+-----------+
 |dictk.discontinuity |0.00  |0.00    |8.62     |25.00      |
 +--------------------+------+--------+---------+-----------+

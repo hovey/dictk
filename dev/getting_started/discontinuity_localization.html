@@ -221,9 +221,9 @@ Error vs. known x=150: 5.0px
 
 Saved: discontinuity_localization_baseline.png
 </code></pre>
-<figure id="figure-10.3-1">
+<figure id="figure-11.3-1">
     <img src="discontinuity_localization_baseline.png" alt="step plot of recovered y-displacement vs grid point x: a flat line at +4 pixels for x=100 through 140, then a sharp step down to -4 pixels for x=150 through 200, with the estimated crossing at x=145 marked slightly left of the true crack at x=150" />
-    <figcaption><strong>Figure 10.3-1:</strong> Recovered y-displacement at 11 grid points, spaced 10 pixels apart. The jump between x=140 and x=150 is unmistakable: +4 pixels on one side, -4 on the other. The midpoint between them, x=145, lands 5 pixels from the true crack at x=150. That's half the grid spacing: exactly the resolution this approach can offer, no better.</figcaption>
+    <figcaption><strong>Figure 11.3-1:</strong> Recovered y-displacement at 11 grid points, spaced 10 pixels apart. The jump between x=140 and x=150 is unmistakable: +4 pixels on one side, -4 on the other. The midpoint between them, x=145, lands 5 pixels from the true crack at x=150. That's half the grid spacing: exactly the resolution this approach can offer, no better.</figcaption>
 </figure>
 <p>It works, in the sense that it flags roughly the right neighborhood.
 It's also a proxy, not a measurement of the thing itself. Nothing here
@@ -277,9 +277,9 @@ already swept by hand:</p>
 Located crack position: x=149.804
 Error vs. known x=150: 0.196px</p>
 <p>Saved: discontinuity_localization_sweep.png</p>
-<figure id="figure-10.3-2">
+<figure id="figure-11.3-2">
     <img src="discontinuity_localization_sweep.png" alt="line plot of peak_ratio vs window center x from 100 to 200, rising from 0 at x=130 to a sharp peak near 1.0 at x=150, then falling and settling into a fluctuating 0.2-0.3 band past x=170" />
-    <figcaption><strong>Figure 10.3-2:</strong> peak_ratio vs. window center x. A single, sharp maximum at x=149.8, subpixel-refined from a 101-point sweep. The known crack sits at x=150, 0.2 pixels away. Past x=170, peak_ratio settles into the same 0.2-0.3 band Synthetic Dislocation's own sweep already found and attributed to the underlying image content on that side, not the crack.</figcaption>
+    <figcaption><strong>Figure 11.3-2:</strong> peak_ratio vs. window center x. A single, sharp maximum at x=149.8, subpixel-refined from a 101-point sweep. The known crack sits at x=150, 0.2 pixels away. Past x=170, peak_ratio settles into the same 0.2-0.3 band Synthetic Dislocation's own sweep already found and attributed to the underlying image content on that side, not the crack.</figcaption>
 </figure>
 <p>101 evaluations, one per swept position, land 0.2 pixels from the known
 crack. No offset, no hand-picked center. The sweep finds the crossing
@@ -300,9 +300,9 @@ Error vs. known x=150: 0.251px</p>
 </tbody></table>
 </div>
 <p>Saved: discontinuity_localization_bisection.png</p>
-<figure id="figure-10.3-3">
+<figure id="figure-11.3-3">
     <img src="discontinuity_localization_bisection.png" alt="the same peak_ratio curve as the dense sweep figure, with red x markers showing golden-section search's 12 sampled points clustered tightly around the true peak at x=150" />
-    <figcaption><strong>Figure 10.3-3:</strong> Golden-section search's own 12 sampled points, against the dense sweep's full curve for reference. All 12 cluster near the true maximum. The search needed no help finding it.</figcaption>
+    <figcaption><strong>Figure 11.3-3:</strong> Golden-section search's own 12 sampled points, against the dense sweep's full curve for reference. All 12 cluster near the true maximum. The search needed no help finding it.</figcaption>
 </figure>
 <p>12 evaluations instead of 101, landing 0.25 pixels from the known crack.
 That's barely worse than the dense sweep, for roughly a tenth of the
@@ -322,9 +322,9 @@ golden-section, bracket (150, 300): x=217.25, evaluations=13
 golden-section, bracket (100, 350): x=308.11, evaluations=14</p>
 <p>The tight and moderate brackets land within 1px of the dense sweep's own answer. The wide bracket -- the one that assumes no prior knowledge of roughly where the crack is -- converges instead to a smaller, secondary peak_ratio bump far from the real crack, confidently and silently.
 Saved: discontinuity_localization_experimental.png</p>
-<figure id="figure-10.3-4">
+<figure id="figure-11.3-4">
     <img src="discontinuity_localization_experimental.png" alt="line plot of peak_ratio vs window center x from 100 to 350 on real data: a tall sharp peak near x=219, plus three smaller, shorter bumps around x=130, x=300-315, and x=325-340" />
-    <figcaption><strong>Figure 10.3-4:</strong> peak_ratio across a wide real-data range. One peak clearly stands above the rest, at x=218.7, 0.7 pixels from Experimental Dislocation's own by-eye x=218. Three smaller bumps sit elsewhere in the image, each shorter than the real crack's peak, but not by a wide margin.</figcaption>
+    <figcaption><strong>Figure 11.3-4:</strong> peak_ratio across a wide real-data range. One peak clearly stands above the rest, at x=218.7, 0.7 pixels from Experimental Dislocation's own by-eye x=218. Three smaller bumps sit elsewhere in the image, each shorter than the real crack's peak, but not by a wide margin.</figcaption>
 </figure>
 <p>The dense sweep's global maximum lands within a pixel of the known
 location, no matter how wide a range it searches. Golden-section search
