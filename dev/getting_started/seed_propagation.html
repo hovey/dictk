@@ -367,7 +367,159 @@ after 43 iterations, 26.704 px off. Its ZNSSD of 1.3003 still flags it.</p>
 the iteration count adds nothing that ZNSSD does not already show. The
 result comes from one image, one 27x27 kernel, and a 50-iteration cap.
 Another speckle pattern could narrow the gap between 0.0995 and 0.6952.</p>
+<h2 id="propagating-the-seed"><a class="header" href="#propagating-the-seed">Propagating the Seed</a></h2>
+<p>A good seed needs the local stretch and shear. A rigid tracker does not
+know them, but an already-fitted neighbor does.
+<a href="../api/dictk/grid.html#locate_warp_propagated"><code>dictk.grid.locate_warp_propagated</code></a>
+fits one point first, then seeds every other point from a fitted
+neighbor.</p>
+<p>The first point is the grid point nearest the image center. It has no
+fitted neighbor, so it searches over shapes instead. It tries every
+displacement gradient <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> from <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">−</span><span class="mord">0.3</span></span></span></span> to <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.3</span></span></span></span> in
+steps of 0.1, which makes <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord">7</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">4</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2401</span></span></span></span> trials. Each trial deforms the
+reference kernel and finds that kernel's whole-pixel translation by
+phase correlation, as <code>translation.locate</code> does for the rigid kernel.
+Each trial is scored by ZNSSD at that translation. IC-GN refines the 3
+best trials, and the fit with the lowest final ZNSSD becomes the first
+point's warp.</p>
+<p>The other points are visited breadth-first, each through its 8 nearest
+points. Each point starts from the warp of the fitted neighbor that
+reached it. The four gradient terms carry over. The translation is
+extrapolated across the offset <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol">d</span></span></span></span></span></span> from the neighbor's
+reference position to this point's:</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">[</span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">u</span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">]</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">[</span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">]</span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:2.4497em;vertical-align:-0.9997em;"></span><span class="minner"><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">[</span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">]</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:-0.6983em;"><span style="top:-1.7003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.9997em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol">d</span></span></span><span class="mpunct">,</span></span></span></span></span></p>
+<p>where the subscript <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span> marks the neighbor's fitted values. Only the
+first point uses the search area. Every other point skips the
+whole-pixel search.</p>
+<p>The comparison tracks a 17x17 grid at 5 px spacing, from <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">110</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">110</span><span class="mclose">)</span></span></span></span>
+to <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">190</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">190</span><span class="mclose">)</span></span></span></span>, under all 49 combinations of stretch and shear. Each
+current image deforms about the image center, then shifts by
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">2.3</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1.6</span><span class="mclose">)</span></span></span></span> px. That makes <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">289</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">49</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">14161</span></span></span></span> fits per tracker.</p>
+<p><code>locate_warp</code> gets each point's true position, rounded, as its search
+center. Under a 30% stretch with a 0.30 shear, a point 40 px from the
+center moves 24 px, twice the 12 px of travel its search area allows.
+The rounded true positions keep every search area on the right place,
+so only the rigid seed can fail <code>locate_warp</code>.
+<code>locate_warp_propagated</code> gets no search centers:</p>
+<p><code>locate_warp</code> misses of more than 1 px, out of 289 points:</p>
+<div class="table-wrapper"><table><thead><tr><th>Stretch \ Shear</th><th>0.00</th><th>0.05</th><th>0.10</th><th>0.15</th><th>0.20</th><th>0.25</th><th>0.30</th></tr></thead><tbody>
+<tr><td>0%</td><td>0</td><td>0</td><td>26</td><td>136</td><td>238</td><td>262</td><td>280</td></tr>
+<tr><td>5%</td><td>1</td><td>2</td><td>44</td><td>184</td><td>252</td><td>278</td><td>278</td></tr>
+<tr><td>10%</td><td>31</td><td>44</td><td>91</td><td>200</td><td>257</td><td>279</td><td>281</td></tr>
+<tr><td>15%</td><td>149</td><td>173</td><td>196</td><td>233</td><td>268</td><td>282</td><td>284</td></tr>
+<tr><td>20%</td><td>242</td><td>251</td><td>265</td><td>259</td><td>272</td><td>285</td><td>284</td></tr>
+<tr><td>25%</td><td>272</td><td>277</td><td>282</td><td>279</td><td>284</td><td>287</td><td>285</td></tr>
+<tr><td>30%</td><td>280</td><td>288</td><td>284</td><td>283</td><td>282</td><td>284</td><td>287</td></tr>
+</tbody></table>
+</div><div class="table-wrapper"><table><thead><tr><th>Tracker</th><th>Misses, of 14161</th><th>Largest error (px)</th></tr></thead><tbody>
+<tr><td><code>locate_warp</code></td><td>10561</td><td>47.898</td></tr>
+<tr><td><code>locate_warp_propagated</code></td><td>0</td><td>0.009</td></tr>
+</tbody></table>
+</div>
+<p><code>locate_warp</code> misses 26 of 289 points at a 0.10 shear alone, and 31 at
+a 10% stretch alone. At a 30% stretch alone, it misses 280.
+<code>locate_warp_propagated</code> misses none of its 14161 fits, and its largest
+error is 0.009 px.</p>
+<p>Three limits apply. Every point here shares one stretch and shear, so a
+neighbor's gradient terms match this point's exactly. A strain gradient
+would make the extrapolated seed less exact. The start search tries
+gradient terms only up to 0.3. And <code>locate_warp_propagated</code> passes each
+fit on to its neighbors without checking its ZNSSD, so one wrong fit
+would spread.</p>
 <p>Continue to <a href="./postprocessing.html">Postprocessing</a>.</p>
+<h3 id="seed_propagation_gridpy"><a class="header" href="#seed_propagation_gridpy"><code>seed_propagation_grid.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
+<pre><code class="language-python">"""`locate_warp` against `locate_warp_propagated` on a 17x17 grid at
+5 px spacing, across the sweep's 49 stretch and shear combinations.
+
+Each current image deforms about the image center, then shifts by
+(2.3, 1.6) px. `locate_warp` gets each point's true position, rounded,
+as its search center, so its search area always contains the true
+position and only the rigid seed can fail it. `locate_warp_propagated`
+gets no search centers.
+"""
+
+import numpy as np
+from scipy.ndimage import affine_transform
+
+from dictk.grid import generate, locate_warp, locate_warp_propagated
+from dictk.image import PixelCoordinate, read
+
+STRETCHES = np.round(np.arange(0.0, 0.31, 0.05), 2)
+SHEARS = np.round(np.arange(0.0, 0.31, 0.05), 2)
+MISS_LIMIT = 1.0
+CENTER = np.array([149.5, 149.5])
+SHIFT = np.array([2.3, 1.6])
+
+reference_image = read(path="astronaut0.png").astype(np.float64)
+points = generate(
+    origin=PixelCoordinate(x=110, y=110),
+    count_x=17,
+    count_y=17,
+    spacing_x=5,
+    spacing_y=5,
+)
+reference = np.array([[p.x, p.y] for p in points], dtype=np.float64)
+margins = dict(
+    kernel_margin_width=13,
+    kernel_margin_height=13,
+    search_margin_width=25,
+    search_margin_height=25,
+)
+
+names = ["`locate_warp`", "`locate_warp_propagated`"]
+miss_counts = np.zeros((2, len(STRETCHES), len(SHEARS)), dtype=int)
+largest = np.zeros(2)
+for i, stretch in enumerate(STRETCHES):
+    for j, shear in enumerate(SHEARS):
+        F = np.array([[1.0 + stretch, shear], [0.0, 1.0]])
+        # affine_transform maps each output (row, column) back to its
+        # input position, so it takes the inverse deformation, in (y, x)
+        # order.
+        inverse = np.linalg.inv(F)[::-1, ::-1]
+        offset = CENTER[::-1] - inverse @ (CENTER[::-1] + SHIFT[::-1])
+        current_image = affine_transform(
+            reference_image, inverse, offset=offset, order=5
+        )
+        true = CENTER + (reference - CENTER) @ F.T + SHIFT
+        search_centers = [
+            PixelCoordinate(x=int(x), y=int(y)) for x, y in np.round(true)
+        ]
+        for k, (locate, extra) in enumerate(
+            [
+                (locate_warp, dict(search_centers=search_centers)),
+                (locate_warp_propagated, {}),
+            ]
+        ):
+            found = locate(
+                reference_image=reference_image,
+                current_image=current_image,
+                reference_points=points,
+                **margins,
+                **extra,
+            )
+            errors = np.linalg.norm(
+                np.array([[f.x, f.y] for f in found]) - true, axis=1
+            )
+            miss_counts[k, i, j] = (errors &gt; MISS_LIMIT).sum()
+            largest[k] = max(largest[k], errors.max())
+
+print(f"{names[0]} misses of more than {MISS_LIMIT:g} px, out of {len(points)} points:")
+print()
+print("| Stretch \\ Shear | " + " | ".join(f"{g:.2f}" for g in SHEARS) + " |")
+print("|---|" + "---|" * len(SHEARS))
+for stretch, row in zip(STRETCHES, miss_counts[0]):
+    print(f"| {stretch:.0%} | " + " | ".join(str(c) for c in row) + " |")
+print()
+
+fits = len(points) * len(STRETCHES) * len(SHEARS)
+print(f"| Tracker | Misses, of {fits} | Largest error (px) |")
+print("|---|---|---|")
+for name, counts, error in zip(names, miss_counts, largest):
+    print(f"| {name} | {counts.sum()} | {error:.3f} |")
+</code></pre>
+</details>
 <h3 id="seed_propagation_deformed_seedpy"><a class="header" href="#seed_propagation_deformed_seedpy"><code>seed_propagation_deformed_seed.py</code></a></h3>
 <details>
 <summary>Show the code</summary>
