@@ -18,8 +18,8 @@ src/dictk/grid.py:203:0: C0301: Line too long (118/100) (line-too-long)
 src/dictk/grid.py:33:0: R0913: Too many arguments (8/5) (too-many-arguments)
 src/dictk/grid.py:65:0: R0913: Too many arguments (9/5) (too-many-arguments)
 src/dictk/grid.py:95:0: R0913: Too many arguments (12/5) (too-many-arguments)
-src/dictk/grid.py:95:0: R0914: Too many local variables (16/15) (too-many-locals)
-src/dictk/grid.py:126:13: W0212: Access to a protected member _refine of a client class (protected-access)
+src/dictk/grid.py:95:0: R0914: Too many local variables (18/15) (too-many-locals)
+src/dictk/grid.py:126:34: W0212: Access to a protected member _refine of a client class (protected-access)
 src/dictk/grid.py:252:0: R0913: Too many arguments (11/5) (too-many-arguments)
 src/dictk/grid.py:368:0: R0913: Too many arguments (12/5) (too-many-arguments)
 src/dictk/grid.py:478:0: R0913: Too many arguments (13/5) (too-many-arguments)
@@ -31,10 +31,10 @@ src/dictk/cli.py:20:0: R0913: Too many arguments (6/5) (too-many-arguments)
 src/dictk/cli.py:20:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
 ************* Module dictk.warp
 src/dictk/warp.py:24:0: R0913: Too many arguments (9/5) (too-many-arguments)
-src/dictk/warp.py:24:0: R0914: Too many local variables (31/15) (too-many-locals)
-src/dictk/warp.py:44:13: E1101: Instance of &#x27;tuple&#x27; has no &#x27;astype&#x27; member (no-member)
-src/dictk/warp.py:89:0: R0913: Too many arguments (11/5) (too-many-arguments)
-src/dictk/warp.py:201:0: R0913: Too many arguments (11/5) (too-many-arguments)
+src/dictk/warp.py:24:0: R0914: Too many local variables (30/15) (too-many-locals)
+src/dictk/warp.py:50:13: E1101: Instance of &#x27;tuple&#x27; has no &#x27;astype&#x27; member (no-member)
+src/dictk/warp.py:98:0: R0913: Too many arguments (11/5) (too-many-arguments)
+src/dictk/warp.py:211:0: R0913: Too many arguments (11/5) (too-many-arguments)
 ************* Module dictk.rosta
 src/dictk/rosta.py:99:0: R0913: Too many arguments (6/5) (too-many-arguments)
 ************* Module dictk.discontinuity
@@ -108,71 +108,10 @@ src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
             f&quot;search_margin_height {search_margin_height} must be greater than &quot;
             f&quot;kernel_margin_height {kernel_margin_height}&quot;
         )
-
-
-def sweep(
-    *,
-    reference_image: np.ndarray,
-    current_image: np.ndarray,
-    start: PixelCoordinate,
-    end: PixelCoordinate,
-    samples: int,
-    kernel_margin_width: int,
-    kernel_margin_height: int,
-    search_margin_width: int,
-    search_margin_height: int,
-    windowing: WindowingMethod | None = None,
-    height_threshold: float = 0.2,
-    distance: int = 2,
-) -&gt; DiscontinuitySweep:
-    &quot;&quot;&quot;Evaluate `peak_ratio` at `samples` window-center positions evenly spaced from `start` to `end`.
-
-    At each position, extracts a kernel from `reference_image` and a
-    search area from `current_image`, both centered on that position
-    (the same &quot;center a window here&quot; step [Synthetic
-    Dislocation](../getting_started/synthetic_dislocation.html#moving-the-window-off-the-crack)
-    does by hand at one fixed row), computes their ZNCC surface, and
-    reads its `peak_ratio`. A discontinuity crossing the `start`-`end`
-    line shows up as a rise in `peak_ratios` near the crossing, high on
-    an ambiguous, straddling window and low everywhere else -- see
-    [`locate`](#locate) to turn that rise into a single position.
-
-    Args:
-        reference_image: The reference (undeformed) 2D grayscale image.
-        current_image: The current (deformed) 2D grayscale image.
-        start: The first window-center position, in both images&#x27; shared
-            pixel reference frame.
-        end: The last window-center position.
-        samples: Number of window-center positions, evenly spaced from
-            `start` to `end` inclusive. Must be &gt;= 2.
-        kernel_margin_width: Half each kernel&#x27;s width, in pixels. Must be
-            &gt;= 1.
-        kernel_margin_height: Half each kernel&#x27;s height, in pixels. Must
-            be &gt;= 1.
-        search_margin_width: Half each search area&#x27;s width, in pixels.
-            Must be greater than `kernel_margin_width`.
-        search_margin_height: Half each search area&#x27;s height, in pixels.
-            Must be greater than `kernel_margin_height`.
-        windowing: Passed straight through to
-            [`dictk.correlation.window`](./correlation.html#window) for
-            both the kernel and search area at every position. Default
-            `None` applies no windowing.
-        height_threshold: Passed straight through to each position&#x27;s own
-            [`peak_ratio`](#peak_ratio) call.
-        distance: Passed straight through to each position&#x27;s own
-            `peak_ratio` call.
-
-    Returns:
-        A `DiscontinuitySweep` pairing each swept position with its own
-        `peak_ratio`, in sweep order.
-
-    Raises:
-        ValueError: If `samples` is less than 2, or the margin arguments
-            are invalid (see `kernel_margin_width`/etc. above).
-    &quot;&quot;&quot; (duplicate-code)
+ (duplicate-code)
 src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
 ==dictk.grid:[114:125]
-==dictk.warp:[176:187]
+==dictk.warp:[185:196]
     start = translation.locate(
         reference_image=reference_image,
         current_image=current_image,
@@ -186,7 +125,7 @@ src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
     ) (duplicate-code)
 src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
 ==dictk.grid:[52:79]
-==dictk.warp:[177:187]
+==dictk.warp:[186:196]
         reference_image=reference_image,
         current_image=current_image,
         reference_point=reference_point,
@@ -196,27 +135,10 @@ src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
         search_margin_width=search_margin_width,
         search_margin_height=search_margin_height,
         windowing=windowing,
-    )
-
-
-def _locate_subpixel_worker(
-    args: tuple[PixelCoordinate, PixelCoordinate],
-    *,
-    reference_image: np.ndarray,
-    current_image: np.ndarray,
-    kernel_margin_width: int,
-    kernel_margin_height: int,
-    search_margin_width: int,
-    search_margin_height: int,
-    windowing: WindowingMethod | None,
-    upsample_factor: int,
-) -&gt; SubpixelCoordinate:
-    &quot;&quot;&quot;One point&#x27;s worth of `translation.locate_subpixel` -- see
-    `_locate_worker`&#x27;s own docstring for why this is a module-level
-    function taking a single positional argument, not a closure.&quot;&quot;&quot; (duplicate-code)
+    ) (duplicate-code)
 src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
 ==dictk.grid:[52:61]
-==dictk.warp:[230:239]
+==dictk.warp:[240:249]
         reference_image=reference_image,
         current_image=current_image,
         reference_point=reference_point,
@@ -228,7 +150,7 @@ src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
         windowing=windowing, (duplicate-code)
 src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
 ==dictk.grid:[81:90]
-==dictk.warp:[177:186]
+==dictk.warp:[186:195]
         reference_image=reference_image,
         current_image=current_image,
         reference_point=reference_point,
@@ -240,7 +162,7 @@ src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
         windowing=windowing, (duplicate-code)
 src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
 ==dictk.grid:[562:570]
-==dictk.warp:[234:242]
+==dictk.warp:[244:252]
         kernel_margin_width=kernel_margin_width,
         kernel_margin_height=kernel_margin_height,
         search_margin_width=search_margin_width,
@@ -251,7 +173,7 @@ src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
     ) (duplicate-code)
 src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
 ==dictk.grid:[129:136]
-==dictk.warp:[191:229]
+==dictk.warp:[200:207]
         reference_point=reference_point,
         start=start,
         kernel_margin_width=kernel_margin_width,
@@ -261,7 +183,7 @@ src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
     ) (duplicate-code)
 src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
 ==dictk.grid:[354:360]
-==dictk.warp:[181:187]
+==dictk.warp:[190:196]
         kernel_margin_width=kernel_margin_width,
         kernel_margin_height=kernel_margin_height,
         search_margin_width=search_margin_width,
@@ -270,7 +192,7 @@ src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
     ) (duplicate-code)
 src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
 ==dictk.grid:[354:359]
-==dictk.warp:[234:239]
+==dictk.warp:[244:249]
         kernel_margin_width=kernel_margin_width,
         kernel_margin_height=kernel_margin_height,
         search_margin_width=search_margin_width,
@@ -278,7 +200,7 @@ src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
         windowing=windowing, (duplicate-code)
 src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
 ==dictk.grid:[463:468]
-==dictk.warp:[181:186]
+==dictk.warp:[190:195]
         kernel_margin_width=kernel_margin_width,
         kernel_margin_height=kernel_margin_height,
         search_margin_width=search_margin_width,
@@ -306,7 +228,7 @@ src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
 
 Report
 ======
-1131 statements analysed.
+1134 statements analysed.
 
 Statistics by type
 ------------------
@@ -320,7 +242,7 @@ Statistics by type
 +---------+-------+-----------+-----------+------------+---------+
 |method   |1      |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
-|function |94     |NC         |NC         |100.00      |0.00     |
+|function |95     |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
 
 
@@ -347,7 +269,7 @@ External dependencies
 
 
 
-5690 lines have been analyzed
+5700 lines have been analyzed
 
 Raw metrics
 -----------
@@ -355,13 +277,13 @@ Raw metrics
 +----------+-------+------+---------+-----------+
 |type      |number |%     |previous |difference |
 +==========+=======+======+=========+===========+
-|code      |2432   |42.74 |NC       |NC         |
+|code      |2435   |42.72 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|docstring |2648   |46.54 |NC       |NC         |
+|docstring |2654   |46.56 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|comment   |187    |3.29  |NC       |NC         |
+|comment   |187    |3.28  |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|empty     |423    |7.43  |NC       |NC         |
+|empty     |424    |7.44  |NC       |NC         |
 +----------+-------+------+---------+-----------+
 
 

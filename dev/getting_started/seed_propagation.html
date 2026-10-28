@@ -220,7 +220,8 @@ happens.</p>
 <p>The sweep maps where seeds fail across a grid of 49 combinations of
 seven stretch values and seven shear values. It stretches the image
 along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> by 0% to 30%, and shears it by 0 to 0.30, both in steps of
-0.05. Each combination tracks the same 30 points. Each point sits at a
+0.05. Each combination tracks the same 30 points, so the sweep runs
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">30</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">49</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1470</span></span></span></span> fits. Each point sits at a
 random position at least 40 px from every edge of the 300x300
 <code>astronaut0</code> image. Each point also gets its own random fractional
 shift. The shifts fall between 4 and 8 px along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and between 2 and
@@ -295,7 +296,190 @@ seeds back to the right position. At a 0.15 shear alone, it pulls back
 6 of the 15. The other 972 failed seeds become misses. No miss starts
 from a correct seed. Every miss traces back to a failed seed, so the
 fix belongs at the seed, not in IC-GN.</p>
+<h2 id="detecting-a-miss"><a class="header" href="#detecting-a-miss">Detecting a Miss</a></h2>
+<p>For each point, <code>locate_warp</code> returns only the tracked position
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span> in the current image, in pixels, as a <code>SubpixelCoordinate</code>.
+A miss 28.718 px off looks the same as a correct fit 0.001 px off.
+Inside <code>locate_warp</code>, IC-GN computes two more numbers, but
+<code>locate_warp</code> discards both. The first is the final ZNSSD, <a href="./kernel_warping.html#inverse-compositional-gauss-newton">Kernel
+Warping's</a>
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">(</span><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="mclose">)</span></span></span></span>. It measures how well the warped kernel matches the
+current image:</p>
+<ul>
+<li>A ZNSSD of 0 is a perfect score.</li>
+<li>A ZNSSD of 4 is the worst score, reached when the current image
+shows the kernel with its contrast inverted.</li>
+</ul>
+<p>The second is the iteration count. IC-GN stops once every update falls below <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">6</span></span></span></span></span></span></span></span></span></span></span></span>,
+or after <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7976em;vertical-align:-0.367em;"></span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">MAX_ITER</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.367em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">50</span></span></span></span> updates.</p>
+<p>The script below reruns all 1470 fits from the sweep and records both
+numbers for each fit. A fit is correct when it lands within 1 px of the
+true position:</p>
+<div class="table-wrapper"><table><thead><tr><th>Fit</th><th>Count</th><th>ZNSSD range</th><th>Median ZNSSD</th><th>Median iterations</th><th>Stopped at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7976em;vertical-align:-0.367em;"></span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">MAX_ITER</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.367em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">50</span></span></span></span></th></tr></thead><tbody>
+<tr><td>Correct</td><td>498</td><td>0.0000 to 0.0995</td><td>0.0017</td><td>11</td><td>4</td></tr>
+<tr><td>Miss</td><td>972</td><td>0.6952 to 2.9096</td><td>1.4497</td><td>50</td><td>971</td></tr>
+</tbody></table>
+</div>
+<p>The fits the iteration count misclassifies:</p>
+<div class="table-wrapper"><table><thead><tr><th>Fit</th><th>Stretch</th><th>Shear</th><th>Error (px)</th><th>ZNSSD</th><th>Iterations</th></tr></thead><tbody>
+<tr><td>Correct</td><td>5%</td><td>0.25</td><td>0.005</td><td>0.0050</td><td>50</td></tr>
+<tr><td>Correct</td><td>20%</td><td>0.30</td><td>0.005</td><td>0.0015</td><td>50</td></tr>
+<tr><td>Correct</td><td>25%</td><td>0.10</td><td>0.004</td><td>0.0029</td><td>50</td></tr>
+<tr><td>Correct</td><td>25%</td><td>0.10</td><td>0.267</td><td>0.0995</td><td>50</td></tr>
+<tr><td>Miss</td><td>30%</td><td>0.05</td><td>26.704</td><td>1.3003</td><td>43</td></tr>
+</tbody></table>
+</div><figure id="fig-sp-quality">
+    <img src="seed_propagation_quality.png" alt="two histograms with logarithmic count axes, correct fits in blue and misses in orange. Left, final ZNSSD on a logarithmic axis from 1e-6 to about 3: the blue correct fits cluster between 1e-4 and 1e-2 with one fit near 0.1, the orange misses cluster between 0.7 and 3, and no fit falls between 0.1 and 0.7. Right, IC-GN iterations from 0 to 50: the blue correct fits peak near 10 iterations with a thin tail to 46 and a small bar of 4 at 50, and the orange misses form one tall bar of 971 at 50 plus one fit at 43" />
+    <figcaption><strong>Figure 9.4-3:</strong> Final ZNSSD (left) and IC-GN iteration count (right) for the sweep's 1470 fits: 498 correct fits (blue) and 972 misses (orange). Both count axes are logarithmic, so single fits stay visible. A miss lands more than 1 px from the true position.</figcaption>
+</figure>
+<p>ZNSSD separates the two groups with no overlap. Correct fits score at
+most 0.0995, and misses score at least 0.6952. Any threshold between
+those two values flags all 972 misses and none of the 498 correct fits.
+In <a href="./correlation_criteria.html">ZNCC</a> terms, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord text"><span class="mord">ZNCC</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mord">/2</span></span></span></span>, so
+every correct fit keeps a ZNCC of at least 0.950, and every miss stays
+at or below 0.652.</p>
+<p>The 0.0995 belongs to the one fit from <a href="#where-the-seed-breaks">Where the Seed
+Breaks</a> that landed 0.267 px off. That fit
+counts as correct under the 1 px rule.</p>
+<p>The iteration count separates the groups almost as well. Correct fits
+took a median of 11 iterations. 971 of the 972 misses ran all 50
+without converging. The count misclassifies 5 fits. Four correct fits
+also ran all 50 iterations. Three of those four landed within 0.005 px,
+but their updates never all fell below <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">6</span></span></span></span></span></span></span></span></span></span></span></span>. The fourth is the
+0.267 px fit. One miss, at a 30% stretch and a 0.05 shear, converged
+after 43 iterations, 26.704 px off. Its ZNSSD of 1.3003 still flags it.</p>
+<p>Every miss the iteration count flags, ZNSSD also flags. On this sweep,
+the iteration count adds nothing that ZNSSD does not already show. The
+result comes from one image, one 27x27 kernel, and a 50-iteration cap.
+Another speckle pattern could narrow the gap between 0.0995 and 0.6952.</p>
 <p>Continue to <a href="./postprocessing.html">Postprocessing</a>.</p>
+<h3 id="seed_propagation_qualitypy"><a class="header" href="#seed_propagation_qualitypy"><code>seed_propagation_quality.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
+<pre><code class="language-python">"""Can a wrong fit be detected? Reruns the sweep's 1470 fits, the same
+49 stretch and shear combinations at the same 30 points, and records
+each fit's final ZNSSD and IC-GN iteration count alongside its error.
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.ndimage import affine_transform
+
+from dictk import translation, warp
+from dictk.image import PixelCoordinate, read
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+
+MARGIN = 13
+SEARCH_MARGIN = 25
+SAMPLE_COUNT = 30
+MAX_ITERATIONS = 50
+STRETCHES = np.round(np.arange(0.0, 0.31, 0.05), 2)
+SHEARS = np.round(np.arange(0.0, 0.31, 0.05), 2)
+MISS_LIMIT = 1.0
+
+reference_image = read(path="astronaut0.png")
+reference_gradients = warp._gradients(reference_image)
+rng = np.random.default_rng(0)
+pivots = rng.integers(40, 261, size=(SAMPLE_COUNT, 2)).astype(np.float64)
+shifts = np.round(rng.uniform([4, 2], [8, 6], size=(SAMPLE_COUNT, 2)), 2)
+
+errors, znssds, iterations, cells = [], [], [], []
+for stretch in STRETCHES:
+    for shear in SHEARS:
+        inverse = np.linalg.inv(np.array([[1.0 + stretch, shear], [0.0, 1.0]]))
+        inverse = inverse[::-1, ::-1]
+        for pivot, shift in zip(pivots, shifts):
+            point = PixelCoordinate(x=int(pivot[0]), y=int(pivot[1]))
+            offset = pivot[::-1] - inverse @ (pivot[::-1] + shift[::-1])
+            current_image = affine_transform(
+                reference_image.astype(np.float64), inverse, offset=offset, order=5
+            )
+            seed = translation.locate(
+                reference_image=reference_image,
+                current_image=current_image,
+                reference_point=point,
+                search_center=point,
+                kernel_margin_width=MARGIN,
+                kernel_margin_height=MARGIN,
+                search_margin_width=SEARCH_MARGIN,
+                search_margin_height=SEARCH_MARGIN,
+            )
+            fitted, znssd, count = warp._refine(
+                reference_image=reference_image,
+                reference_gradients=reference_gradients,
+                current_coefficients=warp._spline_coefficients(current_image),
+                reference_point=point,
+                start=seed,
+                kernel_margin_width=MARGIN,
+                kernel_margin_height=MARGIN,
+                max_iterations=MAX_ITERATIONS,
+                tolerance=1e-6,
+            )
+            errors.append(np.hypot(*(fitted[:2, 2] - shift)))
+            znssds.append(znssd)
+            iterations.append(count)
+            cells.append((stretch, shear))
+
+errors, znssds, iterations = map(np.array, (errors, znssds, iterations))
+missed = errors &gt; MISS_LIMIT
+stalled = iterations == MAX_ITERATIONS
+
+print(
+    f"| Fit | Count | ZNSSD range | Median ZNSSD | Median iterations "
+    rf"| Stopped at $n_{{\text{{MAX\_ITER}}}} = {MAX_ITERATIONS}$ |"
+)
+print("|---|---|---|---|---|---|")
+for name, group in [("Correct", ~missed), ("Miss", missed)]:
+    print(
+        f"| {name} | {group.sum()} "
+        f"| {znssds[group].min():.4f} to {znssds[group].max():.4f} "
+        f"| {np.median(znssds[group]):.4f} "
+        f"| {np.median(iterations[group]):.0f} "
+        f"| {stalled[group].sum()} |"
+    )
+print()
+print("The fits the iteration count misclassifies:")
+print()
+print("| Fit | Stretch | Shear | Error (px) | ZNSSD | Iterations |")
+print("|---|---|---|---|---|---|")
+for name, group in [
+    ("Correct", ~missed &amp; stalled),
+    ("Miss", missed &amp; ~stalled),
+]:
+    for k in np.flatnonzero(group):
+        stretch, shear = cells[k]
+        print(
+            f"| {name} | {stretch:.0%} | {shear:.2f} | {errors[k]:.3f} "
+            f"| {znssds[k]:.4f} | {iterations[k]} |"
+        )
+
+fig, (left, right) = plt.subplots(1, 2, figsize=(10, 4.2), constrained_layout=True)
+bins = np.logspace(np.log10(znssds.min()) - 0.1, np.log10(znssds.max()) + 0.1, 60)
+for group, color, label in [
+    (~missed, "tab:blue", "correct fit"),
+    (missed, "tab:orange", "miss"),
+]:
+    left.hist(znssds[group], bins=bins, color=color, alpha=0.8, label=label)
+    right.hist(
+        iterations[group],
+        bins=np.arange(0.5, MAX_ITERATIONS + 1.5),
+        color=color,
+        alpha=0.8,
+        label=label,
+    )
+left.set_xscale("log")
+left.set_yscale("log")
+left.set_xlabel("final ZNSSD")
+left.set_ylabel("fits")
+left.legend()
+right.set_yscale("log")
+right.set_xlabel("IC-GN iterations")
+right.set_ylabel("fits")
+right.legend()
+fig.savefig("seed_propagation_quality.png", dpi=300)
+</code></pre>
+</details>
 <h3 id="seed_propagation_kernel_warping_seedspy"><a class="header" href="#seed_propagation_kernel_warping_seedspy"><code>seed_propagation_kernel_warping_seeds.py</code></a></h3>
 <details>
 <summary>Show the code</summary>
