@@ -5,7 +5,14 @@ from scipy.ndimage import affine_transform, fourier_shift, gaussian_filter
 from dictk import translation
 from dictk.image import PixelCoordinate, stretch, translate
 from dictk.rosta import rosta
-from dictk.warp import _gradients, _refine, _spline_coefficients, fit, locate
+from dictk.warp import (
+    _gradients,
+    _refine,
+    _spline_coefficients,
+    _translation_warp,
+    fit,
+    locate,
+)
 
 
 def _locate_kwargs(**overrides):
@@ -147,7 +154,9 @@ def _refine_kwargs(*, start, max_iterations=50):
         reference_gradients=_gradients(ref),
         current_coefficients=_spline_coefficients(cur),
         reference_point=PixelCoordinate(x=60, y=60),
-        start=start,
+        initial_warp=_translation_warp(
+            reference_point=PixelCoordinate(x=60, y=60), start=start
+        ),
         kernel_margin_width=15,
         kernel_margin_height=15,
         max_iterations=max_iterations,
@@ -178,3 +187,42 @@ def test_refine_iterations_stop_at_max_iterations():
         **_refine_kwargs(start=PixelCoordinate(x=62, y=63), max_iterations=1)
     )
     assert iterations == 1
+
+
+def test_refine_converges_from_deformed_start_where_rigid_seed_fails():
+    # 15% stretch with 0.15 shear defeats the rigid whole-pixel seed here.
+    # Starting from the true stretch and shear, with the translation
+    # rounded to whole pixels as a seed would be, IC-GN converges.
+    ref = gaussian_filter(rosta(width=160, height=160, density=0.4).astype(float), 1)
+    deformation = np.array([[1.15, 0.15], [0.0, 1.0]])
+    translation_xy = np.array([5.4, 3.7])
+    pivot = np.array([80.0, 80.0])
+    inverse = np.linalg.inv(deformation)[::-1, ::-1]
+    offset = pivot[::-1] - inverse @ (pivot[::-1] + translation_xy[::-1])
+    cur = affine_transform(ref, inverse, offset=offset, order=5)
+    point = PixelCoordinate(x=80, y=80)
+    kwargs = dict(
+        reference_image=ref,
+        current_image=cur,
+        **_locate_kwargs(reference_point=point, search_center=point),
+    )
+    rigid = fit(**kwargs)
+    assert np.hypot(*(rigid[:2, 2] - translation_xy)) > 5
+
+    initial_warp = np.eye(3)
+    initial_warp[:2, :2] = deformation
+    initial_warp[:2, 2] = np.round(translation_xy)
+    fitted, znssd, _ = _refine(
+        reference_image=ref,
+        reference_gradients=_gradients(ref),
+        current_coefficients=_spline_coefficients(cur),
+        reference_point=point,
+        initial_warp=initial_warp,
+        kernel_margin_width=15,
+        kernel_margin_height=15,
+        max_iterations=50,
+        tolerance=1e-6,
+    )
+    np.testing.assert_allclose(fitted[:2, 2], translation_xy, atol=0.01)
+    np.testing.assert_allclose(fitted[:2, :2], deformation, atol=2e-3)
+    assert znssd < 0.01

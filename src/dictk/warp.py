@@ -21,20 +21,35 @@ def _gradients(image: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     return gradient_y, gradient_x
 
 
+def _translation_warp(
+    *, reference_point: PixelCoordinate, start: PixelCoordinate
+) -> np.ndarray:
+    """The rigid seed: a warp that moves `reference_point` to the
+    whole-pixel `start`, with all four gradient terms zero."""
+    return np.array(
+        [
+            [1.0, 0.0, start.x - reference_point.x],
+            [0.0, 1.0, start.y - reference_point.y],
+            [0.0, 0.0, 1.0],
+        ]
+    )
+
+
 def _refine(
     *,
     reference_image: np.ndarray,
     reference_gradients: tuple[np.ndarray, np.ndarray],
     current_coefficients: np.ndarray,
     reference_point: PixelCoordinate,
-    start: PixelCoordinate,
+    initial_warp: np.ndarray,
     kernel_margin_width: int,
     kernel_margin_height: int,
     max_iterations: int,
     tolerance: float,
 ) -> tuple[np.ndarray, float, int]:
-    """IC-GN refinement of one point, from an integer `start` -- see
-    [`fit`](#fit) for the method and the returned matrix. Takes
+    """IC-GN refinement of one point, starting from the 3x3
+    `initial_warp` -- see [`fit`](#fit) for the method and the returned
+    matrix. `_translation_warp` builds the rigid seed `fit` uses. Takes
     precomputed gradients and spline coefficients so a batch caller
     computes them once, not once per point.
 
@@ -70,13 +85,7 @@ def _refine(
         g = g - g.mean()
         return f_norm / np.sqrt((g**2).sum()) * g - f
 
-    warp = np.array(
-        [
-            [1.0, 0.0, start.x - x0],
-            [0.0, 1.0, start.y - y0],
-            [0.0, 0.0, 1.0],
-        ]
-    )
+    warp = np.array(initial_warp, dtype=np.float64)
     for iterations in range(1, max_iterations + 1):
         residual = residual_at(warp)
         dp = hessian_inverse @ (steepest_descent.T @ residual.ravel())
@@ -199,7 +208,7 @@ def fit(
         reference_gradients=_gradients(reference_image),
         current_coefficients=_spline_coefficients(current_image),
         reference_point=reference_point,
-        start=start,
+        initial_warp=_translation_warp(reference_point=reference_point, start=start),
         kernel_margin_width=kernel_margin_width,
         kernel_margin_height=kernel_margin_height,
         max_iterations=max_iterations,

@@ -62,7 +62,7 @@ Kernel](./kernel_warping.md#rigid-versus-warped-kernel) used.
 
 <figure id="fig-sp-points">
     <img src="seed_propagation_points.png" alt="two panels. Left: the 300 by 300 astronaut0 speckle image with a dashed white square inset 40 px from each edge, 30 orange dots scattered inside it, and one red dot at (217, 256). Right: a close-up of the deformed image around that red dot. A dashed white square marks the reference kernel centered on the dot. A dotted orange parallelogram, wider than the square and leaning right toward the bottom, shares the square's center. A solid orange copy of that parallelogram sits down and to the right, at the end of an orange arrow from the dot to a red cross" />
-    <figcaption>Left: the 30 reference points on <code>astronaut0</code>, each at least 40 px inside the dashed square. Right: the red point under a 15% stretch and a 0.15 shear, drawn over the current image. The dashed white square is the reference kernel. The dotted orange parallelogram is that kernel deformed about the point, so its center stays put. The solid orange parallelogram adds the point's shift, (5.66, 4.94) px, and the red cross marks the true position. This point's shift sits nearest the median of the 30 shifts.</figcaption>
+    <figcaption>Left: the 30 reference points on <code>astronaut0</code>, each at least 40 px inside the dashed square. Right: the red point under a 15% stretch and a 0.15 shear, drawn over the current image. The dashed white square is the reference kernel. The dotted orange parallelogram is that kernel deformed about the point, so its center remains stationary. The solid orange parallelogram adds the point's shift, (5.66, 4.94) px, and the red cross marks the true position. This point's shift sits nearest the median of the 30 shifts.</figcaption>
 </figure>
 
 The sweep builds a separate current image for each point. Each image
@@ -78,8 +78,8 @@ The sweep uses 30 random points because a single point alone can
 mislead.
 Kernel Warping's point at $(150, 150)$, swept alone, failed fewer seeds
 at 20% stretch with a 0.15 shear (14 of 30 shifts) than with no shear
-(28). The 30 random points show no such dip. They fail 29 and 26 seeds at those
-two cells.
+(28). The 30 random points show no such dip. At a 20% stretch, they fail 29 of 30
+seeds with a 0.15 shear, and 26 of 30 seeds with no shear.
 
 A seed fails when it lands more than 1 px from the true position. A
 correct whole-pixel match lands within a 0.71 px radius (0.5 pixel in
@@ -111,10 +111,34 @@ shear. A miss puts the point on the wrong speckles, and
 `locate_warp`'s return value looks the same as a correct one.
 
 Across the sweep, the seed fails 1095 times. IC-GN pulls 123 of those
-seeds back to the right position. At a 0.15 shear alone, it pulls back
-6 of the 15. The other 972 failed seeds become misses. No miss starts
-from a correct seed. Every miss traces back to a failed seed, so the
-fix belongs at the seed, not in IC-GN.
+seeds back to the right position. The other 972 failed seeds become
+misses.
+
+No miss starts from a correct seed, so a failed seed is a necessary
+condition for a miss. That does not show that a good seed is
+sufficient. IC-GN could still miss from a seed with the right shape
+under a large deformation.
+
+To test sufficiency, the script below reruns the 1470 fits from a seed
+that already carries the stretch and shear. Its four gradient terms
+take the true deformation. Its translation takes the true shift rounded
+to whole pixels, written $[\,\cdot\,]$:
+
+$$
+\boldsymbol{p}_0 = ([u], u_x, u_y, [v], v_x, v_y).
+$$
+
+The rounding keeps the translation as coarse as the rigid seed's. Only
+the four gradient terms differ from the rigid seed.
+
+<!-- cmdrun python3 seed_propagation_deformed_seed.py -->
+
+The rigid seed gave 972 misses. This seed gives none, even at a 30%
+stretch with a 0.30 shear. A good seed, with the right stretch and
+shear, *is* sufficient.
+
+**Every miss traces back to a failed seed, so the fix belongs at the
+seed, not in IC-GN.**
 
 ## Detecting a Miss
 
@@ -170,6 +194,17 @@ result comes from one image, one 27x27 kernel, and a 50-iteration cap.
 Another speckle pattern could narrow the gap between 0.0995 and 0.6952.
 
 Continue to [Postprocessing](./postprocessing.md).
+
+### `seed_propagation_deformed_seed.py`
+
+<details>
+<summary>Show the code</summary>
+
+```python
+<!-- cmdrun cat seed_propagation_deformed_seed.py -->
+```
+
+</details>
 
 ### `seed_propagation_quality.py`
 

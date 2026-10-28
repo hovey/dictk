@@ -629,3 +629,11 @@ reach at least 0.6952. Any threshold between the two flags all 972
 misses and none of the 498 correct fits. The iteration count
 misclassifies 5 fits, and ZNSSD flags every miss it catches. That
 result covers one image and one 27x27 kernel. 444 tests (441 + 3).
+
+**A seed with the right shape removes every miss.** `warp._refine` now
+starts from a full 3x3 warp, not a whole-pixel point. [Where the Seed
+Breaks](./seed_propagation.md#where-the-seed-breaks) now reruns the 1470 sweep fits from the true stretch and shear,
+with the translation rounded to whole pixels. The rigid seed gave 972
+misses. This seed gives 0, up to a 30% stretch with a 0.30 shear, with
+a largest error of 0.007 px. Neighbor seeding comes next. 445 tests
+(444 + 1).

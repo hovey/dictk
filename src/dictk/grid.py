@@ -128,7 +128,9 @@ def _locate_warp_worker(
         reference_gradients=reference_gradients,
         current_coefficients=current_coefficients,
         reference_point=reference_point,
-        start=start,
+        initial_warp=warp._translation_warp(
+            reference_point=reference_point, start=start
+        ),
         kernel_margin_width=kernel_margin_width,
         kernel_margin_height=kernel_margin_height,
         max_iterations=max_iterations,
