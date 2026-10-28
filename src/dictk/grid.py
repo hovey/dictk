@@ -1,15 +1,25 @@
 """A rectangular collection of points, and batch point tracking across it."""
 
+from collections import deque
 from collections.abc import Sequence
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from enum import Enum
 from functools import partial
+from typing import Final
 
 import numpy as np
+from scipy.spatial import cKDTree
 
 from dictk import translation, warp
 from dictk.correlation import WindowingMethod
 from dictk.image import PixelCoordinate, SubpixelCoordinate
+
+# How many nearest points `locate_warp_propagated` links each point to.
+# On a rectangular grid, 8 covers the 4 edge neighbors and 4 diagonals.
+NEIGHBOR_COUNT: Final[int] = 8
+
+# How many of the start search's best-scoring trials IC-GN refines.
+START_SEED_COUNT: Final[int] = 3
 
 
 class Executor(Enum):
@@ -578,3 +588,190 @@ def locate_warp(
     )
     with executor_cls(max_workers=max_workers) as pool:
         return list(pool.map(worker, zip(reference_points, search_centers)))
+
+
+def locate_warp_propagated(
+    *,
+    reference_image: np.ndarray,
+    current_image: np.ndarray,
+    reference_points: Sequence[PixelCoordinate],
+    kernel_margin_width: int,
+    kernel_margin_height: int,
+    search_margin_width: int,
+    search_margin_height: int,
+    start_gradient_limit: float = 0.3,
+    start_gradient_step: float = 0.1,
+    max_iterations: int = 50,
+    tolerance: float = 1e-6,
+) -> list[SubpixelCoordinate]:
+    """Track many points by warping an affine kernel, seeding each point
+    from an already-fitted neighbor instead of a rigid whole-pixel match.
+
+    [`locate_warp`](#locate_warp) seeds every point's IC-GN fit from
+    `dictk.translation.locate`'s rigid, whole-pixel match. Under a large
+    stretch or shear, that match can land on the wrong speckles.
+
+    This function searches for a deformed seed at one point only: the
+    point nearest the center of `reference_image`. It tries every
+    displacement gradient `(u_x, u_y, v_x, v_y)` on a grid from
+    `-start_gradient_limit` to `start_gradient_limit` in steps of
+    `start_gradient_step`. For each one, it deforms the reference
+    kernel and finds its whole-pixel translation by phase correlation.
+    IC-GN refines the best-scoring trials, and the fit with the lowest
+    ZNSSD becomes the first point's warp. It then visits the remaining points
+    breadth-first, through each point's `NEIGHBOR_COUNT` nearest
+    points. Each new point starts from the warp of the fitted neighbor
+    that reached it: the same displacement gradients, and a translation
+    extrapolated across the offset between the two points. See [Seed
+    Propagation](../getting_started/seed_propagation.html).
+
+    Points the neighbor links cannot reach from the first point start
+    again with the same search, at the unvisited point nearest the
+    image center.
+
+    Only those searched points use the search area, centered on each
+    one's own reference position. Every other point skips the
+    whole-pixel search, so the search margins do not limit how far it
+    can move. The fit runs one point at a time, because each seed
+    depends on an earlier fit.
+
+    Args:
+        reference_image: The reference (undeformed) 2D grayscale image.
+        current_image: The current (deformed) 2D grayscale image.
+        reference_points: Each point's fixed, known position, in
+            `reference_image`'s pixel reference frame. Each point's
+            kernel must lie inside `reference_image`.
+        kernel_margin_width: Half each kernel's width, in pixels, not
+            counting its center column. Must be >= 1.
+        kernel_margin_height: Half each kernel's height, in pixels, not
+            counting its center row. Must be >= 1.
+        search_margin_width: Half the whole-pixel search area's width,
+            in pixels, for searched points. Must be greater than
+            `kernel_margin_width`. Each searched point's search area
+            must lie inside `current_image`.
+        search_margin_height: Half the whole-pixel search area's
+            height, in pixels, for searched points. Must be greater
+            than `kernel_margin_height`.
+        start_gradient_limit: The largest displacement gradient the
+            start search tries, in each of its four terms. Default
+            `0.3`. Must be > 0.
+        start_gradient_step: The spacing between tried gradients.
+            Default `0.1`, which tries 7 values per term and 2401 in
+            all. Must be > 0.
+        max_iterations: The most IC-GN updates per point. Default `50`.
+            Must be >= 1.
+        tolerance: IC-GN stops once every warp parameter's update falls
+            below this. Default `1e-6`. Must be > 0.
+
+    Returns:
+        Each point's location, in `current_image`'s pixel reference
+        frame, generally fractional, in the same order as
+        `reference_points`.
+
+    Raises:
+        ValueError: If `reference_points` is empty, any point's kernel
+            leaves `reference_image`, a searched point's search area
+            leaves `current_image`, a margin is too small,
+            `start_gradient_limit` or `start_gradient_step` is not
+            positive, `max_iterations` is less than 1, or `tolerance`
+            is not positive.
+    """
+    if len(reference_points) == 0:
+        raise ValueError("reference_points must not be empty")
+    if kernel_margin_width < 1:
+        raise ValueError(f"kernel_margin_width {kernel_margin_width} must be >= 1")
+    if kernel_margin_height < 1:
+        raise ValueError(f"kernel_margin_height {kernel_margin_height} must be >= 1")
+    if search_margin_width <= kernel_margin_width:
+        raise ValueError(
+            f"search_margin_width {search_margin_width} must be greater than "
+            f"kernel_margin_width {kernel_margin_width}"
+        )
+    if search_margin_height <= kernel_margin_height:
+        raise ValueError(
+            f"search_margin_height {search_margin_height} must be greater than "
+            f"kernel_margin_height {kernel_margin_height}"
+        )
+    if start_gradient_limit <= 0:
+        raise ValueError(f"start_gradient_limit {start_gradient_limit} must be > 0")
+    if start_gradient_step <= 0:
+        raise ValueError(f"start_gradient_step {start_gradient_step} must be > 0")
+    if max_iterations < 1:
+        raise ValueError(f"max_iterations {max_iterations} must be >= 1")
+    if tolerance <= 0:
+        raise ValueError(f"tolerance {tolerance} must be > 0")
+    height, width = reference_image.shape
+    for point in reference_points:
+        if not (
+            kernel_margin_width <= point.x < width - kernel_margin_width
+            and kernel_margin_height <= point.y < height - kernel_margin_height
+        ):
+            raise ValueError(f"kernel around {point} leaves reference_image")
+
+    positions = np.array([[p.x, p.y] for p in reference_points], dtype=np.float64)
+    neighbor_count = min(NEIGHBOR_COUNT + 1, len(reference_points))
+    _, neighbors = cKDTree(positions).query(positions, k=neighbor_count)
+    neighbors = np.asarray(neighbors).reshape(len(reference_points), -1)
+    center = np.array([(width - 1) / 2, (height - 1) / 2])
+    by_distance = np.argsort(np.linalg.norm(positions - center, axis=1))
+
+    reference_gradients = warp._gradients(reference_image)
+    reference_coefficients = warp._spline_coefficients(reference_image)
+    current_coefficients = warp._spline_coefficients(current_image)
+
+    def refined(index, initial_warp):
+        return warp._refine(
+            reference_image=reference_image,
+            reference_gradients=reference_gradients,
+            current_coefficients=current_coefficients,
+            reference_point=reference_points[index],
+            initial_warp=initial_warp,
+            kernel_margin_width=kernel_margin_width,
+            kernel_margin_height=kernel_margin_height,
+            max_iterations=max_iterations,
+            tolerance=tolerance,
+        )
+
+    warps: list[np.ndarray | None] = [None] * len(reference_points)
+    for first in by_distance:
+        if warps[first] is not None:
+            continue
+        point = reference_points[first]
+        current_height, current_width = current_image.shape
+        if not (
+            search_margin_width <= point.x <= current_width - search_margin_width
+            and search_margin_height <= point.y <= current_height - search_margin_height
+        ):
+            raise ValueError(f"search area around {point} leaves current_image")
+        seeds = warp._shape_seeds(
+            reference_coefficients=reference_coefficients,
+            current_image=current_image,
+            current_coefficients=current_coefficients,
+            reference_point=point,
+            kernel_margin_width=kernel_margin_width,
+            kernel_margin_height=kernel_margin_height,
+            search_margin_width=search_margin_width,
+            search_margin_height=search_margin_height,
+            gradient_limit=start_gradient_limit,
+            gradient_step=start_gradient_step,
+            seed_count=START_SEED_COUNT,
+        )
+        fits = [refined(first, seed) for seed in seeds]
+        warps[first] = min(fits, key=lambda fit: fit[1])[0]
+        queue = deque([first])
+        while queue:
+            parent = queue.popleft()
+            for child in neighbors[parent]:
+                if warps[child] is not None:
+                    continue
+                parent_warp = warps[parent]
+                offset = positions[child] - positions[parent]
+                initial_warp = parent_warp.copy()
+                initial_warp[:2, 2] += (parent_warp[:2, :2] - np.eye(2)) @ offset
+                warps[child] = refined(child, initial_warp)[0]
+                queue.append(child)
+
+    return [
+        SubpixelCoordinate(x=p.x + w[0, 2], y=p.y + w[1, 2])
+        for p, w in zip(reference_points, warps)
+    ]

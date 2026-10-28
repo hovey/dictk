@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+from scipy.ndimage import affine_transform
 
 from dictk.correlation import WindowingMethod
 from dictk.grid import (
@@ -9,8 +10,9 @@ from dictk.grid import (
     locate,
     locate_subpixel,
     locate_warp,
+    locate_warp_propagated,
 )
-from dictk.image import PixelCoordinate, stretch, translate
+from dictk.image import PixelCoordinate, astronaut, combine, stretch, translate
 from dictk.rosta import rosta
 from dictk.warp import locate as warp_locate
 
@@ -600,3 +602,131 @@ def test_locate_warp_recovers_stretch_more_closely_than_locate_subpixel():
     phase_error = np.array([f.x for f in locate_subpixel(**kwargs)]) - true_x
     assert np.std(warp_error) < 0.02
     assert np.std(warp_error) < np.std(phase_error)
+
+
+def _astronaut0_deformed(*, deformation):
+    """`astronaut0` and a copy deformed by `deformation`, in (x, y)
+    order, about the image center, then shifted by (2.3, 1.6) px."""
+    reference_image = combine(
+        a=rosta(width=300, height=300, density=0.5), b=astronaut(width=300, height=300)
+    ).astype(np.float64)
+    center = np.array([149.5, 149.5])
+    shift = np.array([2.3, 1.6])
+    inverse = np.linalg.inv(deformation)[::-1, ::-1]
+    offset = center[::-1] - inverse @ (center[::-1] + shift[::-1])
+    current_image = affine_transform(reference_image, inverse, offset=offset, order=5)
+    points = generate(
+        origin=PixelCoordinate(x=130, y=130),
+        count_x=9,
+        count_y=9,
+        spacing_x=5,
+        spacing_y=5,
+    )
+    true = np.array(
+        [center + deformation @ (np.array([p.x, p.y]) - center) + shift for p in points]
+    )
+    return reference_image, current_image, points, true
+
+
+def _propagated_kwargs(**overrides):
+    kwargs = dict(
+        kernel_margin_width=13,
+        kernel_margin_height=13,
+        search_margin_width=25,
+        search_margin_height=25,
+    )
+    kwargs.update(overrides)
+    return kwargs
+
+
+def _errors(found, true):
+    return np.linalg.norm(np.array([[f.x, f.y] for f in found]) - true, axis=1)
+
+
+def test_locate_warp_propagated_requires_keyword_arguments():
+    with pytest.raises(TypeError):
+        locate_warp_propagated(None, None, [])  # type: ignore[misc]
+
+
+def test_locate_warp_propagated_matches_locate_warp_on_small_stretch():
+    ref, cur, points, true = _astronaut0_deformed(
+        deformation=np.array([[1.02, 0.0], [0.0, 1.0]])
+    )
+    kwargs = dict(reference_image=ref, current_image=cur, reference_points=points)
+    propagated = locate_warp_propagated(**kwargs, **_propagated_kwargs())
+    rigid = locate_warp(**kwargs, **_propagated_kwargs())
+    assert _errors(propagated, true).max() < 0.01
+    np.testing.assert_allclose(
+        [[f.x, f.y] for f in propagated], [[f.x, f.y] for f in rigid], atol=1e-3
+    )
+
+
+def test_locate_warp_propagated_tracks_large_deformation_locate_warp_misses():
+    # 15% stretch with 0.15 shear: the rigid seed fails at most points.
+    ref, cur, points, true = _astronaut0_deformed(
+        deformation=np.array([[1.15, 0.15], [0.0, 1.0]])
+    )
+    kwargs = dict(reference_image=ref, current_image=cur, reference_points=points)
+    assert (_errors(locate_warp(**kwargs, **_propagated_kwargs()), true) > 1).sum() > 10
+    assert (
+        _errors(locate_warp_propagated(**kwargs, **_propagated_kwargs()), true).max()
+        < 0.01
+    )
+
+
+def test_locate_warp_propagated_preserves_point_order():
+    ref, cur, points, true = _astronaut0_deformed(
+        deformation=np.array([[1.05, 0.0], [0.0, 1.0]])
+    )
+    shuffled = points[::-1]
+    found = locate_warp_propagated(
+        reference_image=ref,
+        current_image=cur,
+        reference_points=shuffled,
+        **_propagated_kwargs(),
+    )
+    assert _errors(found, true[::-1]).max() < 0.01
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        dict(search_margin_width=13),
+        dict(kernel_margin_height=0),
+        dict(start_gradient_step=0.0),
+        dict(start_gradient_limit=-0.1),
+        dict(max_iterations=0),
+        dict(tolerance=0.0),
+    ],
+)
+def test_locate_warp_propagated_invalid_arguments_raise(overrides):
+    ref, cur, points, _ = _astronaut0_deformed(deformation=np.eye(2))
+    with pytest.raises(ValueError):
+        locate_warp_propagated(
+            reference_image=ref,
+            current_image=cur,
+            reference_points=points,
+            **_propagated_kwargs(**overrides),
+        )
+
+
+def test_locate_warp_propagated_empty_points_raise():
+    ref, cur, _, _ = _astronaut0_deformed(deformation=np.eye(2))
+    with pytest.raises(ValueError):
+        locate_warp_propagated(
+            reference_image=ref,
+            current_image=cur,
+            reference_points=[],
+            **_propagated_kwargs(),
+        )
+
+
+def test_locate_warp_propagated_kernel_outside_reference_raises():
+    ref, cur, _, _ = _astronaut0_deformed(deformation=np.eye(2))
+    with pytest.raises(ValueError):
+        locate_warp_propagated(
+            reference_image=ref,
+            current_image=cur,
+            reference_points=[PixelCoordinate(x=5, y=150)],
+            **_propagated_kwargs(),
+        )

@@ -193,7 +193,78 @@ the iteration count adds nothing that ZNSSD does not already show. The
 result comes from one image, one 27x27 kernel, and a 50-iteration cap.
 Another speckle pattern could narrow the gap between 0.0995 and 0.6952.
 
+## Propagating the Seed
+
+A good seed needs the local stretch and shear. A rigid tracker does not
+know them, but an already-fitted neighbor does.
+[`dictk.grid.locate_warp_propagated`](../api/dictk/grid.html#locate_warp_propagated)
+fits one point first, then seeds every other point from a fitted
+neighbor.
+
+The first point is the grid point nearest the image center. It has no
+fitted neighbor, so it searches over shapes instead. It tries every
+displacement gradient $(u_x, u_y, v_x, v_y)$ from $-0.3$ to $0.3$ in
+steps of 0.1, which makes $7^4 = 2401$ trials. Each trial deforms the
+reference kernel and finds that kernel's whole-pixel translation by
+phase correlation, as `translation.locate` does for the rigid kernel.
+Each trial is scored by ZNSSD at that translation. IC-GN refines the 3
+best trials, and the fit with the lowest final ZNSSD becomes the first
+point's warp.
+
+The other points are visited breadth-first, each through its 8 nearest
+points. Each point starts from the warp of the fitted neighbor that
+reached it. The four gradient terms carry over. The translation is
+extrapolated across the offset $\boldsymbol{d}$ from the neighbor's
+reference position to this point's:
+
+$$
+\begin{bmatrix} u \\ v \end{bmatrix} =
+\begin{bmatrix} u_n \\ v_n \end{bmatrix} +
+\begin{bmatrix} u_x & u_y \\ v_x & v_y \end{bmatrix}_n \boldsymbol{d},
+$$
+
+where the subscript $n$ marks the neighbor's fitted values. Only the
+first point uses the search area. Every other point skips the
+whole-pixel search.
+
+The comparison tracks a 17x17 grid at 5 px spacing, from $(110, 110)$
+to $(190, 190)$, under all 49 combinations of stretch and shear. Each
+current image deforms about the image center, then shifts by
+$(2.3, 1.6)$ px. That makes $289 \times 49 = 14161$ fits per tracker.
+
+`locate_warp` gets each point's true position, rounded, as its search
+center. Under a 30% stretch with a 0.30 shear, a point 40 px from the
+center moves 24 px, twice the 12 px of travel its search area allows.
+The rounded true positions keep every search area on the right place,
+so only the rigid seed can fail `locate_warp`.
+`locate_warp_propagated` gets no search centers:
+
+<!-- cmdrun python3 seed_propagation_grid.py -->
+
+`locate_warp` misses 26 of 289 points at a 0.10 shear alone, and 31 at
+a 10% stretch alone. At a 30% stretch alone, it misses 280.
+`locate_warp_propagated` misses none of its 14161 fits, and its largest
+error is 0.009 px.
+
+Three limits apply. Every point here shares one stretch and shear, so a
+neighbor's gradient terms match this point's exactly. A strain gradient
+would make the extrapolated seed less exact. The start search tries
+gradient terms only up to 0.3. And `locate_warp_propagated` passes each
+fit on to its neighbors without checking its ZNSSD, so one wrong fit
+would spread.
+
 Continue to [Postprocessing](./postprocessing.md).
+
+### `seed_propagation_grid.py`
+
+<details>
+<summary>Show the code</summary>
+
+```python
+<!-- cmdrun cat seed_propagation_grid.py -->
+```
+
+</details>
 
 ### `seed_propagation_deformed_seed.py`
 

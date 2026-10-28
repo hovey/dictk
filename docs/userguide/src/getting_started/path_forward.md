@@ -637,3 +637,14 @@ with the translation rounded to whole pixels. The rigid seed gave 972
 misses. This seed gives 0, up to a 30% stretch with a 0.30 shear, with
 a largest error of 0.007 px. Neighbor seeding comes next. 445 tests
 (444 + 1).
+
+**Neighbor seeding ships.** New function
+`dictk.grid.locate_warp_propagated`. Its first point searches 2401
+trial shapes, gradient terms from $-0.3$ to $0.3$ in steps of 0.1, and
+keeps the lowest-ZNSSD fit. Every other point starts from a fitted
+neighbor's warp. A rigid seed at the first point sank every other
+point, because the first fit spreads to the whole grid. On a 17x17 grid
+across the 49 stretch and shear combinations, `locate_warp` misses
+10561 of 14161 fits, even with true search centers.
+`locate_warp_propagated` misses none. Fits are not yet checked by ZNSSD
+before they spread. 459 tests (445 + 14).

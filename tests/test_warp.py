@@ -3,11 +3,12 @@ import pytest
 from scipy.ndimage import affine_transform, fourier_shift, gaussian_filter
 
 from dictk import translation
-from dictk.image import PixelCoordinate, stretch, translate
+from dictk.image import PixelCoordinate, astronaut, combine, stretch, translate
 from dictk.rosta import rosta
 from dictk.warp import (
     _gradients,
     _refine,
+    _shape_seeds,
     _spline_coefficients,
     _translation_warp,
     fit,
@@ -226,3 +227,31 @@ def test_refine_converges_from_deformed_start_where_rigid_seed_fails():
     np.testing.assert_allclose(fitted[:2, 2], translation_xy, atol=0.01)
     np.testing.assert_allclose(fitted[:2, :2], deformation, atol=2e-3)
     assert znssd < 0.01
+
+
+@pytest.mark.parametrize("shift", [(3, -2), (-7, 5)])
+def test_shape_seeds_recover_integer_shift_and_shape(shift):
+    ref = combine(
+        a=rosta(width=300, height=300, density=0.5), b=astronaut(width=300, height=300)
+    ).astype(np.float64)
+    deformation = np.array([[1.2, 0.1], [0.0, 1.0]])
+    pivot = np.array([150.0, 150.0])
+    inverse = np.linalg.inv(deformation)[::-1, ::-1]
+    offset = pivot[::-1] - inverse @ (pivot[::-1] + np.array(shift[::-1], float))
+    cur = affine_transform(ref, inverse, offset=offset, order=5)
+    seeds = _shape_seeds(
+        reference_coefficients=_spline_coefficients(ref),
+        current_image=cur,
+        current_coefficients=_spline_coefficients(cur),
+        reference_point=PixelCoordinate(x=150, y=150),
+        kernel_margin_width=13,
+        kernel_margin_height=13,
+        search_margin_width=25,
+        search_margin_height=25,
+        gradient_limit=0.3,
+        gradient_step=0.1,
+        seed_count=3,
+    )
+    assert len(seeds) == 3
+    np.testing.assert_allclose(seeds[0][:2, :2], deformation, atol=1e-9)
+    np.testing.assert_allclose(seeds[0][:2, 2], shift, atol=1e-9)
