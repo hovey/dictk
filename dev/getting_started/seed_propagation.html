@@ -382,9 +382,8 @@ phase correlation, as <code>translation.locate</code> does for the rigid kernel.
 Each trial is scored by ZNSSD at that translation. IC-GN refines the 3
 best trials, and the fit with the lowest final ZNSSD becomes the first
 point's warp.</p>
-<p>The other points are visited breadth-first, each through its 8 nearest
-points. Each point starts from the warp of the fitted neighbor that
-reached it. The four gradient terms carry over. The translation is
+<p>Each other point starts from the warp of an already-fitted neighbor,
+one of its 8 nearest points. The four gradient terms carry over. The translation is
 extrapolated across the offset <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol">d</span></span></span></span></span></span> from the neighbor's
 reference position to this point's:</p>
 <p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">[</span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">u</span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">]</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">[</span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">]</span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:2.4497em;vertical-align:-0.9997em;"></span><span class="minner"><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">[</span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">]</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:-0.6983em;"><span style="top:-1.7003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.9997em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol">d</span></span></span><span class="mpunct">,</span></span></span></span></span></p>
@@ -420,13 +419,133 @@ so only the rigid seed can fail <code>locate_warp</code>.
 a 10% stretch alone. At a 30% stretch alone, it misses 280.
 <code>locate_warp_propagated</code> misses none of its 14161 fits, and its largest
 error is 0.009 px.</p>
-<p>Three limits apply. Every point here shares one stretch and shear, so a
+<h2 id="containing-a-bad-fit"><a class="header" href="#containing-a-bad-fit">Containing a Bad Fit</a></h2>
+<p>One wrong fit can spread, because every point it seeds starts from a
+wrong warp. <a href="#detecting-a-miss">Detecting a Miss</a> found that ZNSSD
+separates correct fits from misses. Any threshold between 0.0995 and
+0.6952 separated all 1470 fits. <code>locate_warp_propagated</code> uses such a
+threshold as a gate, <code>znssd_limit</code>, with a default of 0.3. That value
+sits inside the gap, 3 times above 0.0995 and 2.3 times below 0.6952.
+Three rules follow from the gate:</p>
+<ul>
+<li>A fit seeds other points only if its ZNSSD is at most 0.3.</li>
+<li>The accepted point with the lowest ZNSSD seeds next. A point that
+fails the gate tries again when another accepted neighbor reaches
+it.</li>
+<li>If the first point's fit fails the gate, the start search moves to
+the next point nearest the image center, at least one kernel width
+(27 px) from every failed start. It stops after 10 failed starts in a
+row.</li>
+</ul>
+<p><code>locate_warp_propagated</code> returns each point's ZNSSD alongside its
+position. A ZNSSD above 0.3 marks a position not to trust. A point
+never fitted gets a ZNSSD of <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord">∞</span></span></span></span> and a position of NaN.</p>
+<p>The test covers a 40x40 px patch of the current image with unrelated
+speckle, under a 15% stretch with a 0.15 shear, on the same 17x17 grid.
+The patch sits at one of two corners. At <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">160</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">160</span><span class="mclose">)</span></span></span></span>, the start point
+stays clear of it. At <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">130</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">130</span><span class="mclose">)</span></span></span></span>, it hides the image center, where
+the start search begins. A point counts as inside when its kernel in
+the current image overlaps the patch. A point is bad when it lands more
+than 1 px from the true position, or is never fitted:</p>
+<div class="table-wrapper"><table><thead><tr><th>Patch corner</th><th>Gate</th><th>Points outside</th><th>Bad outside</th><th>Bad inside</th><th>Never fitted</th><th>Bad but passing the gate</th><th>Right but failing the gate</th></tr></thead><tbody>
+<tr><td>(160, 160)</td><td>off</td><td>188</td><td>0</td><td>27 of 101</td><td>0</td><td>0</td><td>62</td></tr>
+<tr><td>(160, 160)</td><td>on</td><td>188</td><td>0</td><td>66 of 101</td><td>63</td><td>0</td><td>23</td></tr>
+<tr><td>(130, 130)</td><td>off</td><td>127</td><td>127</td><td>162 of 162</td><td>0</td><td>0</td><td>0</td></tr>
+<tr><td>(130, 130)</td><td>on</td><td>127</td><td>0</td><td>91 of 162</td><td>88</td><td>0</td><td>46</td></tr>
+</tbody></table>
+</div>
+<p>With the patch over the center and no gate, all 127 points outside the
+patch go bad. The start fit lands inside the patch, and its wrong warp
+seeds every other point. With the gate, none of the 127 go bad. The
+start search moves on until a start outside the patch passes.</p>
+<p>In every row, no bad point passes the gate. Every bad position carries
+a ZNSSD above 0.3, or none at all.</p>
+<p>The gate has a cost inside the patch. With the patch off-center and no
+gate, 62 points land within 1 px of the true position, yet score above
+0.3. A kernel partly covered by the patch raises the ZNSSD of a
+correct fit. The sweep in Detecting a Miss had no such partial cover.
+With the gate on, those points stop the propagation, and 64 points
+inside the patch are never fitted. The off-center patch then leaves 66
+of its 101 inside points bad, against 27 without the gate.</p>
+<p>Two limits remain. Every point here shares one stretch and shear, so a
 neighbor's gradient terms match this point's exactly. A strain gradient
 would make the extrapolated seed less exact. The start search tries
-gradient terms only up to 0.3. And <code>locate_warp_propagated</code> passes each
-fit on to its neighbors without checking its ZNSSD, so one wrong fit
-would spread.</p>
+gradient terms only up to 0.3.</p>
 <p>Continue to <a href="./postprocessing.html">Postprocessing</a>.</p>
+<h3 id="seed_propagation_occlusionpy"><a class="header" href="#seed_propagation_occlusionpy"><code>seed_propagation_occlusion.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
+<pre><code class="language-python">"""Can one bad region spread? Covers a 40x40 px patch of the current
+image with unrelated speckle, under a 15% stretch with a 0.15 shear,
+and tracks the 17x17 grid with `locate_warp_propagated` with its ZNSSD
+gate off (`znssd_limit=4`, the largest ZNSSD) and on (the default 0.3).
+"""
+
+import numpy as np
+from scipy.ndimage import affine_transform
+
+from dictk.grid import generate, locate_warp_propagated
+from dictk.image import PixelCoordinate, read
+from dictk.rosta import rosta
+
+CENTER = np.array([149.5, 149.5])
+SHIFT = np.array([2.3, 1.6])
+F = np.array([[1.15, 0.15], [0.0, 1.0]])
+PATCH = 40
+KERNEL_MARGIN = 13
+GATE = 0.3
+
+reference_image = read(path="astronaut0.png").astype(np.float64)
+points = generate(
+    origin=PixelCoordinate(x=110, y=110),
+    count_x=17,
+    count_y=17,
+    spacing_x=5,
+    spacing_y=5,
+)
+reference = np.array([[p.x, p.y] for p in points], dtype=np.float64)
+inverse = np.linalg.inv(F)[::-1, ::-1]
+offset = CENTER[::-1] - inverse @ (CENTER[::-1] + SHIFT[::-1])
+deformed = affine_transform(reference_image, inverse, offset=offset, order=5)
+true = CENTER + (reference - CENTER) @ F.T + SHIFT
+speckle = rosta(width=PATCH, height=PATCH, density=0.5, random_seed=7)
+speckle = speckle.astype(np.float64) * 255.0 / speckle.max()
+
+print(
+    "| Patch corner | Gate | Points outside | Bad outside | Bad inside "
+    "| Never fitted | Bad but passing the gate | Right but failing the gate |"
+)
+print("|---|---|---|---|---|---|---|---|")
+for corner in [(160, 160), (130, 130)]:
+    x0, y0 = corner
+    current_image = deformed.copy()
+    current_image[y0 : y0 + PATCH, x0 : x0 + PATCH] = speckle
+    # A point is inside when its current-image kernel overlaps the patch.
+    reach = PATCH / 2 + KERNEL_MARGIN + 0.5
+    middle = np.array([x0, y0]) + (PATCH - 1) / 2
+    inside = np.all(np.abs(true - middle) &lt; reach, axis=1)
+    for gate, limit in [("off", 4.0), ("on", GATE)]:
+        found, znssds = locate_warp_propagated(
+            reference_image=reference_image,
+            current_image=current_image,
+            reference_points=points,
+            kernel_margin_width=KERNEL_MARGIN,
+            kernel_margin_height=KERNEL_MARGIN,
+            search_margin_width=25,
+            search_margin_height=25,
+            znssd_limit=limit,
+        )
+        errors = np.linalg.norm(np.array([[f.x, f.y] for f in found]) - true, axis=1)
+        # A never-fitted point has a nan position, so it counts as bad.
+        bad = ~(errors &lt;= 1.0)
+        print(
+            f"| ({x0}, {y0}) | {gate} | {(~inside).sum()} | {bad[~inside].sum()} "
+            f"| {bad[inside].sum()} of {inside.sum()} | {np.isinf(znssds).sum()} "
+            f"| {(bad &amp; (znssds &lt;= GATE)).sum()} "
+            f"| {(~bad &amp; (znssds &gt; GATE)).sum()} |"
+        )
+</code></pre>
+</details>
 <h3 id="seed_propagation_gridpy"><a class="header" href="#seed_propagation_gridpy"><code>seed_propagation_grid.py</code></a></h3>
 <details>
 <summary>Show the code</summary>
@@ -499,6 +618,8 @@ for i, stretch in enumerate(STRETCHES):
                 **margins,
                 **extra,
             )
+            if locate is locate_warp_propagated:
+                found, _ = found
             errors = np.linalg.norm(
                 np.array([[f.x, f.y] for f in found]) - true, axis=1
             )
