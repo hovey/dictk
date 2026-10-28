@@ -256,11 +256,37 @@ for name, profile in weight_profiles.items():
 </code></pre>
 <pre><code class="language-text">Saved: windowing_kernel_original.png, windowing_kernel_hann.png, windowing_kernel_hamming.png, windowing_kernel_cut_none.png, windowing_kernel_cut_hann.png, windowing_kernel_cut_hamming.png
 </code></pre>
-<div class="table-wrapper"><table><thead><tr><th>none</th><th>Hann</th><th>Hamming</th></tr></thead><tbody>
-<tr><td><img src="windowing_kernel_original.png" alt="original kernel" style="display: block; margin: 0 auto;"></td><td><img src="windowing_kernel_hann.png" alt="Hann-windowed kernel" style="display: block; margin: 0 auto;"></td><td><img src="windowing_kernel_hamming.png" alt="Hamming-windowed kernel" style="display: block; margin: 0 auto;"></td></tr>
-<tr><td><img src="windowing_kernel_cut_none.png" alt="none weight cut-through" /></td><td><img src="windowing_kernel_cut_hann.png" alt="Hann weight cut-through" /></td><td><img src="windowing_kernel_cut_hamming.png" alt="Hamming weight cut-through" /></td></tr>
-</tbody></table>
-</div>
+<figure id="fig-windowed-kernels">
+    <div class="figure-row">
+        <div>
+            <img src="windowing_kernel_original.png" alt="original kernel" />
+            <span>(a)</span>
+        </div>
+        <div>
+            <img src="windowing_kernel_hann.png" alt="Hann-windowed kernel" />
+            <span>(b)</span>
+        </div>
+        <div>
+            <img src="windowing_kernel_hamming.png" alt="Hamming-windowed kernel" />
+            <span>(c)</span>
+        </div>
+    </div>
+    <div class="figure-row">
+        <div>
+            <img src="windowing_kernel_cut_none.png" alt="none weight cut-through" />
+            <span>(d)</span>
+        </div>
+        <div>
+            <img src="windowing_kernel_cut_hann.png" alt="Hann weight cut-through" />
+            <span>(e)</span>
+        </div>
+        <div>
+            <img src="windowing_kernel_cut_hamming.png" alt="Hamming weight cut-through" />
+            <span>(f)</span>
+        </div>
+    </div>
+    <figcaption><strong>Figure 5.2-1:</strong> Windowed kernel. (a) none. (b) Hann. (c) Hamming. (d)–(f) Window weight along the kernel's mid-height row, for (a)–(c).</figcaption>
+</figure>
 <p>Every edge fades toward black; Hann's corners go fully black (tapers to
 exactly 0), while Hamming's stay a faint gray (tapers to <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">0.08</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.08</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.006</span></span></span></span> of the original corner pixel, the product of both
 axes' own <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.08</span></span></span></span> edge value).</p>

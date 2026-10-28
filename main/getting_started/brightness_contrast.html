@@ -210,13 +210,37 @@ histogram_save(arr=bright_2_0, path="astronaut_brightness_2.0_histogram.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_original.png, astronaut_brightness_1.5.png, astronaut_brightness_2.0.png
 </code></pre>
-<div class="table-wrapper"><table><thead><tr><th>factor=1.0 (original)</th><th>factor=1.5</th><th>factor=2.0</th></tr></thead><tbody>
-<tr><td><img src="astronaut_original.png" alt="original" /></td><td><img src="astronaut_brightness_1.5.png" alt="brightness 1.5" /></td><td><img src="astronaut_brightness_2.0.png" alt="brightness 2.0" /></td></tr>
-</tbody></table>
-</div><div class="table-wrapper"><table><thead><tr><th>factor=1.0 (original)</th><th>factor=1.5</th><th>factor=2.0</th></tr></thead><tbody>
-<tr><td><img src="astronaut_original_histogram.png" alt="original histogram" /></td><td><img src="astronaut_brightness_1.5_histogram.png" alt="brightness 1.5 histogram" /></td><td><img src="astronaut_brightness_2.0_histogram.png" alt="brightness 2.0 histogram" /></td></tr>
-</tbody></table>
-</div>
+<figure id="fig-brightness">
+    <div class="figure-row">
+        <div>
+            <img src="astronaut_original.png" alt="original" />
+            <span>(a)</span>
+        </div>
+        <div>
+            <img src="astronaut_brightness_1.5.png" alt="brightness 1.5" />
+            <span>(b)</span>
+        </div>
+        <div>
+            <img src="astronaut_brightness_2.0.png" alt="brightness 2.0" />
+            <span>(c)</span>
+        </div>
+    </div>
+    <div class="figure-row">
+        <div>
+            <img src="astronaut_original_histogram.png" alt="original histogram" />
+            <span>(d)</span>
+        </div>
+        <div>
+            <img src="astronaut_brightness_1.5_histogram.png" alt="brightness 1.5 histogram" />
+            <span>(e)</span>
+        </div>
+        <div>
+            <img src="astronaut_brightness_2.0_histogram.png" alt="brightness 2.0 histogram" />
+            <span>(f)</span>
+        </div>
+    </div>
+    <figcaption><strong>Figure 5.1-1:</strong> Brightness. (a) factor=1.0 (original). (b) factor=1.5. (c) factor=2.0. (d)–(f) Intensity histograms of (a)–(c).</figcaption>
+</figure>
 <p>At factor=1.5 the histogram shifts right as a whole — midtones move into
 the brighter half and the mean climbs, with a few highlights starting to
 clip at 255. At factor=2.0 the shift is large enough that a big share of
@@ -245,13 +269,37 @@ histogram_save(arr=contrast_2_0, path="astronaut_contrast_2.0_histogram.png")
 </code></pre>
 <pre><code class="language-text">Saved: astronaut_contrast_1.5.png, astronaut_contrast_2.0.png
 </code></pre>
-<div class="table-wrapper"><table><thead><tr><th>factor=1.0 (original)</th><th>factor=1.5</th><th>factor=2.0</th></tr></thead><tbody>
-<tr><td><img src="astronaut_original.png" alt="original" /></td><td><img src="astronaut_contrast_1.5.png" alt="contrast 1.5" /></td><td><img src="astronaut_contrast_2.0.png" alt="contrast 2.0" /></td></tr>
-</tbody></table>
-</div><div class="table-wrapper"><table><thead><tr><th>factor=1.0 (original)</th><th>factor=1.5</th><th>factor=2.0</th></tr></thead><tbody>
-<tr><td><img src="astronaut_original_histogram.png" alt="original histogram" /></td><td><img src="astronaut_contrast_1.5_histogram.png" alt="contrast 1.5 histogram" /></td><td><img src="astronaut_contrast_2.0_histogram.png" alt="contrast 2.0 histogram" /></td></tr>
-</tbody></table>
-</div>
+<figure id="fig-contrast">
+    <div class="figure-row">
+        <div>
+            <img src="astronaut_original.png" alt="original" />
+            <span>(a)</span>
+        </div>
+        <div>
+            <img src="astronaut_contrast_1.5.png" alt="contrast 1.5" />
+            <span>(b)</span>
+        </div>
+        <div>
+            <img src="astronaut_contrast_2.0.png" alt="contrast 2.0" />
+            <span>(c)</span>
+        </div>
+    </div>
+    <div class="figure-row">
+        <div>
+            <img src="astronaut_original_histogram.png" alt="original histogram" />
+            <span>(d)</span>
+        </div>
+        <div>
+            <img src="astronaut_contrast_1.5_histogram.png" alt="contrast 1.5 histogram" />
+            <span>(e)</span>
+        </div>
+        <div>
+            <img src="astronaut_contrast_2.0_histogram.png" alt="contrast 2.0 histogram" />
+            <span>(f)</span>
+        </div>
+    </div>
+    <figcaption><strong>Figure 5.1-2:</strong> Contrast. (a) factor=1.0 (original). (b) factor=1.5. (c) factor=2.0. (d)–(f) Intensity histograms of (a)–(c).</figcaption>
+</figure>
 <p>At factor=1.5 the histogram spreads outward from the mean rather than
 shifting — the astronaut's silhouette and helmet edges get sharper, while
 the mean barely moves. At factor=2.0 the spread is wide enough that more

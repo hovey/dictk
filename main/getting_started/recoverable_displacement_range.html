@@ -261,13 +261,13 @@ margin of its own; the only black left is <code>dx</code>'s own left-side gap fr
 shifting the image right:</p>
 <p>Saved: recoverable_displacement_range_first_sweep_quadrant_dx30.png</p>
 <p>Saved: recoverable_displacement_range_first_sweep_quadrant_dx31.png</p>
-<figure>
+<figure id="figure-8.2-1">
     <img src="recoverable_displacement_range_first_sweep_quadrant_dx30.png" alt="Phase correlation quadrant plot for dx=30: a 30px black margin on the left edge, exactly matching dx, with no black margin on the right; the yellow dashed correlation-surface-peak box and the dotted magenta locate_uncentered box coincide exactly, both correctly on the visible search image" />
-    <figcaption><code>dx = 30</code>: the black margin on the left is exactly 30px wide -- <code>dx</code> itself, visible directly, not just computed. The two boxes coincide: <code>locate_uncentered</code> reports the same position the surface actually peaks at.</figcaption>
+    <figcaption><strong>Figure 8.2-1:</strong> <code>dx = 30</code>: the black margin on the left is exactly 30px wide -- <code>dx</code> itself, visible directly, not just computed. The two boxes coincide: <code>locate_uncentered</code> reports the same position the surface actually peaks at.</figcaption>
 </figure>
-<figure>
+<figure id="figure-8.2-2">
     <img src="recoverable_displacement_range_first_sweep_quadrant_dx31.png" alt="Phase correlation quadrant plot for dx=31: the yellow dashed correlation-surface-peak box sits correctly on the visible search image, but the dotted magenta locate_uncentered box sits entirely outside it, in the blank margin to the left" />
-    <figcaption><code>dx = 31</code>: the yellow box still marks the surface's true (correct) peak. The magenta box -- where <code>locate_uncentered</code> actually reports the point -- lands entirely outside the visible search frame, off by exactly the padded array's own width.</figcaption>
+    <figcaption><strong>Figure 8.2-2:</strong> <code>dx = 31</code>: the yellow box still marks the surface's true (correct) peak. The magenta box -- where <code>locate_uncentered</code> actually reports the point -- lands entirely outside the visible search frame, off by exactly the padded array's own width.</figcaption>
 </figure>
 <h3 id="fixing-locate"><a class="header" href="#fixing-locate">Fixing <code>locate</code></a></h3>
 <p><a href="#recoverable_displacement_range_fixing_locatepy"><code>recoverable_displacement_range_fixing_locate.py</code></a>
@@ -309,9 +309,9 @@ top-left corner of an otherwise-black canvas; this one shows the exact
 same content centered within it, black on all four sides evenly. That
 single difference is the entire fix:</p>
 <p>Saved: recoverable_displacement_range_fixing_locate_quadrant_dx31.png</p>
-<figure>
+<figure id="figure-8.2-3">
     <img src="recoverable_displacement_range_fixing_locate_quadrant_dx31.png" alt="Phase correlation quadrant plot for dx=31 with the fixed locate: the Moving Image panel shows the kernel's content centered within the padded canvas, black margins even on all four sides, unlike the pre-fix figure's top-left-anchored content; the yellow dashed correlation-surface-peak box and the dotted magenta locate box coincide exactly on the Fixed Image panel" />
-    <figcaption><code>dx = 31</code>, post-fix. The Moving Image panel's kernel content is centered, not pinned to the top-left corner -- compare directly against <a href="#seeing-the-cliff">Seeing the Cliff's <code>dx = 31</code> figure</a> above. On the Fixed Image panel, the two boxes coincide again: <code>locate</code> now reports the same position the surface actually peaks at, past the old cliff.</figcaption>
+    <figcaption><strong>Figure 8.2-3:</strong> <code>dx = 31</code>, post-fix. The Moving Image panel's kernel content is centered, not pinned to the top-left corner -- compare directly against <a href="#seeing-the-cliff">Seeing the Cliff's <code>dx = 31</code> figure</a> above. On the Fixed Image panel, the two boxes coincide again: <code>locate</code> now reports the same position the surface actually peaks at, past the old cliff.</figcaption>
 </figure>
 <p>The rest of this page takes a step back and walks through the
 investigation in full -- the hypotheses that turned out not to explain
@@ -417,9 +417,9 @@ for col, factor_x in enumerate(factors):
 fig.savefig("recoverable_displacement_range_blur.png", dpi=300)
 </code></pre>
 <p>Saved: recoverable_displacement_range_blur.png</p>
-<figure>
+<figure id="figure-8.2-4">
     <img src="recoverable_displacement_range_blur.png" alt="astronaut0 stretched at factor_x 1.0, 1.5, 2.0, and 3.0, with each image's pixel-value histogram below it, each histogram marked with a red bracket showing the ±1 standard deviation span narrowing from 63.8 to 58.2" />
-    <figcaption>Top: <code>astronaut0</code> stretched at four factors. Bottom: each one's own pixel-value histogram, with a red bracket marking the ±1 standard deviation span. The images show <em>where</em> the blur comes from — horizontal streaking, since <code>stretch</code> only resamples along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> — but the bracket confirms it's mild: the span narrows only slightly as standard deviation drops from 63.8 to 58.2, nowhere near the collapse the first sweep showed at just 6-8%.</figcaption>
+    <figcaption><strong>Figure 8.2-4:</strong> Top: <code>astronaut0</code> stretched at four factors. Bottom: each one's own pixel-value histogram, with a red bracket marking the ±1 standard deviation span. The images show <em>where</em> the blur comes from — horizontal streaking, since <code>stretch</code> only resamples along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> — but the bracket confirms it's mild: the span narrows only slightly as standard deviation drops from 63.8 to 58.2, nowhere near the collapse the first sweep showed at just 6-8%.</figcaption>
 </figure>
 <p>There's also a theoretical reason this mild blur shouldn't move the peak
 at all. <code>locate</code>'s <a href="./correlation_criteria.html#fourier-domain">phase normalization</a>
@@ -463,9 +463,9 @@ for ax, factor_x in zip(axes, factors):
 fig.savefig("recoverable_displacement_range_canvas_exit.png", dpi=300)
 </code></pre>
 <p>Saved: recoverable_displacement_range_canvas_exit.png</p>
-<figure>
+<figure id="figure-8.2-5">
     <img src="recoverable_displacement_range_canvas_exit.png" alt="astronaut0 stretched at factor_x 1.0, 1.5, 2.0, and 2.5, with an orange marker showing where the x=150 point is expected to land; the marker moves right with each stretch, sits exactly on the canvas edge at factor_x=2.0, and floats clearly outside the image at factor_x=2.5" />
-    <figcaption>The <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">150</span></span></span></span> point's expected position (orange marker), plotted directly on each stretched image. The dashed red line marks the canvas's own right edge. The marker sits exactly on that edge at <code>factor_x=2.0</code> — the threshold the text above states — and floats clearly outside the image by <code>factor_x=2.5</code>. That threshold sits far past the collapse the first sweep showed at just 6-8%, ruling canvas exit out too.</figcaption>
+    <figcaption><strong>Figure 8.2-5:</strong> The <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">150</span></span></span></span> point's expected position (orange marker), plotted directly on each stretched image. The dashed red line marks the canvas's own right edge. The marker sits exactly on that edge at <code>factor_x=2.0</code> — the threshold the text above states — and floats clearly outside the image by <code>factor_x=2.5</code>. That threshold sits far past the collapse the first sweep showed at just 6-8%, ruling canvas exit out too.</figcaption>
 </figure>
 <p>Neither blur nor canvas exit explains a collapse at 6-8%. Something else
 is going on, and it isn't image degradation.</p>
@@ -616,9 +616,9 @@ positions one pixel past the edge where <code>locate</code> wraps — drawn by
 <a href="#recoverable_displacement_range_the_fix_cliffpy"><code>recoverable_displacement_range_the_fix_cliff.py</code></a>
 (full source at the bottom of this page):</p>
 <p>Saved: recoverable_displacement_range_the_fix_cliff.png</p>
-<figure>
+<figure id="figure-8.2-6">
     <img src="recoverable_displacement_range_the_fix_cliff.png" alt="reference point P (150, 150) with a 60x60 green kernel box and a 90x90 red search-window box, both centered on P; two double-headed magenta arrows lie along y=150, one from P to a red x marker at dx=-45 (exactly at the left edge) and one from P to a red x marker at dx=+46 (one pixel past the right edge), each labeled on the line, both marking failing positions where locate wraps" />
-    <figcaption>Point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mspace"> </span><span class="mopen">(</span><span class="mord">150</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span></span></span></span>, its 60x60 kernel (green), and its 90x90 search window (red). Two magenta lines run from <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span> to each failing position — <code>dx = -45</code> on the left, exactly at the search window's edge, and <code>dx = +46</code> on the right, one pixel past it. At both (the red <code>×</code> marks), <code>locate</code> wraps and fails.</figcaption>
+    <figcaption><strong>Figure 8.2-6:</strong> Point <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span><span class="mspace"> </span><span class="mopen">(</span><span class="mord">150</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span></span></span></span>, its 60x60 kernel (green), and its 90x90 search window (red). Two magenta lines run from <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.13889em;">P</span></span></span></span> to each failing position — <code>dx = -45</code> on the left, exactly at the search window's edge, and <code>dx = +46</code> on the right, one pixel past it. At both (the red <code>×</code> marks), <code>locate</code> wraps and fails.</figcaption>
 </figure>
 <h2 id="scope-of-the-fix"><a class="header" href="#scope-of-the-fix">Scope of the Fix</a></h2>
 <p>The old, single <code>_window_and_pad</code> helper did two separable jobs at

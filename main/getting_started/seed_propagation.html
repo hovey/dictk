@@ -1,0 +1,996 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Seed Propagation - dictk User Guide</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Digital Image Correlation Toolkit">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../docs/userguide/theme/custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">dictk User Guide</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/hovey/dictk" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="seed-propagation"><a class="header" href="#seed-propagation">Seed Propagation</a></h1>
+<p><a href="./kernel_warping.html">Kernel Warping</a> added <code>locate_warp</code>, which tracks
+each point in two stages. IC-GN, the second stage, refines a warp one
+iteration at a time, so it needs a warp to start from. That starting
+warp is the <em>seed</em>.</p>
+<p>The first stage builds the seed.
+<a href="../api/dictk/translation.html#locate"><code>dictk.translation.locate</code></a> cuts
+a rigid, square kernel around the point in the reference image. It
+phase-correlates that kernel against a search area of the current
+image. The correlation surface peaks at the whole-pixel displacement
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> where the rigid kernel best matches. The seed takes that
+displacement and sets all four gradient terms of
+<a href="./kernel_warping.html#inverse-compositional-gauss-newton">Kernel Warping's</a>
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6389em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mopen">(</span><span class="mord mathnormal">u</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> to zero:</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6886em;vertical-align:-0.2441em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">0</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">0</span><span class="mclose">)</span><span class="mord">.</span></span></span></span></span></p>
+<p>The seed is a rigid, whole-pixel guess. IC-GN adds the fractional
+displacement, the stretch, and the shear. Under Kernel Warping's 2%
+stretch, every seed on its 2862 points landed within 1 px of the true
+position:</p>
+<div class="table-wrapper"><table><thead><tr><th>Points</th><th>Seeds more than 1 px off</th><th>Largest seed error (px)</th><th>Largest <code>locate_warp</code> error (px)</th></tr></thead><tbody>
+<tr><td>2862</td><td>0</td><td>0.56</td><td>0.024</td></tr>
+</tbody></table>
+</div>
+<p>IC-GN then refined every point to within 0.024 px. But, when deformation grows
+large, the error in this initial displacement <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> can grow,
+causing IC-GN to converge to an incorrect answer.</p>
+<p><a href="#fig-sp-seed">Figure 9.4-1</a> shows a correct seed and a defeated seed, both
+under a 15% stretch and a 0.15 shear. A defeated seed lands more than
+1 px from the true displacement:</p>
+<figure id="fig-sp-seed">
+    <img src="seed_propagation_seed.png" alt="a two-by-three grid of panels. Top row, a correct seed at point (78, 219): a reference-image close-up with a dashed white square kernel around a red dot; a noisy phase-correlation surface over u and v from -25 to 25 px whose brightest cell, boxed in orange at (8, 3), sits beside a red cross; a current-image close-up where a dashed orange square and a solid orange parallelogram overlap around a red cross, titled IC-GN misses by 0.001 px. Bottom row, a defeated seed at point (56, 43): the same layout, but the boxed peak sits at (-12, 16), far from the red cross, and in the current image the solid orange outline is a large distorted shape far from the red cross, titled IC-GN misses by 28.718 px" />
+    <figcaption><strong>Figure 9.4-1:</strong> Two seeds under a 15% stretch and a 0.15 shear. Left: the reference kernel around each point. Middle: <code>translation.locate</code>'s phase-correlation surface over the search area. The orange box marks its highest peak, the seed <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>, and the red cross marks the true displacement. Right: the current image, with the seed's rigid square (dashed) and IC-GN's final warp (solid). Top: at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">78</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">219</span><span class="mclose">)</span></span></span></span>, the peak lands at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">8</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">3</span><span class="mclose">)</span></span></span></span>, 0.50 px from the true <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">7.74</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">3.43</span><span class="mclose">)</span></span></span></span>, and IC-GN converges to within 0.001 px. Bottom: at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">56</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">43</span><span class="mclose">)</span></span></span></span>, no peak stands out at the true <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">5.94</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">5.56</span><span class="mclose">)</span></span></span></span>. The highest peak lands at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">−</span><span class="mord">12</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">16</span><span class="mclose">)</span></span></span></span>, and IC-GN converges 28.718 px away. Each row's point has the seed error nearest the median among the sweep's correct seeds (top) or defeated seeds (bottom), as described in <a href="#the-sweep">The Sweep</a>.</figcaption>
+</figure>
+<p>A defeated seed lands on the wrong speckles. IC-GN starts from there
+and converges to a wrong warp. <code>locate_warp</code> raises no error when that
+happens.</p>
+<h2 id="the-sweep"><a class="header" href="#the-sweep">The Sweep</a></h2>
+<p>The sweep maps where seeds fail across a grid of 49 combinations of
+seven stretch values and seven shear values. It stretches the image
+along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> by 0% to 30%, and shears it by 0 to 0.30, both in steps of
+0.05. Each combination tracks the same 30 points, so the sweep runs
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">30</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">49</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1470</span></span></span></span> fits. Each point sits at a
+random position at least 40 px from every edge of the 300x300
+<code>astronaut0</code> image. Each point also gets its own random fractional
+shift. The shifts fall between 4 and 8 px along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> and between 2 and
+6 px along <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>, the same range <a href="./kernel_warping.html#rigid-versus-warped-kernel">Rigid Versus Warped
+Kernel</a> used.</p>
+<figure id="fig-sp-points">
+    <img src="seed_propagation_points.png" alt="two panels. Left: the 300 by 300 astronaut0 speckle image with a dashed white square inset 40 px from each edge, 30 orange dots scattered inside it, and one red dot at (217, 256). Right: a close-up of the deformed image around that red dot. A dashed white square marks the reference kernel centered on the dot. A dotted orange parallelogram, wider than the square and leaning right toward the bottom, shares the square's center. A solid orange copy of that parallelogram sits down and to the right, at the end of an orange arrow from the dot to a red cross" />
+    <figcaption><strong>Figure 9.4-2:</strong> Left: the 30 reference points on <code>astronaut0</code>, each at least 40 px inside the dashed square. Right: the red point under a 15% stretch and a 0.15 shear, drawn over the current image. The dashed white square is the reference kernel. The dotted orange parallelogram is that kernel deformed about the point, so its center stays put. The solid orange parallelogram adds the point's shift, (5.66, 4.94) px, and the red cross marks the true position. This point's shift sits nearest the median of the 30 shifts.</figcaption>
+</figure>
+<p>The sweep builds a separate current image for each point. Each image
+stretches and shears about that point as a fixed center, so the
+deformation itself never moves the point. <a href="#fig-sp-points">Figure 9.4-2</a>'s
+right panel shows this: the dotted parallelogram keeps the reference
+kernel's center. The point then moves by its shift alone, at most 10 px.
+The 25 px search margin around a 13 px kernel margin leaves 12 px of
+travel. The search area always contains the true position. Any failure
+comes from the rigid kernel's mismatch.</p>
+<p>The sweep uses 30 random points because a single point alone can
+mislead.
+Kernel Warping's point at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">150</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span></span></span></span>, swept alone, failed fewer seeds
+at 20% stretch with a 0.15 shear (14 of 30 shifts) than with no shear
+(28). The 30 random points show no such dip. They fail 29 and 26 seeds at those
+two cells.</p>
+<p>A seed fails when it lands more than 1 px from the true position. A
+correct whole-pixel match lands within a 0.71 px radius (0.5 pixel in
+the <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span>-axis, 0.5 pixel in the <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>-axis,
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.71</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.04em;vertical-align:-0.1266em;"></span><span class="mord sqrt"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9134em;"><span class="svg-align" style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord" style="padding-left:0.833em;"><span class="mord">0.</span><span class="mord"><span class="mord">5</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7401em;"><span style="top:-2.989em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord">0.</span><span class="mord"><span class="mord">5</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7401em;"><span style="top:-2.989em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span><span style="top:-2.8734em;"><span class="pstrut" style="height:3em;"></span><span class="hide-tail" style="min-width:0.853em;height:1.08em;"><svg xmlns="http://www.w3.org/2000/svg" width='400em' height='1.08em' viewBox='0 0 400000 1080' preserveAspectRatio='xMinYMin slice'><path d='M95,702 c-2.7,0,-7.17,-2.7,-13.5,-8c-5.8,-5.3,-9.5,-10,-9.5,-14 c0,-2,0.3,-3.3,1,-4c1.3,-2.7,23.83,-20.7,67.5,-54 c44.2,-33.3,65.8,-50.3,66.5,-51c1.3,-1.3,3,-2,5,-2c4.7,0,8.7,3.3,12,10 s173,378,173,378c0.7,0,35.3,-71,104,-213c68.7,-142,137.5,-285,206.5,-429 c69,-144,104.5,-217.7,106.5,-221 l0 -0 c5.3,-9.3,12,-14,20,-14 H400000v40H845.2724 s-225.272,467,-225.272,467s-235,486,-235,486c-2.7,4.7,-9,7,-19,7 c-6,0,-10,-1,-12,-3s-194,-422,-194,-422s-65,47,-65,47z M834 80h400000v40h-400000z'/></svg></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1266em;"><span></span></span></span></span></span></span></span></span>). A <code>locate_warp</code> result misses
+when it lands more than 1 px away.</p>
+<h2 id="where-the-seed-breaks"><a class="header" href="#where-the-seed-breaks">Where the Seed Breaks</a></h2>
+<p>Seeds more than 1 px off, out of 30 points:</p>
+<div class="table-wrapper"><table><thead><tr><th>Stretch \ Shear</th><th>0.00</th><th>0.05</th><th>0.10</th><th>0.15</th><th>0.20</th><th>0.25</th><th>0.30</th></tr></thead><tbody>
+<tr><td>0%</td><td>0</td><td>0</td><td>1</td><td>15</td><td>25</td><td>28</td><td>29</td></tr>
+<tr><td>5%</td><td>0</td><td>0</td><td>6</td><td>16</td><td>24</td><td>27</td><td>28</td></tr>
+<tr><td>10%</td><td>8</td><td>7</td><td>10</td><td>15</td><td>24</td><td>29</td><td>30</td></tr>
+<tr><td>15%</td><td>20</td><td>20</td><td>16</td><td>22</td><td>27</td><td>30</td><td>30</td></tr>
+<tr><td>20%</td><td>26</td><td>26</td><td>26</td><td>29</td><td>28</td><td>29</td><td>30</td></tr>
+<tr><td>25%</td><td>29</td><td>28</td><td>29</td><td>30</td><td>30</td><td>29</td><td>30</td></tr>
+<tr><td>30%</td><td>30</td><td>30</td><td>29</td><td>30</td><td>30</td><td>30</td><td>30</td></tr>
+</tbody></table>
+</div>
+<p><code>locate_warp</code> misses of more than 1 px, out of 30 points:</p>
+<div class="table-wrapper"><table><thead><tr><th>Stretch \ Shear</th><th>0.00</th><th>0.05</th><th>0.10</th><th>0.15</th><th>0.20</th><th>0.25</th><th>0.30</th></tr></thead><tbody>
+<tr><td>0%</td><td>0</td><td>0</td><td>1</td><td>9</td><td>22</td><td>25</td><td>27</td></tr>
+<tr><td>5%</td><td>0</td><td>0</td><td>3</td><td>11</td><td>19</td><td>22</td><td>27</td></tr>
+<tr><td>10%</td><td>5</td><td>4</td><td>8</td><td>13</td><td>20</td><td>25</td><td>29</td></tr>
+<tr><td>15%</td><td>13</td><td>15</td><td>13</td><td>20</td><td>24</td><td>25</td><td>27</td></tr>
+<tr><td>20%</td><td>22</td><td>23</td><td>24</td><td>26</td><td>25</td><td>28</td><td>27</td></tr>
+<tr><td>25%</td><td>27</td><td>26</td><td>24</td><td>28</td><td>28</td><td>28</td><td>28</td></tr>
+<tr><td>30%</td><td>29</td><td>29</td><td>25</td><td>29</td><td>29</td><td>30</td><td>30</td></tr>
+</tbody></table>
+</div>
+<p>Across all 1470 fits, the largest error at or under 1 px is 0.267 px, and the smallest error over it is 2.87 px.</p>
+<p>Across the sweep, the seed fails 1095 times and <code>locate_warp</code> misses 972 times. IC-GN rescues 123 failed seeds. 0 misses start from a correct seed.</p>
+<p>Both counts stay at zero up to a 5% stretch with a 0.05 shear. From
+there they rise along both axes. A 10% stretch alone fails 8 seeds,
+and <code>locate_warp</code> misses 5 points. A 0.10 shear alone fails 1 seed,
+and <code>locate_warp</code> misses 1 point. At 15%, the two come closer. A 15%
+stretch alone fails 20 seeds and misses 13 points. A 0.15 shear alone
+fails 15 seeds and misses 9 points. At 20% stretch, <code>locate_warp</code>
+misses at least 22 of 30 points at every shear.</p>
+<p>Under a 15% stretch and a 0.15 shear, the 30 random points fail 22
+seeds, and <code>locate_warp</code> misses 20. Kernel Warping's single point at
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">150</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span></span></span></span> failed 11 seeds and missed 8, out of 30 shifts, at the
+same deformation.</p>
+<p>Each miss lands far from the true position. Of all 1470 fits, 1469
+land either within 0.02 px of the true position or more than 2.87 px
+from it. The one exception lands 0.267 px off, at 25% stretch and 0.10
+shear. A miss puts the point on the wrong speckles, and
+<code>locate_warp</code>'s return value looks the same as a correct one.</p>
+<p>Across the sweep, the seed fails 1095 times. IC-GN pulls 123 of those
+seeds back to the right position. At a 0.15 shear alone, it pulls back
+6 of the 15. The other 972 failed seeds become misses. No miss starts
+from a correct seed. Every miss traces back to a failed seed, so the
+fix belongs at the seed, not in IC-GN.</p>
+<h2 id="detecting-a-miss"><a class="header" href="#detecting-a-miss">Detecting a Miss</a></h2>
+<p>For each point, <code>locate_warp</code> returns only the tracked position
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span> in the current image, in pixels, as a <code>SubpixelCoordinate</code>.
+A miss 28.718 px off looks the same as a correct fit 0.001 px off.
+Inside <code>locate_warp</code>, IC-GN computes two more numbers, but
+<code>locate_warp</code> discards both. The first is the final ZNSSD, <a href="./kernel_warping.html#inverse-compositional-gauss-newton">Kernel
+Warping's</a>
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mopen">(</span><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="mclose">)</span></span></span></span>. It measures how well the warped kernel matches the
+current image:</p>
+<ul>
+<li>A ZNSSD of 0 is a perfect score.</li>
+<li>A ZNSSD of 4 is the worst score, reached when the current image
+shows the kernel with its contrast inverted.</li>
+</ul>
+<p>The second is the iteration count. IC-GN stops once every update falls below <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">6</span></span></span></span></span></span></span></span></span></span></span></span>,
+or after <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7976em;vertical-align:-0.367em;"></span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">MAX_ITER</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.367em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">50</span></span></span></span> updates.</p>
+<p>The script below reruns all 1470 fits from the sweep and records both
+numbers for each fit. A fit is correct when it lands within 1 px of the
+true position:</p>
+<div class="table-wrapper"><table><thead><tr><th>Fit</th><th>Count</th><th>ZNSSD range</th><th>Median ZNSSD</th><th>Median iterations</th><th>Stopped at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7976em;vertical-align:-0.367em;"></span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">MAX_ITER</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.367em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">50</span></span></span></span></th></tr></thead><tbody>
+<tr><td>Correct</td><td>498</td><td>0.0000 to 0.0995</td><td>0.0017</td><td>11</td><td>4</td></tr>
+<tr><td>Miss</td><td>972</td><td>0.6952 to 2.9096</td><td>1.4497</td><td>50</td><td>971</td></tr>
+</tbody></table>
+</div>
+<p>The fits the iteration count misclassifies:</p>
+<div class="table-wrapper"><table><thead><tr><th>Fit</th><th>Stretch</th><th>Shear</th><th>Error (px)</th><th>ZNSSD</th><th>Iterations</th></tr></thead><tbody>
+<tr><td>Correct</td><td>5%</td><td>0.25</td><td>0.005</td><td>0.0050</td><td>50</td></tr>
+<tr><td>Correct</td><td>20%</td><td>0.30</td><td>0.005</td><td>0.0015</td><td>50</td></tr>
+<tr><td>Correct</td><td>25%</td><td>0.10</td><td>0.004</td><td>0.0029</td><td>50</td></tr>
+<tr><td>Correct</td><td>25%</td><td>0.10</td><td>0.267</td><td>0.0995</td><td>50</td></tr>
+<tr><td>Miss</td><td>30%</td><td>0.05</td><td>26.704</td><td>1.3003</td><td>43</td></tr>
+</tbody></table>
+</div><figure id="fig-sp-quality">
+    <img src="seed_propagation_quality.png" alt="two histograms with logarithmic count axes, correct fits in blue and misses in orange. Left, final ZNSSD on a logarithmic axis from 1e-6 to about 3: the blue correct fits cluster between 1e-4 and 1e-2 with one fit near 0.1, the orange misses cluster between 0.7 and 3, and no fit falls between 0.1 and 0.7. Right, IC-GN iterations from 0 to 50: the blue correct fits peak near 10 iterations with a thin tail to 46 and a small bar of 4 at 50, and the orange misses form one tall bar of 971 at 50 plus one fit at 43" />
+    <figcaption><strong>Figure 9.4-3:</strong> Final ZNSSD (left) and IC-GN iteration count (right) for the sweep's 1470 fits: 498 correct fits (blue) and 972 misses (orange). Both count axes are logarithmic, so single fits stay visible. A miss lands more than 1 px from the true position.</figcaption>
+</figure>
+<p>ZNSSD separates the two groups with no overlap. Correct fits score at
+most 0.0995, and misses score at least 0.6952. Any threshold between
+those two values flags all 972 misses and none of the 498 correct fits.
+In <a href="./correlation_criteria.html">ZNCC</a> terms, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord text"><span class="mord">ZNCC</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="mord">/2</span></span></span></span>, so
+every correct fit keeps a ZNCC of at least 0.950, and every miss stays
+at or below 0.652.</p>
+<p>The 0.0995 belongs to the one fit from <a href="#where-the-seed-breaks">Where the Seed
+Breaks</a> that landed 0.267 px off. That fit
+counts as correct under the 1 px rule.</p>
+<p>The iteration count separates the groups almost as well. Correct fits
+took a median of 11 iterations. 971 of the 972 misses ran all 50
+without converging. The count misclassifies 5 fits. Four correct fits
+also ran all 50 iterations. Three of those four landed within 0.005 px,
+but their updates never all fell below <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">6</span></span></span></span></span></span></span></span></span></span></span></span>. The fourth is the
+0.267 px fit. One miss, at a 30% stretch and a 0.05 shear, converged
+after 43 iterations, 26.704 px off. Its ZNSSD of 1.3003 still flags it.</p>
+<p>Every miss the iteration count flags, ZNSSD also flags. On this sweep,
+the iteration count adds nothing that ZNSSD does not already show. The
+result comes from one image, one 27x27 kernel, and a 50-iteration cap.
+Another speckle pattern could narrow the gap between 0.0995 and 0.6952.</p>
+<p>Continue to <a href="./postprocessing.html">Postprocessing</a>.</p>
+<h3 id="seed_propagation_qualitypy"><a class="header" href="#seed_propagation_qualitypy"><code>seed_propagation_quality.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
+<pre><code class="language-python">"""Can a wrong fit be detected? Reruns the sweep's 1470 fits, the same
+49 stretch and shear combinations at the same 30 points, and records
+each fit's final ZNSSD and IC-GN iteration count alongside its error.
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.ndimage import affine_transform
+
+from dictk import translation, warp
+from dictk.image import PixelCoordinate, read
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+
+MARGIN = 13
+SEARCH_MARGIN = 25
+SAMPLE_COUNT = 30
+MAX_ITERATIONS = 50
+STRETCHES = np.round(np.arange(0.0, 0.31, 0.05), 2)
+SHEARS = np.round(np.arange(0.0, 0.31, 0.05), 2)
+MISS_LIMIT = 1.0
+
+reference_image = read(path="astronaut0.png")
+reference_gradients = warp._gradients(reference_image)
+rng = np.random.default_rng(0)
+pivots = rng.integers(40, 261, size=(SAMPLE_COUNT, 2)).astype(np.float64)
+shifts = np.round(rng.uniform([4, 2], [8, 6], size=(SAMPLE_COUNT, 2)), 2)
+
+errors, znssds, iterations, cells = [], [], [], []
+for stretch in STRETCHES:
+    for shear in SHEARS:
+        inverse = np.linalg.inv(np.array([[1.0 + stretch, shear], [0.0, 1.0]]))
+        inverse = inverse[::-1, ::-1]
+        for pivot, shift in zip(pivots, shifts):
+            point = PixelCoordinate(x=int(pivot[0]), y=int(pivot[1]))
+            offset = pivot[::-1] - inverse @ (pivot[::-1] + shift[::-1])
+            current_image = affine_transform(
+                reference_image.astype(np.float64), inverse, offset=offset, order=5
+            )
+            seed = translation.locate(
+                reference_image=reference_image,
+                current_image=current_image,
+                reference_point=point,
+                search_center=point,
+                kernel_margin_width=MARGIN,
+                kernel_margin_height=MARGIN,
+                search_margin_width=SEARCH_MARGIN,
+                search_margin_height=SEARCH_MARGIN,
+            )
+            fitted, znssd, count = warp._refine(
+                reference_image=reference_image,
+                reference_gradients=reference_gradients,
+                current_coefficients=warp._spline_coefficients(current_image),
+                reference_point=point,
+                start=seed,
+                kernel_margin_width=MARGIN,
+                kernel_margin_height=MARGIN,
+                max_iterations=MAX_ITERATIONS,
+                tolerance=1e-6,
+            )
+            errors.append(np.hypot(*(fitted[:2, 2] - shift)))
+            znssds.append(znssd)
+            iterations.append(count)
+            cells.append((stretch, shear))
+
+errors, znssds, iterations = map(np.array, (errors, znssds, iterations))
+missed = errors &gt; MISS_LIMIT
+stalled = iterations == MAX_ITERATIONS
+
+print(
+    f"| Fit | Count | ZNSSD range | Median ZNSSD | Median iterations "
+    rf"| Stopped at $n_{{\text{{MAX\_ITER}}}} = {MAX_ITERATIONS}$ |"
+)
+print("|---|---|---|---|---|---|")
+for name, group in [("Correct", ~missed), ("Miss", missed)]:
+    print(
+        f"| {name} | {group.sum()} "
+        f"| {znssds[group].min():.4f} to {znssds[group].max():.4f} "
+        f"| {np.median(znssds[group]):.4f} "
+        f"| {np.median(iterations[group]):.0f} "
+        f"| {stalled[group].sum()} |"
+    )
+print()
+print("The fits the iteration count misclassifies:")
+print()
+print("| Fit | Stretch | Shear | Error (px) | ZNSSD | Iterations |")
+print("|---|---|---|---|---|---|")
+for name, group in [
+    ("Correct", ~missed &amp; stalled),
+    ("Miss", missed &amp; ~stalled),
+]:
+    for k in np.flatnonzero(group):
+        stretch, shear = cells[k]
+        print(
+            f"| {name} | {stretch:.0%} | {shear:.2f} | {errors[k]:.3f} "
+            f"| {znssds[k]:.4f} | {iterations[k]} |"
+        )
+
+fig, (left, right) = plt.subplots(1, 2, figsize=(10, 4.2), constrained_layout=True)
+bins = np.logspace(np.log10(znssds.min()) - 0.1, np.log10(znssds.max()) + 0.1, 60)
+for group, color, label in [
+    (~missed, "tab:blue", "correct fit"),
+    (missed, "tab:orange", "miss"),
+]:
+    left.hist(znssds[group], bins=bins, color=color, alpha=0.8, label=label)
+    right.hist(
+        iterations[group],
+        bins=np.arange(0.5, MAX_ITERATIONS + 1.5),
+        color=color,
+        alpha=0.8,
+        label=label,
+    )
+left.set_xscale("log")
+left.set_yscale("log")
+left.set_xlabel("final ZNSSD")
+left.set_ylabel("fits")
+left.legend()
+right.set_yscale("log")
+right.set_xlabel("IC-GN iterations")
+right.set_ylabel("fits")
+right.legend()
+fig.savefig("seed_propagation_quality.png", dpi=300)
+</code></pre>
+</details>
+<h3 id="seed_propagation_kernel_warping_seedspy"><a class="header" href="#seed_propagation_kernel_warping_seedspy"><code>seed_propagation_kernel_warping_seeds.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
+<pre><code class="language-python">"""Every whole-pixel seed on Kernel Warping's 2862 points, under its 2%
+stretch: how far each seed lands from the true position, and how far
+`locate_warp` lands after IC-GN refines it.
+"""
+
+import numpy as np
+
+from dictk import translation
+from dictk.grid import generate, locate_warp
+from dictk.image import PixelCoordinate, read, stretch
+
+FACTOR_X = 1.02
+SEED_LIMIT = 1.0
+
+reference_image = read(path="astronaut0.png")
+current_image = stretch(arr=reference_image, factor_x=FACTOR_X)
+points = generate(
+    origin=PixelCoordinate(x=18, y=16),
+    count_x=53,
+    count_y=54,
+    spacing_x=5,
+    spacing_y=5,
+)
+kwargs = dict(
+    reference_image=reference_image,
+    current_image=current_image,
+    kernel_margin_width=13,
+    kernel_margin_height=13,
+    search_margin_width=25,
+    search_margin_height=25,
+)
+seeds = [
+    translation.locate(reference_point=point, search_center=point, **kwargs)
+    for point in points
+]
+found = locate_warp(reference_points=points, **kwargs)
+
+# `image.stretch` pivots on the image origin, so each true x is the
+# reference x times the stretch factor, and y is unchanged.
+true_positions = np.array([[point.x * FACTOR_X, point.y] for point in points])
+seed_errors = np.linalg.norm(
+    np.array([[seed.x, seed.y] for seed in seeds]) - true_positions, axis=1
+)
+warp_errors = np.linalg.norm(
+    np.array([[f.x, f.y] for f in found]) - true_positions, axis=1
+)
+
+print(
+    f"| Points | Seeds more than {SEED_LIMIT:g} px off | Largest seed error (px) "
+    "| Largest `locate_warp` error (px) |"
+)
+print("|---|---|---|---|")
+print(
+    f"| {len(points)} | {(seed_errors &gt; SEED_LIMIT).sum()} "
+    f"| {seed_errors.max():.2f} | {warp_errors.max():.3f} |"
+)
+</code></pre>
+</details>
+<h3 id="seed_propagation_seedpy"><a class="header" href="#seed_propagation_seedpy"><code>seed_propagation_seed.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
+<pre><code class="language-python">"""What a seed is: `translation.locate`'s whole-pixel match, the rigid
+starting warp IC-GN refines. Two of the sweep's 30 points under a 15%
+stretch and a 0.15 shear, one with a correct seed (top row) and one
+with a defeated seed (bottom row).
+
+Each row picks the point whose seed error sits nearest the median seed
+error of its group, so neither example is hand-picked.
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.patches import Polygon
+from scipy.ndimage import affine_transform
+
+from dictk import translation, warp
+from dictk.image import PixelCoordinate, read
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+
+MARGIN = 13
+SEARCH_MARGIN = 25
+EDGE = 40
+SAMPLE_COUNT = 30
+SEED_LIMIT = 1.0
+F = np.array([[1.15, 0.15], [0.0, 1.0]])
+ZOOM = 30
+
+reference_image = read(path="astronaut0.png")
+rng = np.random.default_rng(0)
+pivots = rng.integers(EDGE, 261, size=(SAMPLE_COUNT, 2)).astype(np.float64)
+shifts = np.round(rng.uniform([4, 2], [8, 6], size=(SAMPLE_COUNT, 2)), 2)
+inverse = np.linalg.inv(F)[::-1, ::-1]
+
+
+def deformed(pivot, shift):
+    offset = pivot[::-1] - inverse @ (pivot[::-1] + shift[::-1])
+    return affine_transform(
+        reference_image.astype(np.float64), inverse, offset=offset, order=5
+    )
+
+
+def tracked(pivot, shift):
+    point = PixelCoordinate(x=int(pivot[0]), y=int(pivot[1]))
+    current_image = deformed(pivot, shift)
+    kwargs = dict(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_point=point,
+        search_center=point,
+        kernel_margin_width=MARGIN,
+        kernel_margin_height=MARGIN,
+        search_margin_width=SEARCH_MARGIN,
+        search_margin_height=SEARCH_MARGIN,
+    )
+    seed = translation.locate(**kwargs)
+    return current_image, seed, warp.fit(**kwargs)
+
+
+seed_errors = np.array(
+    [
+        np.hypot(seed.x - pivot[0] - shift[0], seed.y - pivot[1] - shift[1])
+        for pivot, shift in zip(pivots, shifts)
+        for _, seed, _ in [tracked(pivot, shift)]
+    ]
+)
+rows = []
+for failed in (False, True):
+    group = np.flatnonzero((seed_errors &gt; SEED_LIMIT) == failed)
+    rows.append(
+        group[np.argmin(np.abs(seed_errors[group] - np.median(seed_errors[group])))]
+    )
+
+square = np.array(
+    [[-MARGIN, -MARGIN], [MARGIN, -MARGIN], [MARGIN, MARGIN], [-MARGIN, MARGIN]],
+    dtype=np.float64,
+)
+fig, axes = plt.subplots(2, 3, figsize=(13, 8.6), constrained_layout=True)
+for (kernel_ax, surface_ax, current_ax), index, label in zip(
+    axes, rows, ["correct seed", "defeated seed"]
+):
+    pivot, shift = pivots[index], shifts[index]
+    x, y = int(pivot[0]), int(pivot[1])
+    current_image, seed, fitted = tracked(pivot, shift)
+    true_position = pivot + shift
+    seed_offset = np.array([seed.x, seed.y]) - pivot
+
+    kernel_ax.imshow(reference_image, cmap="gray", vmin=0, vmax=255)
+    kernel_ax.add_patch(
+        Polygon(
+            pivot + square,
+            fill=False,
+            edgecolor="white",
+            linestyle="--",
+            linewidth=1.5,
+        )
+    )
+    kernel_ax.plot(x, y, marker="o", color="red", markersize=7, mec="black")
+    kernel_ax.set_xlim(x - ZOOM, x + ZOOM)
+    kernel_ax.set_ylim(y + ZOOM, y - ZOOM)
+    kernel_ax.set_title(f"{label}: reference kernel at ({x}, {y})")
+
+    # locate's own phase correlation, step for step as its
+    # skimage.registration.phase_cross_correlation call computes it: the
+    # kernel centered in a zero-padded copy the search area's size, the
+    # cross-power spectrum normalized to unit magnitude, and the peak of
+    # the inverse transform's magnitude. After fftshift, the surface's
+    # index minus SEARCH_MARGIN is the displacement from the point.
+    kernel = reference_image[y - MARGIN : y + MARGIN, x - MARGIN : x + MARGIN]
+    search = current_image[
+        y - SEARCH_MARGIN : y + SEARCH_MARGIN, x - SEARCH_MARGIN : x + SEARCH_MARGIN
+    ]
+    pad = SEARCH_MARGIN - MARGIN
+    kernel_padded = np.pad(kernel.astype(np.float64), pad)
+    product = np.fft.fft2(search) * np.fft.fft2(kernel_padded).conj()
+    product /= np.maximum(np.abs(product), 100 * np.finfo(np.float64).eps)
+    surface = np.fft.fftshift(np.abs(np.fft.ifft2(product)))
+    peak_row, peak_column = np.unravel_index(np.argmax(surface), surface.shape)
+    assert (peak_column - SEARCH_MARGIN, peak_row - SEARCH_MARGIN) == tuple(seed_offset)
+    extent = [-SEARCH_MARGIN - 0.5, SEARCH_MARGIN - 0.5] * 2
+    surface_ax.imshow(surface, cmap="viridis", extent=extent[:2] + extent[2:][::-1])
+    surface_ax.plot(
+        *seed_offset, marker="s", markersize=9, mfc="none", mec="orange", mew=2
+    )
+    surface_ax.plot(*shift, marker="+", color="red", markersize=14, mew=2)
+    surface_ax.set_xlabel("$u$ (pixels)")
+    surface_ax.set_ylabel("$v$ (pixels)")
+    surface_ax.set_title(
+        f"phase correlation: seed $(u_0, v_0) = ({seed_offset[0]:.0f}, "
+        f"{seed_offset[1]:.0f})$"
+    )
+
+    current_ax.imshow(current_image, cmap="gray", vmin=0, vmax=255)
+    current_ax.add_patch(
+        Polygon(
+            pivot + seed_offset + square,
+            fill=False,
+            edgecolor="orange",
+            linestyle="--",
+            linewidth=2,
+            label="seed: rigid square",
+        )
+    )
+    current_ax.add_patch(
+        Polygon(
+            pivot + fitted[:2, 2] + square @ fitted[:2, :2].T,
+            fill=False,
+            edgecolor="orange",
+            linewidth=2,
+            label="IC-GN's final warp",
+        )
+    )
+    current_ax.plot(*true_position, marker="+", color="red", markersize=14, mew=2)
+    error = np.hypot(*(fitted[:2, 2] - shift))
+    current_ax.set_xlim(x - ZOOM, x + ZOOM)
+    current_ax.set_ylim(y + ZOOM, y - ZOOM)
+    current_ax.set_title(f"current image: IC-GN misses by {error:.3f} px")
+    current_ax.legend(loc="lower left", fontsize=9, framealpha=0.85)
+
+for ax in axes[:, [0, 2]].ravel():
+    ax.set_xlabel("x (pixels)")
+    ax.set_ylabel("y (pixels)")
+
+fig.savefig("seed_propagation_seed.png", dpi=300)
+</code></pre>
+</details>
+<h3 id="seed_propagation_pointspy"><a class="header" href="#seed_propagation_pointspy"><code>seed_propagation_points.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
+<pre><code class="language-python">"""The sweep's 30 points on `astronaut0` (left), and one point's own
+deformation, pivoted on that point, then shifted (right).
+
+Draws the same points and shifts as seed_propagation_baseline.py, from
+the same seed. The close-up uses the point whose shift sits nearest the
+median shift, so the example is typical, not hand-picked.
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.patches import Polygon, Rectangle
+from scipy.ndimage import affine_transform
+
+from dictk.image import read
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+
+MARGIN = 13
+EDGE = 40
+SAMPLE_COUNT = 30
+# 15% stretch with 0.15 shear: inside the sweep, and large enough to see.
+F = np.array([[1.15, 0.15], [0.0, 1.0]])
+ZOOM = 30
+
+reference_image = read(path="astronaut0.png")
+height, width = reference_image.shape
+rng = np.random.default_rng(0)
+pivots = rng.integers(EDGE, 261, size=(SAMPLE_COUNT, 2)).astype(np.float64)
+shifts = np.round(rng.uniform([4, 2], [8, 6], size=(SAMPLE_COUNT, 2)), 2)
+
+typical = int(np.argmin(np.linalg.norm(shifts - np.median(shifts, axis=0), axis=1)))
+pivot, shift = pivots[typical], shifts[typical]
+inverse = np.linalg.inv(F)[::-1, ::-1]
+offset = pivot[::-1] - inverse @ (pivot[::-1] + shift[::-1])
+current_image = affine_transform(
+    reference_image.astype(np.float64), inverse, offset=offset, order=5
+)
+
+square = np.array(
+    [[-MARGIN, -MARGIN], [MARGIN, -MARGIN], [MARGIN, MARGIN], [-MARGIN, MARGIN]],
+    dtype=np.float64,
+)
+deformed = square @ F.T
+
+fig, (left, right) = plt.subplots(1, 2, figsize=(10, 5.2), constrained_layout=True)
+
+left.imshow(reference_image, cmap="gray", vmin=0, vmax=255)
+left.add_patch(
+    Rectangle(
+        (EDGE, EDGE),
+        width - 1 - 2 * EDGE,
+        height - 1 - 2 * EDGE,
+        fill=False,
+        edgecolor="white",
+        linestyle="--",
+        linewidth=1.5,
+    )
+)
+others = np.delete(pivots, typical, axis=0)
+left.scatter(*others.T, s=30, color="orange", edgecolor="black", linewidth=0.5)
+left.scatter(*pivot, s=60, color="red", edgecolor="black", linewidth=0.5)
+left.set_title(f"{SAMPLE_COUNT} reference points, at least {EDGE} px from each edge")
+left.set_xlabel("x (pixels)")
+left.set_ylabel("y (pixels)")
+
+right.imshow(current_image, cmap="gray", vmin=0, vmax=255)
+right.add_patch(
+    Polygon(
+        pivot + square,
+        fill=False,
+        edgecolor="white",
+        linestyle="--",
+        linewidth=1.5,
+        label="reference kernel",
+    )
+)
+right.add_patch(
+    Polygon(
+        pivot + deformed,
+        fill=False,
+        edgecolor="orange",
+        linestyle=":",
+        linewidth=2,
+        label="deformed about the point",
+    )
+)
+right.add_patch(
+    Polygon(
+        pivot + shift + deformed,
+        fill=False,
+        edgecolor="orange",
+        linewidth=2,
+        label="then shifted",
+    )
+)
+right.annotate(
+    "",
+    xy=pivot + shift,
+    xytext=pivot,
+    arrowprops=dict(arrowstyle="-|&gt;", color="orange", linewidth=2),
+)
+right.plot(*pivot, marker="o", color="red", markersize=7, mec="black")
+right.plot(*(pivot + shift), marker="+", color="red", markersize=14, mew=2)
+right.set_xlim(pivot[0] - ZOOM, pivot[0] + ZOOM + shift[0])
+right.set_ylim(pivot[1] + ZOOM + shift[1], pivot[1] - ZOOM)
+right.set_title(
+    f"point ({pivot[0]:.0f}, {pivot[1]:.0f}), shift "
+    f"({shift[0]:.2f}, {shift[1]:.2f}) px\n15% stretch, 0.15 shear"
+)
+right.set_xlabel("x (pixels)")
+right.set_ylabel("y (pixels)")
+right.legend(loc="lower left", fontsize=9, framealpha=0.85)
+
+fig.savefig("seed_propagation_points.png", dpi=300)
+</code></pre>
+</details>
+<h3 id="seed_propagation_baselinepy"><a class="header" href="#seed_propagation_baselinepy"><code>seed_propagation_baseline.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
+<pre><code class="language-python">"""Where `locate_warp`'s rigid whole-pixel seed breaks: a sweep of
+stretch and shear, each cell tracked at the same 30 random points, each
+under its own random fractional shift.
+
+Random points, not one, because a single point's image content can make
+some deformations look easier than smaller ones. Each deformation
+pivots on its tracked point, so that point's own displacement is just
+the shift. The shift never exceeds 10 px, inside
+the 12 px a 25 px search margin leaves around a 13 px kernel margin.
+The search area therefore always contains the true position, and any
+failure comes from the rigid kernel's mismatch alone.
+"""
+
+import numpy as np
+from scipy.ndimage import affine_transform
+
+from dictk import translation, warp
+from dictk.image import PixelCoordinate, read
+
+MARGIN = 13
+SEARCH_MARGIN = 25
+SAMPLE_COUNT = 30
+STRETCHES = np.round(np.arange(0.0, 0.31, 0.05), 2)
+SHEARS = np.round(np.arange(0.0, 0.31, 0.05), 2)
+# A correct whole-pixel match lies within sqrt(0.5^2 + 0.5^2) = 0.71 px
+# of the truth. More than 1 px means at least one whole pixel off.
+SEED_LIMIT = 1.0
+MISS_LIMIT = 1.0
+
+reference_image = read(path="astronaut0.png")
+rng = np.random.default_rng(0)
+# Points at least 40 px from every edge of the 300x300 image, so the
+# 25 px search area plus an 8 px shift stays inside it.
+pivots = rng.integers(40, 261, size=(SAMPLE_COUNT, 2)).astype(np.float64)
+# The same shift range as Kernel Warping, rounded to 0.01 px so each
+# shift prints exactly as used.
+shifts = np.round(rng.uniform([4, 2], [8, 6], size=(SAMPLE_COUNT, 2)), 2)
+
+
+def deformed(F, pivot, shift):
+    # affine_transform maps each output (row, column) back to its input
+    # position, so it takes the inverse deformation, in (y, x) order.
+    inverse = np.linalg.inv(F)[::-1, ::-1]
+    offset = pivot[::-1] - inverse @ (pivot[::-1] + shift[::-1])
+    return affine_transform(
+        reference_image.astype(np.float64), inverse, offset=offset, order=5
+    )
+
+
+seed_errors = np.zeros((len(STRETCHES), len(SHEARS), SAMPLE_COUNT))
+warp_errors = np.zeros_like(seed_errors)
+for i, stretch in enumerate(STRETCHES):
+    for j, shear in enumerate(SHEARS):
+        F = np.array([[1.0 + stretch, shear], [0.0, 1.0]])
+        for k, (pivot, shift) in enumerate(zip(pivots, shifts)):
+            point = PixelCoordinate(x=int(pivot[0]), y=int(pivot[1]))
+            current_image = deformed(F, pivot, shift)
+            true_position = pivot + shift
+            for errors, locate in [
+                (seed_errors, translation.locate),
+                (warp_errors, warp.locate),
+            ]:
+                found = locate(
+                    reference_image=reference_image,
+                    current_image=current_image,
+                    reference_point=point,
+                    search_center=point,
+                    kernel_margin_width=MARGIN,
+                    kernel_margin_height=MARGIN,
+                    search_margin_width=SEARCH_MARGIN,
+                    search_margin_height=SEARCH_MARGIN,
+                )
+                errors[i, j, k] = np.hypot(
+                    found.x - true_position[0], found.y - true_position[1]
+                )
+
+seed_counts = (seed_errors &gt; SEED_LIMIT).sum(axis=2)
+miss_counts = (warp_errors &gt; MISS_LIMIT).sum(axis=2)
+
+
+def table(counts, title):
+    print(f"{title}, out of {SAMPLE_COUNT} points:")
+    print()
+    print("| Stretch \\ Shear | " + " | ".join(f"{g:.2f}" for g in SHEARS) + " |")
+    print("|---|" + "---|" * len(SHEARS))
+    for stretch, row in zip(STRETCHES, counts):
+        print(f"| {stretch:.0%} | " + " | ".join(str(c) for c in row) + " |")
+    print()
+
+
+table(seed_counts, f"Seeds more than {SEED_LIMIT:g} px off")
+table(miss_counts, f"`locate_warp` misses of more than {MISS_LIMIT:g} px")
+converged = warp_errors[warp_errors &lt;= MISS_LIMIT]
+missed = warp_errors[warp_errors &gt; MISS_LIMIT]
+print(
+    f"Across all {warp_errors.size} fits, the largest error at or under "
+    f"{MISS_LIMIT:g} px is {converged.max():.3f} px, and the smallest error "
+    f"over it is {missed.min():.2f} px."
+)
+seed_failed = seed_errors &gt; SEED_LIMIT
+warp_missed = warp_errors &gt; MISS_LIMIT
+print()
+print(
+    f"Across the sweep, the seed fails {seed_failed.sum()} times and "
+    f"`locate_warp` misses {warp_missed.sum()} times. IC-GN rescues "
+    f"{(seed_failed &amp; ~warp_missed).sum()} failed seeds. "
+    f"{(warp_missed &amp; ~seed_failed).sum()} misses start from a correct seed."
+)
+</code></pre>
+</details>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../getting_started/kernel_warping.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../getting_started/postprocessing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../getting_started/kernel_warping.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../getting_started/postprocessing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>
