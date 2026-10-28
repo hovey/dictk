@@ -120,15 +120,18 @@ Noted, not being pursued right now:
   $u'''$ would measure the bias from curvature. It would
   also locate the window size that minimizes the mean squared error,
   variance plus squared bias.
-* **A deformation-aware seed for `warp.fit`.** IC-GN starts from
-  `translation.locate`'s whole-pixel match, and that match uses a
-  rigid, unwarped kernel. On a fine speckle pattern, a 10% stretch plus
-  shear put that starting point 20 px off. IC-GN then converged to a
-  wrong warp with no error raised. Two remedies are worth testing.
-  Seeding each point from a neighbor's fitted warp would start IC-GN
-  with the local stretch already included. A ZNSSD threshold would flag
-  a fit that converged to the wrong place. This pairs with the dynamic search-window sizing
-  direction above.
+* **Seed propagation under a strain gradient.** [Seed
+  Propagation](./seed_propagation.md) tested `locate_warp_propagated`
+  only under one uniform stretch and shear, where a neighbor's gradient
+  terms match each point's exactly. A strain gradient would make each
+  extrapolated seed less exact. A synthetic field with a known gradient
+  would measure how much.
+* **`rosta` alone fails subpixel tracking tests.** On a `rosta` image
+  without the astronaut photo, `warp.locate` missed one point by 13 to
+  25 px under a 2% stretch with a fractional shift, at two image sizes
+  and two kernel sizes. `astronaut0` tracks the same case to within
+  0.01 px. The cause is not known. A repeating speckle pattern would
+  give phase correlation several equal peaks.
 
 ## 2026-08-18
 
@@ -648,3 +651,14 @@ across the 49 stretch and shear combinations, `locate_warp` misses
 10561 of 14161 fits, even with true search centers.
 `locate_warp_propagated` misses none. Fits are not yet checked by ZNSSD
 before they spread. 459 tests (445 + 14).
+
+**A ZNSSD gate contains a bad fit.** `locate_warp_propagated` now
+returns each point's ZNSSD with its position. A fit seeds other points
+only if its ZNSSD is at most `znssd_limit`, default 0.3. The best
+accepted fit seeds next, and a failed start moves to another point. A
+40x40 px patch of unrelated speckle over the image center sank all 127
+points outside it without the gate, and none with it. No bad position
+passed the gate. Partial cover raised 62 correct fits above 0.3, so the
+gate leaves more points inside the patch unfitted. The Postponed
+deformation-aware seed item leaves Postponed. Two new items replace it.
+463 tests (459 + 4).

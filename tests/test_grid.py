@@ -604,7 +604,7 @@ def test_locate_warp_recovers_stretch_more_closely_than_locate_subpixel():
     assert np.std(warp_error) < np.std(phase_error)
 
 
-def _astronaut0_deformed(*, deformation):
+def _astronaut0_deformed(*, deformation, origin=130, count=9):
     """`astronaut0` and a copy deformed by `deformation`, in (x, y)
     order, about the image center, then shifted by (2.3, 1.6) px."""
     reference_image = combine(
@@ -616,9 +616,9 @@ def _astronaut0_deformed(*, deformation):
     offset = center[::-1] - inverse @ (center[::-1] + shift[::-1])
     current_image = affine_transform(reference_image, inverse, offset=offset, order=5)
     points = generate(
-        origin=PixelCoordinate(x=130, y=130),
-        count_x=9,
-        count_y=9,
+        origin=PixelCoordinate(x=origin, y=origin),
+        count_x=count,
+        count_y=count,
         spacing_x=5,
         spacing_y=5,
     )
@@ -653,7 +653,8 @@ def test_locate_warp_propagated_matches_locate_warp_on_small_stretch():
         deformation=np.array([[1.02, 0.0], [0.0, 1.0]])
     )
     kwargs = dict(reference_image=ref, current_image=cur, reference_points=points)
-    propagated = locate_warp_propagated(**kwargs, **_propagated_kwargs())
+    propagated, znssds = locate_warp_propagated(**kwargs, **_propagated_kwargs())
+    assert znssds.max() < 0.3
     rigid = locate_warp(**kwargs, **_propagated_kwargs())
     assert _errors(propagated, true).max() < 0.01
     np.testing.assert_allclose(
@@ -668,10 +669,9 @@ def test_locate_warp_propagated_tracks_large_deformation_locate_warp_misses():
     )
     kwargs = dict(reference_image=ref, current_image=cur, reference_points=points)
     assert (_errors(locate_warp(**kwargs, **_propagated_kwargs()), true) > 1).sum() > 10
-    assert (
-        _errors(locate_warp_propagated(**kwargs, **_propagated_kwargs()), true).max()
-        < 0.01
-    )
+    found, znssds = locate_warp_propagated(**kwargs, **_propagated_kwargs())
+    assert _errors(found, true).max() < 0.01
+    assert znssds.max() < 0.3
 
 
 def test_locate_warp_propagated_preserves_point_order():
@@ -679,7 +679,7 @@ def test_locate_warp_propagated_preserves_point_order():
         deformation=np.array([[1.05, 0.0], [0.0, 1.0]])
     )
     shuffled = points[::-1]
-    found = locate_warp_propagated(
+    found, _ = locate_warp_propagated(
         reference_image=ref,
         current_image=cur,
         reference_points=shuffled,
@@ -695,6 +695,7 @@ def test_locate_warp_propagated_preserves_point_order():
         dict(kernel_margin_height=0),
         dict(start_gradient_step=0.0),
         dict(start_gradient_limit=-0.1),
+        dict(znssd_limit=0.0),
         dict(max_iterations=0),
         dict(tolerance=0.0),
     ],
@@ -730,3 +731,48 @@ def test_locate_warp_propagated_kernel_outside_reference_raises():
             reference_points=[PixelCoordinate(x=5, y=150)],
             **_propagated_kwargs(),
         )
+
+
+def _occluded(*, corner):
+    """15% stretch with 0.15 shear on a 17x17 grid, plus a 40x40 px
+    patch of unrelated speckle at `corner` in the current image. Also
+    returns which points' current kernels overlap the patch."""
+    ref, cur, points, true = _astronaut0_deformed(
+        deformation=np.array([[1.15, 0.15], [0.0, 1.0]]), origin=110, count=17
+    )
+    x0, y0 = corner
+    patch = rosta(width=40, height=40, density=0.5, random_seed=7).astype(np.float64)
+    cur = cur.copy()
+    cur[y0 : y0 + 40, x0 : x0 + 40] = patch * 255.0 / patch.max()
+    covered = (np.abs(true[:, 0] - (x0 + 19.5)) < 33.5) & (
+        np.abs(true[:, 1] - (y0 + 19.5)) < 33.5
+    )
+    return ref, cur, points, true, covered
+
+
+@pytest.mark.parametrize("corner", [(160, 160), (130, 130)])
+def test_locate_warp_propagated_gate_contains_an_occlusion(corner):
+    # (130, 130) hides the image center, where the start search begins.
+    ref, cur, points, true, covered = _occluded(corner=corner)
+    found, znssds = locate_warp_propagated(
+        reference_image=ref,
+        current_image=cur,
+        reference_points=points,
+        **_propagated_kwargs(),
+    )
+    errors = _errors(found, true)
+    bad = ~(errors <= 1)
+    assert (~covered).sum() > 100
+    assert not bad[~covered].any()
+    assert not (bad & (znssds <= 0.3)).any()
+
+
+def test_locate_warp_propagated_without_gate_spreads_a_bad_start():
+    ref, cur, points, true, covered = _occluded(corner=(130, 130))
+    found, _ = locate_warp_propagated(
+        reference_image=ref,
+        current_image=cur,
+        reference_points=points,
+        **_propagated_kwargs(znssd_limit=4.0),
+    )
+    assert (_errors(found, true)[~covered] > 1).sum() > 10

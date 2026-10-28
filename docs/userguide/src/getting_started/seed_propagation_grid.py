@@ -67,6 +67,8 @@ for i, stretch in enumerate(STRETCHES):
                 **margins,
                 **extra,
             )
+            if locate is locate_warp_propagated:
+                found, _ = found
             errors = np.linalg.norm(
                 np.array([[f.x, f.y] for f in found]) - true, axis=1
             )

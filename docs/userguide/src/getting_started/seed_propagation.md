@@ -211,9 +211,8 @@ Each trial is scored by ZNSSD at that translation. IC-GN refines the 3
 best trials, and the fit with the lowest final ZNSSD becomes the first
 point's warp.
 
-The other points are visited breadth-first, each through its 8 nearest
-points. Each point starts from the warp of the fitted neighbor that
-reached it. The four gradient terms carry over. The translation is
+Each other point starts from the warp of an already-fitted neighbor,
+one of its 8 nearest points. The four gradient terms carry over. The translation is
 extrapolated across the offset $\boldsymbol{d}$ from the neighbor's
 reference position to this point's:
 
@@ -246,14 +245,72 @@ a 10% stretch alone. At a 30% stretch alone, it misses 280.
 `locate_warp_propagated` misses none of its 14161 fits, and its largest
 error is 0.009 px.
 
-Three limits apply. Every point here shares one stretch and shear, so a
+## Containing a Bad Fit
+
+One wrong fit can spread, because every point it seeds starts from a
+wrong warp. [Detecting a Miss](#detecting-a-miss) found that ZNSSD
+separates correct fits from misses. Any threshold between 0.0995 and
+0.6952 separated all 1470 fits. `locate_warp_propagated` uses such a
+threshold as a gate, `znssd_limit`, with a default of 0.3. That value
+sits inside the gap, 3 times above 0.0995 and 2.3 times below 0.6952.
+Three rules follow from the gate:
+
+* A fit seeds other points only if its ZNSSD is at most 0.3.
+* The accepted point with the lowest ZNSSD seeds next. A point that
+  fails the gate tries again when another accepted neighbor reaches
+  it.
+* If the first point's fit fails the gate, the start search moves to
+  the next point nearest the image center, at least one kernel width
+  (27 px) from every failed start. It stops after 10 failed starts in a
+  row.
+
+`locate_warp_propagated` returns each point's ZNSSD alongside its
+position. A ZNSSD above 0.3 marks a position not to trust. A point
+never fitted gets a ZNSSD of $\infty$ and a position of NaN.
+
+The test covers a 40x40 px patch of the current image with unrelated
+speckle, under a 15% stretch with a 0.15 shear, on the same 17x17 grid.
+The patch sits at one of two corners. At $(160, 160)$, the start point
+stays clear of it. At $(130, 130)$, it hides the image center, where
+the start search begins. A point counts as inside when its kernel in
+the current image overlaps the patch. A point is bad when it lands more
+than 1 px from the true position, or is never fitted:
+
+<!-- cmdrun python3 seed_propagation_occlusion.py -->
+
+With the patch over the center and no gate, all 127 points outside the
+patch go bad. The start fit lands inside the patch, and its wrong warp
+seeds every other point. With the gate, none of the 127 go bad. The
+start search moves on until a start outside the patch passes.
+
+In every row, no bad point passes the gate. Every bad position carries
+a ZNSSD above 0.3, or none at all.
+
+The gate has a cost inside the patch. With the patch off-center and no
+gate, 62 points land within 1 px of the true position, yet score above
+0.3. A kernel partly covered by the patch raises the ZNSSD of a
+correct fit. The sweep in Detecting a Miss had no such partial cover.
+With the gate on, those points stop the propagation, and 64 points
+inside the patch are never fitted. The off-center patch then leaves 66
+of its 101 inside points bad, against 27 without the gate.
+
+Two limits remain. Every point here shares one stretch and shear, so a
 neighbor's gradient terms match this point's exactly. A strain gradient
 would make the extrapolated seed less exact. The start search tries
-gradient terms only up to 0.3. And `locate_warp_propagated` passes each
-fit on to its neighbors without checking its ZNSSD, so one wrong fit
-would spread.
+gradient terms only up to 0.3.
 
 Continue to [Postprocessing](./postprocessing.md).
+
+### `seed_propagation_occlusion.py`
+
+<details>
+<summary>Show the code</summary>
+
+```python
+<!-- cmdrun cat seed_propagation_occlusion.py -->
+```
+
+</details>
 
 ### `seed_propagation_grid.py`
 
