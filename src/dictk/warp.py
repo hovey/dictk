@@ -32,11 +32,17 @@ def _refine(
     kernel_margin_height: int,
     max_iterations: int,
     tolerance: float,
-) -> np.ndarray:
+) -> tuple[np.ndarray, float, int]:
     """IC-GN refinement of one point, from an integer `start` -- see
     [`fit`](#fit) for the method and the returned matrix. Takes
     precomputed gradients and spline coefficients so a batch caller
-    computes them once, not once per point."""
+    computes them once, not once per point.
+
+    Also returns the ZNSSD between the reference kernel and
+    `current_image` sampled through the returned warp, from 0 for a
+    perfect match to 4, and how many updates IC-GN applied. That count
+    equals `max_iterations` when IC-GN stopped without meeting
+    `tolerance`."""
     gradient_y, gradient_x = reference_gradients
     x0, y0 = reference_point.x, reference_point.y
     rows = slice(y0 - kernel_margin_height, y0 + kernel_margin_height + 1)
@@ -57,6 +63,13 @@ def _refine(
     ).reshape(-1, 6)
     hessian_inverse = np.linalg.inv(steepest_descent.T @ steepest_descent)
 
+    def residual_at(warp):
+        xs = x0 + warp[0, 0] * dx + warp[0, 1] * dy + warp[0, 2]
+        ys = y0 + warp[1, 0] * dx + warp[1, 1] * dy + warp[1, 2]
+        g = map_coordinates(current_coefficients, [ys, xs], order=3, prefilter=False)
+        g = g - g.mean()
+        return f_norm / np.sqrt((g**2).sum()) * g - f
+
     warp = np.array(
         [
             [1.0, 0.0, start.x - x0],
@@ -64,13 +77,8 @@ def _refine(
             [0.0, 0.0, 1.0],
         ]
     )
-    for _ in range(max_iterations):
-        xs = x0 + warp[0, 0] * dx + warp[0, 1] * dy + warp[0, 2]
-        ys = y0 + warp[1, 0] * dx + warp[1, 1] * dy + warp[1, 2]
-        g = map_coordinates(current_coefficients, [ys, xs], order=3, prefilter=False)
-        g = g - g.mean()
-        g_norm = np.sqrt((g**2).sum())
-        residual = f_norm / g_norm * g - f
+    for iterations in range(1, max_iterations + 1):
+        residual = residual_at(warp)
         dp = hessian_inverse @ (steepest_descent.T @ residual.ravel())
         increment = np.array(
             [
@@ -83,7 +91,8 @@ def _refine(
         if np.abs(dp).max() < tolerance:
             break
 
-    return warp
+    znssd = float((residual_at(warp) ** 2).sum() / f_norm**2)
+    return warp, znssd, iterations
 
 
 def fit(
@@ -185,7 +194,7 @@ def fit(
         search_margin_height=search_margin_height,
         windowing=windowing,
     )
-    return _refine(
+    fitted, _znssd, _iterations = _refine(
         reference_image=reference_image,
         reference_gradients=_gradients(reference_image),
         current_coefficients=_spline_coefficients(current_image),
@@ -196,6 +205,7 @@ def fit(
         max_iterations=max_iterations,
         tolerance=tolerance,
     )
+    return fitted
 
 
 def locate(

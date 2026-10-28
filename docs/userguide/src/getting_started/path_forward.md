@@ -619,3 +619,13 @@ Propagation takes 9.4. Discontinuities moves from 10 to 11,
 Parallelization from 11 to 12, Path Forward from 12 to 13, and
 Contributing from 13 to 14. Dated entries above keep the numbers that
 were current when they were written.
+
+**ZNSSD flags every miss.** `warp._refine` now also returns its final
+ZNSSD and iteration count. `warp.fit` and `grid.locate_warp` are
+unchanged. Seed Propagation's new [Detecting a
+Miss](./seed_propagation.md#detecting-a-miss) section reruns the 1470
+sweep fits. Correct fits reach a ZNSSD of at most 0.0995, and misses
+reach at least 0.6952. Any threshold between the two flags all 972
+misses and none of the 498 correct fits. The iteration count
+misclassifies 5 fits, and ZNSSD flags every miss it catches. That
+result covers one image and one 27x27 kernel. 444 tests (441 + 3).

@@ -123,7 +123,7 @@ def _locate_warp_worker(
         search_margin_height=search_margin_height,
         windowing=windowing,
     )
-    fitted = warp._refine(
+    fitted, _znssd, _iterations = warp._refine(
         reference_image=reference_image,
         reference_gradients=reference_gradients,
         current_coefficients=current_coefficients,

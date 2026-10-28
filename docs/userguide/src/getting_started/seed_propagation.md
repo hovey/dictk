@@ -50,7 +50,8 @@ happens.
 The sweep maps where seeds fail across a grid of 49 combinations of
 seven stretch values and seven shear values. It stretches the image
 along $x$ by 0% to 30%, and shears it by 0 to 0.30, both in steps of
-0.05. Each combination tracks the same 30 points. Each point sits at a
+0.05. Each combination tracks the same 30 points, so the sweep runs
+$30 \times 49 = 1470$ fits. Each point sits at a
 random position at least 40 px from every edge of the 300x300
 `astronaut0` image. Each point also gets its own random fractional
 shift. The shifts fall between 4 and 8 px along $x$ and between 2 and
@@ -115,7 +116,71 @@ seeds back to the right position. At a 0.15 shear alone, it pulls back
 from a correct seed. Every miss traces back to a failed seed, so the
 fix belongs at the seed, not in IC-GN.
 
+## Detecting a Miss
+
+For each point, `locate_warp` returns only the tracked position
+$(x, y)$ in the current image, in pixels, as a `SubpixelCoordinate`.
+A miss 28.718 px off looks the same as a correct fit 0.001 px off.
+Inside `locate_warp`, IC-GN computes two more numbers, but
+`locate_warp` discards both. The first is the final ZNSSD, [Kernel
+Warping's](./kernel_warping.md#inverse-compositional-gauss-newton)
+$C(\boldsymbol{p})$. It measures how well the warped kernel matches the
+current image:
+
+* A ZNSSD of 0 is a perfect score.
+* A ZNSSD of 4 is the worst score, reached when the current image
+  shows the kernel with its contrast inverted.
+
+The second is the iteration count. IC-GN stops once every update falls below $10^{-6}$,
+or after $n_{\text{MAX\_ITER}} = 50$ updates.
+
+The script below reruns all 1470 fits from the sweep and records both
+numbers for each fit. A fit is correct when it lands within 1 px of the
+true position:
+
+<!-- cmdrun python3 seed_propagation_quality.py -->
+
+<figure id="fig-sp-quality">
+    <img src="seed_propagation_quality.png" alt="two histograms with logarithmic count axes, correct fits in blue and misses in orange. Left, final ZNSSD on a logarithmic axis from 1e-6 to about 3: the blue correct fits cluster between 1e-4 and 1e-2 with one fit near 0.1, the orange misses cluster between 0.7 and 3, and no fit falls between 0.1 and 0.7. Right, IC-GN iterations from 0 to 50: the blue correct fits peak near 10 iterations with a thin tail to 46 and a small bar of 4 at 50, and the orange misses form one tall bar of 971 at 50 plus one fit at 43" />
+    <figcaption>Final ZNSSD (left) and IC-GN iteration count (right) for the sweep's 1470 fits: 498 correct fits (blue) and 972 misses (orange). Both count axes are logarithmic, so single fits stay visible. A miss lands more than 1 px from the true position.</figcaption>
+</figure>
+
+ZNSSD separates the two groups with no overlap. Correct fits score at
+most 0.0995, and misses score at least 0.6952. Any threshold between
+those two values flags all 972 misses and none of the 498 correct fits.
+In [ZNCC](./correlation_criteria.md) terms, $\text{ZNCC} = 1 - C/2$, so
+every correct fit keeps a ZNCC of at least 0.950, and every miss stays
+at or below 0.652.
+
+The 0.0995 belongs to the one fit from [Where the Seed
+Breaks](#where-the-seed-breaks) that landed 0.267 px off. That fit
+counts as correct under the 1 px rule.
+
+The iteration count separates the groups almost as well. Correct fits
+took a median of 11 iterations. 971 of the 972 misses ran all 50
+without converging. The count misclassifies 5 fits. Four correct fits
+also ran all 50 iterations. Three of those four landed within 0.005 px,
+but their updates never all fell below $10^{-6}$. The fourth is the
+0.267 px fit. One miss, at a 30% stretch and a 0.05 shear, converged
+after 43 iterations, 26.704 px off. Its ZNSSD of 1.3003 still flags it.
+
+Every miss the iteration count flags, ZNSSD also flags. On this sweep,
+the iteration count adds nothing that ZNSSD does not already show. The
+result comes from one image, one 27x27 kernel, and a 50-iteration cap.
+Another speckle pattern could narrow the gap between 0.0995 and 0.6952.
+
 Continue to [Postprocessing](./postprocessing.md).
+
+### `seed_propagation_quality.py`
+
+<details>
+<summary>Show the code</summary>
+
+```python
+<!-- cmdrun cat seed_propagation_quality.py -->
+```
+
+</details>
 
 ### `seed_propagation_kernel_warping_seeds.py`
 

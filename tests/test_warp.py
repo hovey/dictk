@@ -5,7 +5,7 @@ from scipy.ndimage import affine_transform, fourier_shift, gaussian_filter
 from dictk import translation
 from dictk.image import PixelCoordinate, stretch, translate
 from dictk.rosta import rosta
-from dictk.warp import fit, locate
+from dictk.warp import _gradients, _refine, _spline_coefficients, fit, locate
 
 
 def _locate_kwargs(**overrides):
@@ -135,3 +135,46 @@ def test_locate_matches_fit_translation():
     warp = fit(reference_image=ref, current_image=cur, **_locate_kwargs())
     found = locate(reference_image=ref, current_image=cur, **_locate_kwargs())
     assert (found.x, found.y) == (60 + warp[0, 2], 60 + warp[1, 2])
+
+
+def _refine_kwargs(*, start, max_iterations=50):
+    # A fractional Fourier-domain shift of (2.4, 3.3) px, so IC-GN needs
+    # more than one update from the whole-pixel start (62, 63).
+    ref = gaussian_filter(rosta(width=120, height=120, density=0.4).astype(float), 1)
+    cur = np.fft.ifft2(fourier_shift(np.fft.fft2(ref), (3.3, 2.4))).real
+    return dict(
+        reference_image=ref,
+        reference_gradients=_gradients(ref),
+        current_coefficients=_spline_coefficients(cur),
+        reference_point=PixelCoordinate(x=60, y=60),
+        start=start,
+        kernel_margin_width=15,
+        kernel_margin_height=15,
+        max_iterations=max_iterations,
+        tolerance=1e-6,
+    )
+
+
+def test_refine_reports_small_znssd_from_correct_start():
+    warp, znssd, iterations = _refine(
+        **_refine_kwargs(start=PixelCoordinate(x=62, y=63))
+    )
+    np.testing.assert_allclose(warp[:2, 2], [2.4, 3.3], atol=0.005)
+    assert znssd < 1e-3
+    assert 1 < iterations < 50
+
+
+def test_refine_reports_large_znssd_from_wrong_start():
+    # 15 px away in x and 13 px in y: the kernel lands on unrelated speckles.
+    warp, znssd, iterations = _refine(
+        **_refine_kwargs(start=PixelCoordinate(x=75, y=50))
+    )
+    assert np.hypot(warp[0, 2] - 2.4, warp[1, 2] - 3.3) > 5
+    assert znssd > 1.0
+
+
+def test_refine_iterations_stop_at_max_iterations():
+    _, _, iterations = _refine(
+        **_refine_kwargs(start=PixelCoordinate(x=62, y=63), max_iterations=1)
+    )
+    assert iterations == 1
