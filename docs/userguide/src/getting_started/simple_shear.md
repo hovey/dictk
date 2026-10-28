@@ -10,7 +10,7 @@ suggest.  In fact, a paper titled
 *Simple shear is not so simple*[^Destrade_2012]
 reviews some details not discussed here.
 
-The figure below illustrates simple shear, with relative motion of planes normal to the vertical axis.  For all configurations (reference and current):
+[Figure](#fig-simple-shear) illustrates simple shear, with relative motion of planes normal to the vertical axis.  For all configurations (reference and current):
 
 * Horizontal fibers remain horizontal.
 * The length of horizontal fibers remains constant.
@@ -20,7 +20,7 @@ The figure below illustrates simple shear, with relative motion of planes normal
 The relative motion is characterized by the non-dimensional ratio of length $a$ per unit height, where $a \in \mathbb{R} \subset [0, \infty)$.
 The angle, $\gamma \in \mathbb{R} \subset [0, \pi/2)$, subtended by simple shear is $\gamma = \arctan(a)$.  In the limit as $a \mapsto \infty$, the shear angle $\gamma \mapsto \pi/2$.  For small values of $a$, the small-angle assumption is valid, with $\tan(\gamma) \approx \gamma \approx a$.
 
-<figure class="figure-box">
+<figure id="fig-simple-shear">
     <img src="simple_shear.png" alt="simple_shear" width=100% />
     <figcaption>
         Figure: (Left) Simple shear of a unit cube in the reference configuration (gray)

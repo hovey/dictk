@@ -26,7 +26,7 @@ four-node quadrilateral element.
 
 The four-node quadrilateral element is one of the most commonly used elements in 2D FEA. It has four corner nodes, with each node having two degrees of freedom (DOFs): displacements in the $X$ and $Y$ directions.
 
-<figure class="figure-box">
+<figure id="fig-isoparametric-mapping">
     <img src="quad_isoparametric.png" alt="quad_isoparametric" width=100% />
     <figcaption>
         Figure:  Illustration of isoparametric mapping between (left) an arbitrary quadrilateral element in global (physical) coordinates to (right) the local (natural) coordinates.  The local domain is sometimes called the parent quadrilateral element.  
@@ -36,7 +36,7 @@ The four-node quadrilateral element is one of the most commonly used elements in
 Image credit: James *et al.*[^James_2012]
 
 **Note:** Since we are using a *finite deformation* [continuum mechanics](./continuum_mechanics.md) framework,
-we will use $X$ and $Y$ (instead of $x$ and $y$ in the James *et al.* figure above).
+we will use $X$ and $Y$ (instead of $x$ and $y$ in the James *et al.* [Figure](#fig-isoparametric-mapping)).
 
 ### Shape Functions
 

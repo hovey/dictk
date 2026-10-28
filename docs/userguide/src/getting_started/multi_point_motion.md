@@ -485,7 +485,7 @@ In this section, we run this page's own `dx = -6`, `dy = 8` example through
 [VIC-2D](https://www.correlatedsolutions.com/vic-2d/) (Correlated Solutions, Inc.),
 a widely used commercial DIC package, to verify agreement with `dictk`.
 
-<figure>
+<figure id="fig-vic-displacement-fields">
     <div style="display: flex; gap: 1em;">
         <a href="../verification/multi_point_motion_U_result_vic.png" target="_blank" rel="noopener" style="flex: 1 1 0; min-width: 0;">
             <img src="../verification/multi_point_motion_U_result_vic.png" alt="VIC-2D's recovered U (x-displacement) field for the dx=-6, dy=8 example, showing a uniform displacement of -6 pixels across the specimen" style="width: 100%;" />
@@ -511,7 +511,8 @@ The full, subset-by-subset VIC-2D output,
 is available for closer inspection: every subset's position, displacement,
 strain, and correlation quality metrics, not just the two summary fields
 shown above. It carries two displacement column pairs: `u_c`/`v_c`
-(VIC-2D's own convention, matching the two figures above exactly) and a
+(VIC-2D's own convention, matching both panels of
+[Figure](#fig-vic-displacement-fields) exactly) and a
 second `u`/`v` pair already expressed with `v`'s sign flipped to match
 `dictk`'s downward-positive $y$ — `u`/`v` land on $-6$/$8$ px directly,
 with no sign reconciliation needed to compare against `dictk`'s ground

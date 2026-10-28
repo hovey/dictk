@@ -92,9 +92,15 @@ the right next step here, not something this fix already covered.
 
 Noted, not being pursued right now:
 
-* **Heaviside DIC and XFEM** — enriching the correlation itself to
-  detect and locate a discontinuity, not just generating test images
-  that contain one (see above).
+* **Heaviside DIC and XFEM: DIC-detection half resolved, FEA/XFEM
+  half still open.** [Discontinuity
+  Localization](./discontinuity_localization.md) closed the half this
+  item originally asked for: `dictk.discontinuity.locate` finds a
+  straddling window's two-peak signature on its own, on both synthetic
+  and real data, no human-centered window required. What's still not
+  started: consuming a located discontinuity in an actual
+  Heaviside-enriched finite-element formulation. That's XFEM's own side
+  of this, untouched by anything above.
 * **`grid.locate()` windowing demo.** `windowing` has only ever been
   demonstrated directly on
   [`dictk.correlation.phase_correlation`](../api/dictk/correlation.html#phase_correlation)
@@ -106,6 +112,23 @@ Noted, not being pursued right now:
   Parallelization) leaves `windowing` at its default `None` — the one
   parameter of `grid.locate`'s own signature with no live worked
   example yet.
+* **Strain-window bias on a strain gradient.** Every strain-window
+  test so far uses a uniform 2% stretch. Its third derivative $u'''$ is
+  zero, so a curved strain field never biases the fitted slope.
+  [Frequency Response](./strain_window.md#frequency-response) measures
+  the window's bias on a sine wave only. A synthetic field with a known
+  $u'''$ would measure the bias from curvature. It would
+  also locate the window size that minimizes the mean squared error,
+  variance plus squared bias.
+* **A deformation-aware seed for `warp.fit`.** IC-GN starts from
+  `translation.locate`'s whole-pixel match, and that match uses a
+  rigid, unwarped kernel. On a fine speckle pattern, a 10% stretch plus
+  shear put that starting point 20 px off. IC-GN then converged to a
+  wrong warp with no error raised. Two remedies are worth testing.
+  Seeding each point from a neighbor's fitted warp would start IC-GN
+  with the local stretch already included. A ZNSSD threshold would flag
+  a fit that converged to the wrong place. This pairs with the dynamic search-window sizing
+  direction above.
 
 ## 2026-08-18
 
@@ -187,3 +210,422 @@ spacing. Std shrinks monotonically across the sweep
 (0.0154/0.0125/0.0099/0.0032). The page names VIC-2D's own
 strain-window averaging as the standard remedy but doesn't implement
 it — that stays open.
+
+## 2026-08-25
+
+**High Point Density retuned to VIC-2D's real geometry, plus a
+quantization finding.** [High Point Density](./high_point_density.md)'s
+tracking call used a much larger kernel/search area than VIC-2D's own
+`25 x 25` px subset — leftover from earlier pages, never tuned to
+match. `kernel_margin = 12` (the closest whole-pixel match) was tried
+first and rejected: checked directly against known true positions, it
+produced real multi-pixel mismatches at a handful of points, not just
+subpixel noise. `kernel_margin = 13` (`26 x 26` px) tracks cleanly,
+zero mismatches across all 2862 points; `search_margin = 25` gives
+generous headroom.
+
+A second, unplanned finding came out of building the page's new
+strain histogram (the `dictk`-side counterpart to [Verification
+Against VIC-2D](./simple_stretch.md#verification-against-vic-2d)'s
+own VIC-2D histogram). At `upsample_factor = 10` — Subpixel Accuracy's
+own choice — the histogram wasn't a smooth spread; it separated into
+sharp spikes exactly 20000 microstrain apart. Checked directly: `0.1`px
+(the displacement quantization step at `upsample_factor = 10`) divided
+by this mesh's own 5px element spacing is exactly `0.02`, i.e. 20000
+microstrain — the artifact was `upsample_factor` itself, invisible in
+Subpixel Accuracy's own raw-displacement measurement but amplified into
+visible banding once divided by a small element size to get strain.
+`upsample_factor = 100` removes the banding; mean and std barely move
+(std 17776 → 16531 microstrain), confirming the real spread was already
+there and only its blocky shape was artificial.
+
+With both fixed, the real numbers: mean $E_{11}$ = 20464.3 microstrain
+vs. the analytical 19802.6 (3.3% off, worse than VIC-2D's own 0.4%);
+std 16531 microstrain; range -16446 to 106134 microstrain, over 21x
+VIC-2D's own roughly 5800-microstrain-wide spread. The page's own
+closing analysis ties this to kernel size directly: matching VIC-2D's
+small subset, instead of earlier pages' generously oversized kernels,
+trades away some of the noise-averaging a bigger kernel provides — part
+of `dictk`'s own extra spread here is the expected cost of matching
+VIC-2D's geometry, not a `dictk`-specific shortcoming.
+
+A new figure places the two fields side by side, both forced onto
+VIC-2D's own fixed colorbar (`17560`-`22360` microstrain) — not an
+approximate rainbow,
+but VIC-2D's own particular 16-band palette, sampled pixel-by-pixel
+from its own legend image and rebuilt as a `matplotlib` `ListedColormap`.
+Forced onto that same narrow range, only 9.5% of `dictk`'s own 11024
+Gauss points land inside it; 52.9% clip to the floor, 37.7% to the
+ceiling — visual, not just numeric, confirmation of how much wider
+`dictk`'s own spread is. The figure's own `figsize` is tuned
+(`(6.9, 6.0)`) to match VIC-2D's screenshot's own aspect ratio, so the
+two panels align in height in the page's side-by-side flex layout.
+
+[`element_strain_plot`](../api/dictk/plot.html#element_strain_plot)
+gained four new keyword-only parameters this session, each
+default-preserving for every existing caller: `dot_size` (default
+`150`), `vmin`/`vmax` (fixed color-scale bounds, for the VIC-2D
+comparison above), `show_mesh_lines` (default `True`), and `marker`
+(default `"o"`) — `cmap` also widened to accept a `Colormap` instance,
+not just a name, for the extracted VIC-2D palette. All three of this
+page's dense figures now use `dot_size=6`, `marker="s"`, and
+`show_mesh_lines=False`: square markers tile a regular grid edge to
+edge with no gaps, where circles — even sized to just touch — leave
+small diamond-shaped gaps at their own tangent points; mesh lines add
+clutter without information at this density. 348 tests (343 + 5 new).
+
+## 2026-08-26
+
+[High Point Density](../getting_started/high_point_density.html)'s own
+closing gap — how `dictk`'s tracking time scales as point count grows,
+across sequential, threaded, and multi-process execution — is answered
+by a new page, [Timing at
+Scale](../getting_started/timing_at_scale.html) (Parallelization's new
+`9.3` child). It set out looking for this M1 Pro machine's genuine RAM
+ceiling: grow a pure-`rosta` reference image (no `astronaut`, avoiding
+any bicubic-upsampling artifact) along a geometric ladder, tracking the
+real `grid.locate_subpixel` pipeline at each size until 32GB of RAM ran
+out.
+
+It never did. `sysctl vm.swapusage` was checked directly throughout the
+entire multi-hour run and never once reported nonzero swap use, even as
+peak RSS climbed to 11.5GB at the largest tier reached (10204px,
+3,229,209 points). What actually stopped the ladder was this script's
+own 1800-second (30-minute) per-tier timeout — a genuine compute-time wall, found
+by raising that timeout once (240s → 1800s, after the first pass showed
+processes and sequential both dying to it well before any memory
+pressure) and hitting it again anyway. `threads` reached the furthest
+(996,004 points, 861.5s) before also timing out at the next tier.
+`processes` died earliest (1750px) for an unrelated, real reason: its
+own `ProcessPoolExecutor.map()` re-pickles `dictk.grid.locate`'s bound
+`reference_image`/`current_image` once per task, not once per worker —
+confirmed directly in source, and directly observed as ~50% single-core
+utilization on a retry, not eight processes computing in parallel.
+
+This documents, with real numbers, the "documented CPU bottleneck" this
+page's own GPU direction (below) has been gated on since it was first
+written: reaching a million tracked points took `threads` 14.4 minutes
+on 10 cores; a real problem at this page's own north-star scale (a
+billion correlations) extrapolates to weeks on this same hardware. 348
+tests (unchanged — docs-only, plus a new standalone benchmark script,
+same precedent as `parallelization_bench.py`).
+
+## 2026-09-01
+
+**9.4 Parallelism with PyTorch, shipped.** New page,
+[Parallelism with PyTorch](./parallelism_pytorch.md), Parallelization's
+fourth child. It reruns [Timing at Scale](./timing_at_scale.md)'s own
+ladder — same image sizes, same point grids, same 26x26 kernel, same
+per-size search areas, same machine — on a batched PyTorch correlation
+instead of one `grid.locate_subpixel` call per point. Docs-only plus a
+standalone benchmark script, matching 9.3's own precedent. 348 tests
+unchanged. `pyproject.toml` deliberately untouched: CI runs
+`uv sync --all-extras`, so a `torch` extra would install PyTorch on
+every CI run for a script CI never executes.
+
+This continues work Andrew Polonsky and Chad Hovey started in the
+private `hdic` codebase in 2025, and the page attributes it directly.
+That work established the grouped-`conv2d` batching trick (stack N
+search areas as channels, N kernels as N groups, `groups=N` so kernel
+`i` sees window `i` only), measured it on a Windows CUDA machine, and
+recorded the decision "torch implementation, then CUDA implementation"
+on 2025-09-23. It left three gaps. 9.4 closes two: it runs on Apple
+silicon, which `hdic`'s own correlation module refused to do via a hard
+`RuntimeError("...does not run on macOS")` that was simply false; and it
+refines peaks to subpixel, which that implementation never did. The FFT
+gap stays open, and is now the named next step.
+
+**A real prerequisite fix to 9.3.** [Timing at
+Scale](./timing_at_scale.md#finding-the-ceiling) stated `kernel_margin=13`
+and said `search_margin` varies per tier, but never gave pixel
+dimensions. Adding them surfaced something that page never said: the
+kernel is fixed at 26x26 at every tier, but the search area grows from
+48x48 to 420x420, because `factor_x=1.02` displaces a far edge further
+in a bigger image. Search pixels therefore grow 76x across the ladder,
+so 9.3's cost curve is not a pure point-count curve — it measures point
+count and per-correlation size growing together. Doesn't invalidate any
+9.3 finding (all three executors saw identical geometry), but it
+explains part of the slope, and 9.4 could not describe its own tensor
+shapes without it.
+
+**The headline result, and the caveat under it.** The Apple GPU (MPS,
+Metal Performance Shaders) wins at every size. It completed 10204px —
+3,229,209 points in 2,334.7s — which 9.3's `threads` attempted and could
+not finish. At the largest size both pages measured (5669px, 996,004
+points) it runs 3.4x faster than `threads`: 3,884 points/s against
+1,156, which turns 9.3's own "roughly 1.4 weeks for a billion
+correlations" into roughly 3 days. Real, and not enough — a billion is
+Path Forward's entry-level target, not its ceiling.
+
+The speedup is not constant, and the shape of it is the finding. It
+climbs to 15.7x at 29,584 points, then falls to 3.4x at 996,004. Point
+count only ever increased, so batching can't explain the decline. The
+growing search area can, and the CPU column proves it directly.
+
+**Polonsky's cusp, located.** His 2025-04-15 email said the team was
+"right on the cusp of whether or not doing the FFT for cross-correlation
+will be faster than brute force sliding dot product," and never resolved
+it. 9.4 resolves it, because `torch` CPU and 9.3's `threads` run on the
+same ten cores and differ only in algorithm. At a 74x74 search area,
+`torch` CPU wins 7.8s to 16.9s. At 102x102 they tie, 53.4s to 58.6s. At
+156x156 the FFT wins 215.2s to 512.7s. On this machine, at a 26x26
+kernel, **the cusp sits near a 100x100 pixel search area.** Below it,
+brute force wins; above it, the FFT does.
+
+Which reframes 9.4's own GPU result: the GPU is running the *losing*
+algorithm at these search areas and still beats ten CPU cores. Nobody
+has yet combined the better hardware with the better algorithm. That
+combination — a batched `torch.fft` phase correlation, the same
+algorithm 9.1-9.3 already use, on the devices 9.4 already measures — is
+the obvious next step and is not started.
+
+**Subpixel came out better than expected.** A three-point parabolic fit
+on the correlation surface `conv2d` already returns gives 0.0369px mean
+absolute error against analytical truth, against
+`grid.locate_subpixel`'s own 0.0925px at `upsample_factor=100` on the
+same 2,809 points. 2.5x more accurate, for a small fraction of the
+correlation's cost. Peak locking is present but mild (fractional-part
+bins 330/338/258/219/280/265/210/257/313/339 against a flat 280).
+Integer positions agree with `grid.locate` on 98.7% of points, and every
+one of the 37 disagreements has a true fractional part between 0.460 and
+0.560 — the half-pixel boundary where rounding is genuinely ambiguous,
+not an error. MPS matched CPU digit for digit; float32 cost nothing
+measurable.
+
+**A prediction the measurement contradicted.** 9.4 retired 9.3's
+1800-second wall clock and replaced it with a caught out-of-memory error
+as the primary stop, reasoning that search areas are chunkable but the
+two resident images are not, so the unchunkable part would eventually
+fail. It never did. Both devices stopped on the secondary rule instead —
+a predicted-cost gate, extrapolating each size from the previous size's
+measured rate. At the largest size attempted, the two images occupied
+0.83GB of Metal's 26.8GB budget, about 3%; peak host RSS reached 13.9GB
+of 32GB. Same conclusion 9.3 reached, for the same reason: compute time
+is the wall, memory is not. The OOM arithmetic still holds at around
+59508px; this ladder just never gets there, because that size's
+arithmetic outruns any reasonable wait.
+
+**Two bugs found by testing rather than assuming.** Forcing an
+out-of-memory on purpose revealed that Metal reports it two different
+ways, and only one says "out of memory" — a single tensor past Metal's
+per-buffer ceiling raises `Invalid buffer size: 3013.73 GiB` instead.
+Trusting the first message would have turned a real memory finding into
+an unexplained crash. Separately, a first version of the benchmark
+re-uploaded both full images to the device once per chunk rather than
+once per size (26 redundant 40MB uploads at 3149px), which inflated
+measured extraction cost; partial results were discarded and the ladder
+re-run after the fix. Both are recorded in the script's own docstrings.
+
+## 2026-09-06
+
+**Discontinuities (10), Synthetic Dislocation (10.1), and Experimental
+Dislocation (10.2), shipped.** New chapter. First empirical evidence
+toward the Postponed "Heaviside DIC and XFEM" item above. Not a
+resolution of it: a characterization of what the symptom looks like.
+
+**The finding: a straddling window's correlation surface shows two
+comparably-tall peaks, not one.**
+[Image Transformation](./transformation.md#crack-dislocation)'s crack
+shifts its left half +4px and its right half -4px, and no single
+displacement answer can represent both at once. On synthetic data
+(`astronaut0`, offset=4, `kernel_margin=25`, `search_margin=45`), ZNCC
+and phase correlation (FFT) land on the exact same two peaks: y=16 and
+y=24. Both straddle the window's own zero-shift center (y=20) by
+exactly ∓4 pixels, the same 4-pixel offset applied, so their
+separation, 8 pixels, is exactly twice the offset.
+
+**Swept offset 1-32 pixels: separation = 2 x offset held at every
+offset from 2 to 32, for both criteria.** The only miss came at
+offset=1, where ZNCC's two peaks sit one pixel apart, too close for an
+integer-pixel surface to resolve as two separate local maxima; phase
+correlation still resolved it there. Not a fluke at one lucky parameter
+choice: the relationship holds across a 32x range.
+
+**Real data (a real experimental crack image pair, copied in
+unmodified): the signature survives, noisier.** At `(x=218, y=186)`,
+`kernel_margin=25`, `search_margin=65`, ZNCC's surface shows three local
+maxima along its peak column (heights 0.09, 0.19, 0.28). The two
+tallest, 22 pixels apart, both clearly exceed the third and the general
+noise floor. Phase correlation on the same window, though, is speckled
+with noise across its entire extent. It shows no clean isolated peak,
+values an order of magnitude smaller, and its single reported maximum
+lands at a different position than ZNCC's own tallest peak. The two
+criteria agreed exactly on synthetic data and don't here: real,
+non-periodic texture is exactly the case
+[`phase_correlation`](../api/dictk/correlation.html#phase_correlation)'s
+own docstring already warns is noisier than a spatial-domain criterion.
+ZNCC is the criterion worth trusting for this diagnostic on real data.
+
+**Still not started:** an algorithm that finds this signature on its
+own, rather than a person centering a window on a crack they already
+know is there. That's what "enriching the correlation itself to detect
+and locate a discontinuity" above still means. 348 tests, unchanged.
+This shipped as new book pages and two harvested image assets, not new
+library code.
+
+**Discontinuity Localization (10.3), shipped: the DIC-detection half of
+"Heaviside DIC and XFEM" is resolved.** Three approaches, compared on
+both the synthetic pair above and Experimental Dislocation's real crack
+image pair. A grid-anomaly baseline (standard `grid.locate`, no new
+code): 11 evaluations, 5-pixel error on synthetic data, capped at half
+the grid spacing by construction. A dense peak-ratio sweep with
+subpixel parabolic refinement: 101 evaluations, 0.2-pixel error on
+synthetic data, 0.7 pixels from Experimental Dislocation's own by-eye
+`x=218` on real data. Golden-section search on the same metric: 12
+evaluations, 0.25-pixel error on synthetic data, competitive with the
+dense sweep. A wide, honest real-data bracket breaks it, though: with
+no prior estimate of where the crack sits, it converges instead to a
+smaller, secondary peak 90 pixels from the real crack, confidently and
+silently.
+
+**The dense sweep wins and ships.** New module `dictk.discontinuity`:
+`peak_ratio` (a correlation surface's second-tallest peak divided by its
+tallest: near 1.0 for a straddling window, 0.0 for a clean one),
+`sweep` (evaluate `peak_ratio` along a line), and `locate` (the same
+sweep, refined to subpixel precision). The baseline and golden-section
+search stay as page illustrations, not library code. That's the same
+try-and-reject pattern earlier chapters have used for a rejected
+`kernel_margin` value or a reverted median filter. 371 tests
+(348 + 23).
+
+**Still not resolved:** a located discontinuity still isn't consumed by
+anything. The postponed item below is split to reflect exactly that.
+
+## 2026-09-24
+
+**Kernel Warping (9.3), shipped.** New page, inserted after High Point
+Density. Timing at Scale and Parallelism with PyTorch shift to 9.4 and
+9.5.
+
+**The finding: High Point Density's wide strain spread came from
+tracking bias, not element size.** `grid.locate_subpixel` shows pixel
+locking. Its $x$ error follows a wave of about ±0.13 px, set by each
+true position's fractional part. Under a 2% stretch, that wave repeats
+every 51 px, and its slope reaches about 16000 microstrain. That
+matches the scale of the measured 16531 microstrain standard deviation.
+Simple Stretch Revisited's 50 px spacing hid the wave, since every
+node sat at the same point on it.
+
+**Three approaches, compared on the same 2862-point grid.** A 15x15
+strain window on the old positions cut the spread to 595 microstrain.
+It works here because the window spans a full bias cycle. It hides
+the bias and leaves it in the tracked positions. IC-GN kernel warping
+cut the displacement error from 0.109 px to 0.008 px. With the existing Q4
+element code unchanged, the spread fell to 1161 microstrain. VIC-2D's
+own is 1385. Combining both reached 39 microstrain.
+
+**The test image's bilinear interpolation roughly doubled
+`locate_subpixel`'s error and quintupled `locate_warp`'s.**
+`image.stretch` uses bilinear interpolation. A quintic-spline stretch
+cut `locate_warp`'s $x$ error from 0.008 px to 0.0015 px, and its
+strain spread from 1161 to 260 microstrain. It cut `locate_subpixel`'s
+error only from 0.109 px to 0.057 px. So phase correlation keeps about
+half of its bias on the quintic-spline image.
+
+**IC-GN is H-DIC's continuous half.** Bourdin et al. (2018) write each
+Heaviside-DIC kernel (the paper's subset) as a rigid-body translation
+plus a first gradient, the same six-parameter affine warp `dictk.warp`
+solves for, plus a jump times a Heaviside function.
+[Discontinuities](./discontinuities.md#relation-to-heaviside-dic) now
+lays out that relation. The Postponed Heaviside item above now has
+a foundation. Its remaining pieces are the jump vector and the line's
+distance and angle from the kernel center.
+
+**New public `warp.fit`, and a limit it exposed.** `fit` returns the
+fitted 3x3 warp matrix, and Kernel Warping's figure now prints it. Its
+whole-pixel seed is a rigid-kernel match. On a fine speckle pattern, a
+10% stretch plus shear put that seed 20 px off. On `astronaut0`, a
+15% stretch plus 0.15 shear defeated it on 11 of 30 random shifts, and
+`locate_warp` then missed by more than 2 px on 8 of them. A 7% stretch
+plus 0.05 shear defeated it on none. That limit now has its own
+Postponed item above.
+
+**IC-GN ships.** New module `dictk.warp` (`locate`), plus
+`dictk.grid.locate_warp`. On the 2862-point grid it took 1.9 s,
+against `locate_subpixel`'s 1.7 s. The strain window moves to
+Postponed above. 409 tests (380 + 29).
+
+## 2026-09-25
+
+**Chapters reordered.** The chapter that held Subpixel Accuracy, High
+Point Density, and Kernel Warping was named Parallelization, although
+none of those three pages is about speed. It is now 9 Prediction
+Improvement, with a new placeholder page, 9.4 Strain Window, for the
+Postponed strain-window item above. Parallelization becomes chapter 10,
+with Timing at Scale (10.1, was 9.4) and Parallelism with PyTorch
+(10.2, was 9.5). Discontinuities moves from 10 to 11, Path Forward
+from 11 to 12, and Contributing from 12 to 13. Dated entries above
+keep the numbers that were current when they were written.
+
+
+## 2026-09-29
+
+**Chapters 10 and 11 swapped.** Discontinuities is now chapter 10 and
+Parallelization is chapter 11. Discontinuities builds on Prediction
+Improvement's tracking methods. Parallelization does not depend on
+Discontinuities. Path Forward stays at 12 and Contributing at 13.
+Three links changed to match. Strain Window now continues to
+Discontinuities. Discontinuity Localization now continues to
+Parallelization. The Discontinuities introduction now says its
+smoothness assumption held through Kernel Warping, not through
+Parallelism with PyTorch. Dated entries above keep the numbers that were
+current when they were written.
+
+## 2026-10-21
+
+**Strain window ships.** New module `dictk.strain_window`
+(`displacement_gradients`, `log_strains`, `std_factors`) fits $u$ and
+$v$ over each point's window and truncates the window at the grid
+boundary. [Strain Window](./strain_window.md) now measures it on Kernel
+Warping's 2862 tracked positions. A 15x15 window gives 39 microstrain
+at the 1560 interior points, against Q4's 1161. Across all 2862
+points, it gives 91 microstrain.
+
+Edges cost more than the independent-error model predicts. Within 5
+columns of an $X$ edge, the RMS error runs 2.9 to 6.0 times the
+interior's. `std_factors` predicts at most 2.58 there. A sweep from
+3x3 to 19x19 puts 15x15 at the minimum. The 13x13 window gives 79
+microstrain, and the 17x17 window gives 76. One source explains both
+results. The tracking error follows a 51 px wave in $X$, and a full
+15x15 window at 5 px spacing passes only 1.7% of that wave's slope. A
+truncated window passes up to 52.3%.
+
+The Strain window item leaves Postponed. A new Postponed item tests the
+window's bias on a strain gradient. 441 tests (425 + 16).
+
+## 2026-10-28
+
+**Seed Propagation starts with a baseline.** New page [Seed
+Propagation](./seed_propagation.md) (9.4) works on the Postponed
+deformation-aware seed item above. Its first section sweeps stretch
+from 0% to 30% and shear from 0 to 0.30 at 30 random points on
+`astronaut0`. Both stay at zero failures up to a 5% stretch with a
+0.05 shear. Under a 15% stretch and a 0.15 shear, the whole-pixel seed
+fails at 22 of the 30 points, and `locate_warp` misses 20. Kernel
+Warping's single point gave 11 and 8 at that deformation. No miss
+started from a correct seed. Neighbor seeding has not started. The
+Postponed item stays open. Tests are unchanged at 441.
+
+On Kernel Warping's 2862 points under the 2% stretch, every whole-pixel
+seed landed within 1 px of the true position. The largest seed error
+was 0.56 px. No Strain Window result came from a failed seed.
+
+**New chapter 10, Postprocessing.** Strain Window moves from 9.4 to
+10.1. Prediction Improvement improves where each tracked point lands.
+Strain Window keeps the tracked positions fixed and changes how strain
+is computed from them. A new intro page,
+[Postprocessing](./postprocessing.md), frames the chapter. Seed
+Propagation takes 9.4. Discontinuities moves from 10 to 11,
+Parallelization from 11 to 12, Path Forward from 12 to 13, and
+Contributing from 13 to 14. Dated entries above keep the numbers that
+were current when they were written.
+
+**ZNSSD flags every miss.** `warp._refine` now also returns its final
+ZNSSD and iteration count. `warp.fit` and `grid.locate_warp` are
+unchanged. Seed Propagation's new [Detecting a
+Miss](./seed_propagation.md#detecting-a-miss) section reruns the 1470
+sweep fits. Correct fits reach a ZNSSD of at most 0.0995, and misses
+reach at least 0.6952. Any threshold between the two flags all 972
+misses and none of the 498 correct fits. The iteration count
+misclassifies 5 fits, and ZNSSD flags every miss it catches. That
+result covers one image and one 27x27 kernel. 444 tests (441 + 3).

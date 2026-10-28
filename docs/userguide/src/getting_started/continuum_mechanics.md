@@ -362,9 +362,9 @@ $$
 <figcaption>Table: Strains obtained from the Seth-Hill family.</figcaption>
 
 The one-dimensional strains are illustrated as a function of stretch ratio
-$\lambda = \ell/L$ in the figure below.
+$\lambda = \ell/L$ in [Figure](#fig-strain-stretch-ratio).
 
-<figure class="figure-box">
+<figure id="fig-strain-stretch-ratio">
     <img src="Terpsma_Figure_E-9.jpg" alt="stretch_strain" width=100% />
     <figcaption>
         Figure: One-dimensional strain as a function of stretch ratio. Reproduction of
@@ -374,7 +374,7 @@ $\lambda = \ell/L$ in the figure below.
 
 Source: Terpsma *et al.*[^Terpsma_2020]
 
-The figure illustrates several results:
+[Figure](#fig-strain-stretch-ratio) illustrates several results:
 
 * For small stretches, $\ell \approx L$, (a) the stretch ratio is near unity,
   $\lambda \approx 1$, (b) the strain values are small, $f(\lambda) \approx 0$,
@@ -414,7 +414,7 @@ compression and extension.[^bazant]
 * For infinitesimal deformation, all tensors converge to the infinitesimal strain tensor $\boldsymbol{\epsilon} = \operatorname{sym}(\boldsymbol{\nabla}\,\boldsymbol{u})$.
 * For finite deformation, the Seth-Hill strain measures given by the $f(\lambda)$ function diverge quickly for both large compression and large tension.
 
-The figure below illustrates the one-dimensional strains subtracted from
+[Figure](#fig-strain-difference) illustrates the one-dimensional strains subtracted from
 the natural logarithmic strain, $\ln \lambda$, as a function of stretch ratio
 $\lambda = \ell/L$. The log strain is considered as the finite deformation
 baseline.
@@ -428,7 +428,7 @@ result illustrates that for finite deformation:
 
 For finite deformation, both the strain value *and* the strain tensor must be specified.
 
-<figure class="figure-box">
+<figure id="fig-strain-difference">
     <img src="Terpsma_Figure_E-10.jpg" alt="stretch_strain_rel" width=100% />
     <figcaption>
         Figure: One-dimensional strain difference of the strain function minus the natural
@@ -507,21 +507,30 @@ $$
 
 Here we have a slight abuse of notation, where intermediate configurations that
 have stretched but not yet rotated are denoted with capital letter indices. Thus
-the "$K$" subscript in $R_{iK} U_{KJ}$ is an intermediate stretched but
+the $K$ subscript in $R_{iK} U_{KJ}$ is an intermediate stretched but
 non-rotated configuration.
 
 The stretch tensors $\boldsymbol{U}$ and $\boldsymbol{v}$ are both symmetric and positive
-definite. The rotation tensor $\boldsymbol{R}$ is non-symmetric and orthogonal. The
-figure below shows the polar decomposition about a material point $\boldsymbol{X}$
+definite. The rotation tensor $\boldsymbol{R}$ is non-symmetric and orthogonal.
+[Figure](#fig-polar-decomposition) shows the polar decomposition about a material point $\boldsymbol{X}$
 and fibers $d\boldsymbol{X}$ in its vicinity mapped to the spatial point $\boldsymbol{x}$
 with the same fibers mapped to $d\boldsymbol{x}$.
 
-<figure class="figure-box">
+<figure id="fig-polar-decomposition">
     <img src="polar_decomposition.png" alt="polar_decomposition" width=100% />
     <figcaption>
         Figure: In the vicinity of $\boldsymbol{X}$, mapped to $\boldsymbol{x} = \boldsymbol{\varphi}(\boldsymbol{X})$, the polar decomposition of deformation gradient $\boldsymbol{F}$ into stretch $\boldsymbol{U}$ then rotation $\boldsymbol{R}$; or, into rotation $\boldsymbol{R}$ then stretch $\boldsymbol{v}$: (a) reference configuration, (b) stretched configuration, (c) rotated configuration, (d) current configuration. As shown, the eigenvalues of $\boldsymbol{U}$ (and $\boldsymbol{v}$) are $\lambda_1 = 1.5$, $\lambda_2 = 0.5$, $\lambda_3 = 1$ and the rotation $\boldsymbol{R}$ has a magnitude of $30^\circ$ about the $\boldsymbol{e}_3$ axis. Source: <code>polar_decomposition.py</code>.
     </figcaption>
 </figure>
+
+<details>
+<summary><code>polar_decomposition.py</code></summary>
+
+```python
+<!-- cmdrun cat polar_decomposition.py -->
+```
+
+</details>
 
 ## Principal Stretches and Axes
 

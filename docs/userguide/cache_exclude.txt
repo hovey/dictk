@@ -1,0 +1,4 @@
+# One substring per line. A cmdrun command containing any of these is never
+# cached, because its output depends on something besides its inputs.
+# kernel_warping_bias.py prints measured wall-clock seconds in its table.
+kernel_warping_bias.py

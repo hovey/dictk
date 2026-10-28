@@ -250,9 +250,23 @@ histogram_save(arr=checkerboard0, path="checkerboard0_histogram.png")
 <!-- cmdrun python3 -c "from dictk.image import read; from dictk.plot import histogram_save; histogram_save(arr=read(path='rosta_200w_by_200h_dot_4.0_den_0.5_smo_2.0.png'), path='rosta_histogram.png'); histogram_save(arr=read(path='checkerboard_200w_by_200h_8x8.png'), path='checkerboard_histogram.png'); histogram_save(arr=read(path='checkerboard0.png'), path='checkerboard0_histogram.png'); print('Saved histograms: rosta_histogram.png, checkerboard_histogram.png, checkerboard0_histogram.png')" -->
 ```
 
-rosta | checkerboard | checkerboard0
---- | --- | ---
-![rosta histogram](rosta_histogram.png) | ![checkerboard histogram](checkerboard_histogram.png) | ![checkerboard0 histogram](checkerboard0_histogram.png)
+<figure id="fig-speckle-checkerboard-histograms">
+    <div class="figure-row">
+        <div>
+            <img src="rosta_histogram.png" alt="rosta histogram" />
+            <span>(a)</span>
+        </div>
+        <div>
+            <img src="checkerboard_histogram.png" alt="checkerboard histogram" />
+            <span>(b)</span>
+        </div>
+        <div>
+            <img src="checkerboard0_histogram.png" alt="checkerboard0 histogram" />
+            <span>(c)</span>
+        </div>
+    </div>
+    <figcaption>Intensity histograms. (a) rosta. (b) checkerboard. (c) checkerboard0.</figcaption>
+</figure>
 
 ### Speckle + Astronaut
 

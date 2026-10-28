@@ -102,7 +102,7 @@ Motion](./multi_point_motion.md) moved every point by the same $(\delta x,
 $x = 50$ moves 1 pixel. A point at $x = 150$ moves 3 pixels. The grid
 spreads apart under the stretch. It does not translate as one block.
 
-## Locating the Stretched Grid
+## Displacement
 
 [`dictk.grid.locate`](../api/dictk/grid.html#locate) tracks the stretched
 grid the same way it tracked the translated one in [Tracking the
@@ -386,9 +386,9 @@ point_grid_plot(
 
 <!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate; from dictk.grid import generate; from dictk.plot import point_grid_plot; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=18, y=16), count_x=53, count_y=54, spacing_x=5, spacing_y=5); crop_origin = PixelCoordinate(x=10, y=8); crop_width, crop_height = 30, 30; circle_center = PixelCoordinate(x=crop_origin.x + crop_width // 2, y=crop_origin.y + crop_height // 2); circle_radius = crop_width / 2; point_grid_plot(image=reference_image, points=points, color='orange', show_node_numbers=False, dot_size=0.8, circle_center=circle_center, circle_radius=circle_radius, circle_linewidth=0.8, path='simple_stretch_2862_overview.png'); print('Saved: simple_stretch_2862_overview.png')" -->
 
-<figure>
+<figure id="fig-2862-overview">
     <img src="simple_stretch_2862_overview.png" alt="astronaut0 with 2862 orange dots overlaid in a regular 5-pixel grid across the whole image, and a red circle near the top-left corner marking the region the next figure zooms into" />
-    <figcaption>All 2862 candidate subset positions (orange dots, 5px spacing in both directions), overlaid on the reference image. The red circle marks the region the zoomed-in figure below crops to.</figcaption>
+    <figcaption>All 2862 candidate subset positions (orange dots, 5px spacing in both directions), overlaid on the reference image. The red circle marks the region that <a href="#fig-2862-zoom">Figure</a> zooms into.</figcaption>
 </figure>
 
 A zoomed-in corner shows the same 5px grid at true scale, the same red
@@ -442,12 +442,39 @@ point_grid_plot(
 
 <!-- cmdrun python3 -c "from dictk.image import read, PixelCoordinate, subimage; from dictk.grid import generate; from dictk.plot import point_grid_plot; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=18, y=16), count_x=53, count_y=54, spacing_x=5, spacing_y=5); crop_origin = PixelCoordinate(x=10, y=8); crop_width, crop_height = 30, 30; circle_center = PixelCoordinate(x=crop_origin.x + crop_width // 2, y=crop_origin.y + crop_height // 2); circle_radius = crop_width / 2; cropped = subimage(image=reference_image, origin=crop_origin, width=crop_width, height=crop_height); sample_points = [p for p in points if crop_origin.x <= p.x < crop_origin.x + crop_width and crop_origin.y <= p.y < crop_origin.y + crop_height]; point_grid_plot(image=cropped, points=sample_points, origin=crop_origin, color='orange', show_node_numbers=False, dot_size=6, circle_center=circle_center, circle_radius=circle_radius, circle_linewidth=0.8, figsize=(4, 4), path='simple_stretch_2862_zoom.png'); print('Saved: simple_stretch_2862_zoom.png')" -->
 
-<figure>
+<figure id="fig-2862-zoom">
     <img src="simple_stretch_2862_zoom.png" alt="a zoomed 30x30 pixel crop from the top-left corner of astronaut0, showing a 5x5 block of 25 orange dots on the real 5-pixel grid, axes labeled 10 to 40 matching the full image's own coordinates, with a red circle exactly touching all four edges of the crop" />
-    <figcaption>A 30x30-pixel crop from the top-left corner (image coordinates 10-40 in both directions), showing every one of the 25 grid points that fall inside it -- the same 5px spacing as the full overview above, just at true scale instead of compressed into a 300x300 thumbnail. The axes read <code>astronaut0</code>'s own pixel coordinates, not the crop's local 0-based ones, so a point here reads identically in the overview above -- e.g. the top-left point is <code>(18, 16)</code> in both figures. The same red circle marked in the overview above appears here too, now exactly touching all four edges of this figure's own extent -- the same visual correspondence <a href="./correlation_visualization.html">Correlation Visualization</a>'s Solution Vicinity panel uses.</figcaption>
+    <figcaption>A 30x30-pixel crop from the top-left corner (image coordinates 10-40 in both directions), showing every one of the 25 grid points that fall inside it -- the same 5px spacing as the full overview in <a href="#fig-2862-overview">Figure</a>, just at true scale instead of compressed into a 300x300 thumbnail. The axes read <code>astronaut0</code>'s own pixel coordinates, not the crop's local 0-based ones, so a point here reads identically in the overview -- e.g. the top-left point is <code>(18, 16)</code> in both figures. The same red circle marked in the overview appears here too, now exactly touching all four edges of this figure's own extent -- the same visual correspondence <a href="./correlation_visualization.html">Correlation Visualization</a>'s Solution Vicinity panel uses.</figcaption>
 </figure>
 
-VIC-2D reports logarithmic (Euler) strain, so it's compared here
+VIC-2D's output file reports every valid point's displacement $u$. Its
+tracked $x$ is the reference $x$ plus $u$, and the true $x$ is
+$1.02\,X$. The difference is each point's $x$ error.
+[Figure](#fig-vic-x-error-histogram) shows all 2682 of them:
+
+<!-- cmdrun python3 simple_stretch_vic_x_error_histogram.py -->
+
+<figure id="fig-vic-x-error-histogram">
+    <img src="simple_stretch_vic_x_error_histogram.png" alt="histogram of VIC-2D's 2682 valid x errors in pixels, four separated clusters rather than one bell curve, spanning roughly -0.039 to +0.035 px, with a black vertical line at the mean of -0.0003 px, a pale blue band one standard deviation of 0.0154 px either side of it, and a dashed red vertical line at exact tracking, 0 px" />
+    <figcaption>Distribution of VIC-2D's own $x$ error across all 2682 valid points (gray, 60 bins). The dashed red line marks exact tracking, 0 px. The solid black line marks the mean of the 2682 errors, -0.0003 px. The blue band spans one standard deviation, 0.0154 px, on each side of that mean. Range is [-0.039, +0.035] px.</figcaption>
+</figure>
+
+<details>
+<summary>Show the figure-generating code</summary>
+
+```python
+<!-- cmdrun cat simple_stretch_vic_x_error_histogram.py -->
+```
+
+</details>
+
+The mean error, -0.0003 px, sits 2% of a standard deviation from zero.
+The standard deviation is 0.0154 px, and individual errors reach -0.039
+and +0.035 px. The errors separate into four clusters, not one bell
+curve. [Figure](#fig-vic-exx-histogram) shows the same clustering in
+VIC-2D's strain.
+
+VIC-2D also reports logarithmic (Euler) strain, so it's compared here
 against [the Strain section](#strain) above's own `dictk`-computed log
 strain. Across those 2682 valid subsets, $e_{xx}$ averages
 19875.8 microstrain — close to, but noisier than,
@@ -474,23 +501,42 @@ with open("../verification/simple_stretch_vic_out.csv") as f:
     rows = [{k.strip(' "'): v for k, v in row.items()} for row in csv.DictReader(f)]
 exx = np.array([float(r["exx"]) * 1e6 for r in rows if float(r["sigma"]) != -1])
 analytical = np.log(1.02) * 1e6
+mean = exx.mean()
+std = exx.std()
 
 plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
 fig, ax = plt.subplots(figsize=(7, 4), constrained_layout=True)
-ax.hist(exx, bins=60, color="gray", alpha=0.8)
-ax.axvline(analytical, color="red", linestyle="--", linewidth=1.5)
+ax.hist(exx, bins=60, color="gray", alpha=0.8, label=r"$e_{xx}$ at 2682 valid points")
+ax.axvspan(
+    mean - std,
+    mean + std,
+    color="royalblue",
+    alpha=0.15,
+    label=rf"$\pm$ 1 standard deviation, {std:.0f} microstrain",
+)
+ax.axvline(mean, color="black", linewidth=1.5, label=f"mean, {mean:.0f} microstrain")
+ax.axvline(
+    analytical,
+    color="red",
+    linestyle="--",
+    linewidth=1.5,
+    label=rf"exact $e_{{xx}}$ of a 2% stretch, {analytical:.0f} microstrain",
+)
 ax.set_xlabel(r"Log strain $e_{xx}$ (microstrain)")
 ax.set_ylabel("frequency")
+ax.set_ylim(top=ax.get_ylim()[1] * 1.45)
+legend = ax.legend(loc="upper right", framealpha=1.0)
+legend.set_zorder(10)
 fig.savefig("simple_stretch_vic_exx_histogram.png", dpi=300)
 ```
 
 ```text
-<!-- cmdrun python3 -c "import csv; import numpy as np; import matplotlib.pyplot as plt; rows = [{k.strip(' \"'): v for k, v in row.items()} for row in csv.DictReader(open('../verification/simple_stretch_vic_out.csv'))]; exx = np.array([float(r['exx']) * 1e6 for r in rows if float(r['sigma']) != -1]); analytical = np.log(1.02) * 1e6; plt.rcParams.update({'font.family': 'serif', 'mathtext.fontset': 'cm'}); fig, ax = plt.subplots(figsize=(7, 4), constrained_layout=True); ax.hist(exx, bins=60, color='gray', alpha=0.8); ax.axvline(analytical, color='red', linestyle='--', linewidth=1.5); ax.set_xlabel(r'Log strain \$e_{xx}\$ (microstrain)'); ax.set_ylabel('frequency'); fig.savefig('simple_stretch_vic_exx_histogram.png', dpi=300); print('Saved: simple_stretch_vic_exx_histogram.png')" -->
+<!-- cmdrun python3 -c "import csv; import numpy as np; import matplotlib.pyplot as plt; rows = [{k.strip(' \"'): v for k, v in row.items()} for row in csv.DictReader(open('../verification/simple_stretch_vic_out.csv'))]; exx = np.array([float(r['exx']) * 1e6 for r in rows if float(r['sigma']) != -1]); analytical = np.log(1.02) * 1e6; mean = exx.mean(); std = exx.std(); plt.rcParams.update({'font.family': 'serif', 'mathtext.fontset': 'cm'}); fig, ax = plt.subplots(figsize=(7, 4), constrained_layout=True); ax.hist(exx, bins=60, color='gray', alpha=0.8, label=r'\$e_{xx}\$ at 2682 valid points'); ax.axvspan(mean - std, mean + std, color='royalblue', alpha=0.15, label=rf'\$\pm\$ 1 standard deviation, {std:.0f} microstrain'); ax.axvline(mean, color='black', linewidth=1.5, label=f'mean, {mean:.0f} microstrain'); ax.axvline(analytical, color='red', linestyle='--', linewidth=1.5, label=rf'exact \$e_{{xx}}\$ of a 2% stretch, {analytical:.0f} microstrain'); ax.set_xlabel(r'Log strain \$e_{xx}\$ (microstrain)'); ax.set_ylabel('frequency'); ax.set_ylim(top=ax.get_ylim()[1] * 1.45); legend = ax.legend(loc='upper right', framealpha=1.0); legend.set_zorder(10); fig.savefig('simple_stretch_vic_exx_histogram.png', dpi=300); print('Saved: simple_stretch_vic_exx_histogram.png')" -->
 ```
 
-<figure>
-    <img src="simple_stretch_vic_exx_histogram.png" alt="histogram of VIC-2D's 2682 valid e_xx measurements in microstrain, showing several separated clusters rather than one smooth bell curve, spanning roughly 17300 to 23100 microstrain, with a dashed red vertical line at the analytical value near 19803 microstrain landing inside the central cluster" />
-    <figcaption>Distribution of VIC-2D's own $e_{xx}$ across all 2682 valid subsets (gray, 60 bins). The dashed red line marks the analytical value, $e_{xx} = \ln(1.02) \approx 19803$ microstrain. The distribution isn't one smooth bell curve — it separates into several clusters, echoing the striped pattern already visible in the field image above. The analytical line lands inside the central cluster, not at the extremes, but the spread around it is real: individual subsets range from about 17300 to 23100 microstrain, over 5x the true 19803 value's own distance from zero.</figcaption>
+<figure id="fig-vic-exx-histogram">
+    <img src="simple_stretch_vic_exx_histogram.png" alt="histogram of VIC-2D's 2682 valid e_xx measurements in microstrain, showing several separated clusters rather than one smooth bell curve, spanning roughly 17300 to 23100 microstrain, with a black vertical line at the mean near 19876 microstrain, a pale blue band one standard deviation either side of it, and a dashed red vertical line at the analytical value near 19803 microstrain landing inside the central cluster" />
+    <figcaption>Distribution of VIC-2D's own $e_{xx}$ across all 2682 valid subsets (gray, 60 bins). The black line marks the mean, 19876 microstrain, and the blue band spans one standard deviation, 1385 microstrain, on either side of it. The dashed red line marks the analytical value, $e_{xx} = \ln(1.02) \approx 19803$ microstrain. The distribution isn't one smooth bell curve — it separates into several clusters, echoing the striped pattern already visible in the field image above. The analytical line lands inside the central cluster, not at the extremes, but the spread around it is real: individual subsets range from about 17300 to 23100 microstrain, over 5x the true 19803 value's own distance from zero.</figcaption>
 </figure>
 
 Three values agree closely: VIC-2D's own measured mean, 19875.8
