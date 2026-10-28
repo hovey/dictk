@@ -24,6 +24,8 @@
   - [Subpixel Accuracy](./getting_started/subpixel_accuracy.md)
   - [High Point Density](./getting_started/high_point_density.md)
   - [Kernel Warping](./getting_started/kernel_warping.md)
+  - [Seed Propagation](./getting_started/seed_propagation.md)
+- [Postprocessing](./getting_started/postprocessing.md)
   - [Strain Window](./getting_started/strain_window.md)
 - [Discontinuities](./getting_started/discontinuities.md)
   - [Synthetic Dislocation](./getting_started/synthetic_dislocation.md)

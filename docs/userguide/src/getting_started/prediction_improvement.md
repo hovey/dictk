@@ -36,9 +36,7 @@ The four pages of this chapter take that on in order:
   its pixel. It adds `locate_warp`, which lets the kernel stretch and
   shear along with the material. The $E_{11}$ standard deviation falls
   from 16531 to 1161 microstrain, against VIC-2D's 1385.
-* [Strain Window](./strain_window.md) derives a least-squares fit of
-  displacement over a neighborhood of points, taken before computing
-  strain. It sizes the noise reduction, the bias, and the edge cost.
-  It adds `dictk.strain_window`. A 15x15 window cuts the $E_{11}$
-  standard deviation from 1161 to 39 microstrain at the 1560 points
-  with a full window, and to 91 microstrain across all 2862 points.
+* [Seed Propagation](./seed_propagation.md) measures where
+  `locate_warp`'s rigid whole-pixel seed breaks. Under a 10% stretch,
+  `locate_warp` misses 5 of 30 random points by more than 1 px. Under
+  a 20% stretch, it misses at least 22 of 30 at every shear tested.

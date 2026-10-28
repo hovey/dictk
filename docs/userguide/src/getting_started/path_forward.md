@@ -592,3 +592,30 @@ truncated window passes up to 52.3%.
 
 The Strain window item leaves Postponed. A new Postponed item tests the
 window's bias on a strain gradient. 441 tests (425 + 16).
+
+## 2026-10-28
+
+**Seed Propagation starts with a baseline.** New page [Seed
+Propagation](./seed_propagation.md) (9.4) works on the Postponed
+deformation-aware seed item above. Its first section sweeps stretch
+from 0% to 30% and shear from 0 to 0.30 at 30 random points on
+`astronaut0`. Both stay at zero failures up to a 5% stretch with a
+0.05 shear. Under a 15% stretch and a 0.15 shear, the whole-pixel seed
+fails at 22 of the 30 points, and `locate_warp` misses 20. Kernel
+Warping's single point gave 11 and 8 at that deformation. No miss
+started from a correct seed. Neighbor seeding has not started. The
+Postponed item stays open. Tests are unchanged at 441.
+
+On Kernel Warping's 2862 points under the 2% stretch, every whole-pixel
+seed landed within 1 px of the true position. The largest seed error
+was 0.56 px. No Strain Window result came from a failed seed.
+
+**New chapter 10, Postprocessing.** Strain Window moves from 9.4 to
+10.1. Prediction Improvement improves where each tracked point lands.
+Strain Window keeps the tracked positions fixed and changes how strain
+is computed from them. A new intro page,
+[Postprocessing](./postprocessing.md), frames the chapter. Seed
+Propagation takes 9.4. Discontinuities moves from 10 to 11,
+Parallelization from 11 to 12, Path Forward from 12 to 13, and
+Contributing from 13 to 14. Dated entries above keep the numbers that
+were current when they were written.
