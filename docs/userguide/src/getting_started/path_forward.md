@@ -101,17 +101,25 @@ Noted, not being pursued right now:
   started: consuming a located discontinuity in an actual
   Heaviside-enriched finite-element formulation. That's XFEM's own side
   of this, untouched by anything above.
-* **`grid.locate()` windowing demo.** `windowing` has only ever been
-  demonstrated directly on
-  [`dictk.correlation.phase_correlation`](../api/dictk/correlation.html#phase_correlation)
-  (see [Correlation
-  Visualization](./correlation_visualization.md#phase-correlation)).
-  Every
-  `grid.locate()` call across the book so far (Multi-Point Motion,
-  Simple Stretch, Recoverable Displacement Range, Pure Rotation,
-  Parallelization) leaves `windowing` at its default `None` — the one
-  parameter of `grid.locate`'s own signature with no live worked
-  example yet.
+* **Windowing in the whole-pixel stage.** Every whole-pixel match
+  defaults to `windowing=None`. That covers `translation.locate`,
+  `grid.locate`, `grid.locate_subpixel`, and the seed stage of
+  `grid.locate_warp`. `grid.locate_warp_propagated` has no `windowing`
+  parameter, and its seed search never windows. No page in this book
+  passes `windowing` to any of them. On [Kernel
+  Warping](./kernel_warping.md)'s own setup, Hann windowing shifts the
+  results by at most 0.015 px. That setup tracks 2862 points on
+  `astronaut0.png` under a 2% stretch, with `kernel_margin=13` and
+  `search_margin=25`. With and without Hann, 0 points miss by more than
+  1 px. Hann moves `grid.locate`'s x-error standard deviation from
+  0.300 px to 0.298 px, and its mean from −0.014 px to −0.029 px.
+  `grid.locate_warp` stays at 0.008 px either way. A second setup does
+  show a gap. It uses the 512×512 `image.astronaut()`, 81 points spaced
+  39 px apart, `kernel_margin=15`, `search_margin=25`, and a whole-pixel
+  translation of (7, −5) px. Without windowing, `grid.locate` misses 28
+  of 81 points by more than 1 px. With Hann, it misses 2. We have not
+  yet found the cause. Still open: explain that gap, and decide whether
+  `grid.locate_warp_propagated` needs a `windowing` parameter.
 * **Strain-window bias on a strain gradient.** Every strain-window
   test so far uses a uniform 2% stretch. Its third derivative $u'''$ is
   zero, so a curved strain field never biases the fitted slope.
@@ -662,3 +670,18 @@ passed the gate. Partial cover raised 62 correct fits above 0.3, so the
 gate leaves more points inside the patch unfitted. The Postponed
 deformation-aware seed item leaves Postponed. Two new items replace it.
 463 tests (459 + 4).
+
+## 2026-10-29
+
+**The windowing item gets a new scope.** The old Postponed item asked
+only for a `grid.locate` example with `windowing`. Four more trackers
+now share the same `windowing=None` default, and
+`grid.locate_warp_propagated` has no `windowing` parameter at all. A
+rerun of Kernel Warping's 2862 points with Hann windowing shifted the
+results by at most 0.015 px, with 0 misses either way. A separate
+81-point run on the 512×512 `image.astronaut()` missed 28 points
+without windowing and 2 with Hann. The default stays `None`. Switching
+it would change numbers quoted on every page from Single Point Motion
+onward, for a 0.002 px drop in `grid.locate`'s x-error standard
+deviation. The Postponed item now records both runs and asks why the
+second one fails. No code changed. Tests are unchanged at 463.
