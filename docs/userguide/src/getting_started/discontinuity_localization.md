@@ -1,12 +1,11 @@
-# Discontinuity Localization
+# Localization
 
-[Synthetic Dislocation](./synthetic_dislocation.md) and [Experimental
-Dislocation](./experimental_dislocation.md) both found the same
-signature: a window straddling a crack shows two comparably-tall
-correlation peaks, not one. Both stopped there. A person centered the
-window on the crack first. Neither page found the crack on its own.
-This page tries three ways to find a crack on its own, compares them,
-and ships the one that wins.
+[Detection](./discontinuity_detection.md) found where a crack runs,
+but only to within a band. On the synthetic crack, its best column
+landed 2.5 px from the crack. On the real crack, the band was 35 px
+wide with a 27 px kernel. This page measures where a crack crosses one chosen line, to a
+fraction of a pixel. It tries three ways, compares them, and ships the
+one that wins.
 
 ## A Naive Baseline: Grid Anomaly
 
@@ -158,8 +157,15 @@ does too, but only at the two brackets already narrowed toward the
 crack. Given the full, uncommitted range, it converges instead to the
 bump near `x=308`, over 90 pixels from the real crack, confidently and
 silently. A fast local search only works once you already roughly know
-where to look. That's most of the problem this page set out to solve
-in the first place.
+where to look.
+
+Detection's fitted lines give a second estimate at the same row. At
+y = 186, its line x = 0.596 y + 104.6 for the 27 px kernel gives
+x = 215.5. Its line x = 0.594 y + 105.4 for the 51 px kernel gives
+x = 215.9. The dense sweep's 218.7 sits 3.2 px and 2.8 px to the right
+of them. No ground truth decides which is closer. Each line fits a
+band center from every row of its grid, while the sweep measures this
+one row.
 
 ## Declaring a Winner
 
@@ -180,12 +186,18 @@ at the cost of needing the answer roughly in hand before it can find it.
 
 ## What This Still Doesn't Do
 
-This locates a crossing along one already-chosen line, not a
-discontinuity anywhere in a 2D field. Something still has to decide
-where to sweep. And a located position still isn't consumed by
-anything: [Path Forward](./path_forward.md#postponed)'s Heaviside
-DIC/XFEM item asked for detection and localization, not a finite-element
-formulation that acts on the result. That half stays open.
+This locates a crossing along one chosen line. Detection's band now
+says where to sweep, but this page sweeps only one row. Sweeping every
+row through the band would turn Detection's band into a subpixel crack
+path. That hasn't been tried. Neither has golden-section search inside
+a bracket taken from Detection's band. On the synthetic crack,
+golden-section search needed 12 evaluations against the dense sweep's
+101.
+
+A located position still isn't consumed by anything. [Path
+Forward](./path_forward.md#postponed)'s Heaviside DIC/XFEM item asked
+for detection and localization, not a finite-element formulation that
+acts on the result. That half stays open.
 
 Continue to [Parallelization](./parallelization.md).
 [Path Forward](./path_forward.md) records where this leaves the

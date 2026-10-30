@@ -121,9 +121,8 @@ reveal.
 
 [Discontinuities](./discontinuities.md) named the actual open problem:
 an algorithm that finds this signature on its own. Nothing here does
-that. Continue to [Discontinuity
-Localization](./discontinuity_localization.md), which tries a few ways
-to build one.
+that. Continue to [Detection](./discontinuity_detection.md), which
+finds the crack across the whole image.
 
 ### `experimental_dislocation_quadrant.py`
 

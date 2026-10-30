@@ -140,6 +140,18 @@ Noted, not being pursued right now:
   and two kernel sizes. `astronaut0` tracks the same case to within
   0.01 px. The cause is not known. A repeating speckle pattern would
   give phase correlation several equal peaks.
+* **A faint streak passes the ZNSSD gate.** On the real crack pair,
+  [Detection](./discontinuity_detection.md#a-real-crack) found a streak
+  parallel to the crack, 155 to 185 px to its lower left. Across it, u
+  rises 2.06 px and v rises 1.62 px. Between neighboring bands on
+  either side, u changes by at most 0.39 px and v by at most 0.36 px.
+  The streak's median ZNSSD is 0.130, so the 0.3 gate rejects no point
+  there. Points that straddle the crack's 12.39 px jump in u fail the
+  same gate. Two open
+  questions remain. Is the streak a second, smaller crack or a narrow
+  band of concentrated strain? Would a lower gate, or a check on the
+  jump in u and v between neighbors, flag it without rejecting correct
+  fits elsewhere?
 
 ## 2026-08-18
 
@@ -685,3 +697,19 @@ it would change numbers quoted on every page from Single Point Motion
 onward, for a 0.002 px drop in `grid.locate`'s x-error standard
 deviation. The Postponed item now records both runs and asks why the
 second one fails. No code changed. Tests are unchanged at 463.
+
+**Detection ships, and Discontinuities reorders.** New page
+[Detection](./discontinuity_detection.md) (11.3) maps the ZNSSD that
+`grid.locate_warp_propagated` returns for each point across a crack. On
+the synthetic crack with a 4 px offset, the gate rejects 162 of 215
+straddling points. No accepted point lands more than 1 px off, while
+`locate_warp` without a gate misses 48. On the real pair, the rejected
+points form one band at 30.8° from vertical. Its band centers scatter
+1.83 px RMS about a fitted line. A fainter parallel streak carries a
+2.06 px jump in u, but its median ZNSSD of 0.130 stays under the 0.3
+gate. Discontinuity Localization moves from 11.3 to 11.4. Both pages
+drop "Discontinuity" from their titles. Localization's opening now
+starts from Detection's band. Its real-data section compares the
+band's line, x = 215.5 at y = 186, with the sweep's 218.7. A new
+Postponed item records the streak. No library code changed. Tests are
+unchanged at 463.

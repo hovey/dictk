@@ -45,9 +45,10 @@ straddling window on a real experimental crack image pair. There the
 ground truth isn't known in advance, so it checks whether the same
 signature shows up outside a synthetic setup.
 
-Neither section proposes a discontinuity-aware correlation algorithm on
-its own. [Discontinuity
-Localization](./discontinuity_localization.md) addresses that challenge.
+Neither section finds the crack on its own.
+[Detection](./discontinuity_detection.md) finds where a crack runs
+across the whole image. [Localization](./discontinuity_localization.md)
+then measures where it crosses one chosen line.
 
 ## Relation to Heaviside-DIC
 
@@ -87,8 +88,9 @@ compositional form.
 
 So [`dictk.warp`](../api/dictk/warp.html) covers H-DIC's continuous
 half. The missing half is the jump and its line: $\boldsymbol{u}'$,
-$r^*$, and $\theta^*$. [Discontinuity
-Localization](./discontinuity_localization.md) finds where such a line
-crosses a chosen path.
+$r^*$, and $\theta^*$. [Detection](./discontinuity_detection.md)
+finds where such a line runs.
+[Localization](./discontinuity_localization.md) finds where it crosses
+a chosen path.
 
 [^Bourdin_2018]: Bourdin F, Stinville JC, Echlin MP, Callahan PG, Lenthe WC, Torbet CJ, Texier D, Bridier F, Cormier J, Villechaise P, Pollock TM. Measurements of plastic localization by heaviside-digital image correlation. Acta Materialia. 2018 Sep 15;157:307-25. [link](https://doi.org/10.1016/j.actamat.2018.07.013)
