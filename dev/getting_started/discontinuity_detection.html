@@ -1,0 +1,725 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Detection - dictk User Guide</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="Digital Image Correlation Toolkit">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../docs/userguide/theme/custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">dictk User Guide</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/hovey/dictk" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="detection"><a class="header" href="#detection">Detection</a></h1>
+<p><a href="./synthetic_dislocation.html">Synthetic Dislocation</a> and <a href="./experimental_dislocation.html">Experimental
+Dislocation</a> both found the same
+signature. A kernel that straddles a crack shows two comparably tall
+correlation peaks, not one. On both pages, a person placed the kernel
+on the crack first. This page finds the crack without that step.</p>
+<p>It tracks a full grid of points with
+<a href="../api/dictk/grid.html#locate_warp_propagated"><code>grid.locate_warp_propagated</code></a>
+from <a href="./seed_propagation.html">Seed Propagation</a>, then maps each point's
+ZNSSD. An affine warp can't represent a jump in displacement. No single
+warp matches both sides of a straddling kernel, so its ZNSSD can rise
+above the <code>znssd_limit</code> gate of 0.3.</p>
+<h2 id="a-synthetic-crack"><a class="header" href="#a-synthetic-crack">A Synthetic Crack</a></h2>
+<p>The test reuses Synthetic Dislocation's 300x300 image, <code>rosta</code> speckle
+combined with the astronaut. <code>crack_dislocation</code> splits it between
+pixel columns 149 and 150. The left half moves down, and the right half
+moves up. The grid holds 1849 points, 43 by 43 at 5 px spacing. It uses
+Seed Propagation's margins, <code>kernel_margin=13</code> and <code>search_margin=25</code>.
+Each kernel is 27 px wide, so a point straddles the crack when its x
+lies between 137 and 162.</p>
+<p>Two cases test the method. The on-grid case uses Synthetic
+Dislocation's 4 px offset and puts a grid column at x = 150. The
+off-grid case uses a 4.3 px offset and shifts the grid 2 px right, so
+no column lines up with the crack. A subpixel offset forces
+interpolation, so ZNSSD away from the crack no longer comes out exactly
+zero. As a baseline, <code>locate_warp</code> from <a href="./kernel_warping.html">Kernel
+Warping</a> tracks the same grid without a gate:</p>
+<div class="table-wrapper"><table><thead><tr><th></th><th>on-grid</th><th>off-grid</th></tr></thead><tbody>
+<tr><td>Crack offset</td><td>4.0 px</td><td>4.3 px</td></tr>
+<tr><td>Points away from the crack</td><td>1634</td><td>1591</td></tr>
+<tr><td>... largest ZNSSD</td><td>0.000</td><td>0.020</td></tr>
+<tr><td>... largest error</td><td>0.000 px</td><td>0.029 px</td></tr>
+<tr><td>Points straddling the crack</td><td>215</td><td>258</td></tr>
+<tr><td>... rejected by the gate</td><td>162</td><td>165</td></tr>
+<tr><td>... of those, never fitted</td><td>53</td><td>63</td></tr>
+<tr><td>... accepted</td><td>53</td><td>93</td></tr>
+<tr><td>... largest error when accepted</td><td>0.273 px</td><td>0.300 px</td></tr>
+<tr><td>Accepted points more than 1 px off</td><td>0</td><td>0</td></tr>
+<tr><td><code>locate_warp</code> points more than 1 px off</td><td>48</td><td>44</td></tr>
+<tr><td>Column with the highest median ZNSSD</td><td>150 (0.5 px)</td><td>147 (2.5 px)</td></tr>
+</tbody></table>
+</div>
+<p>Away from the crack, every point passes the gate. The largest ZNSSD
+there is 0.020, and the largest error is 0.029 px. The gate rejects 162
+of the 215 straddling points on-grid, and 165 of 258 off-grid.</p>
+<p>The gate keeps the crack from spreading a bad fit. No accepted point
+lands more than 1 px from its true position. Without the gate,
+<code>locate_warp</code> puts 48 points more than 1 px off on-grid, and 44
+off-grid. A point that no accepted fit can reach gets its own start
+search, as Seed Propagation describes. No fit has to cross the crack.</p>
+<p>Accepted straddling points pay in accuracy. They land up to 0.300 px
+off, 10 times the 0.029 px largest error away from the crack. An affine
+warp has no term for the jump, so it settles on a compromise between
+the two sides.</p>
+<p>The ZNSSD map finds the crack without a line chosen in advance.
+<a href="#fig-dd-synthetic">Figure 11.3-1</a> shows the off-grid case. The rejected points
+form one vertical band. The column with the highest median ZNSSD sits
+at x = 147, 2.5 px from the crack at x = 149.5. On-grid, it sits at
+x = 150, 0.5 px away. The off-grid crack sits midway between columns
+147 and 152, 2.5 px from each. No column could land closer.</p>
+<figure id="fig-dd-synthetic">
+    <img src="discontinuity_detection_synthetic.png" alt="two panels over the synthetic speckle image: left, each grid point's ZNSSD as a colored square, dark purple everywhere except a vertical band of green, yellow, and red squares around x = 150; right, v at accepted points only, red on the left half and blue on the right half, with a gap where the band was" />
+    <figcaption><strong>Figure 11.3-1:</strong> The off-grid case: a 4.3 px offset, with no grid column on the crack. The dashed line marks the crack at x = 149.5. Left: each point's ZNSSD at its reference position, clipped at 1. Red points were never fitted. Right: v at accepted points only. The left half reads +4.3 px and the right half reads −4.3 px. The gap between them holds the points the gate rejected.</figcaption>
+</figure>
+<h2 id="a-real-crack"><a class="header" href="#a-real-crack">A Real Crack</a></h2>
+<p>The real test uses Experimental Dislocation's 512x512 micrograph pair.
+No ground truth exists. The crack can't be seen in the reference image.
+It shows as a diagonal band in the current image. Points also move far:
+u runs from 18 to 37 px and v from 9 to 13 px. Seed Propagation's 25 px
+search margin can't cover a 37 px motion. This test pairs a 27 px
+kernel with a 50 px search margin, and a 51 px kernel with
+Experimental Dislocation's 65 px. Both grids use 5 px spacing.</p>
+<p>Two checks stand in for ground truth. A line fit tests whether the
+rejected points form one straight band. Each row's band center is the
+mean x of its rejected points, ignoring any more than 40 px from the
+row's median. A neighbor check compares each accepted point with the
+accepted points within 10 px on the same side of that line. A point
+fails when its u or v differs from their median by more than 1 px. The
+second table measures displacement across a fainter streak, described
+below:</p>
+<div class="table-wrapper"><table><thead><tr><th></th><th><code>kernel_margin=13</code></th><th><code>kernel_margin=25</code></th></tr></thead><tbody>
+<tr><td>Kernel width</td><td>27 px</td><td>51 px</td></tr>
+<tr><td>Search margin</td><td>50 px</td><td>65 px</td></tr>
+<tr><td>Points tracked</td><td>6561</td><td>5625</td></tr>
+<tr><td>Accepted / rejected / never fitted</td><td>5981 / 278 / 302</td><td>4712 / 249 / 664</td></tr>
+<tr><td>Median ZNSSD of fitted points</td><td>0.049</td><td>0.063</td></tr>
+<tr><td>Rejected near the band / farther away</td><td>573 / 7</td><td>913 / 0</td></tr>
+<tr><td>Line fitted to the band</td><td>x = 0.596 y + 104.6</td><td>x = 0.594 y + 105.4</td></tr>
+<tr><td>Band angle from vertical</td><td>30.8°</td><td>30.7°</td></tr>
+<tr><td>RMS scatter of band centers about the line</td><td>1.83 px</td><td>1.75 px</td></tr>
+<tr><td>Median band width</td><td>35 px</td><td>60 px</td></tr>
+<tr><td>Accepted points more than 1 px from same-side neighbors (largest)</td><td>0 of 5981 (0.51 px)</td><td>0 of 4712 (0.27 px)</td></tr>
+<tr><td>Lower-left side, median u / v</td><td>19.94 / 10.65 px</td><td>20.10 / 10.74 px</td></tr>
+<tr><td>Upper-right side, median u / v</td><td>32.33 / 11.51 px</td><td>32.32 / 11.53 px</td></tr>
+</tbody></table>
+</div><div class="table-wrapper"><table><thead><tr><th>Distance from the crack line</th><th>Points</th><th>Median ZNSSD</th><th>Median u</th><th>Median v</th></tr></thead><tbody>
+<tr><td>-240 to -200 px</td><td>130</td><td>0.046</td><td>18.10 px</td><td>9.61 px</td></tr>
+<tr><td>-200 to -185 px</td><td>58</td><td>0.056</td><td>18.49 px</td><td>9.97 px</td></tr>
+<tr><td>-185 to -155 px</td><td>121</td><td>0.130</td><td>19.02 px</td><td>10.24 px</td></tr>
+<tr><td>-155 to -140 px</td><td>61</td><td>0.087</td><td>20.55 px</td><td>11.59 px</td></tr>
+<tr><td>-140 to -100 px</td><td>160</td><td>0.048</td><td>20.68 px</td><td>11.32 px</td></tr>
+</tbody></table>
+</div>
+<p>The rejected points form one straight band. With the 27 px kernel,
+573 of the 580 rejected points lie within 36 px of the fitted line.
+That line runs 30.8° from vertical. Across 81 rows, the band centers
+scatter 1.83 px RMS about it. The 51 px kernel gives a line at 30.7°,
+and all 913 of its rejected points lie within 60 px of it.</p>
+<p>The kernel sets the band's width. The median width is 35 px with the
+27 px kernel and 60 px with the 51 px kernel. The smaller kernel leaves
+580 of 6561 points without a trusted position, 8.8%. The larger one
+leaves 913 of 5625, 16.2%. The smaller kernel also rejects 7 isolated
+points away from the band. The larger kernel rejects none.</p>
+<p>The gate holds on real texture. No accepted point differs from its
+same-side neighbors by more than 1 px. The largest difference is
+0.51 px with the 27 px kernel and 0.27 px with the 51 px kernel. With
+the 27 px kernel, the lower-left side moves a median u of 19.94 px and
+the upper-right side 32.33 px. The crack opens 12.39 px in u and
+0.86 px in v.</p>
+<p><a href="#fig-dd-experimental">Figure 11.3-2</a> also shows a fainter streak, parallel to
+the crack and 155 to 185 px to its lower left. Its median ZNSSD reaches
+0.130, below the 0.3 gate, so the gate rejects no point there. The
+second table measures u and v across it, over a 100 px stretch along
+the crack near the streak's middle. From the band 185 to 200 px from
+the crack to the band 140 to 155 px from it, u rises 2.06 px and v
+rises 1.62 px. Between the other adjacent bands, u changes by at most
+0.39 px and v by at most 0.36 px. The streak carries a jump in u one
+sixth the size of the crack's. This test can't tell a second, smaller
+crack from a narrow band of concentrated strain. Either way, the 0.3
+gate misses it.</p>
+<figure id="fig-dd-experimental">
+    <img src="discontinuity_detection_experimental.png" alt="four panels of the real micrograph pair in a 2 by 2 grid: top left, the current image with a bright diagonal crack from upper left to lower right; top right, each grid point's ZNSSD as a colored square over the reference image, dark purple except a diagonal band of red and yellow squares along the crack, a dashed white fitted line through it, and a faint lighter streak parallel to it in the lower left; bottom left, u at accepted points only, blue on the lower-left side and red on the upper-right side, with a gap along the crack; bottom right, v at accepted points only, with the same gap along the crack and a sharp step along the streak in the lower left" />
+    <figcaption><strong>Figure 11.3-2:</strong> The real crack, with the 27 px kernel. Top left: the current image. Top right: each point's ZNSSD at its reference position, clipped at 1. Red points were never fitted. The dashed line is the fit to the band, x = 0.596 y + 104.6. The faint streak 155 to 185 px to its lower left stays below the 0.3 gate. Bottom left: u at accepted points only. The lower-left side moves a median 19.94 px and the upper-right side 32.33 px. Bottom right: v at accepted points only. The lower-left side moves a median 10.65 px and the upper-right side 11.51 px. v also steps along the streak, where the table above measures a 1.62 px rise.</figcaption>
+</figure>
+<h2 id="what-this-doesnt-do"><a class="header" href="#what-this-doesnt-do">What This Doesn't Do</a></h2>
+<p>Points inside the band get no trusted displacement. The band leaves a
+strip 35 to 60 px wide along the crack with no data. A straight-line
+fit also assumes one straight crack. A curved or branching crack would
+need a different fit. Both tests here use one crack each, and the real
+test has no ground truth.</p>
+<p>Continue to <a href="./discontinuity_localization.html">Localization</a>.</p>
+<h3 id="discontinuity_detection_syntheticpy"><a class="header" href="#discontinuity_detection_syntheticpy"><code>discontinuity_detection_synthetic.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
+<pre><code class="language-python">"""Track a full grid across the synthetic crack with
+`locate_warp_propagated`, and map each point's ZNSSD. Two cases: a 4 px
+offset with a grid column on the crack, and a 4.3 px offset with the
+grid shifted 2 px so no column lines up with it. Prints one table and
+saves the off-grid case's ZNSSD and v maps.
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+import dictk
+from dictk.grid import generate, locate_warp, locate_warp_propagated
+from dictk.image import PixelCoordinate, combine, crack_dislocation
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+
+WIDTH = HEIGHT = 300
+KERNEL_MARGIN = 13
+SEARCH_MARGIN = 25
+GATE = 0.3
+CRACK_X = 149.5
+CASES = [("on-grid", 4.0, 45), ("off-grid", 4.3, 47)]
+
+reference_image = combine(
+    a=dictk.rosta(width=WIDTH, height=HEIGHT, density=0.5),
+    b=dictk.astronaut(width=WIDTH, height=HEIGHT),
+)
+margins = dict(
+    kernel_margin_width=KERNEL_MARGIN,
+    kernel_margin_height=KERNEL_MARGIN,
+    search_margin_width=SEARCH_MARGIN,
+    search_margin_height=SEARCH_MARGIN,
+)
+
+rows = {}
+for name, offset, origin_x in CASES:
+    current_image = crack_dislocation(arr=reference_image, offset=offset)
+    points = generate(
+        origin=PixelCoordinate(x=origin_x, y=45),
+        count_x=43,
+        count_y=43,
+        spacing_x=5,
+        spacing_y=5,
+    )
+    x = np.array([p.x for p in points], dtype=np.float64)
+    y = np.array([p.y for p in points], dtype=np.float64)
+    true_y = y + np.where(x &lt; CRACK_X, offset, -offset)
+    found, znssds = locate_warp_propagated(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_points=points,
+        **margins,
+    )
+    rigid_seeded = locate_warp(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_points=points,
+        **margins,
+    )
+    errors = np.hypot([f.x for f in found] - x, [f.y for f in found] - true_y)
+    rigid_errors = np.hypot(
+        [f.x for f in rigid_seeded] - x, [f.y for f in rigid_seeded] - true_y
+    )
+    # A kernel spans x - 13 to x + 13, so it straddles the crack when it
+    # holds pixels from both columns 149 and 150.
+    straddling = np.abs(x - CRACK_X) &lt; KERNEL_MARGIN + 1
+    accepted = znssds &lt;= GATE
+    columns = np.unique(x)
+    medians = [np.median(znssds[x == column]) for column in columns]
+    peak_column = columns[np.argmax(medians)]
+    rows[name] = [
+        f"{offset} px",
+        f"{(~straddling).sum()}",
+        f"{znssds[~straddling].max():.3f}",
+        f"{errors[~straddling].max():.3f} px",
+        f"{straddling.sum()}",
+        f"{(straddling &amp; ~accepted).sum()}",
+        f"{np.isinf(znssds).sum()}",
+        f"{(straddling &amp; accepted).sum()}",
+        f"{errors[straddling &amp; accepted].max():.3f} px",
+        f"{(accepted &amp; ~(errors &lt;= 1.0)).sum()}",
+        f"{(rigid_errors &gt; 1.0).sum()}",
+        f"{peak_column:.0f} ({abs(peak_column - CRACK_X):.1f} px)",
+    ]
+    if name == "off-grid":
+        map_case = (x, y, znssds, np.array([f.y for f in found]) - y, offset)
+
+labels = [
+    "Crack offset",
+    "Points away from the crack",
+    "... largest ZNSSD",
+    "... largest error",
+    "Points straddling the crack",
+    "... rejected by the gate",
+    "... of those, never fitted",
+    "... accepted",
+    "... largest error when accepted",
+    "Accepted points more than 1 px off",
+    "`locate_warp` points more than 1 px off",
+    "Column with the highest median ZNSSD",
+]
+print("| | " + " | ".join(name for name, _, _ in CASES) + " |")
+print("|---|" + "---|" * len(CASES))
+for i, label in enumerate(labels):
+    print(f"| {label} | " + " | ".join(rows[name][i] for name, _, _ in CASES) + " |")
+
+x, y, znssds, v, offset = map_case
+accepted = znssds &lt;= GATE
+fitted = np.isfinite(znssds)
+fig, (left, right) = plt.subplots(1, 2, figsize=(10.0, 4.4), constrained_layout=True)
+for axis in (left, right):
+    axis.imshow(reference_image, cmap="gray", vmin=0, vmax=255)
+    axis.axvline(CRACK_X, color="white", linestyle="--", linewidth=0.8)
+    axis.set_xlabel("x (pixels)")
+    axis.set_ylabel("y (pixels)")
+shown = left.scatter(
+    x[fitted],
+    y[fitted],
+    c=np.minimum(znssds[fitted], 1.0),
+    s=20,
+    marker="s",
+    linewidths=0,
+    cmap="viridis",
+    vmin=0.0,
+    vmax=1.0,
+)
+left.scatter(x[~fitted], y[~fitted], s=20, marker="s", linewidths=0, color="tab:red")
+fig.colorbar(shown, ax=left, label="ZNSSD (clipped at 1)")
+left.set_title("ZNSSD (red: never fitted)")
+shown = right.scatter(
+    x[accepted],
+    y[accepted],
+    c=v[accepted],
+    s=20,
+    marker="s",
+    linewidths=0,
+    cmap="coolwarm",
+    vmin=-offset,
+    vmax=offset,
+)
+fig.colorbar(shown, ax=right, label="v (pixels)")
+right.set_title(f"v, accepted points only (ZNSSD ≤ {GATE})")
+fig.savefig("discontinuity_detection_synthetic.png", dpi=300)
+</code></pre>
+</details>
+<h3 id="discontinuity_detection_experimentalpy"><a class="header" href="#discontinuity_detection_experimentalpy"><code>discontinuity_detection_experimental.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
+<pre><code class="language-python">"""Track a full grid across the real crack image pair with
+`locate_warp_propagated`, at two kernel sizes, and map each point's
+ZNSSD. Fits a line to the band of rejected points, checks each accepted
+point against its neighbors on the same side, and measures the
+displacement across a fainter streak parallel to the crack. Prints two
+tables and saves the 27 px kernel's maps.
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from dictk.grid import generate, locate_warp_propagated
+from dictk.image import PixelCoordinate, read
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+
+SPACING = 5
+GATE = 0.3
+NEIGHBOR_REACH = 10
+# The largest rigid motion is 37 px. A 50 px search margin covers it
+# with room to spare; 65 px matches Experimental Dislocation's.
+MARGINS = [(13, 50), (25, 65)]
+# A 100 px stretch along the crack, near the middle of the streak.
+ALONG_RANGE = (250, 350)
+STREAK_BANDS = [(-240, -200), (-200, -185), (-185, -155), (-155, -140), (-140, -100)]
+
+reference_image = read(path="experimental_dislocation_reference.tiff")
+current_image = read(path="experimental_dislocation_current.tiff")
+size = reference_image.shape[0]
+
+rows = {}
+for kernel_margin, search_margin in MARGINS:
+    origin = search_margin + SPACING
+    count = (size - 2 * origin) // SPACING + 1
+    points = generate(
+        origin=PixelCoordinate(x=origin, y=origin),
+        count_x=count,
+        count_y=count,
+        spacing_x=SPACING,
+        spacing_y=SPACING,
+    )
+    found, znssds = locate_warp_propagated(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_points=points,
+        kernel_margin_width=kernel_margin,
+        kernel_margin_height=kernel_margin,
+        search_margin_width=search_margin,
+        search_margin_height=search_margin,
+    )
+    x = np.array([p.x for p in points], dtype=np.float64)
+    y = np.array([p.y for p in points], dtype=np.float64)
+    u = np.array([f.x for f in found]) - x
+    v = np.array([f.y for f in found]) - y
+    accepted = znssds &lt;= GATE
+    fitted = np.isfinite(znssds)
+
+    # Each row's band center is the mean x of its rejected points, after
+    # dropping any more than 40 px from the row's median.
+    centers, widths = [], []
+    for row in np.unique(y):
+        xs = x[(y == row) &amp; ~accepted]
+        if len(xs) &gt;= 2:
+            xs = xs[np.abs(xs - np.median(xs)) &lt; 40]
+            centers.append((row, xs.mean()))
+            widths.append(xs.max() - xs.min() + SPACING)
+    band_y, band_x = np.array(centers).T
+    slope, intercept = np.polyfit(band_y, band_x, 1)
+    scatter = np.std(band_x - (slope * band_y + intercept))
+    cosine = np.cos(np.arctan(slope))
+    across = (x - (slope * y + intercept)) * cosine
+    along = (y + slope * (x - intercept)) * cosine
+    near = np.abs(across) &lt;= 2 * kernel_margin + 10
+
+    side = np.sign(across)
+    deviations = []
+    for i in np.flatnonzero(accepted):
+        neighbors = (
+            accepted
+            &amp; (side == side[i])
+            &amp; (np.abs(x - x[i]) &lt;= NEIGHBOR_REACH)
+            &amp; (np.abs(y - y[i]) &lt;= NEIGHBOR_REACH)
+        )
+        neighbors[i] = False
+        if neighbors.sum() &gt;= 3:
+            deviations.append(
+                max(
+                    abs(u[i] - np.median(u[neighbors])),
+                    abs(v[i] - np.median(v[neighbors])),
+                )
+            )
+    deviations = np.array(deviations)
+    lower, upper = accepted &amp; (side &lt; 0), accepted &amp; (side &gt; 0)
+
+    rows[kernel_margin] = [
+        f"{2 * kernel_margin + 1} px",
+        f"{search_margin} px",
+        f"{len(points)}",
+        f"{accepted.sum()} / {(fitted &amp; ~accepted).sum()} / {(~fitted).sum()}",
+        f"{np.median(znssds[fitted]):.3f}",
+        f"{(~accepted &amp; near).sum()} / {(~accepted &amp; ~near).sum()}",
+        f"x = {slope:.3f} y + {intercept:.1f}",
+        f"{np.degrees(np.arctan(slope)):.1f}°",
+        f"{scatter:.2f} px",
+        f"{np.median(widths):.0f} px",
+        f"{(deviations &gt; 1.0).sum()} of {accepted.sum()} ({deviations.max():.2f} px)",
+        f"{np.median(u[lower]):.2f} / {np.median(v[lower]):.2f} px",
+        f"{np.median(u[upper]):.2f} / {np.median(v[upper]):.2f} px",
+    ]
+    if kernel_margin == 13:
+        map_case = (x, y, znssds, u, v, slope, intercept)
+        streak = []
+        for low, high in STREAK_BANDS:
+            band = (
+                accepted
+                &amp; (across &gt;= low)
+                &amp; (across &lt; high)
+                &amp; (along &gt; ALONG_RANGE[0])
+                &amp; (along &lt; ALONG_RANGE[1])
+            )
+            streak.append(
+                f"| {low} to {high} px | {band.sum()} | {np.median(znssds[band]):.3f} "
+                f"| {np.median(u[band]):.2f} px | {np.median(v[band]):.2f} px |"
+            )
+
+labels = [
+    "Kernel width",
+    "Search margin",
+    "Points tracked",
+    "Accepted / rejected / never fitted",
+    "Median ZNSSD of fitted points",
+    "Rejected near the band / farther away",
+    "Line fitted to the band",
+    "Band angle from vertical",
+    "RMS scatter of band centers about the line",
+    "Median band width",
+    "Accepted points more than 1 px from same-side neighbors (largest)",
+    "Lower-left side, median u / v",
+    "Upper-right side, median u / v",
+]
+print("| | " + " | ".join(f"`kernel_margin={k}`" for k, _ in MARGINS) + " |")
+print("|---|" + "---|" * len(MARGINS))
+for i, label in enumerate(labels):
+    print(f"| {label} | " + " | ".join(rows[k][i] for k, _ in MARGINS) + " |")
+print()
+print("| Distance from the crack line | Points | Median ZNSSD | Median u | Median v |")
+print("|---|---|---|---|---|")
+print("\n".join(streak))
+
+x, y, znssds, u, v, slope, intercept = map_case
+accepted = znssds &lt;= GATE
+fitted = np.isfinite(znssds)
+line_y = np.array([y.min(), y.max()])
+fig, axes = plt.subplots(2, 2, figsize=(10.5, 9.0), constrained_layout=True)
+(current_axis, znssd_axis), (u_axis, v_axis) = axes
+current_axis.imshow(current_image, cmap="gray", vmin=0, vmax=255)
+current_axis.set_title("Current image")
+for axis in (znssd_axis, u_axis, v_axis):
+    axis.imshow(reference_image, cmap="gray", vmin=0, vmax=255)
+shown = znssd_axis.scatter(
+    x[fitted],
+    y[fitted],
+    c=np.minimum(znssds[fitted], 1.0),
+    s=8,
+    marker="s",
+    linewidths=0,
+    cmap="viridis",
+    vmin=0.0,
+    vmax=1.0,
+)
+znssd_axis.scatter(
+    x[~fitted], y[~fitted], s=8, marker="s", linewidths=0, color="tab:red"
+)
+znssd_axis.plot(
+    slope * line_y + intercept, line_y, color="white", linestyle="--", linewidth=0.8
+)
+fig.colorbar(shown, ax=znssd_axis, label="ZNSSD (clipped at 1)")
+znssd_axis.set_title("ZNSSD (red: never fitted)")
+for axis, values, name in ((u_axis, u, "u"), (v_axis, v, "v")):
+    shown = axis.scatter(
+        x[accepted],
+        y[accepted],
+        c=values[accepted],
+        s=8,
+        marker="s",
+        linewidths=0,
+        cmap="coolwarm",
+    )
+    fig.colorbar(shown, ax=axis, label=f"{name} (pixels)")
+    axis.set_title(f"{name}, accepted points only (ZNSSD ≤ {GATE})")
+for axis in axes.flat:
+    axis.set_xlabel("x (pixels)")
+    axis.set_ylabel("y (pixels)")
+    axis.set_xlim(0, size)
+    axis.set_ylim(size, 0)
+fig.savefig("discontinuity_detection_experimental.png", dpi=300)
+</code></pre>
+</details>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../getting_started/experimental_dislocation.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../getting_started/discontinuity_localization.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../getting_started/experimental_dislocation.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../getting_started/discontinuity_localization.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

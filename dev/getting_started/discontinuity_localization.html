@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Discontinuity Localization - dictk User Guide</title>
+        <title>Localization - dictk User Guide</title>
 
 
         <!-- Custom HTML head -->
@@ -180,14 +180,13 @@
                 <div id="content" class="content">
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="discontinuity-localization"><a class="header" href="#discontinuity-localization">Discontinuity Localization</a></h1>
-<p><a href="./synthetic_dislocation.html">Synthetic Dislocation</a> and <a href="./experimental_dislocation.html">Experimental
-Dislocation</a> both found the same
-signature: a window straddling a crack shows two comparably-tall
-correlation peaks, not one. Both stopped there. A person centered the
-window on the crack first. Neither page found the crack on its own.
-This page tries three ways to find a crack on its own, compares them,
-and ships the one that wins.</p>
+<h1 id="localization"><a class="header" href="#localization">Localization</a></h1>
+<p><a href="./discontinuity_detection.html">Detection</a> found where a crack runs,
+but only to within a band. On the synthetic crack, its best column
+landed 2.5 px from the crack. On the real crack, the band was 35 px
+wide with a 27 px kernel. This page measures where a crack crosses one chosen line, to a
+fraction of a pixel. It tries three ways, compares them, and ships the
+one that wins.</p>
 <h2 id="a-naive-baseline-grid-anomaly"><a class="header" href="#a-naive-baseline-grid-anomaly">A Naive Baseline: Grid Anomaly</a></h2>
 <p>The cheapest thing to try uses no new code at all. Run standard,
 single-peak DIC across the crack with
@@ -221,9 +220,9 @@ Error vs. known x=150: 5.0px
 
 Saved: discontinuity_localization_baseline.png
 </code></pre>
-<figure id="figure-11.3-1">
+<figure id="figure-11.4-1">
     <img src="discontinuity_localization_baseline.png" alt="step plot of recovered y-displacement vs grid point x: a flat line at +4 pixels for x=100 through 140, then a sharp step down to -4 pixels for x=150 through 200, with the estimated crossing at x=145 marked slightly left of the true crack at x=150" />
-    <figcaption><strong>Figure 11.3-1:</strong> Recovered y-displacement at 11 grid points, spaced 10 pixels apart. The jump between x=140 and x=150 is unmistakable: +4 pixels on one side, -4 on the other. The midpoint between them, x=145, lands 5 pixels from the true crack at x=150. That's half the grid spacing: exactly the resolution this approach can offer, no better.</figcaption>
+    <figcaption><strong>Figure 11.4-1:</strong> Recovered y-displacement at 11 grid points, spaced 10 pixels apart. The jump between x=140 and x=150 is unmistakable: +4 pixels on one side, -4 on the other. The midpoint between them, x=145, lands 5 pixels from the true crack at x=150. That's half the grid spacing: exactly the resolution this approach can offer, no better.</figcaption>
 </figure>
 <p>It works, in the sense that it flags roughly the right neighborhood.
 It's also a proxy, not a measurement of the thing itself. Nothing here
@@ -277,9 +276,9 @@ already swept by hand:</p>
 Located crack position: x=149.804
 Error vs. known x=150: 0.196px</p>
 <p>Saved: discontinuity_localization_sweep.png</p>
-<figure id="figure-11.3-2">
+<figure id="figure-11.4-2">
     <img src="discontinuity_localization_sweep.png" alt="line plot of peak_ratio vs window center x from 100 to 200, rising from 0 at x=130 to a sharp peak near 1.0 at x=150, then falling and settling into a fluctuating 0.2-0.3 band past x=170" />
-    <figcaption><strong>Figure 11.3-2:</strong> peak_ratio vs. window center x. A single, sharp maximum at x=149.8, subpixel-refined from a 101-point sweep. The known crack sits at x=150, 0.2 pixels away. Past x=170, peak_ratio settles into the same 0.2-0.3 band Synthetic Dislocation's own sweep already found and attributed to the underlying image content on that side, not the crack.</figcaption>
+    <figcaption><strong>Figure 11.4-2:</strong> peak_ratio vs. window center x. A single, sharp maximum at x=149.8, subpixel-refined from a 101-point sweep. The known crack sits at x=150, 0.2 pixels away. Past x=170, peak_ratio settles into the same 0.2-0.3 band Synthetic Dislocation's own sweep already found and attributed to the underlying image content on that side, not the crack.</figcaption>
 </figure>
 <p>101 evaluations, one per swept position, land 0.2 pixels from the known
 crack. No offset, no hand-picked center. The sweep finds the crossing
@@ -300,9 +299,9 @@ Error vs. known x=150: 0.251px</p>
 </tbody></table>
 </div>
 <p>Saved: discontinuity_localization_bisection.png</p>
-<figure id="figure-11.3-3">
+<figure id="figure-11.4-3">
     <img src="discontinuity_localization_bisection.png" alt="the same peak_ratio curve as the dense sweep figure, with red x markers showing golden-section search's 12 sampled points clustered tightly around the true peak at x=150" />
-    <figcaption><strong>Figure 11.3-3:</strong> Golden-section search's own 12 sampled points, against the dense sweep's full curve for reference. All 12 cluster near the true maximum. The search needed no help finding it.</figcaption>
+    <figcaption><strong>Figure 11.4-3:</strong> Golden-section search's own 12 sampled points, against the dense sweep's full curve for reference. All 12 cluster near the true maximum. The search needed no help finding it.</figcaption>
 </figure>
 <p>12 evaluations instead of 101, landing 0.25 pixels from the known crack.
 That's barely worse than the dense sweep, for roughly a tenth of the
@@ -322,9 +321,9 @@ golden-section, bracket (150, 300): x=217.25, evaluations=13
 golden-section, bracket (100, 350): x=308.11, evaluations=14</p>
 <p>The tight and moderate brackets land within 1px of the dense sweep's own answer. The wide bracket -- the one that assumes no prior knowledge of roughly where the crack is -- converges instead to a smaller, secondary peak_ratio bump far from the real crack, confidently and silently.
 Saved: discontinuity_localization_experimental.png</p>
-<figure id="figure-11.3-4">
+<figure id="figure-11.4-4">
     <img src="discontinuity_localization_experimental.png" alt="line plot of peak_ratio vs window center x from 100 to 350 on real data: a tall sharp peak near x=219, plus three smaller, shorter bumps around x=130, x=300-315, and x=325-340" />
-    <figcaption><strong>Figure 11.3-4:</strong> peak_ratio across a wide real-data range. One peak clearly stands above the rest, at x=218.7, 0.7 pixels from Experimental Dislocation's own by-eye x=218. Three smaller bumps sit elsewhere in the image, each shorter than the real crack's peak, but not by a wide margin.</figcaption>
+    <figcaption><strong>Figure 11.4-4:</strong> peak_ratio across a wide real-data range. One peak clearly stands above the rest, at x=218.7, 0.7 pixels from Experimental Dislocation's own by-eye x=218. Three smaller bumps sit elsewhere in the image, each shorter than the real crack's peak, but not by a wide margin.</figcaption>
 </figure>
 <p>The dense sweep's global maximum lands within a pixel of the known
 location, no matter how wide a range it searches. Golden-section search
@@ -332,8 +331,14 @@ does too, but only at the two brackets already narrowed toward the
 crack. Given the full, uncommitted range, it converges instead to the
 bump near <code>x=308</code>, over 90 pixels from the real crack, confidently and
 silently. A fast local search only works once you already roughly know
-where to look. That's most of the problem this page set out to solve
-in the first place.</p>
+where to look.</p>
+<p>Detection's fitted lines give a second estimate at the same row. At
+y = 186, its line x = 0.596 y + 104.6 for the 27 px kernel gives
+x = 215.5. Its line x = 0.594 y + 105.4 for the 51 px kernel gives
+x = 215.9. The dense sweep's 218.7 sits 3.2 px and 2.8 px to the right
+of them. No ground truth decides which is closer. Each line fits a
+band center from every row of its grid, while the sweep measures this
+one row.</p>
 <h2 id="declaring-a-winner"><a class="header" href="#declaring-a-winner">Declaring a Winner</a></h2>
 <p>The dense sweep, with subpixel parabolic refinement, ships as
 <a href="../api/dictk/discontinuity.html"><code>dictk.discontinuity</code></a>. It needs no
@@ -350,12 +355,17 @@ at the cost of needing the answer roughly in hand before it can find it.</p>
 </tbody></table>
 </div>
 <h2 id="what-this-still-doesnt-do"><a class="header" href="#what-this-still-doesnt-do">What This Still Doesn't Do</a></h2>
-<p>This locates a crossing along one already-chosen line, not a
-discontinuity anywhere in a 2D field. Something still has to decide
-where to sweep. And a located position still isn't consumed by
-anything: <a href="./path_forward.html#postponed">Path Forward</a>'s Heaviside
-DIC/XFEM item asked for detection and localization, not a finite-element
-formulation that acts on the result. That half stays open.</p>
+<p>This locates a crossing along one chosen line. Detection's band now
+says where to sweep, but this page sweeps only one row. Sweeping every
+row through the band would turn Detection's band into a subpixel crack
+path. That hasn't been tried. Neither has golden-section search inside
+a bracket taken from Detection's band. On the synthetic crack,
+golden-section search needed 12 evaluations against the dense sweep's
+101.</p>
+<p>A located position still isn't consumed by anything. <a href="./path_forward.html#postponed">Path
+Forward</a>'s Heaviside DIC/XFEM item asked
+for detection and localization, not a finite-element formulation that
+acts on the result. That half stays open.</p>
 <p>Continue to <a href="./parallelization.html">Parallelization</a>.
 <a href="./path_forward.html">Path Forward</a> records where this leaves the
 discontinuity work.</p>
@@ -825,7 +835,7 @@ print("Saved: discontinuity_localization_experimental.png")
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../getting_started/experimental_dislocation.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../getting_started/discontinuity_detection.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
@@ -839,7 +849,7 @@ print("Saved: discontinuity_localization_experimental.png")
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../getting_started/experimental_dislocation.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../getting_started/discontinuity_detection.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
