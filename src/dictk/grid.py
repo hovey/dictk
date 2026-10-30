@@ -1,15 +1,30 @@
 """A rectangular collection of points, and batch point tracking across it."""
 
+import heapq
 from collections.abc import Sequence
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from enum import Enum
 from functools import partial
+from typing import Final
 
 import numpy as np
+from scipy.spatial import cKDTree
 
 from dictk import translation, warp
 from dictk.correlation import WindowingMethod
 from dictk.image import PixelCoordinate, SubpixelCoordinate
+
+# How many nearest points `locate_warp_propagated` links each point to.
+# On a rectangular grid, 8 covers the 4 edge neighbors and 4 diagonals.
+NEIGHBOR_COUNT: Final[int] = 8
+
+# How many of the start search's best-scoring trials IC-GN refines.
+START_SEED_COUNT: Final[int] = 3
+
+# How many start searches in a row may fail `znssd_limit` before
+# `locate_warp_propagated` stops trying new start points. A 40x40 px
+# patch of unrelated speckle over the image center needed more than 5.
+START_ATTEMPT_LIMIT: Final[int] = 10
 
 
 class Executor(Enum):
@@ -128,7 +143,9 @@ def _locate_warp_worker(
         reference_gradients=reference_gradients,
         current_coefficients=current_coefficients,
         reference_point=reference_point,
-        start=start,
+        initial_warp=warp._translation_warp(
+            reference_point=reference_point, start=start
+        ),
         kernel_margin_width=kernel_margin_width,
         kernel_margin_height=kernel_margin_height,
         max_iterations=max_iterations,
@@ -576,3 +593,241 @@ def locate_warp(
     )
     with executor_cls(max_workers=max_workers) as pool:
         return list(pool.map(worker, zip(reference_points, search_centers)))
+
+
+def locate_warp_propagated(
+    *,
+    reference_image: np.ndarray,
+    current_image: np.ndarray,
+    reference_points: Sequence[PixelCoordinate],
+    kernel_margin_width: int,
+    kernel_margin_height: int,
+    search_margin_width: int,
+    search_margin_height: int,
+    start_gradient_limit: float = 0.3,
+    start_gradient_step: float = 0.1,
+    znssd_limit: float = 0.3,
+    max_iterations: int = 50,
+    tolerance: float = 1e-6,
+) -> tuple[list[SubpixelCoordinate], np.ndarray]:
+    """Track many points by warping an affine kernel, seeding each point
+    from an already-fitted neighbor instead of a rigid whole-pixel match.
+
+    [`locate_warp`](#locate_warp) seeds every point's IC-GN fit from
+    `dictk.translation.locate`'s rigid, whole-pixel match. Under a large
+    stretch or shear, that match can land on the wrong speckles.
+
+    This function searches for a deformed seed at one point only: the
+    point nearest the center of `reference_image`. It tries every
+    displacement gradient `(u_x, u_y, v_x, v_y)` on a grid from
+    `-start_gradient_limit` to `start_gradient_limit` in steps of
+    `start_gradient_step`. For each one, it deforms the reference
+    kernel and finds its whole-pixel translation by phase correlation.
+    IC-GN refines the best-scoring trials, and the fit with the lowest
+    ZNSSD becomes the first point's warp.
+
+    A fit is accepted when its ZNSSD is at most `znssd_limit`. Only
+    accepted fits seed other points. The remaining points are visited
+    best first: the accepted point with the lowest ZNSSD seeds each of
+    its `NEIGHBOR_COUNT` nearest points not yet accepted. Each starts
+    from that neighbor's warp: the same displacement gradients, and a
+    translation extrapolated across the offset between the two points.
+    A point that fails `znssd_limit` tries again when another accepted
+    neighbor reaches it. See [Seed
+    Propagation](../getting_started/seed_propagation.html).
+
+    If the first point's fit fails `znssd_limit`, the start search
+    moves to the next untried point nearest the image center, skipping
+    points within one kernel width of a failed start, since those share
+    most of its kernel. Points
+    no accepted fit can reach get their own start search the same way.
+    The search stops after `START_ATTEMPT_LIMIT` failed starts in a
+    row. Start points whose search area leaves `current_image` are
+    skipped.
+
+    Only start points use the search area, centered on each one's own
+    reference position. Every other point skips the
+    whole-pixel search, so the search margins do not limit how far it
+    can move. The fit runs one point at a time, because each seed
+    depends on an earlier fit.
+
+    Args:
+        reference_image: The reference (undeformed) 2D grayscale image.
+        current_image: The current (deformed) 2D grayscale image.
+        reference_points: Each point's fixed, known position, in
+            `reference_image`'s pixel reference frame. Each point's
+            kernel must lie inside `reference_image`.
+        kernel_margin_width: Half each kernel's width, in pixels, not
+            counting its center column. Must be >= 1.
+        kernel_margin_height: Half each kernel's height, in pixels, not
+            counting its center row. Must be >= 1.
+        search_margin_width: Half the whole-pixel search area's width,
+            in pixels, for start points. Must be greater than
+            `kernel_margin_width`.
+        search_margin_height: Half the whole-pixel search area's
+            height, in pixels, for start points. Must be greater than
+            `kernel_margin_height`.
+        start_gradient_limit: The largest displacement gradient the
+            start search tries, in each of its four terms. Default
+            `0.3`. Must be > 0.
+        start_gradient_step: The spacing between tried gradients.
+            Default `0.1`, which tries 7 values per term and 2401 in
+            all. Must be > 0.
+        znssd_limit: The largest ZNSSD a fit may have and still seed
+            other points. Default `0.3`. Must be > 0.
+        max_iterations: The most IC-GN updates per point. Default `50`.
+            Must be >= 1.
+        tolerance: IC-GN stops once every warp parameter's update falls
+            below this. Default `1e-6`. Must be > 0.
+
+    Returns:
+        Two items, each in the same order as `reference_points`:
+
+        - Each point's location, in `current_image`'s pixel reference
+          frame, generally fractional. It comes from the point's
+          lowest-ZNSSD fit, even when that fit failed `znssd_limit`.
+          A point never fitted at all gets `nan` for `x` and `y`.
+        - Each point's ZNSSD for that fit, from 0 for a perfect match
+          to 4, or `inf` for a point never fitted. Values above
+          `znssd_limit` mark positions not to trust.
+
+    Raises:
+        ValueError: If `reference_points` is empty, any point's kernel
+            leaves `reference_image`, a margin is too small,
+            `start_gradient_limit`, `start_gradient_step`, or
+            `znssd_limit` is not positive, `max_iterations` is less
+            than 1, or `tolerance` is not positive.
+    """
+    if len(reference_points) == 0:
+        raise ValueError("reference_points must not be empty")
+    if kernel_margin_width < 1:
+        raise ValueError(f"kernel_margin_width {kernel_margin_width} must be >= 1")
+    if kernel_margin_height < 1:
+        raise ValueError(f"kernel_margin_height {kernel_margin_height} must be >= 1")
+    if search_margin_width <= kernel_margin_width:
+        raise ValueError(
+            f"search_margin_width {search_margin_width} must be greater than "
+            f"kernel_margin_width {kernel_margin_width}"
+        )
+    if search_margin_height <= kernel_margin_height:
+        raise ValueError(
+            f"search_margin_height {search_margin_height} must be greater than "
+            f"kernel_margin_height {kernel_margin_height}"
+        )
+    if start_gradient_limit <= 0:
+        raise ValueError(f"start_gradient_limit {start_gradient_limit} must be > 0")
+    if start_gradient_step <= 0:
+        raise ValueError(f"start_gradient_step {start_gradient_step} must be > 0")
+    if znssd_limit <= 0:
+        raise ValueError(f"znssd_limit {znssd_limit} must be > 0")
+    if max_iterations < 1:
+        raise ValueError(f"max_iterations {max_iterations} must be >= 1")
+    if tolerance <= 0:
+        raise ValueError(f"tolerance {tolerance} must be > 0")
+    height, width = reference_image.shape
+    for point in reference_points:
+        if not (
+            kernel_margin_width <= point.x < width - kernel_margin_width
+            and kernel_margin_height <= point.y < height - kernel_margin_height
+        ):
+            raise ValueError(f"kernel around {point} leaves reference_image")
+
+    positions = np.array([[p.x, p.y] for p in reference_points], dtype=np.float64)
+    neighbor_count = min(NEIGHBOR_COUNT + 1, len(reference_points))
+    _, neighbors = cKDTree(positions).query(positions, k=neighbor_count)
+    neighbors = np.asarray(neighbors).reshape(len(reference_points), -1)
+    center = np.array([(width - 1) / 2, (height - 1) / 2])
+    by_distance = np.argsort(np.linalg.norm(positions - center, axis=1))
+
+    reference_gradients = warp._gradients(reference_image)
+    reference_coefficients = warp._spline_coefficients(reference_image)
+    current_coefficients = warp._spline_coefficients(current_image)
+
+    def refined(index, initial_warp):
+        return warp._refine(
+            reference_image=reference_image,
+            reference_gradients=reference_gradients,
+            current_coefficients=current_coefficients,
+            reference_point=reference_points[index],
+            initial_warp=initial_warp,
+            kernel_margin_width=kernel_margin_width,
+            kernel_margin_height=kernel_margin_height,
+            max_iterations=max_iterations,
+            tolerance=tolerance,
+        )
+
+    count = len(reference_points)
+    warps: list[np.ndarray | None] = [None] * count
+    znssds = np.full(count, np.inf)
+    accepted = np.zeros(count, dtype=bool)
+    tried = np.zeros(count, dtype=bool)
+    current_height, current_width = current_image.shape
+
+    def record(index, fit):
+        fitted, znssd, _iterations = fit
+        tried[index] = True
+        if znssd < znssds[index]:
+            warps[index], znssds[index] = fitted, znssd
+        if znssd <= znssd_limit:
+            accepted[index] = True
+        return accepted[index]
+
+    def propagate(first):
+        heap = [(znssds[first], first)]
+        while heap:
+            _, parent = heapq.heappop(heap)
+            parent_warp = warps[parent]
+            for child in neighbors[parent]:
+                if accepted[child]:
+                    continue
+                offset = positions[child] - positions[parent]
+                initial_warp = parent_warp.copy()
+                initial_warp[:2, 2] += (parent_warp[:2, :2] - np.eye(2)) @ offset
+                if record(child, refined(child, initial_warp)):
+                    heapq.heappush(heap, (znssds[child], child))
+
+    failed_starts = 0
+    failed_start_positions: list[np.ndarray] = []
+    kernel_width = 2 * max(kernel_margin_width, kernel_margin_height) + 1
+    for first in by_distance:
+        if tried[first] or failed_starts >= START_ATTEMPT_LIMIT:
+            continue
+        if any(
+            np.linalg.norm(positions[first] - failed) < kernel_width
+            for failed in failed_start_positions
+        ):
+            continue
+        point = reference_points[first]
+        if not (
+            search_margin_width <= point.x <= current_width - search_margin_width
+            and search_margin_height <= point.y <= current_height - search_margin_height
+        ):
+            continue
+        seeds = warp._shape_seeds(
+            reference_coefficients=reference_coefficients,
+            current_image=current_image,
+            current_coefficients=current_coefficients,
+            reference_point=point,
+            kernel_margin_width=kernel_margin_width,
+            kernel_margin_height=kernel_margin_height,
+            search_margin_width=search_margin_width,
+            search_margin_height=search_margin_height,
+            gradient_limit=start_gradient_limit,
+            gradient_step=start_gradient_step,
+            seed_count=START_SEED_COUNT,
+        )
+        best = min((refined(first, seed) for seed in seeds), key=lambda fit: fit[1])
+        if record(first, best):
+            failed_starts = 0
+            propagate(first)
+        else:
+            failed_starts += 1
+            failed_start_positions.append(positions[first])
+
+    positions_found = [
+        SubpixelCoordinate(x=p.x + w[0, 2], y=p.y + w[1, 2])
+        if w is not None
+        else SubpixelCoordinate(x=np.nan, y=np.nan)
+        for p, w in zip(reference_points, warps)
+    ]
+    return positions_found, znssds

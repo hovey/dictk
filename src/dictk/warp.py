@@ -21,20 +21,128 @@ def _gradients(image: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     return gradient_y, gradient_x
 
 
+def _translation_warp(
+    *, reference_point: PixelCoordinate, start: PixelCoordinate
+) -> np.ndarray:
+    """The rigid seed: a warp that moves `reference_point` to the
+    whole-pixel `start`, with all four gradient terms zero."""
+    return np.array(
+        [
+            [1.0, 0.0, start.x - reference_point.x],
+            [0.0, 1.0, start.y - reference_point.y],
+            [0.0, 0.0, 1.0],
+        ]
+    )
+
+
+def _shape_seeds(
+    *,
+    reference_coefficients: np.ndarray,
+    current_image: np.ndarray,
+    current_coefficients: np.ndarray,
+    reference_point: PixelCoordinate,
+    kernel_margin_width: int,
+    kernel_margin_height: int,
+    search_margin_width: int,
+    search_margin_height: int,
+    gradient_limit: float,
+    gradient_step: float,
+    seed_count: int,
+) -> list[np.ndarray]:
+    """Deformation-aware seeds for one point, best first.
+
+    Tries every displacement gradient `(u_x, u_y, v_x, v_y)` on a grid
+    from `-gradient_limit` to `gradient_limit` in steps of
+    `gradient_step`. Each trial deforms the reference kernel by its
+    gradient, then finds that kernel's whole-pixel translation by phase
+    correlation against the search area, as `translation.locate` does
+    for a rigid kernel. Each trial is scored by ZNSSD at that
+    translation. Returns the `seed_count` lowest-scoring trials as 3x3
+    warps, ready for `_refine`."""
+    x0, y0 = reference_point.x, reference_point.y
+    dy, dx = np.mgrid[
+        -kernel_margin_height : kernel_margin_height + 1,
+        -kernel_margin_width : kernel_margin_width + 1,
+    ].astype(np.float64)
+    count = int(round(gradient_limit / gradient_step))
+    values = np.arange(-count, count + 1) * gradient_step
+    gradients = np.stack(
+        np.meshgrid(values, values, values, values, indexing="ij"), axis=-1
+    ).reshape(-1, 4)
+    shapes = np.eye(2) + gradients.reshape(-1, 2, 2)
+
+    # The deformed kernel, on the current image's pixel grid: the
+    # reference sampled at each offset carried back through the shape.
+    inverses = np.linalg.inv(shapes)
+    xs = x0 + inverses[:, 0, 0, None, None] * dx + inverses[:, 0, 1, None, None] * dy
+    ys = y0 + inverses[:, 1, 0, None, None] * dx + inverses[:, 1, 1, None, None] * dy
+    kernels = map_coordinates(
+        reference_coefficients, [ys, xs], order=3, prefilter=False
+    )
+
+    # Phase correlation, with each kernel centered in a zero-padded copy
+    # the size of the search area, as translation.locate pads its own.
+    search = current_image[
+        y0 - search_margin_height : y0 + search_margin_height,
+        x0 - search_margin_width : x0 + search_margin_width,
+    ].astype(np.float64)
+    rows, columns = search.shape
+    top = (rows - kernels.shape[1]) // 2
+    left = (columns - kernels.shape[2]) // 2
+    padded = np.zeros((len(kernels), rows, columns))
+    padded[:, top : top + kernels.shape[1], left : left + kernels.shape[2]] = kernels
+    product = np.fft.fft2(search)[None] * np.fft.fft2(padded).conj()
+    product /= np.maximum(np.abs(product), 100 * np.finfo(np.float64).eps)
+    surfaces = np.abs(np.fft.ifft2(product)).reshape(len(kernels), -1)
+    peak_rows, peak_columns = np.unravel_index(surfaces.argmax(axis=1), (rows, columns))
+    peak_rows = np.where(peak_rows >= rows // 2, peak_rows - rows, peak_rows)
+    peak_columns = np.where(
+        peak_columns >= columns // 2, peak_columns - columns, peak_columns
+    )
+    # A zero shift puts the kernel's center at search index
+    # (top + margin, left + margin), which is the point's own position
+    # minus this offset.
+    u = peak_columns + left + kernel_margin_width - search_margin_width
+    v = peak_rows + top + kernel_margin_height - search_margin_height
+
+    xs = x0 + u[:, None, None] + shapes[:, 0, 0, None, None] * dx
+    xs += shapes[:, 0, 1, None, None] * dy
+    ys = y0 + v[:, None, None] + shapes[:, 1, 0, None, None] * dx
+    ys += shapes[:, 1, 1, None, None] * dy
+    g = map_coordinates(current_coefficients, [ys, xs], order=3, prefilter=False)
+    g = g - g.mean(axis=(1, 2), keepdims=True)
+    g /= np.maximum(np.sqrt((g**2).sum(axis=(1, 2), keepdims=True)), 1e-12)
+    f = map_coordinates(
+        reference_coefficients, [y0 + dy, x0 + dx], order=3, prefilter=False
+    )
+    f = f - f.mean()
+    f /= np.sqrt((f**2).sum())
+    znssds = ((g - f) ** 2).sum(axis=(1, 2))
+
+    seeds = []
+    for index in np.argsort(znssds)[:seed_count]:
+        seed = np.eye(3)
+        seed[:2, :2] = shapes[index]
+        seed[:2, 2] = u[index], v[index]
+        seeds.append(seed)
+    return seeds
+
+
 def _refine(
     *,
     reference_image: np.ndarray,
     reference_gradients: tuple[np.ndarray, np.ndarray],
     current_coefficients: np.ndarray,
     reference_point: PixelCoordinate,
-    start: PixelCoordinate,
+    initial_warp: np.ndarray,
     kernel_margin_width: int,
     kernel_margin_height: int,
     max_iterations: int,
     tolerance: float,
 ) -> tuple[np.ndarray, float, int]:
-    """IC-GN refinement of one point, from an integer `start` -- see
-    [`fit`](#fit) for the method and the returned matrix. Takes
+    """IC-GN refinement of one point, starting from the 3x3
+    `initial_warp` -- see [`fit`](#fit) for the method and the returned
+    matrix. `_translation_warp` builds the rigid seed `fit` uses. Takes
     precomputed gradients and spline coefficients so a batch caller
     computes them once, not once per point.
 
@@ -70,13 +178,7 @@ def _refine(
         g = g - g.mean()
         return f_norm / np.sqrt((g**2).sum()) * g - f
 
-    warp = np.array(
-        [
-            [1.0, 0.0, start.x - x0],
-            [0.0, 1.0, start.y - y0],
-            [0.0, 0.0, 1.0],
-        ]
-    )
+    warp = np.array(initial_warp, dtype=np.float64)
     for iterations in range(1, max_iterations + 1):
         residual = residual_at(warp)
         dp = hessian_inverse @ (steepest_descent.T @ residual.ravel())
@@ -199,7 +301,7 @@ def fit(
         reference_gradients=_gradients(reference_image),
         current_coefficients=_spline_coefficients(current_image),
         reference_point=reference_point,
-        start=start,
+        initial_warp=_translation_warp(reference_point=reference_point, start=start),
         kernel_margin_width=kernel_margin_width,
         kernel_margin_height=kernel_margin_height,
         max_iterations=max_iterations,

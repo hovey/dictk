@@ -52,7 +52,7 @@ for stretch in STRETCHES:
                 reference_gradients=reference_gradients,
                 current_coefficients=warp._spline_coefficients(current_image),
                 reference_point=point,
-                start=seed,
+                initial_warp=warp._translation_warp(reference_point=point, start=seed),
                 kernel_margin_width=MARGIN,
                 kernel_margin_height=MARGIN,
                 max_iterations=MAX_ITERATIONS,

@@ -101,17 +101,25 @@ Noted, not being pursued right now:
   started: consuming a located discontinuity in an actual
   Heaviside-enriched finite-element formulation. That's XFEM's own side
   of this, untouched by anything above.
-* **`grid.locate()` windowing demo.** `windowing` has only ever been
-  demonstrated directly on
-  [`dictk.correlation.phase_correlation`](../api/dictk/correlation.html#phase_correlation)
-  (see [Correlation
-  Visualization](./correlation_visualization.md#phase-correlation)).
-  Every
-  `grid.locate()` call across the book so far (Multi-Point Motion,
-  Simple Stretch, Recoverable Displacement Range, Pure Rotation,
-  Parallelization) leaves `windowing` at its default `None` — the one
-  parameter of `grid.locate`'s own signature with no live worked
-  example yet.
+* **Windowing in the whole-pixel stage.** Every whole-pixel match
+  defaults to `windowing=None`. That covers `translation.locate`,
+  `grid.locate`, `grid.locate_subpixel`, and the seed stage of
+  `grid.locate_warp`. `grid.locate_warp_propagated` has no `windowing`
+  parameter, and its seed search never windows. No page in this book
+  passes `windowing` to any of them. On [Kernel
+  Warping](./kernel_warping.md)'s own setup, Hann windowing shifts the
+  results by at most 0.015 px. That setup tracks 2862 points on
+  `astronaut0.png` under a 2% stretch, with `kernel_margin=13` and
+  `search_margin=25`. With and without Hann, 0 points miss by more than
+  1 px. Hann moves `grid.locate`'s x-error standard deviation from
+  0.300 px to 0.298 px, and its mean from −0.014 px to −0.029 px.
+  `grid.locate_warp` stays at 0.008 px either way. A second setup does
+  show a gap. It uses the 512×512 `image.astronaut()`, 81 points spaced
+  39 px apart, `kernel_margin=15`, `search_margin=25`, and a whole-pixel
+  translation of (7, −5) px. Without windowing, `grid.locate` misses 28
+  of 81 points by more than 1 px. With Hann, it misses 2. We have not
+  yet found the cause. Still open: explain that gap, and decide whether
+  `grid.locate_warp_propagated` needs a `windowing` parameter.
 * **Strain-window bias on a strain gradient.** Every strain-window
   test so far uses a uniform 2% stretch. Its third derivative $u'''$ is
   zero, so a curved strain field never biases the fitted slope.
@@ -120,15 +128,30 @@ Noted, not being pursued right now:
   $u'''$ would measure the bias from curvature. It would
   also locate the window size that minimizes the mean squared error,
   variance plus squared bias.
-* **A deformation-aware seed for `warp.fit`.** IC-GN starts from
-  `translation.locate`'s whole-pixel match, and that match uses a
-  rigid, unwarped kernel. On a fine speckle pattern, a 10% stretch plus
-  shear put that starting point 20 px off. IC-GN then converged to a
-  wrong warp with no error raised. Two remedies are worth testing.
-  Seeding each point from a neighbor's fitted warp would start IC-GN
-  with the local stretch already included. A ZNSSD threshold would flag
-  a fit that converged to the wrong place. This pairs with the dynamic search-window sizing
-  direction above.
+* **Seed propagation under a strain gradient.** [Seed
+  Propagation](./seed_propagation.md) tested `locate_warp_propagated`
+  only under one uniform stretch and shear, where a neighbor's gradient
+  terms match each point's exactly. A strain gradient would make each
+  extrapolated seed less exact. A synthetic field with a known gradient
+  would measure how much.
+* **`rosta` alone fails subpixel tracking tests.** On a `rosta` image
+  without the astronaut photo, `warp.locate` missed one point by 13 to
+  25 px under a 2% stretch with a fractional shift, at two image sizes
+  and two kernel sizes. `astronaut0` tracks the same case to within
+  0.01 px. The cause is not known. A repeating speckle pattern would
+  give phase correlation several equal peaks.
+* **A faint streak passes the ZNSSD gate.** On the real crack pair,
+  [Detection](./discontinuity_detection.md#a-real-crack) found a streak
+  parallel to the crack, 155 to 185 px to its lower left. Across it, u
+  rises 2.06 px and v rises 1.62 px. Between neighboring bands on
+  either side, u changes by at most 0.39 px and v by at most 0.36 px.
+  The streak's median ZNSSD is 0.130, so the 0.3 gate rejects no point
+  there. Points that straddle the crack's 12.39 px jump in u fail the
+  same gate. Two open
+  questions remain. Is the streak a second, smaller crack or a narrow
+  band of concentrated strain? Would a lower gate, or a check on the
+  jump in u and v between neighbors, flag it without rejecting correct
+  fits elsewhere?
 
 ## 2026-08-18
 
@@ -629,3 +652,64 @@ reach at least 0.6952. Any threshold between the two flags all 972
 misses and none of the 498 correct fits. The iteration count
 misclassifies 5 fits, and ZNSSD flags every miss it catches. That
 result covers one image and one 27x27 kernel. 444 tests (441 + 3).
+
+**A seed with the right shape removes every miss.** `warp._refine` now
+starts from a full 3x3 warp, not a whole-pixel point. [Where the Seed
+Breaks](./seed_propagation.md#where-the-seed-breaks) now reruns the 1470 sweep fits from the true stretch and shear,
+with the translation rounded to whole pixels. The rigid seed gave 972
+misses. This seed gives 0, up to a 30% stretch with a 0.30 shear, with
+a largest error of 0.007 px. Neighbor seeding comes next. 445 tests
+(444 + 1).
+
+**Neighbor seeding ships.** New function
+`dictk.grid.locate_warp_propagated`. Its first point searches 2401
+trial shapes, gradient terms from $-0.3$ to $0.3$ in steps of 0.1, and
+keeps the lowest-ZNSSD fit. Every other point starts from a fitted
+neighbor's warp. A rigid seed at the first point sank every other
+point, because the first fit spreads to the whole grid. On a 17x17 grid
+across the 49 stretch and shear combinations, `locate_warp` misses
+10561 of 14161 fits, even with true search centers.
+`locate_warp_propagated` misses none. Fits are not yet checked by ZNSSD
+before they spread. 459 tests (445 + 14).
+
+**A ZNSSD gate contains a bad fit.** `locate_warp_propagated` now
+returns each point's ZNSSD with its position. A fit seeds other points
+only if its ZNSSD is at most `znssd_limit`, default 0.3. The best
+accepted fit seeds next, and a failed start moves to another point. A
+40x40 px patch of unrelated speckle over the image center sank all 127
+points outside it without the gate, and none with it. No bad position
+passed the gate. Partial cover raised 62 correct fits above 0.3, so the
+gate leaves more points inside the patch unfitted. The Postponed
+deformation-aware seed item leaves Postponed. Two new items replace it.
+463 tests (459 + 4).
+
+## 2026-10-29
+
+**The windowing item gets a new scope.** The old Postponed item asked
+only for a `grid.locate` example with `windowing`. Four more trackers
+now share the same `windowing=None` default, and
+`grid.locate_warp_propagated` has no `windowing` parameter at all. A
+rerun of Kernel Warping's 2862 points with Hann windowing shifted the
+results by at most 0.015 px, with 0 misses either way. A separate
+81-point run on the 512×512 `image.astronaut()` missed 28 points
+without windowing and 2 with Hann. The default stays `None`. Switching
+it would change numbers quoted on every page from Single Point Motion
+onward, for a 0.002 px drop in `grid.locate`'s x-error standard
+deviation. The Postponed item now records both runs and asks why the
+second one fails. No code changed. Tests are unchanged at 463.
+
+**Detection ships, and Discontinuities reorders.** New page
+[Detection](./discontinuity_detection.md) (11.3) maps the ZNSSD that
+`grid.locate_warp_propagated` returns for each point across a crack. On
+the synthetic crack with a 4 px offset, the gate rejects 162 of 215
+straddling points. No accepted point lands more than 1 px off, while
+`locate_warp` without a gate misses 48. On the real pair, the rejected
+points form one band at 30.8° from vertical. Its band centers scatter
+1.83 px RMS about a fitted line. A fainter parallel streak carries a
+2.06 px jump in u, but its median ZNSSD of 0.130 stays under the 0.3
+gate. Discontinuity Localization moves from 11.3 to 11.4. Both pages
+drop "Discontinuity" from their titles. Localization's opening now
+starts from Detection's band. Its real-data section compares the
+band's line, x = 215.5 at y = 186, with the sweep's 218.7. A new
+Postponed item records the streak. No library code changed. Tests are
+unchanged at 463.
