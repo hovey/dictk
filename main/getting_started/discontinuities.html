@@ -220,9 +220,10 @@ Dislocation</a> then repeats the same
 straddling window on a real experimental crack image pair. There the
 ground truth isn't known in advance, so it checks whether the same
 signature shows up outside a synthetic setup.</p>
-<p>Neither section proposes a discontinuity-aware correlation algorithm on
-its own. <a href="./discontinuity_localization.html">Discontinuity
-Localization</a> addresses that challenge.</p>
+<p>Neither section finds the crack on its own.
+<a href="./discontinuity_detection.html">Detection</a> finds where a crack runs
+across the whole image. <a href="./discontinuity_localization.html">Localization</a>
+then measures where it crosses one chosen line.</p>
 <h2 id="relation-to-heaviside-dic"><a class="header" href="#relation-to-heaviside-dic">Relation to Heaviside-DIC</a></h2>
 <p>Heaviside-DIC (H-DIC)<sup class="footnote-reference" id="fr-Bourdin_2018-1"><a href="#footnote-Bourdin_2018">1</a></sup> can represent a displacement jump
 like the crack dislocation above. For the continuous part of its
@@ -250,9 +251,10 @@ Newton-based method. It doesn't say whether that method uses the inverse
 compositional form.</p>
 <p>So <a href="../api/dictk/warp.html"><code>dictk.warp</code></a> covers H-DIC's continuous
 half. The missing half is the jump and its line: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7519em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">u</span></span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7519em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span></span></span></span>,
-<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6887em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6887em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span></span></span></span></span></span></span></span>, and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6887em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span></span></span></span></span></span></span></span>. <a href="./discontinuity_localization.html">Discontinuity
-Localization</a> finds where such a line
-crosses a chosen path.</p>
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6887em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6887em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span></span></span></span></span></span></span></span>, and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6887em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span></span></span></span></span></span></span></span>. <a href="./discontinuity_detection.html">Detection</a>
+finds where such a line runs.
+<a href="./discontinuity_localization.html">Localization</a> finds where it crosses
+a chosen path.</p>
 <hr>
 <ol class="footnote-definition"><li id="footnote-Bourdin_2018">
 <p>Bourdin F, Stinville JC, Echlin MP, Callahan PG, Lenthe WC, Torbet CJ, Texier D, Bridier F, Cormier J, Villechaise P, Pollock TM. Measurements of plastic localization by heaviside-digital image correlation. Acta Materialia. 2018 Sep 15;157:307-25. <a href="https://doi.org/10.1016/j.actamat.2018.07.013">link</a> <a href="#fr-Bourdin_2018-1">↩</a></p>

@@ -6405,8 +6405,8 @@ found = locate_warp(
 </details>
 <p>The same fractional-position error curve, now for both trackers:</p>
 <div class="table-wrapper"><table><thead><tr><th>Tracker</th><th>Time (s)</th><th>Mean <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error (px)</th><th>Std <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error (px)</th><th>Max |<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span> error| (px)</th></tr></thead><tbody>
-<tr><td><code>locate_subpixel</code></td><td>1.8</td><td>-0.0110</td><td>0.1091</td><td>0.3200</td></tr>
-<tr><td><code>locate_warp</code></td><td>1.8</td><td>-0.0000</td><td>0.0080</td><td>0.0234</td></tr>
+<tr><td><code>locate_subpixel</code></td><td>2.6</td><td>-0.0110</td><td>0.1091</td><td>0.3200</td></tr>
+<tr><td><code>locate_warp</code></td><td>2.7</td><td>-0.0000</td><td>0.0080</td><td>0.0234</td></tr>
 </tbody></table>
 </div><figure id="figure-9.3-6">
     <img src="getting_started/kernel_warping_bias.png" alt="mean x error against the fractional part of true x for two trackers. locate_subpixel, circles, swings from about -0.14 to +0.12 px. locate_warp, squares, stays within about 0.01 px of zero across the whole pixel" />
@@ -7587,7 +7587,7 @@ shift. The shifts fall between 4 and 8 px along <span class="katex"><span class=
 Kernel</a> used.</p>
 <figure id="fig-sp-points">
     <img src="getting_started/seed_propagation_points.png" alt="two panels. Left: the 300 by 300 astronaut0 speckle image with a dashed white square inset 40 px from each edge, 30 orange dots scattered inside it, and one red dot at (217, 256). Right: a close-up of the deformed image around that red dot. A dashed white square marks the reference kernel centered on the dot. A dotted orange parallelogram, wider than the square and leaning right toward the bottom, shares the square's center. A solid orange copy of that parallelogram sits down and to the right, at the end of an orange arrow from the dot to a red cross" />
-    <figcaption><strong>Figure 9.4-2:</strong> Left: the 30 reference points on <code>astronaut0</code>, each at least 40 px inside the dashed square. Right: the red point under a 15% stretch and a 0.15 shear, drawn over the current image. The dashed white square is the reference kernel. The dotted orange parallelogram is that kernel deformed about the point, so its center stays put. The solid orange parallelogram adds the point's shift, (5.66, 4.94) px, and the red cross marks the true position. This point's shift sits nearest the median of the 30 shifts.</figcaption>
+    <figcaption><strong>Figure 9.4-2:</strong> Left: the 30 reference points on <code>astronaut0</code>, each at least 40 px inside the dashed square. Right: the red point under a 15% stretch and a 0.15 shear, drawn over the current image. The dashed white square is the reference kernel. The dotted orange parallelogram is that kernel deformed about the point, so its center remains stationary. The solid orange parallelogram adds the point's shift, (5.66, 4.94) px, and the red cross marks the true position. This point's shift sits nearest the median of the 30 shifts.</figcaption>
 </figure>
 <p>The sweep builds a separate current image for each point. Each image
 stretches and shears about that point as a fixed center, so the
@@ -7601,8 +7601,8 @@ comes from the rigid kernel's mismatch.</p>
 mislead.
 Kernel Warping's point at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">150</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span></span></span></span>, swept alone, failed fewer seeds
 at 20% stretch with a 0.15 shear (14 of 30 shifts) than with no shear
-(28). The 30 random points show no such dip. They fail 29 and 26 seeds at those
-two cells.</p>
+(28). The 30 random points show no such dip. At a 20% stretch, they fail 29 of 30
+seeds with a 0.15 shear, and 26 of 30 seeds with no shear.</p>
 <p>A seed fails when it lands more than 1 px from the true position. A
 correct whole-pixel match lands within a 0.71 px radius (0.5 pixel in
 the <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span>-axis, 0.5 pixel in the <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>-axis,
@@ -7650,10 +7650,25 @@ from it. The one exception lands 0.267 px off, at 25% stretch and 0.10
 shear. A miss puts the point on the wrong speckles, and
 <code>locate_warp</code>'s return value looks the same as a correct one.</p>
 <p>Across the sweep, the seed fails 1095 times. IC-GN pulls 123 of those
-seeds back to the right position. At a 0.15 shear alone, it pulls back
-6 of the 15. The other 972 failed seeds become misses. No miss starts
-from a correct seed. Every miss traces back to a failed seed, so the
-fix belongs at the seed, not in IC-GN.</p>
+seeds back to the right position. The other 972 failed seeds become
+misses.</p>
+<p>No miss starts from a correct seed, so a failed seed is a necessary
+condition for a miss. That does not show that a good seed is
+sufficient. IC-GN could still miss from a seed with the right shape
+under a large deformation.</p>
+<p>To test sufficiency, the script below reruns the 1470 fits from a seed
+that already carries the stretch and shear. Its four gradient terms
+take the true deformation. Its translation takes the true shift rounded
+to whole pixels, written <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">⋅</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mclose">]</span></span></span></span>:</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6886em;vertical-align:-0.2441em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mopen">([</span><span class="mord mathnormal">u</span><span class="mclose">]</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mopen">[</span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mclose">]</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mord">.</span></span></span></span></span></p>
+<p>The rounding keeps the translation as coarse as the rigid seed's. Only
+the four gradient terms differ from the rigid seed.</p>
+<p>Across all 1470 fits, 0 land more than 1 px from the true position. The largest error is 0.007 px.</p>
+<p>The rigid seed gave 972 misses. This seed gives none, even at a 30%
+stretch with a 0.30 shear. A good seed, with the right stretch and
+shear, <em>is</em> sufficient.</p>
+<p><strong>Every miss traces back to a failed seed, so the fix belongs at the
+seed, not in IC-GN.</strong></p>
 <h2 id="detecting-a-miss"><a class="header" href="#detecting-a-miss">Detecting a Miss</a></h2>
 <p>For each point, <code>locate_warp</code> returns only the tracked position
 <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span> in the current image, in pixels, as a <code>SubpixelCoordinate</code>.
@@ -7710,7 +7725,342 @@ after 43 iterations, 26.704 px off. Its ZNSSD of 1.3003 still flags it.</p>
 the iteration count adds nothing that ZNSSD does not already show. The
 result comes from one image, one 27x27 kernel, and a 50-iteration cap.
 Another speckle pattern could narrow the gap between 0.0995 and 0.6952.</p>
+<h2 id="propagating-the-seed"><a class="header" href="#propagating-the-seed">Propagating the Seed</a></h2>
+<p>A good seed needs the local stretch and shear. A rigid tracker does not
+know them, but an already-fitted neighbor does.
+<a href="getting_started/../api/dictk/grid.html#locate_warp_propagated"><code>dictk.grid.locate_warp_propagated</code></a>
+fits one point first, then seeds every other point from a fitted
+neighbor.</p>
+<p>The first point is the grid point nearest the image center. It has no
+fitted neighbor, so it searches over shapes instead. It tries every
+displacement gradient <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> from <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">−</span><span class="mord">0.3</span></span></span></span> to <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.3</span></span></span></span> in
+steps of 0.1, which makes <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord">7</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">4</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2401</span></span></span></span> trials. Each trial deforms the
+reference kernel and finds that kernel's whole-pixel translation by
+phase correlation, as <code>translation.locate</code> does for the rigid kernel.
+Each trial is scored by ZNSSD at that translation. IC-GN refines the 3
+best trials, and the fit with the lowest final ZNSSD becomes the first
+point's warp.</p>
+<p>Each other point starts from the warp of an already-fitted neighbor,
+one of its 8 nearest points. The four gradient terms carry over. The translation is
+extrapolated across the offset <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol">d</span></span></span></span></span></span> from the neighbor's
+reference position to this point's:</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">[</span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">u</span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">]</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">[</span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">]</span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:2.4497em;vertical-align:-0.9997em;"></span><span class="minner"><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">[</span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">]</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:-0.6983em;"><span style="top:-1.7003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.9997em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol">d</span></span></span><span class="mpunct">,</span></span></span></span></span></p>
+<p>where the subscript <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span> marks the neighbor's fitted values. Only the
+first point uses the search area. Every other point skips the
+whole-pixel search.</p>
+<p>The comparison tracks a 17x17 grid at 5 px spacing, from <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">110</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">110</span><span class="mclose">)</span></span></span></span>
+to <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">190</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">190</span><span class="mclose">)</span></span></span></span>, under all 49 combinations of stretch and shear. Each
+current image deforms about the image center, then shifts by
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">2.3</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1.6</span><span class="mclose">)</span></span></span></span> px. That makes <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">289</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">49</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">14161</span></span></span></span> fits per tracker.</p>
+<p><code>locate_warp</code> gets each point's true position, rounded, as its search
+center. Under a 30% stretch with a 0.30 shear, a point 40 px from the
+center moves 24 px, twice the 12 px of travel its search area allows.
+The rounded true positions keep every search area on the right place,
+so only the rigid seed can fail <code>locate_warp</code>.
+<code>locate_warp_propagated</code> gets no search centers:</p>
+<p><code>locate_warp</code> misses of more than 1 px, out of 289 points:</p>
+<div class="table-wrapper"><table><thead><tr><th>Stretch \ Shear</th><th>0.00</th><th>0.05</th><th>0.10</th><th>0.15</th><th>0.20</th><th>0.25</th><th>0.30</th></tr></thead><tbody>
+<tr><td>0%</td><td>0</td><td>0</td><td>26</td><td>136</td><td>238</td><td>262</td><td>280</td></tr>
+<tr><td>5%</td><td>1</td><td>2</td><td>44</td><td>184</td><td>252</td><td>278</td><td>278</td></tr>
+<tr><td>10%</td><td>31</td><td>44</td><td>91</td><td>200</td><td>257</td><td>279</td><td>281</td></tr>
+<tr><td>15%</td><td>149</td><td>173</td><td>196</td><td>233</td><td>268</td><td>282</td><td>284</td></tr>
+<tr><td>20%</td><td>242</td><td>251</td><td>265</td><td>259</td><td>272</td><td>285</td><td>284</td></tr>
+<tr><td>25%</td><td>272</td><td>277</td><td>282</td><td>279</td><td>284</td><td>287</td><td>285</td></tr>
+<tr><td>30%</td><td>280</td><td>288</td><td>284</td><td>283</td><td>282</td><td>284</td><td>287</td></tr>
+</tbody></table>
+</div><div class="table-wrapper"><table><thead><tr><th>Tracker</th><th>Misses, of 14161</th><th>Largest error (px)</th></tr></thead><tbody>
+<tr><td><code>locate_warp</code></td><td>10561</td><td>47.898</td></tr>
+<tr><td><code>locate_warp_propagated</code></td><td>0</td><td>0.009</td></tr>
+</tbody></table>
+</div>
+<p><code>locate_warp</code> misses 26 of 289 points at a 0.10 shear alone, and 31 at
+a 10% stretch alone. At a 30% stretch alone, it misses 280.
+<code>locate_warp_propagated</code> misses none of its 14161 fits, and its largest
+error is 0.009 px.</p>
+<h2 id="containing-a-bad-fit"><a class="header" href="#containing-a-bad-fit">Containing a Bad Fit</a></h2>
+<p>One wrong fit can spread, because every point it seeds starts from a
+wrong warp. <a href="getting_started/seed_propagation.html#detecting-a-miss">Detecting a Miss</a> found that ZNSSD
+separates correct fits from misses. Any threshold between 0.0995 and
+0.6952 separated all 1470 fits. <code>locate_warp_propagated</code> uses such a
+threshold as a gate, <code>znssd_limit</code>, with a default of 0.3. That value
+sits inside the gap, 3 times above 0.0995 and 2.3 times below 0.6952.
+Three rules follow from the gate:</p>
+<ul>
+<li>A fit seeds other points only if its ZNSSD is at most 0.3.</li>
+<li>The accepted point with the lowest ZNSSD seeds next. A point that
+fails the gate tries again when another accepted neighbor reaches
+it.</li>
+<li>If the first point's fit fails the gate, the start search moves to
+the next point nearest the image center, at least one kernel width
+(27 px) from every failed start. It stops after 10 failed starts in a
+row.</li>
+</ul>
+<p><code>locate_warp_propagated</code> returns each point's ZNSSD alongside its
+position. A ZNSSD above 0.3 marks a position not to trust. A point
+never fitted gets a ZNSSD of <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord">∞</span></span></span></span> and a position of NaN.</p>
+<p>The test covers a 40x40 px patch of the current image with unrelated
+speckle, under a 15% stretch with a 0.15 shear, on the same 17x17 grid.
+The patch sits at one of two corners. At <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">160</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">160</span><span class="mclose">)</span></span></span></span>, the start point
+stays clear of it. At <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">130</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">130</span><span class="mclose">)</span></span></span></span>, it hides the image center, where
+the start search begins. A point counts as inside when its kernel in
+the current image overlaps the patch. A point is bad when it lands more
+than 1 px from the true position, or is never fitted:</p>
+<div class="table-wrapper"><table><thead><tr><th>Patch corner</th><th>Gate</th><th>Points outside</th><th>Bad outside</th><th>Bad inside</th><th>Never fitted</th><th>Bad but passing the gate</th><th>Right but failing the gate</th></tr></thead><tbody>
+<tr><td>(160, 160)</td><td>off</td><td>188</td><td>0</td><td>27 of 101</td><td>0</td><td>0</td><td>62</td></tr>
+<tr><td>(160, 160)</td><td>on</td><td>188</td><td>0</td><td>66 of 101</td><td>63</td><td>0</td><td>23</td></tr>
+<tr><td>(130, 130)</td><td>off</td><td>127</td><td>127</td><td>162 of 162</td><td>0</td><td>0</td><td>0</td></tr>
+<tr><td>(130, 130)</td><td>on</td><td>127</td><td>0</td><td>91 of 162</td><td>88</td><td>0</td><td>46</td></tr>
+</tbody></table>
+</div>
+<p>With the patch over the center and no gate, all 127 points outside the
+patch go bad. The start fit lands inside the patch, and its wrong warp
+seeds every other point. With the gate, none of the 127 go bad. The
+start search moves on until a start outside the patch passes.</p>
+<p>In every row, no bad point passes the gate. Every bad position carries
+a ZNSSD above 0.3, or none at all.</p>
+<p>The gate has a cost inside the patch. With the patch off-center and no
+gate, 62 points land within 1 px of the true position, yet score above
+0.3. A kernel partly covered by the patch raises the ZNSSD of a
+correct fit. The sweep in Detecting a Miss had no such partial cover.
+With the gate on, those points stop the propagation, and 64 points
+inside the patch are never fitted. The off-center patch then leaves 66
+of its 101 inside points bad, against 27 without the gate.</p>
+<p>Two limits remain. Every point here shares one stretch and shear, so a
+neighbor's gradient terms match this point's exactly. A strain gradient
+would make the extrapolated seed less exact. The start search tries
+gradient terms only up to 0.3.</p>
 <p>Continue to <a href="getting_started/./postprocessing.html">Postprocessing</a>.</p>
+<h3 id="seed_propagation_occlusionpy"><a class="header" href="#seed_propagation_occlusionpy"><code>seed_propagation_occlusion.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
+<pre><code class="language-python">"""Can one bad region spread? Covers a 40x40 px patch of the current
+image with unrelated speckle, under a 15% stretch with a 0.15 shear,
+and tracks the 17x17 grid with `locate_warp_propagated` with its ZNSSD
+gate off (`znssd_limit=4`, the largest ZNSSD) and on (the default 0.3).
+"""
+
+import numpy as np
+from scipy.ndimage import affine_transform
+
+from dictk.grid import generate, locate_warp_propagated
+from dictk.image import PixelCoordinate, read
+from dictk.rosta import rosta
+
+CENTER = np.array([149.5, 149.5])
+SHIFT = np.array([2.3, 1.6])
+F = np.array([[1.15, 0.15], [0.0, 1.0]])
+PATCH = 40
+KERNEL_MARGIN = 13
+GATE = 0.3
+
+reference_image = read(path="astronaut0.png").astype(np.float64)
+points = generate(
+    origin=PixelCoordinate(x=110, y=110),
+    count_x=17,
+    count_y=17,
+    spacing_x=5,
+    spacing_y=5,
+)
+reference = np.array([[p.x, p.y] for p in points], dtype=np.float64)
+inverse = np.linalg.inv(F)[::-1, ::-1]
+offset = CENTER[::-1] - inverse @ (CENTER[::-1] + SHIFT[::-1])
+deformed = affine_transform(reference_image, inverse, offset=offset, order=5)
+true = CENTER + (reference - CENTER) @ F.T + SHIFT
+speckle = rosta(width=PATCH, height=PATCH, density=0.5, random_seed=7)
+speckle = speckle.astype(np.float64) * 255.0 / speckle.max()
+
+print(
+    "| Patch corner | Gate | Points outside | Bad outside | Bad inside "
+    "| Never fitted | Bad but passing the gate | Right but failing the gate |"
+)
+print("|---|---|---|---|---|---|---|---|")
+for corner in [(160, 160), (130, 130)]:
+    x0, y0 = corner
+    current_image = deformed.copy()
+    current_image[y0 : y0 + PATCH, x0 : x0 + PATCH] = speckle
+    # A point is inside when its current-image kernel overlaps the patch.
+    reach = PATCH / 2 + KERNEL_MARGIN + 0.5
+    middle = np.array([x0, y0]) + (PATCH - 1) / 2
+    inside = np.all(np.abs(true - middle) &lt; reach, axis=1)
+    for gate, limit in [("off", 4.0), ("on", GATE)]:
+        found, znssds = locate_warp_propagated(
+            reference_image=reference_image,
+            current_image=current_image,
+            reference_points=points,
+            kernel_margin_width=KERNEL_MARGIN,
+            kernel_margin_height=KERNEL_MARGIN,
+            search_margin_width=25,
+            search_margin_height=25,
+            znssd_limit=limit,
+        )
+        errors = np.linalg.norm(np.array([[f.x, f.y] for f in found]) - true, axis=1)
+        # A never-fitted point has a nan position, so it counts as bad.
+        bad = ~(errors &lt;= 1.0)
+        print(
+            f"| ({x0}, {y0}) | {gate} | {(~inside).sum()} | {bad[~inside].sum()} "
+            f"| {bad[inside].sum()} of {inside.sum()} | {np.isinf(znssds).sum()} "
+            f"| {(bad &amp; (znssds &lt;= GATE)).sum()} "
+            f"| {(~bad &amp; (znssds &gt; GATE)).sum()} |"
+        )
+</code></pre>
+</details>
+<h3 id="seed_propagation_gridpy"><a class="header" href="#seed_propagation_gridpy"><code>seed_propagation_grid.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
+<pre><code class="language-python">"""`locate_warp` against `locate_warp_propagated` on a 17x17 grid at
+5 px spacing, across the sweep's 49 stretch and shear combinations.
+
+Each current image deforms about the image center, then shifts by
+(2.3, 1.6) px. `locate_warp` gets each point's true position, rounded,
+as its search center, so its search area always contains the true
+position and only the rigid seed can fail it. `locate_warp_propagated`
+gets no search centers.
+"""
+
+import numpy as np
+from scipy.ndimage import affine_transform
+
+from dictk.grid import generate, locate_warp, locate_warp_propagated
+from dictk.image import PixelCoordinate, read
+
+STRETCHES = np.round(np.arange(0.0, 0.31, 0.05), 2)
+SHEARS = np.round(np.arange(0.0, 0.31, 0.05), 2)
+MISS_LIMIT = 1.0
+CENTER = np.array([149.5, 149.5])
+SHIFT = np.array([2.3, 1.6])
+
+reference_image = read(path="astronaut0.png").astype(np.float64)
+points = generate(
+    origin=PixelCoordinate(x=110, y=110),
+    count_x=17,
+    count_y=17,
+    spacing_x=5,
+    spacing_y=5,
+)
+reference = np.array([[p.x, p.y] for p in points], dtype=np.float64)
+margins = dict(
+    kernel_margin_width=13,
+    kernel_margin_height=13,
+    search_margin_width=25,
+    search_margin_height=25,
+)
+
+names = ["`locate_warp`", "`locate_warp_propagated`"]
+miss_counts = np.zeros((2, len(STRETCHES), len(SHEARS)), dtype=int)
+largest = np.zeros(2)
+for i, stretch in enumerate(STRETCHES):
+    for j, shear in enumerate(SHEARS):
+        F = np.array([[1.0 + stretch, shear], [0.0, 1.0]])
+        # affine_transform maps each output (row, column) back to its
+        # input position, so it takes the inverse deformation, in (y, x)
+        # order.
+        inverse = np.linalg.inv(F)[::-1, ::-1]
+        offset = CENTER[::-1] - inverse @ (CENTER[::-1] + SHIFT[::-1])
+        current_image = affine_transform(
+            reference_image, inverse, offset=offset, order=5
+        )
+        true = CENTER + (reference - CENTER) @ F.T + SHIFT
+        search_centers = [
+            PixelCoordinate(x=int(x), y=int(y)) for x, y in np.round(true)
+        ]
+        for k, (locate, extra) in enumerate(
+            [
+                (locate_warp, dict(search_centers=search_centers)),
+                (locate_warp_propagated, {}),
+            ]
+        ):
+            found = locate(
+                reference_image=reference_image,
+                current_image=current_image,
+                reference_points=points,
+                **margins,
+                **extra,
+            )
+            if locate is locate_warp_propagated:
+                found, _ = found
+            errors = np.linalg.norm(
+                np.array([[f.x, f.y] for f in found]) - true, axis=1
+            )
+            miss_counts[k, i, j] = (errors &gt; MISS_LIMIT).sum()
+            largest[k] = max(largest[k], errors.max())
+
+print(f"{names[0]} misses of more than {MISS_LIMIT:g} px, out of {len(points)} points:")
+print()
+print("| Stretch \\ Shear | " + " | ".join(f"{g:.2f}" for g in SHEARS) + " |")
+print("|---|" + "---|" * len(SHEARS))
+for stretch, row in zip(STRETCHES, miss_counts[0]):
+    print(f"| {stretch:.0%} | " + " | ".join(str(c) for c in row) + " |")
+print()
+
+fits = len(points) * len(STRETCHES) * len(SHEARS)
+print(f"| Tracker | Misses, of {fits} | Largest error (px) |")
+print("|---|---|---|")
+for name, counts, error in zip(names, miss_counts, largest):
+    print(f"| {name} | {counts.sum()} | {error:.3f} |")
+</code></pre>
+</details>
+<h3 id="seed_propagation_deformed_seedpy"><a class="header" href="#seed_propagation_deformed_seedpy"><code>seed_propagation_deformed_seed.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
+<pre><code class="language-python">"""How many misses remain when IC-GN starts from the right stretch and
+shear? Reruns the sweep's 1470 fits, seeding each from the true
+deformation with its translation rounded to whole pixels, as coarse as
+the rigid seed's.
+"""
+
+import numpy as np
+from scipy.ndimage import affine_transform
+
+from dictk import warp
+from dictk.image import PixelCoordinate, read
+
+MARGIN = 13
+SAMPLE_COUNT = 30
+STRETCHES = np.round(np.arange(0.0, 0.31, 0.05), 2)
+SHEARS = np.round(np.arange(0.0, 0.31, 0.05), 2)
+MISS_LIMIT = 1.0
+
+reference_image = read(path="astronaut0.png")
+reference_gradients = warp._gradients(reference_image)
+rng = np.random.default_rng(0)
+pivots = rng.integers(40, 261, size=(SAMPLE_COUNT, 2)).astype(np.float64)
+shifts = np.round(rng.uniform([4, 2], [8, 6], size=(SAMPLE_COUNT, 2)), 2)
+
+errors = []
+for stretch in STRETCHES:
+    for shear in SHEARS:
+        F = np.array([[1.0 + stretch, shear], [0.0, 1.0]])
+        inverse = np.linalg.inv(F)[::-1, ::-1]
+        for pivot, shift in zip(pivots, shifts):
+            point = PixelCoordinate(x=int(pivot[0]), y=int(pivot[1]))
+            offset = pivot[::-1] - inverse @ (pivot[::-1] + shift[::-1])
+            current_image = affine_transform(
+                reference_image.astype(np.float64), inverse, offset=offset, order=5
+            )
+            initial_warp = np.eye(3)
+            initial_warp[:2, :2] = F
+            initial_warp[:2, 2] = np.round(shift)
+            fitted, _, _ = warp._refine(
+                reference_image=reference_image,
+                reference_gradients=reference_gradients,
+                current_coefficients=warp._spline_coefficients(current_image),
+                reference_point=point,
+                initial_warp=initial_warp,
+                kernel_margin_width=MARGIN,
+                kernel_margin_height=MARGIN,
+                max_iterations=50,
+                tolerance=1e-6,
+            )
+            errors.append(np.hypot(*(fitted[:2, 2] - shift)))
+
+errors = np.array(errors)
+print(
+    f"Across all {errors.size} fits, {(errors &gt; MISS_LIMIT).sum()} land more than "
+    f"{MISS_LIMIT:g} px from the true position. The largest error is "
+    f"{errors.max():.3f} px."
+)
+</code></pre>
+</details>
 <h3 id="seed_propagation_qualitypy"><a class="header" href="#seed_propagation_qualitypy"><code>seed_propagation_quality.py</code></a></h3>
 <details>
 <summary>Show the code</summary>
@@ -7768,7 +8118,7 @@ for stretch in STRETCHES:
                 reference_gradients=reference_gradients,
                 current_coefficients=warp._spline_coefficients(current_image),
                 reference_point=point,
-                start=seed,
+                initial_warp=warp._translation_warp(reference_point=point, start=seed),
                 kernel_margin_width=MARGIN,
                 kernel_margin_height=MARGIN,
                 max_iterations=MAX_ITERATIONS,
@@ -9168,9 +9518,10 @@ Dislocation</a> then repeats the same
 straddling window on a real experimental crack image pair. There the
 ground truth isn't known in advance, so it checks whether the same
 signature shows up outside a synthetic setup.</p>
-<p>Neither section proposes a discontinuity-aware correlation algorithm on
-its own. <a href="getting_started/./discontinuity_localization.html">Discontinuity
-Localization</a> addresses that challenge.</p>
+<p>Neither section finds the crack on its own.
+<a href="getting_started/./discontinuity_detection.html">Detection</a> finds where a crack runs
+across the whole image. <a href="getting_started/./discontinuity_localization.html">Localization</a>
+then measures where it crosses one chosen line.</p>
 <h2 id="relation-to-heaviside-dic"><a class="header" href="#relation-to-heaviside-dic">Relation to Heaviside-DIC</a></h2>
 <p>Heaviside-DIC (H-DIC)<sup class="footnote-reference" id="fr-Bourdin_2018-1"><a href="#footnote-Bourdin_2018">1</a></sup> can represent a displacement jump
 like the crack dislocation above. For the continuous part of its
@@ -9198,9 +9549,10 @@ Newton-based method. It doesn't say whether that method uses the inverse
 compositional form.</p>
 <p>So <a href="getting_started/../api/dictk/warp.html"><code>dictk.warp</code></a> covers H-DIC's continuous
 half. The missing half is the jump and its line: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7519em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">u</span></span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7519em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span></span></span></span>,
-<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6887em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6887em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span></span></span></span></span></span></span></span>, and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6887em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span></span></span></span></span></span></span></span>. <a href="getting_started/./discontinuity_localization.html">Discontinuity
-Localization</a> finds where such a line
-crosses a chosen path.</p>
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6887em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6887em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span></span></span></span></span></span></span></span>, and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6887em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span></span></span></span></span></span></span></span>. <a href="getting_started/./discontinuity_detection.html">Detection</a>
+finds where such a line runs.
+<a href="getting_started/./discontinuity_localization.html">Localization</a> finds where it crosses
+a chosen path.</p>
 <hr>
 <ol class="footnote-definition"><li id="footnote-Bourdin_2018">
 <p>Bourdin F, Stinville JC, Echlin MP, Callahan PG, Lenthe WC, Torbet CJ, Texier D, Bridier F, Cormier J, Villechaise P, Pollock TM. Measurements of plastic localization by heaviside-digital image correlation. Acta Materialia. 2018 Sep 15;157:307-25. <a href="https://doi.org/10.1016/j.actamat.2018.07.013">link</a> <a href="#fr-Bourdin_2018-1">↩</a></p>
@@ -10462,9 +10814,8 @@ real gap between the criteria that a synthetic, noise-free image can't
 reveal.</p>
 <p><a href="getting_started/./discontinuities.html">Discontinuities</a> named the actual open problem:
 an algorithm that finds this signature on its own. Nothing here does
-that. Continue to <a href="getting_started/./discontinuity_localization.html">Discontinuity
-Localization</a>, which tries a few ways
-to build one.</p>
+that. Continue to <a href="getting_started/./discontinuity_detection.html">Detection</a>, which
+finds the crack across the whole image.</p>
 <h3 id="experimental_dislocation_quadrantpy"><a class="header" href="#experimental_dislocation_quadrantpy"><code>experimental_dislocation_quadrant.py</code></a></h3>
 <pre><code class="language-python">"""Plot the correlation surface a window straddling a real experimental
 crack produces, ZNCC and FFT side by side. The two source images are
@@ -10515,14 +10866,504 @@ phase_correlation_quadrant_plot(
 print("Saved: experimental_dislocation_zncc.png, experimental_dislocation_phase.png")
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="discontinuity-localization"><a class="header" href="#discontinuity-localization">Discontinuity Localization</a></h1>
+<h1 id="detection"><a class="header" href="#detection">Detection</a></h1>
 <p><a href="getting_started/./synthetic_dislocation.html">Synthetic Dislocation</a> and <a href="getting_started/./experimental_dislocation.html">Experimental
 Dislocation</a> both found the same
-signature: a window straddling a crack shows two comparably-tall
-correlation peaks, not one. Both stopped there. A person centered the
-window on the crack first. Neither page found the crack on its own.
-This page tries three ways to find a crack on its own, compares them,
-and ships the one that wins.</p>
+signature. A kernel that straddles a crack shows two comparably tall
+correlation peaks, not one. On both pages, a person placed the kernel
+on the crack first. This page finds the crack without that step.</p>
+<p>It tracks a full grid of points with
+<a href="getting_started/../api/dictk/grid.html#locate_warp_propagated"><code>grid.locate_warp_propagated</code></a>
+from <a href="getting_started/./seed_propagation.html">Seed Propagation</a>, then maps each point's
+ZNSSD. An affine warp can't represent a jump in displacement. No single
+warp matches both sides of a straddling kernel, so its ZNSSD can rise
+above the <code>znssd_limit</code> gate of 0.3.</p>
+<h2 id="a-synthetic-crack"><a class="header" href="#a-synthetic-crack">A Synthetic Crack</a></h2>
+<p>The test reuses Synthetic Dislocation's 300x300 image, <code>rosta</code> speckle
+combined with the astronaut. <code>crack_dislocation</code> splits it between
+pixel columns 149 and 150. The left half moves down, and the right half
+moves up. The grid holds 1849 points, 43 by 43 at 5 px spacing. It uses
+Seed Propagation's margins, <code>kernel_margin=13</code> and <code>search_margin=25</code>.
+Each kernel is 27 px wide, so a point straddles the crack when its x
+lies between 137 and 162.</p>
+<p>Two cases test the method. The on-grid case uses Synthetic
+Dislocation's 4 px offset and puts a grid column at x = 150. The
+off-grid case uses a 4.3 px offset and shifts the grid 2 px right, so
+no column lines up with the crack. A subpixel offset forces
+interpolation, so ZNSSD away from the crack no longer comes out exactly
+zero. As a baseline, <code>locate_warp</code> from <a href="getting_started/./kernel_warping.html">Kernel
+Warping</a> tracks the same grid without a gate:</p>
+<div class="table-wrapper"><table><thead><tr><th></th><th>on-grid</th><th>off-grid</th></tr></thead><tbody>
+<tr><td>Crack offset</td><td>4.0 px</td><td>4.3 px</td></tr>
+<tr><td>Points away from the crack</td><td>1634</td><td>1591</td></tr>
+<tr><td>... largest ZNSSD</td><td>0.000</td><td>0.020</td></tr>
+<tr><td>... largest error</td><td>0.000 px</td><td>0.029 px</td></tr>
+<tr><td>Points straddling the crack</td><td>215</td><td>258</td></tr>
+<tr><td>... rejected by the gate</td><td>162</td><td>165</td></tr>
+<tr><td>... of those, never fitted</td><td>53</td><td>63</td></tr>
+<tr><td>... accepted</td><td>53</td><td>93</td></tr>
+<tr><td>... largest error when accepted</td><td>0.273 px</td><td>0.300 px</td></tr>
+<tr><td>Accepted points more than 1 px off</td><td>0</td><td>0</td></tr>
+<tr><td><code>locate_warp</code> points more than 1 px off</td><td>48</td><td>44</td></tr>
+<tr><td>Column with the highest median ZNSSD</td><td>150 (0.5 px)</td><td>147 (2.5 px)</td></tr>
+</tbody></table>
+</div>
+<p>Away from the crack, every point passes the gate. The largest ZNSSD
+there is 0.020, and the largest error is 0.029 px. The gate rejects 162
+of the 215 straddling points on-grid, and 165 of 258 off-grid.</p>
+<p>The gate keeps the crack from spreading a bad fit. No accepted point
+lands more than 1 px from its true position. Without the gate,
+<code>locate_warp</code> puts 48 points more than 1 px off on-grid, and 44
+off-grid. A point that no accepted fit can reach gets its own start
+search, as Seed Propagation describes. No fit has to cross the crack.</p>
+<p>Accepted straddling points pay in accuracy. They land up to 0.300 px
+off, 10 times the 0.029 px largest error away from the crack. An affine
+warp has no term for the jump, so it settles on a compromise between
+the two sides.</p>
+<p>The ZNSSD map finds the crack without a line chosen in advance.
+<a href="getting_started/discontinuity_detection.html#fig-dd-synthetic">Figure 11.3-1</a> shows the off-grid case. The rejected points
+form one vertical band. The column with the highest median ZNSSD sits
+at x = 147, 2.5 px from the crack at x = 149.5. On-grid, it sits at
+x = 150, 0.5 px away. The off-grid crack sits midway between columns
+147 and 152, 2.5 px from each. No column could land closer.</p>
+<figure id="fig-dd-synthetic">
+    <img src="getting_started/discontinuity_detection_synthetic.png" alt="two panels over the synthetic speckle image: left, each grid point's ZNSSD as a colored square, dark purple everywhere except a vertical band of green, yellow, and red squares around x = 150; right, v at accepted points only, red on the left half and blue on the right half, with a gap where the band was" />
+    <figcaption><strong>Figure 11.3-1:</strong> The off-grid case: a 4.3 px offset, with no grid column on the crack. The dashed line marks the crack at x = 149.5. Left: each point's ZNSSD at its reference position, clipped at 1. Red points were never fitted. Right: v at accepted points only. The left half reads +4.3 px and the right half reads −4.3 px. The gap between them holds the points the gate rejected.</figcaption>
+</figure>
+<h2 id="a-real-crack"><a class="header" href="#a-real-crack">A Real Crack</a></h2>
+<p>The real test uses Experimental Dislocation's 512x512 micrograph pair.
+No ground truth exists. The crack can't be seen in the reference image.
+It shows as a diagonal band in the current image. Points also move far:
+u runs from 18 to 37 px and v from 9 to 13 px. Seed Propagation's 25 px
+search margin can't cover a 37 px motion. This test pairs a 27 px
+kernel with a 50 px search margin, and a 51 px kernel with
+Experimental Dislocation's 65 px. Both grids use 5 px spacing.</p>
+<p>Two checks stand in for ground truth. A line fit tests whether the
+rejected points form one straight band. Each row's band center is the
+mean x of its rejected points, ignoring any more than 40 px from the
+row's median. A neighbor check compares each accepted point with the
+accepted points within 10 px on the same side of that line. A point
+fails when its u or v differs from their median by more than 1 px. The
+second table measures displacement across a fainter streak, described
+below:</p>
+<div class="table-wrapper"><table><thead><tr><th></th><th><code>kernel_margin=13</code></th><th><code>kernel_margin=25</code></th></tr></thead><tbody>
+<tr><td>Kernel width</td><td>27 px</td><td>51 px</td></tr>
+<tr><td>Search margin</td><td>50 px</td><td>65 px</td></tr>
+<tr><td>Points tracked</td><td>6561</td><td>5625</td></tr>
+<tr><td>Accepted / rejected / never fitted</td><td>5981 / 278 / 302</td><td>4712 / 249 / 664</td></tr>
+<tr><td>Median ZNSSD of fitted points</td><td>0.049</td><td>0.063</td></tr>
+<tr><td>Rejected near the band / farther away</td><td>573 / 7</td><td>913 / 0</td></tr>
+<tr><td>Line fitted to the band</td><td>x = 0.596 y + 104.6</td><td>x = 0.594 y + 105.4</td></tr>
+<tr><td>Band angle from vertical</td><td>30.8°</td><td>30.7°</td></tr>
+<tr><td>RMS scatter of band centers about the line</td><td>1.83 px</td><td>1.75 px</td></tr>
+<tr><td>Median band width</td><td>35 px</td><td>60 px</td></tr>
+<tr><td>Accepted points more than 1 px from same-side neighbors (largest)</td><td>0 of 5981 (0.51 px)</td><td>0 of 4712 (0.27 px)</td></tr>
+<tr><td>Lower-left side, median u / v</td><td>19.94 / 10.65 px</td><td>20.10 / 10.74 px</td></tr>
+<tr><td>Upper-right side, median u / v</td><td>32.33 / 11.51 px</td><td>32.32 / 11.53 px</td></tr>
+</tbody></table>
+</div><div class="table-wrapper"><table><thead><tr><th>Distance from the crack line</th><th>Points</th><th>Median ZNSSD</th><th>Median u</th><th>Median v</th></tr></thead><tbody>
+<tr><td>-240 to -200 px</td><td>130</td><td>0.046</td><td>18.10 px</td><td>9.61 px</td></tr>
+<tr><td>-200 to -185 px</td><td>58</td><td>0.056</td><td>18.49 px</td><td>9.97 px</td></tr>
+<tr><td>-185 to -155 px</td><td>121</td><td>0.130</td><td>19.02 px</td><td>10.24 px</td></tr>
+<tr><td>-155 to -140 px</td><td>61</td><td>0.087</td><td>20.55 px</td><td>11.59 px</td></tr>
+<tr><td>-140 to -100 px</td><td>160</td><td>0.048</td><td>20.68 px</td><td>11.32 px</td></tr>
+</tbody></table>
+</div>
+<p>The rejected points form one straight band. With the 27 px kernel,
+573 of the 580 rejected points lie within 36 px of the fitted line.
+That line runs 30.8° from vertical. Across 81 rows, the band centers
+scatter 1.83 px RMS about it. The 51 px kernel gives a line at 30.7°,
+and all 913 of its rejected points lie within 60 px of it.</p>
+<p>The kernel sets the band's width. The median width is 35 px with the
+27 px kernel and 60 px with the 51 px kernel. The smaller kernel leaves
+580 of 6561 points without a trusted position, 8.8%. The larger one
+leaves 913 of 5625, 16.2%. The smaller kernel also rejects 7 isolated
+points away from the band. The larger kernel rejects none.</p>
+<p>The gate holds on real texture. No accepted point differs from its
+same-side neighbors by more than 1 px. The largest difference is
+0.51 px with the 27 px kernel and 0.27 px with the 51 px kernel. With
+the 27 px kernel, the lower-left side moves a median u of 19.94 px and
+the upper-right side 32.33 px. The crack opens 12.39 px in u and
+0.86 px in v.</p>
+<p><a href="getting_started/discontinuity_detection.html#fig-dd-experimental">Figure 11.3-2</a> also shows a fainter streak, parallel to
+the crack and 155 to 185 px to its lower left. Its median ZNSSD reaches
+0.130, below the 0.3 gate, so the gate rejects no point there. The
+second table measures u and v across it, over a 100 px stretch along
+the crack near the streak's middle. From the band 185 to 200 px from
+the crack to the band 140 to 155 px from it, u rises 2.06 px and v
+rises 1.62 px. Between the other adjacent bands, u changes by at most
+0.39 px and v by at most 0.36 px. The streak carries a jump in u one
+sixth the size of the crack's. This test can't tell a second, smaller
+crack from a narrow band of concentrated strain. Either way, the 0.3
+gate misses it.</p>
+<figure id="fig-dd-experimental">
+    <img src="getting_started/discontinuity_detection_experimental.png" alt="four panels of the real micrograph pair in a 2 by 2 grid: top left, the current image with a bright diagonal crack from upper left to lower right; top right, each grid point's ZNSSD as a colored square over the reference image, dark purple except a diagonal band of red and yellow squares along the crack, a dashed white fitted line through it, and a faint lighter streak parallel to it in the lower left; bottom left, u at accepted points only, blue on the lower-left side and red on the upper-right side, with a gap along the crack; bottom right, v at accepted points only, with the same gap along the crack and a sharp step along the streak in the lower left" />
+    <figcaption><strong>Figure 11.3-2:</strong> The real crack, with the 27 px kernel. Top left: the current image. Top right: each point's ZNSSD at its reference position, clipped at 1. Red points were never fitted. The dashed line is the fit to the band, x = 0.596 y + 104.6. The faint streak 155 to 185 px to its lower left stays below the 0.3 gate. Bottom left: u at accepted points only. The lower-left side moves a median 19.94 px and the upper-right side 32.33 px. Bottom right: v at accepted points only. The lower-left side moves a median 10.65 px and the upper-right side 11.51 px. v also steps along the streak, where the table above measures a 1.62 px rise.</figcaption>
+</figure>
+<h2 id="what-this-doesnt-do-1"><a class="header" href="#what-this-doesnt-do-1">What This Doesn't Do</a></h2>
+<p>Points inside the band get no trusted displacement. The band leaves a
+strip 35 to 60 px wide along the crack with no data. A straight-line
+fit also assumes one straight crack. A curved or branching crack would
+need a different fit. Both tests here use one crack each, and the real
+test has no ground truth.</p>
+<p>Continue to <a href="getting_started/./discontinuity_localization.html">Localization</a>.</p>
+<h3 id="discontinuity_detection_syntheticpy"><a class="header" href="#discontinuity_detection_syntheticpy"><code>discontinuity_detection_synthetic.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
+<pre><code class="language-python">"""Track a full grid across the synthetic crack with
+`locate_warp_propagated`, and map each point's ZNSSD. Two cases: a 4 px
+offset with a grid column on the crack, and a 4.3 px offset with the
+grid shifted 2 px so no column lines up with it. Prints one table and
+saves the off-grid case's ZNSSD and v maps.
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+import dictk
+from dictk.grid import generate, locate_warp, locate_warp_propagated
+from dictk.image import PixelCoordinate, combine, crack_dislocation
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+
+WIDTH = HEIGHT = 300
+KERNEL_MARGIN = 13
+SEARCH_MARGIN = 25
+GATE = 0.3
+CRACK_X = 149.5
+CASES = [("on-grid", 4.0, 45), ("off-grid", 4.3, 47)]
+
+reference_image = combine(
+    a=dictk.rosta(width=WIDTH, height=HEIGHT, density=0.5),
+    b=dictk.astronaut(width=WIDTH, height=HEIGHT),
+)
+margins = dict(
+    kernel_margin_width=KERNEL_MARGIN,
+    kernel_margin_height=KERNEL_MARGIN,
+    search_margin_width=SEARCH_MARGIN,
+    search_margin_height=SEARCH_MARGIN,
+)
+
+rows = {}
+for name, offset, origin_x in CASES:
+    current_image = crack_dislocation(arr=reference_image, offset=offset)
+    points = generate(
+        origin=PixelCoordinate(x=origin_x, y=45),
+        count_x=43,
+        count_y=43,
+        spacing_x=5,
+        spacing_y=5,
+    )
+    x = np.array([p.x for p in points], dtype=np.float64)
+    y = np.array([p.y for p in points], dtype=np.float64)
+    true_y = y + np.where(x &lt; CRACK_X, offset, -offset)
+    found, znssds = locate_warp_propagated(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_points=points,
+        **margins,
+    )
+    rigid_seeded = locate_warp(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_points=points,
+        **margins,
+    )
+    errors = np.hypot([f.x for f in found] - x, [f.y for f in found] - true_y)
+    rigid_errors = np.hypot(
+        [f.x for f in rigid_seeded] - x, [f.y for f in rigid_seeded] - true_y
+    )
+    # A kernel spans x - 13 to x + 13, so it straddles the crack when it
+    # holds pixels from both columns 149 and 150.
+    straddling = np.abs(x - CRACK_X) &lt; KERNEL_MARGIN + 1
+    accepted = znssds &lt;= GATE
+    columns = np.unique(x)
+    medians = [np.median(znssds[x == column]) for column in columns]
+    peak_column = columns[np.argmax(medians)]
+    rows[name] = [
+        f"{offset} px",
+        f"{(~straddling).sum()}",
+        f"{znssds[~straddling].max():.3f}",
+        f"{errors[~straddling].max():.3f} px",
+        f"{straddling.sum()}",
+        f"{(straddling &amp; ~accepted).sum()}",
+        f"{np.isinf(znssds).sum()}",
+        f"{(straddling &amp; accepted).sum()}",
+        f"{errors[straddling &amp; accepted].max():.3f} px",
+        f"{(accepted &amp; ~(errors &lt;= 1.0)).sum()}",
+        f"{(rigid_errors &gt; 1.0).sum()}",
+        f"{peak_column:.0f} ({abs(peak_column - CRACK_X):.1f} px)",
+    ]
+    if name == "off-grid":
+        map_case = (x, y, znssds, np.array([f.y for f in found]) - y, offset)
+
+labels = [
+    "Crack offset",
+    "Points away from the crack",
+    "... largest ZNSSD",
+    "... largest error",
+    "Points straddling the crack",
+    "... rejected by the gate",
+    "... of those, never fitted",
+    "... accepted",
+    "... largest error when accepted",
+    "Accepted points more than 1 px off",
+    "`locate_warp` points more than 1 px off",
+    "Column with the highest median ZNSSD",
+]
+print("| | " + " | ".join(name for name, _, _ in CASES) + " |")
+print("|---|" + "---|" * len(CASES))
+for i, label in enumerate(labels):
+    print(f"| {label} | " + " | ".join(rows[name][i] for name, _, _ in CASES) + " |")
+
+x, y, znssds, v, offset = map_case
+accepted = znssds &lt;= GATE
+fitted = np.isfinite(znssds)
+fig, (left, right) = plt.subplots(1, 2, figsize=(10.0, 4.4), constrained_layout=True)
+for axis in (left, right):
+    axis.imshow(reference_image, cmap="gray", vmin=0, vmax=255)
+    axis.axvline(CRACK_X, color="white", linestyle="--", linewidth=0.8)
+    axis.set_xlabel("x (pixels)")
+    axis.set_ylabel("y (pixels)")
+shown = left.scatter(
+    x[fitted],
+    y[fitted],
+    c=np.minimum(znssds[fitted], 1.0),
+    s=20,
+    marker="s",
+    linewidths=0,
+    cmap="viridis",
+    vmin=0.0,
+    vmax=1.0,
+)
+left.scatter(x[~fitted], y[~fitted], s=20, marker="s", linewidths=0, color="tab:red")
+fig.colorbar(shown, ax=left, label="ZNSSD (clipped at 1)")
+left.set_title("ZNSSD (red: never fitted)")
+shown = right.scatter(
+    x[accepted],
+    y[accepted],
+    c=v[accepted],
+    s=20,
+    marker="s",
+    linewidths=0,
+    cmap="coolwarm",
+    vmin=-offset,
+    vmax=offset,
+)
+fig.colorbar(shown, ax=right, label="v (pixels)")
+right.set_title(f"v, accepted points only (ZNSSD ≤ {GATE})")
+fig.savefig("discontinuity_detection_synthetic.png", dpi=300)
+</code></pre>
+</details>
+<h3 id="discontinuity_detection_experimentalpy"><a class="header" href="#discontinuity_detection_experimentalpy"><code>discontinuity_detection_experimental.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
+<pre><code class="language-python">"""Track a full grid across the real crack image pair with
+`locate_warp_propagated`, at two kernel sizes, and map each point's
+ZNSSD. Fits a line to the band of rejected points, checks each accepted
+point against its neighbors on the same side, and measures the
+displacement across a fainter streak parallel to the crack. Prints two
+tables and saves the 27 px kernel's maps.
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from dictk.grid import generate, locate_warp_propagated
+from dictk.image import PixelCoordinate, read
+
+plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
+
+SPACING = 5
+GATE = 0.3
+NEIGHBOR_REACH = 10
+# The largest rigid motion is 37 px. A 50 px search margin covers it
+# with room to spare; 65 px matches Experimental Dislocation's.
+MARGINS = [(13, 50), (25, 65)]
+# A 100 px stretch along the crack, near the middle of the streak.
+ALONG_RANGE = (250, 350)
+STREAK_BANDS = [(-240, -200), (-200, -185), (-185, -155), (-155, -140), (-140, -100)]
+
+reference_image = read(path="experimental_dislocation_reference.tiff")
+current_image = read(path="experimental_dislocation_current.tiff")
+size = reference_image.shape[0]
+
+rows = {}
+for kernel_margin, search_margin in MARGINS:
+    origin = search_margin + SPACING
+    count = (size - 2 * origin) // SPACING + 1
+    points = generate(
+        origin=PixelCoordinate(x=origin, y=origin),
+        count_x=count,
+        count_y=count,
+        spacing_x=SPACING,
+        spacing_y=SPACING,
+    )
+    found, znssds = locate_warp_propagated(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_points=points,
+        kernel_margin_width=kernel_margin,
+        kernel_margin_height=kernel_margin,
+        search_margin_width=search_margin,
+        search_margin_height=search_margin,
+    )
+    x = np.array([p.x for p in points], dtype=np.float64)
+    y = np.array([p.y for p in points], dtype=np.float64)
+    u = np.array([f.x for f in found]) - x
+    v = np.array([f.y for f in found]) - y
+    accepted = znssds &lt;= GATE
+    fitted = np.isfinite(znssds)
+
+    # Each row's band center is the mean x of its rejected points, after
+    # dropping any more than 40 px from the row's median.
+    centers, widths = [], []
+    for row in np.unique(y):
+        xs = x[(y == row) &amp; ~accepted]
+        if len(xs) &gt;= 2:
+            xs = xs[np.abs(xs - np.median(xs)) &lt; 40]
+            centers.append((row, xs.mean()))
+            widths.append(xs.max() - xs.min() + SPACING)
+    band_y, band_x = np.array(centers).T
+    slope, intercept = np.polyfit(band_y, band_x, 1)
+    scatter = np.std(band_x - (slope * band_y + intercept))
+    cosine = np.cos(np.arctan(slope))
+    across = (x - (slope * y + intercept)) * cosine
+    along = (y + slope * (x - intercept)) * cosine
+    near = np.abs(across) &lt;= 2 * kernel_margin + 10
+
+    side = np.sign(across)
+    deviations = []
+    for i in np.flatnonzero(accepted):
+        neighbors = (
+            accepted
+            &amp; (side == side[i])
+            &amp; (np.abs(x - x[i]) &lt;= NEIGHBOR_REACH)
+            &amp; (np.abs(y - y[i]) &lt;= NEIGHBOR_REACH)
+        )
+        neighbors[i] = False
+        if neighbors.sum() &gt;= 3:
+            deviations.append(
+                max(
+                    abs(u[i] - np.median(u[neighbors])),
+                    abs(v[i] - np.median(v[neighbors])),
+                )
+            )
+    deviations = np.array(deviations)
+    lower, upper = accepted &amp; (side &lt; 0), accepted &amp; (side &gt; 0)
+
+    rows[kernel_margin] = [
+        f"{2 * kernel_margin + 1} px",
+        f"{search_margin} px",
+        f"{len(points)}",
+        f"{accepted.sum()} / {(fitted &amp; ~accepted).sum()} / {(~fitted).sum()}",
+        f"{np.median(znssds[fitted]):.3f}",
+        f"{(~accepted &amp; near).sum()} / {(~accepted &amp; ~near).sum()}",
+        f"x = {slope:.3f} y + {intercept:.1f}",
+        f"{np.degrees(np.arctan(slope)):.1f}°",
+        f"{scatter:.2f} px",
+        f"{np.median(widths):.0f} px",
+        f"{(deviations &gt; 1.0).sum()} of {accepted.sum()} ({deviations.max():.2f} px)",
+        f"{np.median(u[lower]):.2f} / {np.median(v[lower]):.2f} px",
+        f"{np.median(u[upper]):.2f} / {np.median(v[upper]):.2f} px",
+    ]
+    if kernel_margin == 13:
+        map_case = (x, y, znssds, u, v, slope, intercept)
+        streak = []
+        for low, high in STREAK_BANDS:
+            band = (
+                accepted
+                &amp; (across &gt;= low)
+                &amp; (across &lt; high)
+                &amp; (along &gt; ALONG_RANGE[0])
+                &amp; (along &lt; ALONG_RANGE[1])
+            )
+            streak.append(
+                f"| {low} to {high} px | {band.sum()} | {np.median(znssds[band]):.3f} "
+                f"| {np.median(u[band]):.2f} px | {np.median(v[band]):.2f} px |"
+            )
+
+labels = [
+    "Kernel width",
+    "Search margin",
+    "Points tracked",
+    "Accepted / rejected / never fitted",
+    "Median ZNSSD of fitted points",
+    "Rejected near the band / farther away",
+    "Line fitted to the band",
+    "Band angle from vertical",
+    "RMS scatter of band centers about the line",
+    "Median band width",
+    "Accepted points more than 1 px from same-side neighbors (largest)",
+    "Lower-left side, median u / v",
+    "Upper-right side, median u / v",
+]
+print("| | " + " | ".join(f"`kernel_margin={k}`" for k, _ in MARGINS) + " |")
+print("|---|" + "---|" * len(MARGINS))
+for i, label in enumerate(labels):
+    print(f"| {label} | " + " | ".join(rows[k][i] for k, _ in MARGINS) + " |")
+print()
+print("| Distance from the crack line | Points | Median ZNSSD | Median u | Median v |")
+print("|---|---|---|---|---|")
+print("\n".join(streak))
+
+x, y, znssds, u, v, slope, intercept = map_case
+accepted = znssds &lt;= GATE
+fitted = np.isfinite(znssds)
+line_y = np.array([y.min(), y.max()])
+fig, axes = plt.subplots(2, 2, figsize=(10.5, 9.0), constrained_layout=True)
+(current_axis, znssd_axis), (u_axis, v_axis) = axes
+current_axis.imshow(current_image, cmap="gray", vmin=0, vmax=255)
+current_axis.set_title("Current image")
+for axis in (znssd_axis, u_axis, v_axis):
+    axis.imshow(reference_image, cmap="gray", vmin=0, vmax=255)
+shown = znssd_axis.scatter(
+    x[fitted],
+    y[fitted],
+    c=np.minimum(znssds[fitted], 1.0),
+    s=8,
+    marker="s",
+    linewidths=0,
+    cmap="viridis",
+    vmin=0.0,
+    vmax=1.0,
+)
+znssd_axis.scatter(
+    x[~fitted], y[~fitted], s=8, marker="s", linewidths=0, color="tab:red"
+)
+znssd_axis.plot(
+    slope * line_y + intercept, line_y, color="white", linestyle="--", linewidth=0.8
+)
+fig.colorbar(shown, ax=znssd_axis, label="ZNSSD (clipped at 1)")
+znssd_axis.set_title("ZNSSD (red: never fitted)")
+for axis, values, name in ((u_axis, u, "u"), (v_axis, v, "v")):
+    shown = axis.scatter(
+        x[accepted],
+        y[accepted],
+        c=values[accepted],
+        s=8,
+        marker="s",
+        linewidths=0,
+        cmap="coolwarm",
+    )
+    fig.colorbar(shown, ax=axis, label=f"{name} (pixels)")
+    axis.set_title(f"{name}, accepted points only (ZNSSD ≤ {GATE})")
+for axis in axes.flat:
+    axis.set_xlabel("x (pixels)")
+    axis.set_ylabel("y (pixels)")
+    axis.set_xlim(0, size)
+    axis.set_ylim(size, 0)
+fig.savefig("discontinuity_detection_experimental.png", dpi=300)
+</code></pre>
+</details>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="localization"><a class="header" href="#localization">Localization</a></h1>
+<p><a href="getting_started/./discontinuity_detection.html">Detection</a> found where a crack runs,
+but only to within a band. On the synthetic crack, its best column
+landed 2.5 px from the crack. On the real crack, the band was 35 px
+wide with a 27 px kernel. This page measures where a crack crosses one chosen line, to a
+fraction of a pixel. It tries three ways, compares them, and ships the
+one that wins.</p>
 <h2 id="a-naive-baseline-grid-anomaly"><a class="header" href="#a-naive-baseline-grid-anomaly">A Naive Baseline: Grid Anomaly</a></h2>
 <p>The cheapest thing to try uses no new code at all. Run standard,
 single-peak DIC across the crack with
@@ -10556,9 +11397,9 @@ Error vs. known x=150: 5.0px
 
 Saved: discontinuity_localization_baseline.png
 </code></pre>
-<figure id="figure-11.3-1">
+<figure id="figure-11.4-1">
     <img src="getting_started/discontinuity_localization_baseline.png" alt="step plot of recovered y-displacement vs grid point x: a flat line at +4 pixels for x=100 through 140, then a sharp step down to -4 pixels for x=150 through 200, with the estimated crossing at x=145 marked slightly left of the true crack at x=150" />
-    <figcaption><strong>Figure 11.3-1:</strong> Recovered y-displacement at 11 grid points, spaced 10 pixels apart. The jump between x=140 and x=150 is unmistakable: +4 pixels on one side, -4 on the other. The midpoint between them, x=145, lands 5 pixels from the true crack at x=150. That's half the grid spacing: exactly the resolution this approach can offer, no better.</figcaption>
+    <figcaption><strong>Figure 11.4-1:</strong> Recovered y-displacement at 11 grid points, spaced 10 pixels apart. The jump between x=140 and x=150 is unmistakable: +4 pixels on one side, -4 on the other. The midpoint between them, x=145, lands 5 pixels from the true crack at x=150. That's half the grid spacing: exactly the resolution this approach can offer, no better.</figcaption>
 </figure>
 <p>It works, in the sense that it flags roughly the right neighborhood.
 It's also a proxy, not a measurement of the thing itself. Nothing here
@@ -10612,9 +11453,9 @@ already swept by hand:</p>
 Located crack position: x=149.804
 Error vs. known x=150: 0.196px</p>
 <p>Saved: discontinuity_localization_sweep.png</p>
-<figure id="figure-11.3-2">
+<figure id="figure-11.4-2">
     <img src="getting_started/discontinuity_localization_sweep.png" alt="line plot of peak_ratio vs window center x from 100 to 200, rising from 0 at x=130 to a sharp peak near 1.0 at x=150, then falling and settling into a fluctuating 0.2-0.3 band past x=170" />
-    <figcaption><strong>Figure 11.3-2:</strong> peak_ratio vs. window center x. A single, sharp maximum at x=149.8, subpixel-refined from a 101-point sweep. The known crack sits at x=150, 0.2 pixels away. Past x=170, peak_ratio settles into the same 0.2-0.3 band Synthetic Dislocation's own sweep already found and attributed to the underlying image content on that side, not the crack.</figcaption>
+    <figcaption><strong>Figure 11.4-2:</strong> peak_ratio vs. window center x. A single, sharp maximum at x=149.8, subpixel-refined from a 101-point sweep. The known crack sits at x=150, 0.2 pixels away. Past x=170, peak_ratio settles into the same 0.2-0.3 band Synthetic Dislocation's own sweep already found and attributed to the underlying image content on that side, not the crack.</figcaption>
 </figure>
 <p>101 evaluations, one per swept position, land 0.2 pixels from the known
 crack. No offset, no hand-picked center. The sweep finds the crossing
@@ -10635,9 +11476,9 @@ Error vs. known x=150: 0.251px</p>
 </tbody></table>
 </div>
 <p>Saved: discontinuity_localization_bisection.png</p>
-<figure id="figure-11.3-3">
+<figure id="figure-11.4-3">
     <img src="getting_started/discontinuity_localization_bisection.png" alt="the same peak_ratio curve as the dense sweep figure, with red x markers showing golden-section search's 12 sampled points clustered tightly around the true peak at x=150" />
-    <figcaption><strong>Figure 11.3-3:</strong> Golden-section search's own 12 sampled points, against the dense sweep's full curve for reference. All 12 cluster near the true maximum. The search needed no help finding it.</figcaption>
+    <figcaption><strong>Figure 11.4-3:</strong> Golden-section search's own 12 sampled points, against the dense sweep's full curve for reference. All 12 cluster near the true maximum. The search needed no help finding it.</figcaption>
 </figure>
 <p>12 evaluations instead of 101, landing 0.25 pixels from the known crack.
 That's barely worse than the dense sweep, for roughly a tenth of the
@@ -10657,9 +11498,9 @@ golden-section, bracket (150, 300): x=217.25, evaluations=13
 golden-section, bracket (100, 350): x=308.11, evaluations=14</p>
 <p>The tight and moderate brackets land within 1px of the dense sweep's own answer. The wide bracket -- the one that assumes no prior knowledge of roughly where the crack is -- converges instead to a smaller, secondary peak_ratio bump far from the real crack, confidently and silently.
 Saved: discontinuity_localization_experimental.png</p>
-<figure id="figure-11.3-4">
+<figure id="figure-11.4-4">
     <img src="getting_started/discontinuity_localization_experimental.png" alt="line plot of peak_ratio vs window center x from 100 to 350 on real data: a tall sharp peak near x=219, plus three smaller, shorter bumps around x=130, x=300-315, and x=325-340" />
-    <figcaption><strong>Figure 11.3-4:</strong> peak_ratio across a wide real-data range. One peak clearly stands above the rest, at x=218.7, 0.7 pixels from Experimental Dislocation's own by-eye x=218. Three smaller bumps sit elsewhere in the image, each shorter than the real crack's peak, but not by a wide margin.</figcaption>
+    <figcaption><strong>Figure 11.4-4:</strong> peak_ratio across a wide real-data range. One peak clearly stands above the rest, at x=218.7, 0.7 pixels from Experimental Dislocation's own by-eye x=218. Three smaller bumps sit elsewhere in the image, each shorter than the real crack's peak, but not by a wide margin.</figcaption>
 </figure>
 <p>The dense sweep's global maximum lands within a pixel of the known
 location, no matter how wide a range it searches. Golden-section search
@@ -10667,8 +11508,14 @@ does too, but only at the two brackets already narrowed toward the
 crack. Given the full, uncommitted range, it converges instead to the
 bump near <code>x=308</code>, over 90 pixels from the real crack, confidently and
 silently. A fast local search only works once you already roughly know
-where to look. That's most of the problem this page set out to solve
-in the first place.</p>
+where to look.</p>
+<p>Detection's fitted lines give a second estimate at the same row. At
+y = 186, its line x = 0.596 y + 104.6 for the 27 px kernel gives
+x = 215.5. Its line x = 0.594 y + 105.4 for the 51 px kernel gives
+x = 215.9. The dense sweep's 218.7 sits 3.2 px and 2.8 px to the right
+of them. No ground truth decides which is closer. Each line fits a
+band center from every row of its grid, while the sweep measures this
+one row.</p>
 <h2 id="declaring-a-winner"><a class="header" href="#declaring-a-winner">Declaring a Winner</a></h2>
 <p>The dense sweep, with subpixel parabolic refinement, ships as
 <a href="getting_started/../api/dictk/discontinuity.html"><code>dictk.discontinuity</code></a>. It needs no
@@ -10685,12 +11532,17 @@ at the cost of needing the answer roughly in hand before it can find it.</p>
 </tbody></table>
 </div>
 <h2 id="what-this-still-doesnt-do"><a class="header" href="#what-this-still-doesnt-do">What This Still Doesn't Do</a></h2>
-<p>This locates a crossing along one already-chosen line, not a
-discontinuity anywhere in a 2D field. Something still has to decide
-where to sweep. And a located position still isn't consumed by
-anything: <a href="getting_started/./path_forward.html#postponed">Path Forward</a>'s Heaviside
-DIC/XFEM item asked for detection and localization, not a finite-element
-formulation that acts on the result. That half stays open.</p>
+<p>This locates a crossing along one chosen line. Detection's band now
+says where to sweep, but this page sweeps only one row. Sweeping every
+row through the band would turn Detection's band into a subpixel crack
+path. That hasn't been tried. Neither has golden-section search inside
+a bracket taken from Detection's band. On the synthetic crack,
+golden-section search needed 12 evaluations against the dense sweep's
+101.</p>
+<p>A located position still isn't consumed by anything. <a href="getting_started/./path_forward.html#postponed">Path
+Forward</a>'s Heaviside DIC/XFEM item asked
+for detection and localization, not a finite-element formulation that
+acts on the result. That half stays open.</p>
 <p>Continue to <a href="getting_started/./parallelization.html">Parallelization</a>.
 <a href="getting_started/./path_forward.html">Path Forward</a> records where this leaves the
 discontinuity work.</p>
@@ -14095,17 +14947,25 @@ and real data, no human-centered window required. What's still not
 started: consuming a located discontinuity in an actual
 Heaviside-enriched finite-element formulation. That's XFEM's own side
 of this, untouched by anything above.</li>
-<li><strong><code>grid.locate()</code> windowing demo.</strong> <code>windowing</code> has only ever been
-demonstrated directly on
-<a href="getting_started/../api/dictk/correlation.html#phase_correlation"><code>dictk.correlation.phase_correlation</code></a>
-(see <a href="getting_started/./correlation_visualization.html#phase-correlation">Correlation
-Visualization</a>).
-Every
-<code>grid.locate()</code> call across the book so far (Multi-Point Motion,
-Simple Stretch, Recoverable Displacement Range, Pure Rotation,
-Parallelization) leaves <code>windowing</code> at its default <code>None</code> — the one
-parameter of <code>grid.locate</code>'s own signature with no live worked
-example yet.</li>
+<li><strong>Windowing in the whole-pixel stage.</strong> Every whole-pixel match
+defaults to <code>windowing=None</code>. That covers <code>translation.locate</code>,
+<code>grid.locate</code>, <code>grid.locate_subpixel</code>, and the seed stage of
+<code>grid.locate_warp</code>. <code>grid.locate_warp_propagated</code> has no <code>windowing</code>
+parameter, and its seed search never windows. No page in this book
+passes <code>windowing</code> to any of them. On <a href="getting_started/./kernel_warping.html">Kernel
+Warping</a>'s own setup, Hann windowing shifts the
+results by at most 0.015 px. That setup tracks 2862 points on
+<code>astronaut0.png</code> under a 2% stretch, with <code>kernel_margin=13</code> and
+<code>search_margin=25</code>. With and without Hann, 0 points miss by more than
+1 px. Hann moves <code>grid.locate</code>'s x-error standard deviation from
+0.300 px to 0.298 px, and its mean from −0.014 px to −0.029 px.
+<code>grid.locate_warp</code> stays at 0.008 px either way. A second setup does
+show a gap. It uses the 512×512 <code>image.astronaut()</code>, 81 points spaced
+39 px apart, <code>kernel_margin=15</code>, <code>search_margin=25</code>, and a whole-pixel
+translation of (7, −5) px. Without windowing, <code>grid.locate</code> misses 28
+of 81 points by more than 1 px. With Hann, it misses 2. We have not
+yet found the cause. Still open: explain that gap, and decide whether
+<code>grid.locate_warp_propagated</code> needs a <code>windowing</code> parameter.</li>
 <li><strong>Strain-window bias on a strain gradient.</strong> Every strain-window
 test so far uses a uniform 2% stretch. Its third derivative <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7519em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7519em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′′′</span></span></span></span></span></span></span></span></span></span></span></span> is
 zero, so a curved strain field never biases the fitted slope.
@@ -14114,15 +14974,30 @@ the window's bias on a sine wave only. A synthetic field with a known
 <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7519em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7519em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′′′</span></span></span></span></span></span></span></span></span></span></span></span> would measure the bias from curvature. It would
 also locate the window size that minimizes the mean squared error,
 variance plus squared bias.</li>
-<li><strong>A deformation-aware seed for <code>warp.fit</code>.</strong> IC-GN starts from
-<code>translation.locate</code>'s whole-pixel match, and that match uses a
-rigid, unwarped kernel. On a fine speckle pattern, a 10% stretch plus
-shear put that starting point 20 px off. IC-GN then converged to a
-wrong warp with no error raised. Two remedies are worth testing.
-Seeding each point from a neighbor's fitted warp would start IC-GN
-with the local stretch already included. A ZNSSD threshold would flag
-a fit that converged to the wrong place. This pairs with the dynamic search-window sizing
-direction above.</li>
+<li><strong>Seed propagation under a strain gradient.</strong> <a href="getting_started/./seed_propagation.html">Seed
+Propagation</a> tested <code>locate_warp_propagated</code>
+only under one uniform stretch and shear, where a neighbor's gradient
+terms match each point's exactly. A strain gradient would make each
+extrapolated seed less exact. A synthetic field with a known gradient
+would measure how much.</li>
+<li><strong><code>rosta</code> alone fails subpixel tracking tests.</strong> On a <code>rosta</code> image
+without the astronaut photo, <code>warp.locate</code> missed one point by 13 to
+25 px under a 2% stretch with a fractional shift, at two image sizes
+and two kernel sizes. <code>astronaut0</code> tracks the same case to within
+0.01 px. The cause is not known. A repeating speckle pattern would
+give phase correlation several equal peaks.</li>
+<li><strong>A faint streak passes the ZNSSD gate.</strong> On the real crack pair,
+<a href="getting_started/./discontinuity_detection.html#a-real-crack">Detection</a> found a streak
+parallel to the crack, 155 to 185 px to its lower left. Across it, u
+rises 2.06 px and v rises 1.62 px. Between neighboring bands on
+either side, u changes by at most 0.39 px and v by at most 0.36 px.
+The streak's median ZNSSD is 0.130, so the 0.3 gate rejects no point
+there. Points that straddle the crack's 12.39 px jump in u fail the
+same gate. Two open
+questions remain. Is the streak a second, smaller crack or a narrow
+band of concentrated strain? Would a lower gate, or a check on the
+jump in u and v between neighbors, flag it without rejecting correct
+fits elsewhere?</li>
 </ul>
 <h2 id="2026-08-18"><a class="header" href="#2026-08-18">2026-08-18</a></h2>
 <p><strong>Pure Rotation: The First Sweep.</strong> New page, <a href="getting_started/./pure_rotation.html">Pure
@@ -14564,6 +15439,61 @@ reach at least 0.6952. Any threshold between the two flags all 972
 misses and none of the 498 correct fits. The iteration count
 misclassifies 5 fits, and ZNSSD flags every miss it catches. That
 result covers one image and one 27x27 kernel. 444 tests (441 + 3).</p>
+<p><strong>A seed with the right shape removes every miss.</strong> <code>warp._refine</code> now
+starts from a full 3x3 warp, not a whole-pixel point. <a href="getting_started/./seed_propagation.html#where-the-seed-breaks">Where the Seed
+Breaks</a> now reruns the 1470 sweep fits from the true stretch and shear,
+with the translation rounded to whole pixels. The rigid seed gave 972
+misses. This seed gives 0, up to a 30% stretch with a 0.30 shear, with
+a largest error of 0.007 px. Neighbor seeding comes next. 445 tests
+(444 + 1).</p>
+<p><strong>Neighbor seeding ships.</strong> New function
+<code>dictk.grid.locate_warp_propagated</code>. Its first point searches 2401
+trial shapes, gradient terms from <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">−</span><span class="mord">0.3</span></span></span></span> to <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.3</span></span></span></span> in steps of 0.1, and
+keeps the lowest-ZNSSD fit. Every other point starts from a fitted
+neighbor's warp. A rigid seed at the first point sank every other
+point, because the first fit spreads to the whole grid. On a 17x17 grid
+across the 49 stretch and shear combinations, <code>locate_warp</code> misses
+10561 of 14161 fits, even with true search centers.
+<code>locate_warp_propagated</code> misses none. Fits are not yet checked by ZNSSD
+before they spread. 459 tests (445 + 14).</p>
+<p><strong>A ZNSSD gate contains a bad fit.</strong> <code>locate_warp_propagated</code> now
+returns each point's ZNSSD with its position. A fit seeds other points
+only if its ZNSSD is at most <code>znssd_limit</code>, default 0.3. The best
+accepted fit seeds next, and a failed start moves to another point. A
+40x40 px patch of unrelated speckle over the image center sank all 127
+points outside it without the gate, and none with it. No bad position
+passed the gate. Partial cover raised 62 correct fits above 0.3, so the
+gate leaves more points inside the patch unfitted. The Postponed
+deformation-aware seed item leaves Postponed. Two new items replace it.
+463 tests (459 + 4).</p>
+<h2 id="2026-10-29"><a class="header" href="#2026-10-29">2026-10-29</a></h2>
+<p><strong>The windowing item gets a new scope.</strong> The old Postponed item asked
+only for a <code>grid.locate</code> example with <code>windowing</code>. Four more trackers
+now share the same <code>windowing=None</code> default, and
+<code>grid.locate_warp_propagated</code> has no <code>windowing</code> parameter at all. A
+rerun of Kernel Warping's 2862 points with Hann windowing shifted the
+results by at most 0.015 px, with 0 misses either way. A separate
+81-point run on the 512×512 <code>image.astronaut()</code> missed 28 points
+without windowing and 2 with Hann. The default stays <code>None</code>. Switching
+it would change numbers quoted on every page from Single Point Motion
+onward, for a 0.002 px drop in <code>grid.locate</code>'s x-error standard
+deviation. The Postponed item now records both runs and asks why the
+second one fails. No code changed. Tests are unchanged at 463.</p>
+<p><strong>Detection ships, and Discontinuities reorders.</strong> New page
+<a href="getting_started/./discontinuity_detection.html">Detection</a> (11.3) maps the ZNSSD that
+<code>grid.locate_warp_propagated</code> returns for each point across a crack. On
+the synthetic crack with a 4 px offset, the gate rejects 162 of 215
+straddling points. No accepted point lands more than 1 px off, while
+<code>locate_warp</code> without a gate misses 48. On the real pair, the rejected
+points form one band at 30.8° from vertical. Its band centers scatter
+1.83 px RMS about a fitted line. A fainter parallel streak carries a
+2.06 px jump in u, but its median ZNSSD of 0.130 stays under the 0.3
+gate. Discontinuity Localization moves from 11.3 to 11.4. Both pages
+drop "Discontinuity" from their titles. Localization's opening now
+starts from Detection's band. Its real-data section compares the
+band's line, x = 215.5 at y = 186, with the sweep's 218.7. A new
+Postponed item records the streak. No library code changed. Tests are
+unchanged at 463.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="contributing-to-dictk"><a class="header" href="#contributing-to-dictk">Contributing to <code>dictk</code></a></h1>
 <p><code>dictk</code> is developed on <a href="https://github.com/hovey/dictk">GitHub</a> using

@@ -14,27 +14,42 @@
 produce this report and the README's pylint score badge. See
 <a href="https://github.com/hovey/dictk/blob/main/CONTRIBUTING.md#running-pylint-informational">CONTRIBUTING.md</a>.</p>
 <pre>************* Module dictk.grid
-src/dictk/grid.py:203:0: C0301: Line too long (118/100) (line-too-long)
-src/dictk/grid.py:33:0: R0913: Too many arguments (8/5) (too-many-arguments)
-src/dictk/grid.py:65:0: R0913: Too many arguments (9/5) (too-many-arguments)
-src/dictk/grid.py:95:0: R0913: Too many arguments (12/5) (too-many-arguments)
-src/dictk/grid.py:95:0: R0914: Too many local variables (18/15) (too-many-locals)
-src/dictk/grid.py:126:34: W0212: Access to a protected member _refine of a client class (protected-access)
-src/dictk/grid.py:252:0: R0913: Too many arguments (11/5) (too-many-arguments)
-src/dictk/grid.py:368:0: R0913: Too many arguments (12/5) (too-many-arguments)
-src/dictk/grid.py:478:0: R0913: Too many arguments (13/5) (too-many-arguments)
-src/dictk/grid.py:478:0: R0914: Too many local variables (16/15) (too-many-locals)
-src/dictk/grid.py:561:28: W0212: Access to a protected member _gradients of a client class (protected-access)
-src/dictk/grid.py:562:29: W0212: Access to a protected member _spline_coefficients of a client class (protected-access)
+src/dictk/grid.py:220:0: C0301: Line too long (118/100) (line-too-long)
+src/dictk/grid.py:48:0: R0913: Too many arguments (8/5) (too-many-arguments)
+src/dictk/grid.py:80:0: R0913: Too many arguments (9/5) (too-many-arguments)
+src/dictk/grid.py:110:0: R0913: Too many arguments (12/5) (too-many-arguments)
+src/dictk/grid.py:110:0: R0914: Too many local variables (18/15) (too-many-locals)
+src/dictk/grid.py:141:34: W0212: Access to a protected member _refine of a client class (protected-access)
+src/dictk/grid.py:146:21: W0212: Access to a protected member _translation_warp of a client class (protected-access)
+src/dictk/grid.py:269:0: R0913: Too many arguments (11/5) (too-many-arguments)
+src/dictk/grid.py:385:0: R0913: Too many arguments (12/5) (too-many-arguments)
+src/dictk/grid.py:495:0: R0913: Too many arguments (13/5) (too-many-arguments)
+src/dictk/grid.py:495:0: R0914: Too many local variables (16/15) (too-many-locals)
+src/dictk/grid.py:578:28: W0212: Access to a protected member _gradients of a client class (protected-access)
+src/dictk/grid.py:579:29: W0212: Access to a protected member _spline_coefficients of a client class (protected-access)
+src/dictk/grid.py:598:0: R0913: Too many arguments (12/5) (too-many-arguments)
+src/dictk/grid.py:598:0: R0914: Too many local variables (40/15) (too-many-locals)
+src/dictk/grid.py:742:26: W0212: Access to a protected member _gradients of a client class (protected-access)
+src/dictk/grid.py:743:29: W0212: Access to a protected member _spline_coefficients of a client class (protected-access)
+src/dictk/grid.py:744:27: W0212: Access to a protected member _spline_coefficients of a client class (protected-access)
+src/dictk/grid.py:747:15: W0212: Access to a protected member _refine of a client class (protected-access)
+src/dictk/grid.py:806:16: W0212: Access to a protected member _shape_seeds of a client class (protected-access)
+src/dictk/grid.py:598:0: R0912: Too many branches (18/12) (too-many-branches)
+src/dictk/grid.py:598:0: R0915: Too many statements (74/50) (too-many-statements)
 ************* Module dictk.cli
 src/dictk/cli.py:20:0: R0913: Too many arguments (6/5) (too-many-arguments)
 src/dictk/cli.py:20:0: R0917: Too many positional arguments (6/5) (too-many-positional-arguments)
 ************* Module dictk.warp
-src/dictk/warp.py:24:0: R0913: Too many arguments (9/5) (too-many-arguments)
-src/dictk/warp.py:24:0: R0914: Too many local variables (30/15) (too-many-locals)
-src/dictk/warp.py:50:13: E1101: Instance of &#x27;tuple&#x27; has no &#x27;astype&#x27; member (no-member)
-src/dictk/warp.py:98:0: R0913: Too many arguments (11/5) (too-many-arguments)
-src/dictk/warp.py:211:0: R0913: Too many arguments (11/5) (too-many-arguments)
+src/dictk/warp.py:38:0: R0913: Too many arguments (11/5) (too-many-arguments)
+src/dictk/warp.py:38:0: R0914: Too many local variables (41/15) (too-many-locals)
+src/dictk/warp.py:63:13: E1101: Instance of &#x27;tuple&#x27; has no &#x27;astype&#x27; member (no-member)
+src/dictk/warp.py:95:49: E1101: Instance of &#x27;finfo&#x27; has no &#x27;eps&#x27; member (no-member)
+src/dictk/warp.py:97:4: W0632: Possible unbalanced tuple unpacking with sequence defined at line 2 of : left side has 2 labels, right side has 1 value (unbalanced-tuple-unpacking)
+src/dictk/warp.py:131:0: R0913: Too many arguments (9/5) (too-many-arguments)
+src/dictk/warp.py:131:0: R0914: Too many local variables (30/15) (too-many-locals)
+src/dictk/warp.py:158:13: E1101: Instance of &#x27;tuple&#x27; has no &#x27;astype&#x27; member (no-member)
+src/dictk/warp.py:200:0: R0913: Too many arguments (11/5) (too-many-arguments)
+src/dictk/warp.py:313:0: R0913: Too many arguments (11/5) (too-many-arguments)
 ************* Module dictk.rosta
 src/dictk/rosta.py:99:0: R0913: Too many arguments (6/5) (too-many-arguments)
 ************* Module dictk.discontinuity
@@ -93,7 +108,7 @@ src/dictk/correlation.py:46:0: C0301: Line too long (140/100) (line-too-long)
 src/dictk/correlation.py:493:10: E1101: Instance of &#x27;finfo&#x27; has no &#x27;eps&#x27; member (no-member)
 src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
 ==dictk.discontinuity:[103:179]
-==dictk.translation:[94:109]
+==dictk.grid:[702:716]
     if kernel_margin_width &lt; 1:
         raise ValueError(f&quot;kernel_margin_width {kernel_margin_width} must be &gt;= 1&quot;)
     if kernel_margin_height &lt; 1:
@@ -107,11 +122,10 @@ src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
         raise ValueError(
             f&quot;search_margin_height {search_margin_height} must be greater than &quot;
             f&quot;kernel_margin_height {kernel_margin_height}&quot;
-        )
- (duplicate-code)
+        ) (duplicate-code)
 src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
-==dictk.grid:[114:125]
-==dictk.warp:[185:196]
+==dictk.grid:[129:140]
+==dictk.warp:[287:298]
     start = translation.locate(
         reference_image=reference_image,
         current_image=current_image,
@@ -124,8 +138,8 @@ src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
         windowing=windowing,
     ) (duplicate-code)
 src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
-==dictk.grid:[52:79]
-==dictk.warp:[186:196]
+==dictk.grid:[67:94]
+==dictk.warp:[288:298]
         reference_image=reference_image,
         current_image=current_image,
         reference_point=reference_point,
@@ -154,8 +168,8 @@ def _locate_subpixel_worker(
     `_locate_worker`&#x27;s own docstring for why this is a module-level
     function taking a single positional argument, not a closure.&quot;&quot;&quot; (duplicate-code)
 src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
-==dictk.grid:[52:61]
-==dictk.warp:[240:249]
+==dictk.grid:[67:76]
+==dictk.warp:[342:351]
         reference_image=reference_image,
         current_image=current_image,
         reference_point=reference_point,
@@ -166,8 +180,8 @@ src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
         search_margin_height=search_margin_height,
         windowing=windowing, (duplicate-code)
 src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
-==dictk.grid:[81:90]
-==dictk.warp:[186:195]
+==dictk.grid:[96:105]
+==dictk.warp:[288:297]
         reference_image=reference_image,
         current_image=current_image,
         reference_point=reference_point,
@@ -178,8 +192,8 @@ src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
         search_margin_height=search_margin_height,
         windowing=windowing, (duplicate-code)
 src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
-==dictk.grid:[562:570]
-==dictk.warp:[244:252]
+==dictk.grid:[579:587]
+==dictk.warp:[346:354]
         kernel_margin_width=kernel_margin_width,
         kernel_margin_height=kernel_margin_height,
         search_margin_width=search_margin_width,
@@ -189,18 +203,8 @@ src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
         tolerance=tolerance,
     ) (duplicate-code)
 src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
-==dictk.grid:[129:136]
-==dictk.warp:[200:207]
-        reference_point=reference_point,
-        start=start,
-        kernel_margin_width=kernel_margin_width,
-        kernel_margin_height=kernel_margin_height,
-        max_iterations=max_iterations,
-        tolerance=tolerance,
-    ) (duplicate-code)
-src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
-==dictk.grid:[354:360]
-==dictk.warp:[190:196]
+==dictk.grid:[371:377]
+==dictk.warp:[292:298]
         kernel_margin_width=kernel_margin_width,
         kernel_margin_height=kernel_margin_height,
         search_margin_width=search_margin_width,
@@ -208,16 +212,16 @@ src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
         windowing=windowing,
     ) (duplicate-code)
 src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
-==dictk.grid:[354:359]
-==dictk.warp:[244:249]
+==dictk.grid:[371:376]
+==dictk.warp:[346:351]
         kernel_margin_width=kernel_margin_width,
         kernel_margin_height=kernel_margin_height,
         search_margin_width=search_margin_width,
         search_margin_height=search_margin_height,
         windowing=windowing, (duplicate-code)
 src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
-==dictk.grid:[463:468]
-==dictk.warp:[190:195]
+==dictk.grid:[480:485]
+==dictk.warp:[292:297]
         kernel_margin_width=kernel_margin_width,
         kernel_margin_height=kernel_margin_height,
         search_margin_width=search_margin_width,
@@ -225,7 +229,7 @@ src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
         windowing=windowing, (duplicate-code)
 src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
 ==dictk.discontinuity:[314:319]
-==dictk.grid:[56:61]
+==dictk.grid:[71:76]
         kernel_margin_width=kernel_margin_width,
         kernel_margin_height=kernel_margin_height,
         search_margin_width=search_margin_width,
@@ -244,7 +248,7 @@ src/dictk/correlation.py:1:0: R0801: Similar lines in 2 files
 
 Report
 ======
-1134 statements analysed.
+1268 statements analysed.
 
 Statistics by type
 ------------------
@@ -258,7 +262,7 @@ Statistics by type
 +---------+-------+-----------+-----------+------------+---------+
 |method   |1      |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
-|function |95     |NC         |NC         |100.00      |0.00     |
+|function |101    |NC         |NC         |100.00      |0.00     |
 +---------+-------+-----------+-----------+------------+---------+
 
 
@@ -280,12 +284,13 @@ External dependencies
       \-interpolate (dictk.image)
       \-ndimage (dictk.image,dictk.rosta,dictk.warp)
       \-signal (dictk.discontinuity)
+      \-spatial (dictk.grid)
     skimage 
       \-registration (dictk.translation)
 
 
 
-5700 lines have been analyzed
+6057 lines have been analyzed
 
 Raw metrics
 -----------
@@ -293,13 +298,13 @@ Raw metrics
 +----------+-------+------+---------+-----------+
 |type      |number |%     |previous |difference |
 +==========+=======+======+=========+===========+
-|code      |2435   |42.72 |NC       |NC         |
+|code      |2653   |43.80 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|docstring |2654   |46.56 |NC       |NC         |
+|docstring |2759   |45.55 |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|comment   |187    |3.28  |NC       |NC         |
+|comment   |200    |3.30  |NC       |NC         |
 +----------+-------+------+---------+-----------+
-|empty     |424    |7.44  |NC       |NC         |
+|empty     |445    |7.35  |NC       |NC         |
 +----------+-------+------+---------+-----------+
 
 
@@ -325,11 +330,11 @@ Messages by category
 +===========+=======+=========+===========+
 |convention |12     |NC       |NC         |
 +-----------+-------+---------+-----------+
-|refactor   |58     |NC       |NC         |
+|refactor   |63     |NC       |NC         |
 +-----------+-------+---------+-----------+
-|warning    |8      |NC       |NC         |
+|warning    |15     |NC       |NC         |
 +-----------+-------+---------+-----------+
-|error      |3      |NC       |NC         |
+|error      |5      |NC       |NC         |
 +-----------+-------+---------+-----------+
 
 
@@ -340,23 +345,23 @@ Messages by category
 +--------------------+------+--------+---------+-----------+
 |module              |error |warning |refactor |convention |
 +====================+======+========+=========+===========+
-|dictk.correlation   |33.33 |0.00    |20.69    |8.33       |
+|dictk.warp          |60.00 |6.67    |9.52     |0.00       |
 +--------------------+------+--------+---------+-----------+
-|dictk.warp          |33.33 |0.00    |6.90     |0.00       |
+|dictk.correlation   |20.00 |0.00    |17.46    |8.33       |
 +--------------------+------+--------+---------+-----------+
-|dictk.translation   |33.33 |0.00    |6.90     |0.00       |
+|dictk.translation   |20.00 |0.00    |6.35     |0.00       |
 +--------------------+------+--------+---------+-----------+
-|dictk.element       |0.00  |50.00   |0.00     |33.33      |
+|dictk.grid          |0.00  |60.00   |19.05    |8.33       |
 +--------------------+------+--------+---------+-----------+
-|dictk.grid          |0.00  |37.50   |13.79    |8.33       |
+|dictk.element       |0.00  |26.67   |0.00     |33.33      |
 +--------------------+------+--------+---------+-----------+
-|dictk.plot          |0.00  |12.50   |37.93    |25.00      |
+|dictk.plot          |0.00  |6.67    |34.92    |25.00      |
 +--------------------+------+--------+---------+-----------+
-|dictk.discontinuity |0.00  |0.00    |8.62     |25.00      |
+|dictk.discontinuity |0.00  |0.00    |7.94     |25.00      |
 +--------------------+------+--------+---------+-----------+
-|dictk.cli           |0.00  |0.00    |3.45     |0.00       |
+|dictk.cli           |0.00  |0.00    |3.17     |0.00       |
 +--------------------+------+--------+---------+-----------+
-|dictk.rosta         |0.00  |0.00    |1.72     |0.00       |
+|dictk.rosta         |0.00  |0.00    |1.59     |0.00       |
 +--------------------+------+--------+---------+-----------+
 
 
@@ -367,27 +372,29 @@ Messages
 +------------------------------+------------+
 |message id                    |occurrences |
 +==============================+============+
-|too-many-arguments            |26          |
+|too-many-arguments            |28          |
 +------------------------------+------------+
-|too-many-locals               |16          |
-+------------------------------+------------+
-|duplicate-code                |12          |
+|too-many-locals               |18          |
 +------------------------------+------------+
 |line-too-long                 |11          |
 +------------------------------+------------+
+|duplicate-code                |11          |
++------------------------------+------------+
+|protected-access              |9           |
++------------------------------+------------+
 |redefined-outer-name          |4           |
 +------------------------------+------------+
-|protected-access              |3           |
+|no-member                     |4           |
 +------------------------------+------------+
-|too-many-statements           |2           |
+|too-many-statements           |3           |
 +------------------------------+------------+
-|no-member                     |2           |
-+------------------------------+------------+
-|unbalanced-tuple-unpacking    |1           |
+|unbalanced-tuple-unpacking    |2           |
 +------------------------------+------------+
 |too-many-positional-arguments |1           |
 +------------------------------+------------+
 |too-many-lines                |1           |
++------------------------------+------------+
+|too-many-branches             |1           |
 +------------------------------+------------+
 |no-name-in-module             |1           |
 +------------------------------+------------+
@@ -398,7 +405,7 @@ Messages
 
 
 -----------------------------------
-Your code has been rated at 9.18/10
+Your code has been rated at 9.09/10
 </pre>
 </body>
 </html>

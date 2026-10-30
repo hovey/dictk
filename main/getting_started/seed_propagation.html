@@ -229,7 +229,7 @@ shift. The shifts fall between 4 and 8 px along <span class="katex"><span class=
 Kernel</a> used.</p>
 <figure id="fig-sp-points">
     <img src="seed_propagation_points.png" alt="two panels. Left: the 300 by 300 astronaut0 speckle image with a dashed white square inset 40 px from each edge, 30 orange dots scattered inside it, and one red dot at (217, 256). Right: a close-up of the deformed image around that red dot. A dashed white square marks the reference kernel centered on the dot. A dotted orange parallelogram, wider than the square and leaning right toward the bottom, shares the square's center. A solid orange copy of that parallelogram sits down and to the right, at the end of an orange arrow from the dot to a red cross" />
-    <figcaption><strong>Figure 9.4-2:</strong> Left: the 30 reference points on <code>astronaut0</code>, each at least 40 px inside the dashed square. Right: the red point under a 15% stretch and a 0.15 shear, drawn over the current image. The dashed white square is the reference kernel. The dotted orange parallelogram is that kernel deformed about the point, so its center stays put. The solid orange parallelogram adds the point's shift, (5.66, 4.94) px, and the red cross marks the true position. This point's shift sits nearest the median of the 30 shifts.</figcaption>
+    <figcaption><strong>Figure 9.4-2:</strong> Left: the 30 reference points on <code>astronaut0</code>, each at least 40 px inside the dashed square. Right: the red point under a 15% stretch and a 0.15 shear, drawn over the current image. The dashed white square is the reference kernel. The dotted orange parallelogram is that kernel deformed about the point, so its center remains stationary. The solid orange parallelogram adds the point's shift, (5.66, 4.94) px, and the red cross marks the true position. This point's shift sits nearest the median of the 30 shifts.</figcaption>
 </figure>
 <p>The sweep builds a separate current image for each point. Each image
 stretches and shears about that point as a fixed center, so the
@@ -243,8 +243,8 @@ comes from the rigid kernel's mismatch.</p>
 mislead.
 Kernel Warping's point at <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">150</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">150</span><span class="mclose">)</span></span></span></span>, swept alone, failed fewer seeds
 at 20% stretch with a 0.15 shear (14 of 30 shifts) than with no shear
-(28). The 30 random points show no such dip. They fail 29 and 26 seeds at those
-two cells.</p>
+(28). The 30 random points show no such dip. At a 20% stretch, they fail 29 of 30
+seeds with a 0.15 shear, and 26 of 30 seeds with no shear.</p>
 <p>A seed fails when it lands more than 1 px from the true position. A
 correct whole-pixel match lands within a 0.71 px radius (0.5 pixel in
 the <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">x</span></span></span></span>-axis, 0.5 pixel in the <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span></span></span></span>-axis,
@@ -292,10 +292,25 @@ from it. The one exception lands 0.267 px off, at 25% stretch and 0.10
 shear. A miss puts the point on the wrong speckles, and
 <code>locate_warp</code>'s return value looks the same as a correct one.</p>
 <p>Across the sweep, the seed fails 1095 times. IC-GN pulls 123 of those
-seeds back to the right position. At a 0.15 shear alone, it pulls back
-6 of the 15. The other 972 failed seeds become misses. No miss starts
-from a correct seed. Every miss traces back to a failed seed, so the
-fix belongs at the seed, not in IC-GN.</p>
+seeds back to the right position. The other 972 failed seeds become
+misses.</p>
+<p>No miss starts from a correct seed, so a failed seed is a necessary
+condition for a miss. That does not show that a good seed is
+sufficient. IC-GN could still miss from a seed with the right shape
+under a large deformation.</p>
+<p>To test sufficiency, the script below reruns the 1470 fits from a seed
+that already carries the stretch and shear. Its four gradient terms
+take the true deformation. Its translation takes the true shift rounded
+to whole pixels, written <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">[</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">⋅</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mclose">]</span></span></span></span>:</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6886em;vertical-align:-0.2441em;"></span><span class="mord"><span class="mord"><span class="mord"><span class="mord boldsymbol">p</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.207em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2441em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mopen">([</span><span class="mord mathnormal">u</span><span class="mclose">]</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mopen">[</span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mclose">]</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mord">.</span></span></span></span></span></p>
+<p>The rounding keeps the translation as coarse as the rigid seed's. Only
+the four gradient terms differ from the rigid seed.</p>
+<p>Across all 1470 fits, 0 land more than 1 px from the true position. The largest error is 0.007 px.</p>
+<p>The rigid seed gave 972 misses. This seed gives none, even at a 30%
+stretch with a 0.30 shear. A good seed, with the right stretch and
+shear, <em>is</em> sufficient.</p>
+<p><strong>Every miss traces back to a failed seed, so the fix belongs at the
+seed, not in IC-GN.</strong></p>
 <h2 id="detecting-a-miss"><a class="header" href="#detecting-a-miss">Detecting a Miss</a></h2>
 <p>For each point, <code>locate_warp</code> returns only the tracked position
 <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mclose">)</span></span></span></span> in the current image, in pixels, as a <code>SubpixelCoordinate</code>.
@@ -352,7 +367,342 @@ after 43 iterations, 26.704 px off. Its ZNSSD of 1.3003 still flags it.</p>
 the iteration count adds nothing that ZNSSD does not already show. The
 result comes from one image, one 27x27 kernel, and a 50-iteration cap.
 Another speckle pattern could narrow the gap between 0.0995 and 0.6952.</p>
+<h2 id="propagating-the-seed"><a class="header" href="#propagating-the-seed">Propagating the Seed</a></h2>
+<p>A good seed needs the local stretch and shear. A rigid tracker does not
+know them, but an already-fitted neighbor does.
+<a href="../api/dictk/grid.html#locate_warp_propagated"><code>dictk.grid.locate_warp_propagated</code></a>
+fits one point first, then seeds every other point from a fitted
+neighbor.</p>
+<p>The first point is the grid point nearest the image center. It has no
+fitted neighbor, so it searches over shapes instead. It tries every
+displacement gradient <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> from <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">−</span><span class="mord">0.3</span></span></span></span> to <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.3</span></span></span></span> in
+steps of 0.1, which makes <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord">7</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">4</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">2401</span></span></span></span> trials. Each trial deforms the
+reference kernel and finds that kernel's whole-pixel translation by
+phase correlation, as <code>translation.locate</code> does for the rigid kernel.
+Each trial is scored by ZNSSD at that translation. IC-GN refines the 3
+best trials, and the fit with the lowest final ZNSSD becomes the first
+point's warp.</p>
+<p>Each other point starts from the warp of an already-fitted neighbor,
+one of its 8 nearest points. The four gradient terms carry over. The translation is
+extrapolated across the offset <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol">d</span></span></span></span></span></span> from the neighbor's
+reference position to this point's:</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">[</span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">u</span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">]</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">[</span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">]</span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:2.4497em;vertical-align:-0.9997em;"></span><span class="minner"><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">[</span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span><span style="top:-2.41em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.95em;"><span></span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">]</span></span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:-0.6983em;"><span style="top:-1.7003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.9997em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol">d</span></span></span><span class="mpunct">,</span></span></span></span></span></p>
+<p>where the subscript <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span> marks the neighbor's fitted values. Only the
+first point uses the search area. Every other point skips the
+whole-pixel search.</p>
+<p>The comparison tracks a 17x17 grid at 5 px spacing, from <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">110</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">110</span><span class="mclose">)</span></span></span></span>
+to <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">190</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">190</span><span class="mclose">)</span></span></span></span>, under all 49 combinations of stretch and shear. Each
+current image deforms about the image center, then shifts by
+<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">2.3</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">1.6</span><span class="mclose">)</span></span></span></span> px. That makes <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">289</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">49</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">14161</span></span></span></span> fits per tracker.</p>
+<p><code>locate_warp</code> gets each point's true position, rounded, as its search
+center. Under a 30% stretch with a 0.30 shear, a point 40 px from the
+center moves 24 px, twice the 12 px of travel its search area allows.
+The rounded true positions keep every search area on the right place,
+so only the rigid seed can fail <code>locate_warp</code>.
+<code>locate_warp_propagated</code> gets no search centers:</p>
+<p><code>locate_warp</code> misses of more than 1 px, out of 289 points:</p>
+<div class="table-wrapper"><table><thead><tr><th>Stretch \ Shear</th><th>0.00</th><th>0.05</th><th>0.10</th><th>0.15</th><th>0.20</th><th>0.25</th><th>0.30</th></tr></thead><tbody>
+<tr><td>0%</td><td>0</td><td>0</td><td>26</td><td>136</td><td>238</td><td>262</td><td>280</td></tr>
+<tr><td>5%</td><td>1</td><td>2</td><td>44</td><td>184</td><td>252</td><td>278</td><td>278</td></tr>
+<tr><td>10%</td><td>31</td><td>44</td><td>91</td><td>200</td><td>257</td><td>279</td><td>281</td></tr>
+<tr><td>15%</td><td>149</td><td>173</td><td>196</td><td>233</td><td>268</td><td>282</td><td>284</td></tr>
+<tr><td>20%</td><td>242</td><td>251</td><td>265</td><td>259</td><td>272</td><td>285</td><td>284</td></tr>
+<tr><td>25%</td><td>272</td><td>277</td><td>282</td><td>279</td><td>284</td><td>287</td><td>285</td></tr>
+<tr><td>30%</td><td>280</td><td>288</td><td>284</td><td>283</td><td>282</td><td>284</td><td>287</td></tr>
+</tbody></table>
+</div><div class="table-wrapper"><table><thead><tr><th>Tracker</th><th>Misses, of 14161</th><th>Largest error (px)</th></tr></thead><tbody>
+<tr><td><code>locate_warp</code></td><td>10561</td><td>47.898</td></tr>
+<tr><td><code>locate_warp_propagated</code></td><td>0</td><td>0.009</td></tr>
+</tbody></table>
+</div>
+<p><code>locate_warp</code> misses 26 of 289 points at a 0.10 shear alone, and 31 at
+a 10% stretch alone. At a 30% stretch alone, it misses 280.
+<code>locate_warp_propagated</code> misses none of its 14161 fits, and its largest
+error is 0.009 px.</p>
+<h2 id="containing-a-bad-fit"><a class="header" href="#containing-a-bad-fit">Containing a Bad Fit</a></h2>
+<p>One wrong fit can spread, because every point it seeds starts from a
+wrong warp. <a href="#detecting-a-miss">Detecting a Miss</a> found that ZNSSD
+separates correct fits from misses. Any threshold between 0.0995 and
+0.6952 separated all 1470 fits. <code>locate_warp_propagated</code> uses such a
+threshold as a gate, <code>znssd_limit</code>, with a default of 0.3. That value
+sits inside the gap, 3 times above 0.0995 and 2.3 times below 0.6952.
+Three rules follow from the gate:</p>
+<ul>
+<li>A fit seeds other points only if its ZNSSD is at most 0.3.</li>
+<li>The accepted point with the lowest ZNSSD seeds next. A point that
+fails the gate tries again when another accepted neighbor reaches
+it.</li>
+<li>If the first point's fit fails the gate, the start search moves to
+the next point nearest the image center, at least one kernel width
+(27 px) from every failed start. It stops after 10 failed starts in a
+row.</li>
+</ul>
+<p><code>locate_warp_propagated</code> returns each point's ZNSSD alongside its
+position. A ZNSSD above 0.3 marks a position not to trust. A point
+never fitted gets a ZNSSD of <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord">∞</span></span></span></span> and a position of NaN.</p>
+<p>The test covers a 40x40 px patch of the current image with unrelated
+speckle, under a 15% stretch with a 0.15 shear, on the same 17x17 grid.
+The patch sits at one of two corners. At <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">160</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">160</span><span class="mclose">)</span></span></span></span>, the start point
+stays clear of it. At <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">130</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">130</span><span class="mclose">)</span></span></span></span>, it hides the image center, where
+the start search begins. A point counts as inside when its kernel in
+the current image overlaps the patch. A point is bad when it lands more
+than 1 px from the true position, or is never fitted:</p>
+<div class="table-wrapper"><table><thead><tr><th>Patch corner</th><th>Gate</th><th>Points outside</th><th>Bad outside</th><th>Bad inside</th><th>Never fitted</th><th>Bad but passing the gate</th><th>Right but failing the gate</th></tr></thead><tbody>
+<tr><td>(160, 160)</td><td>off</td><td>188</td><td>0</td><td>27 of 101</td><td>0</td><td>0</td><td>62</td></tr>
+<tr><td>(160, 160)</td><td>on</td><td>188</td><td>0</td><td>66 of 101</td><td>63</td><td>0</td><td>23</td></tr>
+<tr><td>(130, 130)</td><td>off</td><td>127</td><td>127</td><td>162 of 162</td><td>0</td><td>0</td><td>0</td></tr>
+<tr><td>(130, 130)</td><td>on</td><td>127</td><td>0</td><td>91 of 162</td><td>88</td><td>0</td><td>46</td></tr>
+</tbody></table>
+</div>
+<p>With the patch over the center and no gate, all 127 points outside the
+patch go bad. The start fit lands inside the patch, and its wrong warp
+seeds every other point. With the gate, none of the 127 go bad. The
+start search moves on until a start outside the patch passes.</p>
+<p>In every row, no bad point passes the gate. Every bad position carries
+a ZNSSD above 0.3, or none at all.</p>
+<p>The gate has a cost inside the patch. With the patch off-center and no
+gate, 62 points land within 1 px of the true position, yet score above
+0.3. A kernel partly covered by the patch raises the ZNSSD of a
+correct fit. The sweep in Detecting a Miss had no such partial cover.
+With the gate on, those points stop the propagation, and 64 points
+inside the patch are never fitted. The off-center patch then leaves 66
+of its 101 inside points bad, against 27 without the gate.</p>
+<p>Two limits remain. Every point here shares one stretch and shear, so a
+neighbor's gradient terms match this point's exactly. A strain gradient
+would make the extrapolated seed less exact. The start search tries
+gradient terms only up to 0.3.</p>
 <p>Continue to <a href="./postprocessing.html">Postprocessing</a>.</p>
+<h3 id="seed_propagation_occlusionpy"><a class="header" href="#seed_propagation_occlusionpy"><code>seed_propagation_occlusion.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
+<pre><code class="language-python">"""Can one bad region spread? Covers a 40x40 px patch of the current
+image with unrelated speckle, under a 15% stretch with a 0.15 shear,
+and tracks the 17x17 grid with `locate_warp_propagated` with its ZNSSD
+gate off (`znssd_limit=4`, the largest ZNSSD) and on (the default 0.3).
+"""
+
+import numpy as np
+from scipy.ndimage import affine_transform
+
+from dictk.grid import generate, locate_warp_propagated
+from dictk.image import PixelCoordinate, read
+from dictk.rosta import rosta
+
+CENTER = np.array([149.5, 149.5])
+SHIFT = np.array([2.3, 1.6])
+F = np.array([[1.15, 0.15], [0.0, 1.0]])
+PATCH = 40
+KERNEL_MARGIN = 13
+GATE = 0.3
+
+reference_image = read(path="astronaut0.png").astype(np.float64)
+points = generate(
+    origin=PixelCoordinate(x=110, y=110),
+    count_x=17,
+    count_y=17,
+    spacing_x=5,
+    spacing_y=5,
+)
+reference = np.array([[p.x, p.y] for p in points], dtype=np.float64)
+inverse = np.linalg.inv(F)[::-1, ::-1]
+offset = CENTER[::-1] - inverse @ (CENTER[::-1] + SHIFT[::-1])
+deformed = affine_transform(reference_image, inverse, offset=offset, order=5)
+true = CENTER + (reference - CENTER) @ F.T + SHIFT
+speckle = rosta(width=PATCH, height=PATCH, density=0.5, random_seed=7)
+speckle = speckle.astype(np.float64) * 255.0 / speckle.max()
+
+print(
+    "| Patch corner | Gate | Points outside | Bad outside | Bad inside "
+    "| Never fitted | Bad but passing the gate | Right but failing the gate |"
+)
+print("|---|---|---|---|---|---|---|---|")
+for corner in [(160, 160), (130, 130)]:
+    x0, y0 = corner
+    current_image = deformed.copy()
+    current_image[y0 : y0 + PATCH, x0 : x0 + PATCH] = speckle
+    # A point is inside when its current-image kernel overlaps the patch.
+    reach = PATCH / 2 + KERNEL_MARGIN + 0.5
+    middle = np.array([x0, y0]) + (PATCH - 1) / 2
+    inside = np.all(np.abs(true - middle) &lt; reach, axis=1)
+    for gate, limit in [("off", 4.0), ("on", GATE)]:
+        found, znssds = locate_warp_propagated(
+            reference_image=reference_image,
+            current_image=current_image,
+            reference_points=points,
+            kernel_margin_width=KERNEL_MARGIN,
+            kernel_margin_height=KERNEL_MARGIN,
+            search_margin_width=25,
+            search_margin_height=25,
+            znssd_limit=limit,
+        )
+        errors = np.linalg.norm(np.array([[f.x, f.y] for f in found]) - true, axis=1)
+        # A never-fitted point has a nan position, so it counts as bad.
+        bad = ~(errors &lt;= 1.0)
+        print(
+            f"| ({x0}, {y0}) | {gate} | {(~inside).sum()} | {bad[~inside].sum()} "
+            f"| {bad[inside].sum()} of {inside.sum()} | {np.isinf(znssds).sum()} "
+            f"| {(bad &amp; (znssds &lt;= GATE)).sum()} "
+            f"| {(~bad &amp; (znssds &gt; GATE)).sum()} |"
+        )
+</code></pre>
+</details>
+<h3 id="seed_propagation_gridpy"><a class="header" href="#seed_propagation_gridpy"><code>seed_propagation_grid.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
+<pre><code class="language-python">"""`locate_warp` against `locate_warp_propagated` on a 17x17 grid at
+5 px spacing, across the sweep's 49 stretch and shear combinations.
+
+Each current image deforms about the image center, then shifts by
+(2.3, 1.6) px. `locate_warp` gets each point's true position, rounded,
+as its search center, so its search area always contains the true
+position and only the rigid seed can fail it. `locate_warp_propagated`
+gets no search centers.
+"""
+
+import numpy as np
+from scipy.ndimage import affine_transform
+
+from dictk.grid import generate, locate_warp, locate_warp_propagated
+from dictk.image import PixelCoordinate, read
+
+STRETCHES = np.round(np.arange(0.0, 0.31, 0.05), 2)
+SHEARS = np.round(np.arange(0.0, 0.31, 0.05), 2)
+MISS_LIMIT = 1.0
+CENTER = np.array([149.5, 149.5])
+SHIFT = np.array([2.3, 1.6])
+
+reference_image = read(path="astronaut0.png").astype(np.float64)
+points = generate(
+    origin=PixelCoordinate(x=110, y=110),
+    count_x=17,
+    count_y=17,
+    spacing_x=5,
+    spacing_y=5,
+)
+reference = np.array([[p.x, p.y] for p in points], dtype=np.float64)
+margins = dict(
+    kernel_margin_width=13,
+    kernel_margin_height=13,
+    search_margin_width=25,
+    search_margin_height=25,
+)
+
+names = ["`locate_warp`", "`locate_warp_propagated`"]
+miss_counts = np.zeros((2, len(STRETCHES), len(SHEARS)), dtype=int)
+largest = np.zeros(2)
+for i, stretch in enumerate(STRETCHES):
+    for j, shear in enumerate(SHEARS):
+        F = np.array([[1.0 + stretch, shear], [0.0, 1.0]])
+        # affine_transform maps each output (row, column) back to its
+        # input position, so it takes the inverse deformation, in (y, x)
+        # order.
+        inverse = np.linalg.inv(F)[::-1, ::-1]
+        offset = CENTER[::-1] - inverse @ (CENTER[::-1] + SHIFT[::-1])
+        current_image = affine_transform(
+            reference_image, inverse, offset=offset, order=5
+        )
+        true = CENTER + (reference - CENTER) @ F.T + SHIFT
+        search_centers = [
+            PixelCoordinate(x=int(x), y=int(y)) for x, y in np.round(true)
+        ]
+        for k, (locate, extra) in enumerate(
+            [
+                (locate_warp, dict(search_centers=search_centers)),
+                (locate_warp_propagated, {}),
+            ]
+        ):
+            found = locate(
+                reference_image=reference_image,
+                current_image=current_image,
+                reference_points=points,
+                **margins,
+                **extra,
+            )
+            if locate is locate_warp_propagated:
+                found, _ = found
+            errors = np.linalg.norm(
+                np.array([[f.x, f.y] for f in found]) - true, axis=1
+            )
+            miss_counts[k, i, j] = (errors &gt; MISS_LIMIT).sum()
+            largest[k] = max(largest[k], errors.max())
+
+print(f"{names[0]} misses of more than {MISS_LIMIT:g} px, out of {len(points)} points:")
+print()
+print("| Stretch \\ Shear | " + " | ".join(f"{g:.2f}" for g in SHEARS) + " |")
+print("|---|" + "---|" * len(SHEARS))
+for stretch, row in zip(STRETCHES, miss_counts[0]):
+    print(f"| {stretch:.0%} | " + " | ".join(str(c) for c in row) + " |")
+print()
+
+fits = len(points) * len(STRETCHES) * len(SHEARS)
+print(f"| Tracker | Misses, of {fits} | Largest error (px) |")
+print("|---|---|---|")
+for name, counts, error in zip(names, miss_counts, largest):
+    print(f"| {name} | {counts.sum()} | {error:.3f} |")
+</code></pre>
+</details>
+<h3 id="seed_propagation_deformed_seedpy"><a class="header" href="#seed_propagation_deformed_seedpy"><code>seed_propagation_deformed_seed.py</code></a></h3>
+<details>
+<summary>Show the code</summary>
+<pre><code class="language-python">"""How many misses remain when IC-GN starts from the right stretch and
+shear? Reruns the sweep's 1470 fits, seeding each from the true
+deformation with its translation rounded to whole pixels, as coarse as
+the rigid seed's.
+"""
+
+import numpy as np
+from scipy.ndimage import affine_transform
+
+from dictk import warp
+from dictk.image import PixelCoordinate, read
+
+MARGIN = 13
+SAMPLE_COUNT = 30
+STRETCHES = np.round(np.arange(0.0, 0.31, 0.05), 2)
+SHEARS = np.round(np.arange(0.0, 0.31, 0.05), 2)
+MISS_LIMIT = 1.0
+
+reference_image = read(path="astronaut0.png")
+reference_gradients = warp._gradients(reference_image)
+rng = np.random.default_rng(0)
+pivots = rng.integers(40, 261, size=(SAMPLE_COUNT, 2)).astype(np.float64)
+shifts = np.round(rng.uniform([4, 2], [8, 6], size=(SAMPLE_COUNT, 2)), 2)
+
+errors = []
+for stretch in STRETCHES:
+    for shear in SHEARS:
+        F = np.array([[1.0 + stretch, shear], [0.0, 1.0]])
+        inverse = np.linalg.inv(F)[::-1, ::-1]
+        for pivot, shift in zip(pivots, shifts):
+            point = PixelCoordinate(x=int(pivot[0]), y=int(pivot[1]))
+            offset = pivot[::-1] - inverse @ (pivot[::-1] + shift[::-1])
+            current_image = affine_transform(
+                reference_image.astype(np.float64), inverse, offset=offset, order=5
+            )
+            initial_warp = np.eye(3)
+            initial_warp[:2, :2] = F
+            initial_warp[:2, 2] = np.round(shift)
+            fitted, _, _ = warp._refine(
+                reference_image=reference_image,
+                reference_gradients=reference_gradients,
+                current_coefficients=warp._spline_coefficients(current_image),
+                reference_point=point,
+                initial_warp=initial_warp,
+                kernel_margin_width=MARGIN,
+                kernel_margin_height=MARGIN,
+                max_iterations=50,
+                tolerance=1e-6,
+            )
+            errors.append(np.hypot(*(fitted[:2, 2] - shift)))
+
+errors = np.array(errors)
+print(
+    f"Across all {errors.size} fits, {(errors &gt; MISS_LIMIT).sum()} land more than "
+    f"{MISS_LIMIT:g} px from the true position. The largest error is "
+    f"{errors.max():.3f} px."
+)
+</code></pre>
+</details>
 <h3 id="seed_propagation_qualitypy"><a class="header" href="#seed_propagation_qualitypy"><code>seed_propagation_quality.py</code></a></h3>
 <details>
 <summary>Show the code</summary>
@@ -410,7 +760,7 @@ for stretch in STRETCHES:
                 reference_gradients=reference_gradients,
                 current_coefficients=warp._spline_coefficients(current_image),
                 reference_point=point,
-                start=seed,
+                initial_warp=warp._translation_warp(reference_point=point, start=seed),
                 kernel_margin_width=MARGIN,
                 kernel_margin_height=MARGIN,
                 max_iterations=MAX_ITERATIONS,
