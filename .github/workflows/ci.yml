@@ -37,6 +37,17 @@ jobs:
       - name: Run ruff lint check
         run: uv run ruff check
 
+      - name: Check user guide and docstring page links
+        # mdbook and pdoc both build with a broken relative link, so a
+        # moved page or a wrong ../ depth only shows up as a dead link
+        # on the published site. link_check.py resolves each relative
+        # link in the book and in src/dictk's docstrings against the
+        # published layout (book at the root, pdoc under api/) and
+        # exits 1 on any missing target. --pages-only skips figures and
+        # data files, which exist only after mdbook build; the docs job
+        # checks those after its build.
+        run: uv run python docs/userguide/link_check.py --pages-only
+
       - name: Run pytest with coverage
         run: uv run pytest --cov=src/dictk --cov-report=xml --cov-report=html --junitxml=junit.xml
 
@@ -161,6 +172,12 @@ jobs:
         # build-dir = "docs/userguide/book") so this runs from the repo
         # root, same as a contributor's `mdbook build`.
         run: uv run mdbook build
+
+      - name: Check every user guide link, figures included
+        # mdbook build has now run every cmdrun script, so each generated
+        # figure and data file exists. See the test job's --pages-only
+        # step for the page links.
+        run: uv run python docs/userguide/link_check.py
 
       - name: Build API docs
         # Bare `pdoc dictk` discovers every submodule on its own -- see

@@ -50,7 +50,7 @@ def locate(
     still be found correctly -- the recoverable range is symmetric,
     bounded only by the search margins themselves, not by
     `kernel_margin_width`/`kernel_margin_height`. See [Recoverable
-    Displacement Range](../getting_started/recoverable_displacement_range.html)
+    Displacement Range](../../getting_started/recoverable_displacement_range.html)
     for why that's worth stating explicitly: an earlier version of this
     function had a real, silent bug here -- it recovered a displacement
     in the negative direction up to the full search margin, but capped
@@ -151,7 +151,7 @@ def locate(
     # search_margin is set. Centering kernel's content in the padded array
     # instead makes the safe range symmetric in both directions -- see
     # [Recoverable Displacement
-    # Range](../getting_started/recoverable_displacement_range.html) for the
+    # Range](../../getting_started/recoverable_displacement_range.html) for the
     # derivation and how this was found.
     kernel, search = _window(kernel=kernel, search=search, windowing=windowing)
     kernel_padded, pad_before_height, pad_before_width = _kernel_pad(
@@ -229,7 +229,7 @@ def locate_subpixel(
     displacement genuinely isn't an integer (a stretch's own resampling
     can easily make this true even for an otherwise-integer-pixel
     target -- see [Subpixel
-    Accuracy](../getting_started/subpixel_accuracy.html)), no amount of
+    Accuracy](../../prediction_improvement/subpixel_accuracy.html)), no amount of
     refinement makes `locate`'s truncated answer correct, because
     `locate`'s question ("which integer pixel?") isn't the right one to
     ask anymore. What subpixel refinement *does* reliably improve is how
@@ -261,7 +261,7 @@ def locate_subpixel(
             `upsample_factor` -- images are registered to within
             `1 / upsample_factor` of a pixel. Default `100`, matching
             the point past which [Subpixel
-            Accuracy](../getting_started/subpixel_accuracy.html) found
+            Accuracy](../../prediction_improvement/subpixel_accuracy.html) found
             diminishing returns (`10` was already close to `100`'s own
             accuracy in that measurement). Must be >= 1.
 

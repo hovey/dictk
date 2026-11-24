@@ -37,7 +37,7 @@ class Executor(Enum):
       fixed cost once, spawning workers and importing dependencies in
       each -- which then amortizes as task count grows.
 
-    See [Parallelization](../getting_started/parallelization.html) for
+    See [Parallelization](../../parallelization/parallelization.html) for
     measured trade-offs between the two.
     """
 
@@ -121,11 +121,12 @@ def _locate_warp_worker(
     windowing: WindowingMethod | None,
     max_iterations: int,
     tolerance: float,
-) -> SubpixelCoordinate:
+) -> tuple[SubpixelCoordinate, float]:
     """One point's worth of `warp.locate`, reusing gradients and spline
     coefficients computed once per batch -- see `_locate_worker`'s own
     docstring for why this is a module-level function taking a single
-    positional argument, not a closure."""
+    positional argument, not a closure. Returns the point's position
+    and its fit's ZNSSD."""
     reference_point, search_center = args
     start = translation.locate(
         reference_image=reference_image,
@@ -138,7 +139,7 @@ def _locate_warp_worker(
         search_margin_height=search_margin_height,
         windowing=windowing,
     )
-    fitted, _znssd, _iterations = warp._refine(
+    fitted, znssd, _iterations = warp._refine(
         reference_image=reference_image,
         reference_gradients=reference_gradients,
         current_coefficients=current_coefficients,
@@ -151,9 +152,10 @@ def _locate_warp_worker(
         max_iterations=max_iterations,
         tolerance=tolerance,
     )
-    return SubpixelCoordinate(
+    position = SubpixelCoordinate(
         x=reference_point.x + fitted[0, 2], y=reference_point.y + fitted[1, 2]
     )
+    return position, znssd
 
 
 def generate(
@@ -217,14 +219,14 @@ def elements(*, count_x: int, count_y: int) -> list[tuple[int, int, int, int]]:
     corner nodes given as indices into that same points list -- so
     `[points[i] for i in elements(...)[0]]` are one element's 4 corner
     `PixelCoordinate`s, ready to hand to
-    [`dictk.element.gauss_point_green_lagrange_strains`](../api/dictk/element.html#gauss_point_green_lagrange_strains)
+    [`dictk.element.gauss_point_green_lagrange_strains`](./element.html#gauss_point_green_lagrange_strains)
     or
-    [`dictk.element.gauss_point_log_strains`](../api/dictk/element.html#gauss_point_log_strains).
+    [`dictk.element.gauss_point_log_strains`](./element.html#gauss_point_log_strains).
 
     Each 4-tuple is `(top_left, top_right, bottom_right, bottom_left)`
     point indices -- the same $N_1$..$N_4$ corner order those functions'
     `shape_functions` convention expects (see [Shape
-    Functions](../getting_started/finite_element_method.html#shape-functions)).
+    Functions](../../getting_started/finite_element_method.html#shape-functions)).
     "Top"/"bottom" here use `generate`'s own image-pixel convention (y
     increasing downward, origin at the top-left point) -- not the
     math-style y-up convention `finite_element_method.md`'s figures use,
@@ -318,7 +320,7 @@ def locate(
             this many workers instead of one at a time. Default `None`
             stays sequential -- a plain loop, no pool, no overhead --
             matching this function's original behavior exactly. See
-            [Parallelization](../getting_started/parallelization.html)
+            [Parallelization](../../parallelization/parallelization.html)
             before setting this: at this book's own teaching scale
             (small kernels and search areas), sequential outperforms
             both pool types at any point count up to 1,000,000, measured.
@@ -404,7 +406,7 @@ def locate_subpixel(
     the full explanation of `search_centers`, `windowing`,
     `max_workers`, and `executor`. The one behavioral difference beyond
     the added `upsample_factor` parameter: each point's found position
-    is a [`SubpixelCoordinate`](../image.html#SubpixelCoordinate)
+    is a [`SubpixelCoordinate`](./image.html#SubpixelCoordinate)
     (generally fractional), not a `PixelCoordinate`, matching
     `translation.locate_subpixel`'s own return type.
 
@@ -425,7 +427,7 @@ def locate_subpixel(
         search_margin_height: Half each search area's height, in pixels.
             Must be greater than `kernel_margin_height`.
         windowing: Passed straight through to each per-point
-            [`dictk.translation.locate_subpixel`](../translation.html#locate_subpixel)
+            [`dictk.translation.locate_subpixel`](./translation.html#locate_subpixel)
             call. Default `None` applies no windowing.
         upsample_factor: Passed straight through to each per-point
             `locate_subpixel` call. Default `100`, matching that
@@ -507,7 +509,7 @@ def locate_warp(
     tolerance: float = 1e-6,
     max_workers: int | None = None,
     executor: Executor = Executor.THREAD,
-) -> list[SubpixelCoordinate]:
+) -> tuple[list[SubpixelCoordinate], np.ndarray]:
     """Batch version of `dictk.warp.locate`: track many points at once
     by warping an affine kernel.
 
@@ -516,6 +518,20 @@ def locate_warp(
     `search_centers`, `windowing`, `max_workers`, and `executor`.
     `reference_image`'s gradients and `current_image`'s spline
     coefficients are computed once per call, then shared by every point.
+
+    A point whose fit fails gets `nan` for `x` and `y`, and every
+    other point keeps its result. A fit fails when its reference kernel
+    is flat, or when IC-GN diverges onto a flat patch of
+    `current_image` or off the image. See
+    [`dictk.warp.fit`](./warp.html#fit). Count failed points with
+    `np.isinf(znssds).sum()`.
+
+    Each point also returns its fit's ZNSSD, the same measure
+    [`locate_warp_propagated`](#locate_warp_propagated) returns. A fit
+    that finishes on the wrong speckles still returns a finite, wrong
+    position, but its ZNSSD is large. This function returns every
+    position and applies no ZNSSD limit itself. The caller chooses
+    one, for example keeping only points with `znssds <= 0.3`.
 
     Args:
         reference_image: The reference (undeformed) 2D grayscale image.
@@ -546,16 +562,21 @@ def locate_warp(
             `max_workers` is `None`. Default `Executor.THREAD`.
 
     Returns:
-        Each point's location, in `current_image`'s pixel reference
-        frame, generally fractional, in the same order as
-        `reference_points`.
+        Two items, each in the same order as `reference_points`:
+
+        - Each point's location, in `current_image`'s pixel reference
+          frame, generally fractional. A failed point's `x` and `y`
+          are `nan`.
+        - Each point's ZNSSD, as a 1D array, from 0 for a perfect
+          match to 4 for a perfectly inverted pattern, or `inf` for a
+          failed point.
 
     Raises:
         ValueError: If `search_centers` is given but its length doesn't
             match `reference_points`, `max_workers` is less than 1,
             `max_iterations` is less than 1, `tolerance` is not
             positive, or any margin fails `dictk.translation.locate`'s
-            own checks.
+            own checks. A failed fit does not raise.
     """
     if search_centers is None:
         search_centers = reference_points
@@ -586,13 +607,16 @@ def locate_warp(
         tolerance=tolerance,
     )
     if max_workers is None:
-        return [worker(pair) for pair in zip(reference_points, search_centers)]
-
-    executor_cls = (
-        ThreadPoolExecutor if executor is Executor.THREAD else ProcessPoolExecutor
-    )
-    with executor_cls(max_workers=max_workers) as pool:
-        return list(pool.map(worker, zip(reference_points, search_centers)))
+        results = [worker(pair) for pair in zip(reference_points, search_centers)]
+    else:
+        executor_cls = (
+            ThreadPoolExecutor if executor is Executor.THREAD else ProcessPoolExecutor
+        )
+        with executor_cls(max_workers=max_workers) as pool:
+            results = list(pool.map(worker, zip(reference_points, search_centers)))
+    positions = [position for position, _znssd in results]
+    znssds = np.array([znssd for _position, znssd in results], dtype=np.float64)
+    return positions, znssds
 
 
 def locate_warp_propagated(
@@ -634,7 +658,7 @@ def locate_warp_propagated(
     translation extrapolated across the offset between the two points.
     A point that fails `znssd_limit` tries again when another accepted
     neighbor reaches it. See [Seed
-    Propagation](../getting_started/seed_propagation.html).
+    Propagation](../../prediction_improvement/seed_propagation.html).
 
     If the first point's fit fails `znssd_limit`, the start search
     moves to the next untried point nearest the image center, skipping
@@ -686,10 +710,13 @@ def locate_warp_propagated(
         - Each point's location, in `current_image`'s pixel reference
           frame, generally fractional. It comes from the point's
           lowest-ZNSSD fit, even when that fit failed `znssd_limit`.
-          A point never fitted at all gets `nan` for `x` and `y`.
+          A point never fitted gets `nan` for `x` and `y`. So does a
+          point whose every fit failed, as
+          [`dictk.warp.fit`](./warp.html#fit) defines a failed fit.
         - Each point's ZNSSD for that fit, from 0 for a perfect match
-          to 4, or `inf` for a point never fitted. Values above
-          `znssd_limit` mark positions not to trust.
+          to 4, or `inf` for a point never fitted or whose every fit
+          failed. Values above `znssd_limit` mark positions not to
+          trust.
 
     Raises:
         ValueError: If `reference_points` is empty, any point's kernel

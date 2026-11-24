@@ -1087,7 +1087,7 @@ def spatial_correlation_quadrant_plot(
     Reproduces a reference composite-figure layout used in prior DIC
     tooling -- Fixed Image, Moving Image, the correlation surface, and a
     zoomed Solution Vicinity -- using dictk's own spatial-domain
-    correlation surfaces ([`dictk.correlation`](../correlation.html)'s
+    correlation surfaces ([`dictk.correlation`](./correlation.html)'s
     `cc`/`ncc`/`zcc`/`zncc`) rather than a zero-padded whole-image FFT
     approach. See
     [`phase_correlation_quadrant_plot`](#phase_correlation_quadrant_plot)
@@ -1104,7 +1104,7 @@ def spatial_correlation_quadrant_plot(
     dashed guide lines through that box's origin (and matching red/green
     tick labels at that position). Top-right panel: `kernel` zero-padded
     (bottom and right) up to `search`'s own shape -- the same padding
-    [`dictk.translation.locate`](../translation.html#locate) does
+    [`dictk.translation.locate`](./translation.html#locate) does
     internally -- so its content occupies only the top-left corner of an
     otherwise-black canvas the size of `search`, labeled frame
     $\mathcal{K}$. Bottom-left: `correlation_surface` as a heatmap, peak
@@ -1181,7 +1181,7 @@ def phase_correlation_quadrant_plot(
     (`cc`/`ncc`/`zcc`/`zncc`) a caller must choose between and compute
     themselves, but there is only one Fourier-domain flavor here, so this
     computes it internally via
-    [`dictk.correlation.phase_correlation`](../correlation.html#phase_correlation)
+    [`dictk.correlation.phase_correlation`](./correlation.html#phase_correlation)
     -- see that function's own docstring for the algorithm itself and why
     it lands in the same "robust to both brightness and contrast" tier as
     `zncc`, by a completely different mechanism.
@@ -1191,7 +1191,7 @@ def phase_correlation_quadrant_plot(
     dashed guide lines through that box's origin (and matching red/green
     tick labels at that position). Top-right panel: `kernel` zero-padded
     (bottom and right) up to `search`'s own shape -- the same padding
-    [`dictk.translation.locate`](../translation.html#locate) does
+    [`dictk.translation.locate`](./translation.html#locate) does
     internally -- so its content occupies only the top-left corner of an
     otherwise-black canvas the size of `search`, labeled frame
     $\mathcal{K}$. Bottom-left: the phase correlation surface as a
@@ -1212,7 +1212,7 @@ def phase_correlation_quadrant_plot(
         search: The extracted search-area subimage (2D grayscale array);
             must be at least as large as `kernel` in both dimensions.
         windowing: If given, passed straight through to
-            [`phase_correlation`](../correlation.html#phase_correlation) --
+            [`phase_correlation`](./correlation.html#phase_correlation) --
             tapers `kernel`/`search` before computing the surface. The
             same tapered `kernel`/`search` are what the Fixed Image and
             Moving Image panels display too (windowed, *then* zero-padded
@@ -1249,7 +1249,7 @@ def phase_correlation_quadrant_plot(
             existing yellow one. Only rendered (and only then does a
             legend appear at all) when `reported_position` is given.
         centered: Passed straight through to
-            [`phase_correlation`](../correlation.html#phase_correlation)'s
+            [`phase_correlation`](./correlation.html#phase_correlation)'s
             own `centered` parameter -- the same convention
             `dictk.translation.locate` uses internally. The Moving Image
             panel's padding, and the Fixed Image panel's box position,
@@ -1301,7 +1301,7 @@ def point_grid_boxes_plot(
 
     For each of `points`, draws an unfilled rectangle centered on it, sized
     `2 * margin_width` by `2 * margin_height` -- e.g. a kernel (the patch
-    [`dictk.translation.locate`](../translation.html#locate) would extract
+    [`dictk.translation.locate`](./translation.html#locate) would extract
     from the reference image) or a search area (its default search
     region), one call per box type. Agnostic to which: call it once with a
     kernel's margins and once with a search area's margins (on separate
@@ -1457,7 +1457,7 @@ def point_grid_plot(
     exact location (where the N/S or E/W ticks would cross, if extended
     across the open center) -- with its position in `points` (its
     row-major index, e.g. from
-    [`dictk.grid.generate`](../grid.html#generate)) as a short zero-padded
+    [`dictk.grid.generate`](./grid.html#generate)) as a short zero-padded
     label just up-right of the marker -- e.g. `points[0]` is labeled `"00"`,
     `points[19]` is labeled `"19"`, for a 20-point collection.
 
@@ -1789,8 +1789,8 @@ def element_strain_plot(
     Two rendering modes -- with or without a background image -- share
     the same node-number/Gauss-point-scatter/colorbar layout, built from
     dictk's own point/element representation
-    ([`dictk.grid.elements`](../grid.html#elements),
-    [`dictk.element.gauss_point_coordinates`](../element.html#gauss_point_coordinates)).
+    ([`dictk.grid.elements`](./grid.html#elements),
+    [`dictk.element.gauss_point_coordinates`](./element.html#gauss_point_coordinates)).
     Deliberately agnostic to which strain measure (or any other
     per-Gauss-point scalar) produced `values` -- it only draws what it's
     given, matching
@@ -1818,10 +1818,10 @@ def element_strain_plot(
             configuration `coordinates` uses (e.g. `found`, not the
             original reference `points`, to draw the deformed shape).
         elements: Q4 connectivity, e.g. from
-            [`dictk.grid.elements`](../grid.html#elements) -- each
+            [`dictk.grid.elements`](./grid.html#elements) -- each
             4-tuple indexes into `points`.
         coordinates: One `(X, Y)` position per Gauss point, e.g. from
-            [`dictk.element.gauss_point_coordinates`](../element.html#gauss_point_coordinates)
+            [`dictk.element.gauss_point_coordinates`](./element.html#gauss_point_coordinates)
             called once per element and concatenated, in the same order
             as `values`.
         values: One scalar per Gauss point, same order and length as
@@ -1829,9 +1829,9 @@ def element_strain_plot(
             component at each point. This function doesn't compute
             strain itself, so the caller picks the strain measure by
             choosing which function computed `values` --
-            [`dictk.element.gauss_point_log_strains`](../element.html#gauss_point_log_strains)
+            [`dictk.element.gauss_point_log_strains`](./element.html#gauss_point_log_strains)
             vs.
-            [`dictk.element.gauss_point_green_lagrange_strains`](../element.html#gauss_point_green_lagrange_strains),
+            [`dictk.element.gauss_point_green_lagrange_strains`](./element.html#gauss_point_green_lagrange_strains),
             for instance -- and should set `label` to match.
         label: Colorbar label, e.g. `r"Log Strain, $E_{11}$"`.
         image: Optional background image (2D grayscale array). Default

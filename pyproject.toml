@@ -42,6 +42,12 @@ source = "vcs"
 
 [tool.ruff]
 line-length = 88
+# Verbatim copies shown on Kernel Size Selection's provenance section.
+# Linting or reformatting them would change the code the page cites.
+extend-exclude = [
+    "docs/userguide/src/prediction_improvement/xcorr_quickplot.py",
+    "docs/userguide/src/prediction_improvement/xcorr_pytorch.py",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

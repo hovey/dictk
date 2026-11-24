@@ -94,7 +94,7 @@ $\boldsymbol{F}$-based guess and a smaller `search_margin` are two sides
 of the same idea.
 
 Twelve points, twelve independent correlations, each one still
-sequential so far. [Prediction Improvement](./prediction_improvement.md)
+sequential so far. [Prediction Improvement](../prediction_improvement/prediction_improvement.md)
 comes next and improves each point's accuracy. Then
-[Parallelization](./parallelization.md) returns to that sequential
+[Parallelization](../parallelization/parallelization.md) returns to that sequential
 cost.

@@ -38,9 +38,10 @@ def test_locate_requires_keyword_arguments():
 def test_locate_recovers_integer_translation():
     ref = rosta(width=120, height=120, density=0.4)
     cur = translate(arr=ref, dx=-6, dy=8)
-    found = locate(reference_image=ref, current_image=cur, **_locate_kwargs())
+    found, znssd = locate(reference_image=ref, current_image=cur, **_locate_kwargs())
     assert found.x == pytest.approx(54, abs=1e-3)
     assert found.y == pytest.approx(68, abs=1e-3)
+    assert znssd < 1e-6
 
 
 @pytest.mark.parametrize("dx", [0.1, 0.3, 0.5, 0.7, 0.9])
@@ -49,7 +50,7 @@ def test_locate_recovers_fractional_translation(dx):
     # `image.translate`: bilinear resampling isn't a true subpixel shift.
     ref = gaussian_filter(rosta(width=120, height=120, density=0.4).astype(float), 1)
     cur = np.fft.ifft2(fourier_shift(np.fft.fft2(ref), (0, dx))).real
-    found = locate(reference_image=ref, current_image=cur, **_locate_kwargs())
+    found, _znssd = locate(reference_image=ref, current_image=cur, **_locate_kwargs())
     phase_found = translation.locate_subpixel(
         reference_image=ref, current_image=cur, **_locate_kwargs()
     )
@@ -67,7 +68,7 @@ def test_locate_beats_phase_correlation_under_stretch():
             reference_point=PixelCoordinate(x=x, y=60),
             search_center=PixelCoordinate(x=x, y=60),
         )
-        warp_found = locate(reference_image=ref, current_image=cur, **kwargs)
+        warp_found, _znssd = locate(reference_image=ref, current_image=cur, **kwargs)
         phase_found = translation.locate_subpixel(
             reference_image=ref, current_image=cur, **kwargs
         )
@@ -141,7 +142,7 @@ def test_locate_matches_fit_translation():
     ref = rosta(width=120, height=120, density=0.4)
     cur = stretch(arr=ref, factor_x=1.02)
     warp = fit(reference_image=ref, current_image=cur, **_locate_kwargs())
-    found = locate(reference_image=ref, current_image=cur, **_locate_kwargs())
+    found, _znssd = locate(reference_image=ref, current_image=cur, **_locate_kwargs())
     assert (found.x, found.y) == (60 + warp[0, 2], 60 + warp[1, 2])
 
 
@@ -188,6 +189,71 @@ def test_refine_iterations_stop_at_max_iterations():
         **_refine_kwargs(start=PixelCoordinate(x=62, y=63), max_iterations=1)
     )
     assert iterations == 1
+
+
+def _assert_failed_fit(result, *, iterations):
+    warp, znssd, applied = result
+    assert np.isnan(warp).all()
+    assert znssd == np.inf
+    assert applied == iterations
+
+
+def test_refine_kernel_off_image_fails_without_raising():
+    # A start 940 px off a 120 px image: every spline sample reads 0, so
+    # the current kernel is flat and cannot be normalized.
+    result = _refine(**_refine_kwargs(start=PixelCoordinate(x=1000, y=1000)))
+    _assert_failed_fit(result, iterations=0)
+
+
+def test_refine_flat_current_image_fails_without_raising():
+    kwargs = _refine_kwargs(start=PixelCoordinate(x=62, y=63))
+    kwargs["current_coefficients"] = _spline_coefficients(np.zeros((120, 120)))
+    _assert_failed_fit(_refine(**kwargs), iterations=0)
+
+
+def test_refine_flat_reference_kernel_fails_without_raising():
+    flat = np.full((120, 120), 7.0)
+    kwargs = _refine_kwargs(start=PixelCoordinate(x=62, y=63))
+    kwargs["reference_image"] = flat
+    kwargs["reference_gradients"] = _gradients(flat)
+    _assert_failed_fit(_refine(**kwargs), iterations=0)
+
+
+def test_fit_failed_fit_returns_nan_matrix():
+    ref = rosta(width=120, height=120, density=0.4)
+    warp = fit(
+        reference_image=ref,
+        current_image=np.zeros_like(ref),
+        **_locate_kwargs(),
+    )
+    assert warp.shape == (3, 3)
+    assert np.isnan(warp).all()
+
+
+def test_locate_failed_fit_returns_nan_position_and_inf_znssd():
+    ref = rosta(width=120, height=120, density=0.4)
+    found, znssd = locate(
+        reference_image=ref,
+        current_image=np.zeros_like(ref),
+        **_locate_kwargs(),
+    )
+    assert np.isnan(found.x)
+    assert np.isnan(found.y)
+    assert znssd == np.inf
+
+
+def test_locate_znssd_is_small_on_match_and_large_on_unrelated_image():
+    # A correct match scores near 0. An unrelated current image scores
+    # near 2, where ZNCC is near 0.
+    ref = rosta(width=120, height=120, density=0.4)
+    cur = translate(arr=ref, dx=-6, dy=8)
+    _found, matched = locate(reference_image=ref, current_image=cur, **_locate_kwargs())
+    other = rosta(width=120, height=120, density=0.4, random_seed=7)
+    _found, unrelated = locate(
+        reference_image=ref, current_image=other, **_locate_kwargs()
+    )
+    assert matched < 1e-6
+    assert unrelated > 0.5
 
 
 def test_refine_converges_from_deformed_start_where_rigid_seed_fails():

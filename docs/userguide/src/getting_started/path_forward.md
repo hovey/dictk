@@ -15,14 +15,14 @@ ceiling to design for, not a target to reach.
 **Four directions worth exploring**, in the order we'll likely take
 them:
 
-1. **GPU implementations.** [Parallelization](./parallelization.md)
+1. **GPU implementations.** [Parallelization](../parallelization/parallelization.md)
    only covers CPU-bound threads and processes so far. GPU work is
    still explicitly deferred until a documented CPU bottleneck exists
    (see the parallelism roadmap referenced there) — this note doesn't
    change that. It's on the list for when that bottleneck shows up.
 2. **Dynamic search-window sizing.** Every worked example so far uses a
    fixed, generously-sized search area per point.
-   [Parallelization](./parallelization.md#measuring-the-trade-space)'s
+   [Parallelization](../parallelization/parallelization.md#measuring-the-trade-space)'s
    own measurements found that per-correlation size, not point count
    alone, is the dominant cost lever. A search window only as large as
    it needs to be — sized from a prior displacement estimate rather
@@ -94,7 +94,7 @@ Noted, not being pursued right now:
 
 * **Heaviside DIC and XFEM: DIC-detection half resolved, FEA/XFEM
   half still open.** [Discontinuity
-  Localization](./discontinuity_localization.md) closed the half this
+  Localization](../discontinuity/discontinuity_localization.md) closed the half this
   item originally asked for: `dictk.discontinuity.locate` finds a
   straddling window's two-peak signature on its own, on both synthetic
   and real data, no human-centered window required. What's still not
@@ -107,7 +107,7 @@ Noted, not being pursued right now:
   `grid.locate_warp`. `grid.locate_warp_propagated` has no `windowing`
   parameter, and its seed search never windows. No page in this book
   passes `windowing` to any of them. On [Kernel
-  Warping](./kernel_warping.md)'s own setup, Hann windowing shifts the
+  Warping](../prediction_improvement/kernel_warping.md)'s own setup, Hann windowing shifts the
   results by at most 0.015 px. That setup tracks 2862 points on
   `astronaut0.png` under a 2% stretch, with `kernel_margin=13` and
   `search_margin=25`. With and without Hann, 0 points miss by more than
@@ -123,13 +123,13 @@ Noted, not being pursued right now:
 * **Strain-window bias on a strain gradient.** Every strain-window
   test so far uses a uniform 2% stretch. Its third derivative $u'''$ is
   zero, so a curved strain field never biases the fitted slope.
-  [Frequency Response](./strain_window.md#frequency-response) measures
+  [Frequency Response](../postprocessing/strain_window.md#frequency-response) measures
   the window's bias on a sine wave only. A synthetic field with a known
   $u'''$ would measure the bias from curvature. It would
   also locate the window size that minimizes the mean squared error,
   variance plus squared bias.
 * **Seed propagation under a strain gradient.** [Seed
-  Propagation](./seed_propagation.md) tested `locate_warp_propagated`
+  Propagation](../prediction_improvement/seed_propagation.md) tested `locate_warp_propagated`
   only under one uniform stretch and shear, where a neighbor's gradient
   terms match each point's exactly. A strain gradient would make each
   extrapolated seed less exact. A synthetic field with a known gradient
@@ -141,7 +141,7 @@ Noted, not being pursued right now:
   0.01 px. The cause is not known. A repeating speckle pattern would
   give phase correlation several equal peaks.
 * **A faint streak passes the ZNSSD gate.** On the real crack pair,
-  [Detection](./discontinuity_detection.md#a-real-crack) found a streak
+  [Detection](../discontinuity/discontinuity_detection.md#a-real-crack) found a streak
   parallel to the crack, 155 to 185 px to its lower left. Across it, u
   rises 2.06 px and v rises 1.62 px. Between neighboring bands on
   either side, u changes by at most 0.39 px and v by at most 0.36 px.
@@ -196,7 +196,7 @@ concrete trigger this Postponed item's own wording anticipated: at
 `factor_x = 1.02`, only points whose `x` is a multiple of 50 land on
 an integer pixel in the deformed configuration. A denser grid mostly
 doesn't. New [Subpixel
-Accuracy](./subpixel_accuracy.md) page: `dictk.translation.locate_subpixel`
+Accuracy](../prediction_improvement/subpixel_accuracy.md) page: `dictk.translation.locate_subpixel`
 and `dictk.grid.locate_subpixel`, exposing
 `phase_cross_correlation`'s own `upsample_factor` — separate functions
 from `locate`/`grid.locate`, not a parameter added to them, returning
@@ -215,8 +215,8 @@ started yet.
 ## 2026-08-24
 
 **9.2 High Point Density, shipped.** New page, [High Point
-Density](./high_point_density.md), closes the 9.1/9.2 pair under
-[Parallelization](./parallelization.md). It pushes `grid.locate_subpixel`
+Density](../prediction_improvement/high_point_density.md), closes the 9.1/9.2 pair under
+[Parallelization](../parallelization/parallelization.md). It pushes `grid.locate_subpixel`
 to VIC-2D's own point density: 2862 points, 5px spacing, 2756 elements.
 No new library code — it composes entirely from already-shipped
 functions, the same way [Simple Stretch
@@ -237,7 +237,7 @@ it — that stays open.
 ## 2026-08-25
 
 **High Point Density retuned to VIC-2D's real geometry, plus a
-quantization finding.** [High Point Density](./high_point_density.md)'s
+quantization finding.** [High Point Density](../prediction_improvement/high_point_density.md)'s
 tracking call used a much larger kernel/search area than VIC-2D's own
 `25 x 25` px subset — leftover from earlier pages, never tuned to
 match. `kernel_margin = 12` (the closest whole-pixel match) was tried
@@ -299,11 +299,11 @@ clutter without information at this density. 348 tests (343 + 5 new).
 
 ## 2026-08-26
 
-[High Point Density](../getting_started/high_point_density.html)'s own
+[High Point Density](../prediction_improvement/high_point_density.html)'s own
 closing gap — how `dictk`'s tracking time scales as point count grows,
 across sequential, threaded, and multi-process execution — is answered
 by a new page, [Timing at
-Scale](../getting_started/timing_at_scale.html) (Parallelization's new
+Scale](../parallelization/timing_at_scale.html) (Parallelization's new
 `9.3` child). It set out looking for this M1 Pro machine's genuine RAM
 ceiling: grow a pure-`rosta` reference image (no `astronaut`, avoiding
 any bicubic-upsampling artifact) along a geometric ladder, tracking the
@@ -336,8 +336,8 @@ same precedent as `parallelization_bench.py`).
 ## 2026-09-01
 
 **9.4 Parallelism with PyTorch, shipped.** New page,
-[Parallelism with PyTorch](./parallelism_pytorch.md), Parallelization's
-fourth child. It reruns [Timing at Scale](./timing_at_scale.md)'s own
+[Parallelism with PyTorch](../parallelization/parallelism_pytorch.md), Parallelization's
+fourth child. It reruns [Timing at Scale](../parallelization/timing_at_scale.md)'s own
 ladder — same image sizes, same point grids, same 26x26 kernel, same
 per-size search areas, same machine — on a batched PyTorch correlation
 instead of one `grid.locate_subpixel` call per point. Docs-only plus a
@@ -359,7 +359,7 @@ refines peaks to subpixel, which that implementation never did. The FFT
 gap stays open, and is now the named next step.
 
 **A real prerequisite fix to 9.3.** [Timing at
-Scale](./timing_at_scale.md#finding-the-ceiling) stated `kernel_margin=13`
+Scale](../parallelization/timing_at_scale.md#finding-the-ceiling) stated `kernel_margin=13`
 and said `search_margin` varies per tier, but never gave pixel
 dimensions. Adding them surfaced something that page never said: the
 kernel is fixed at 26x26 at every tier, but the search area grows from
@@ -549,7 +549,7 @@ half of its bias on the quintic-spline image.
 Heaviside-DIC kernel (the paper's subset) as a rigid-body translation
 plus a first gradient, the same six-parameter affine warp `dictk.warp`
 solves for, plus a jump times a Heaviside function.
-[Discontinuities](./discontinuities.md#relation-to-heaviside-dic) now
+[Discontinuities](../discontinuity/discontinuities.md#relation-to-heaviside-dic) now
 lays out that relation. The Postponed Heaviside item above now has
 a foundation. Its remaining pieces are the jump vector and the line's
 distance and angle from the kernel center.
@@ -599,7 +599,7 @@ current when they were written.
 **Strain window ships.** New module `dictk.strain_window`
 (`displacement_gradients`, `log_strains`, `std_factors`) fits $u$ and
 $v$ over each point's window and truncates the window at the grid
-boundary. [Strain Window](./strain_window.md) now measures it on Kernel
+boundary. [Strain Window](../postprocessing/strain_window.md) now measures it on Kernel
 Warping's 2862 tracked positions. A 15x15 window gives 39 microstrain
 at the 1560 interior points, against Q4's 1161. Across all 2862
 points, it gives 91 microstrain.
@@ -619,7 +619,7 @@ window's bias on a strain gradient. 441 tests (425 + 16).
 ## 2026-10-28
 
 **Seed Propagation starts with a baseline.** New page [Seed
-Propagation](./seed_propagation.md) (9.4) works on the Postponed
+Propagation](../prediction_improvement/seed_propagation.md) (9.4) works on the Postponed
 deformation-aware seed item above. Its first section sweeps stretch
 from 0% to 30% and shear from 0 to 0.30 at 30 random points on
 `astronaut0`. Both stay at zero failures up to a 5% stretch with a
@@ -637,7 +637,7 @@ was 0.56 px. No Strain Window result came from a failed seed.
 10.1. Prediction Improvement improves where each tracked point lands.
 Strain Window keeps the tracked positions fixed and changes how strain
 is computed from them. A new intro page,
-[Postprocessing](./postprocessing.md), frames the chapter. Seed
+[Postprocessing](../postprocessing/postprocessing.md), frames the chapter. Seed
 Propagation takes 9.4. Discontinuities moves from 10 to 11,
 Parallelization from 11 to 12, Path Forward from 12 to 13, and
 Contributing from 13 to 14. Dated entries above keep the numbers that
@@ -646,7 +646,7 @@ were current when they were written.
 **ZNSSD flags every miss.** `warp._refine` now also returns its final
 ZNSSD and iteration count. `warp.fit` and `grid.locate_warp` are
 unchanged. Seed Propagation's new [Detecting a
-Miss](./seed_propagation.md#detecting-a-miss) section reruns the 1470
+Miss](../prediction_improvement/seed_propagation.md#detecting-a-miss) section reruns the 1470
 sweep fits. Correct fits reach a ZNSSD of at most 0.0995, and misses
 reach at least 0.6952. Any threshold between the two flags all 972
 misses and none of the 498 correct fits. The iteration count
@@ -655,7 +655,7 @@ result covers one image and one 27x27 kernel. 444 tests (441 + 3).
 
 **A seed with the right shape removes every miss.** `warp._refine` now
 starts from a full 3x3 warp, not a whole-pixel point. [Where the Seed
-Breaks](./seed_propagation.md#where-the-seed-breaks) now reruns the 1470 sweep fits from the true stretch and shear,
+Breaks](../prediction_improvement/seed_propagation.md#where-the-seed-breaks) now reruns the 1470 sweep fits from the true stretch and shear,
 with the translation rounded to whole pixels. The rigid seed gave 972
 misses. This seed gives 0, up to a 30% stretch with a 0.30 shear, with
 a largest error of 0.007 px. Neighbor seeding comes next. 445 tests
@@ -699,7 +699,7 @@ deviation. The Postponed item now records both runs and asks why the
 second one fails. No code changed. Tests are unchanged at 463.
 
 **Detection ships, and Discontinuities reorders.** New page
-[Detection](./discontinuity_detection.md) (11.3) maps the ZNSSD that
+[Detection](../discontinuity/discontinuity_detection.md) (11.3) maps the ZNSSD that
 `grid.locate_warp_propagated` returns for each point across a crack. On
 the synthetic crack with a 4 px offset, the gate rejects 162 of 215
 straddling points. No accepted point lands more than 1 px off, while

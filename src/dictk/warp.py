@@ -150,7 +150,21 @@ def _refine(
     `current_image` sampled through the returned warp, from 0 for a
     perfect match to 4, and how many updates IC-GN applied. That count
     equals `max_iterations` when IC-GN stopped without meeting
-    `tolerance`."""
+    `tolerance`.
+
+    A fit that cannot continue returns `_failed_fit`: a warp of all
+    `nan`, a ZNSSD of `inf`, and the updates applied so far. Three
+    cases end a fit this way:
+
+    - The reference kernel is flat, so its Hessian is singular.
+    - The warped kernel samples a flat patch of `current_image`, so its
+      intensities cannot be normalized. IC-GN reaches this when it
+      diverges and carries the kernel off the image, where the spline
+      samples read 0.
+    - An update is not finite or cannot be inverted.
+
+    Each case once raised `numpy.linalg.LinAlgError`. A batch caller
+    lost every point's result to one point's failure."""
     gradient_y, gradient_x = reference_gradients
     x0, y0 = reference_point.x, reference_point.y
     rows = slice(y0 - kernel_margin_height, y0 + kernel_margin_height + 1)
@@ -169,19 +183,33 @@ def _refine(
     steepest_descent = np.stack(
         [gx, gx * dx, gx * dy, gy, gy * dx, gy * dy], axis=-1
     ).reshape(-1, 6)
-    hessian_inverse = np.linalg.inv(steepest_descent.T @ steepest_descent)
+    if not f_norm > 0:
+        return _failed_fit(iterations=0)
+    try:
+        hessian_inverse = np.linalg.inv(steepest_descent.T @ steepest_descent)
+    except np.linalg.LinAlgError:
+        return _failed_fit(iterations=0)
 
     def residual_at(warp):
+        """The normalized residual, or `None` if the warped kernel's
+        samples are flat or not finite and cannot be normalized."""
         xs = x0 + warp[0, 0] * dx + warp[0, 1] * dy + warp[0, 2]
         ys = y0 + warp[1, 0] * dx + warp[1, 1] * dy + warp[1, 2]
         g = map_coordinates(current_coefficients, [ys, xs], order=3, prefilter=False)
         g = g - g.mean()
-        return f_norm / np.sqrt((g**2).sum()) * g - f
+        g_norm = np.sqrt((g**2).sum())
+        if not (np.isfinite(g_norm) and g_norm > 0):
+            return None
+        return f_norm / g_norm * g - f
 
     warp = np.array(initial_warp, dtype=np.float64)
     for iterations in range(1, max_iterations + 1):
         residual = residual_at(warp)
+        if residual is None:
+            return _failed_fit(iterations=iterations - 1)
         dp = hessian_inverse @ (steepest_descent.T @ residual.ravel())
+        if not np.all(np.isfinite(dp)):
+            return _failed_fit(iterations=iterations - 1)
         increment = np.array(
             [
                 [1.0 + dp[1], dp[2], dp[0]],
@@ -189,12 +217,26 @@ def _refine(
                 [0.0, 0.0, 1.0],
             ]
         )
-        warp = warp @ np.linalg.inv(increment)
+        try:
+            warp = warp @ np.linalg.inv(increment)
+        except np.linalg.LinAlgError:
+            return _failed_fit(iterations=iterations - 1)
         if np.abs(dp).max() < tolerance:
             break
 
-    znssd = float((residual_at(warp) ** 2).sum() / f_norm**2)
+    residual = residual_at(warp)
+    if residual is None:
+        return _failed_fit(iterations=iterations)
+    znssd = float((residual**2).sum() / f_norm**2)
     return warp, znssd, iterations
+
+
+def _failed_fit(*, iterations: int) -> tuple[np.ndarray, float, int]:
+    """`_refine`'s result for a fit that cannot continue: a warp of all
+    `nan`, a ZNSSD of `inf`, and the `iterations` IC-GN applied before
+    it stopped. `inf` ranks a failed fit below every finished one, and
+    `nan` carries through to a `nan` position."""
+    return np.full((3, 3), np.nan), np.inf, iterations
 
 
 def fit(
@@ -229,7 +271,22 @@ def fit(
     about 10% or more with shear on a fine speckle pattern, leaves IC-GN
     starting too far away to converge. `fit` has no check for this.
 
-    See [Kernel Warping](../getting_started/kernel_warping.html) for why
+    Failed fits: some fits cannot finish. The reference kernel may be
+    flat, with no texture to fit. IC-GN may also diverge and carry the
+    kernel onto a flat patch of `current_image`, or off the image,
+    where every sample reads 0. Either way the kernel's intensities
+    cannot be normalized and the update cannot be solved. `fit` then
+    returns a 3x3 matrix of all `nan` rather than raising, so a batch
+    caller such as
+    [`dictk.grid.locate_warp`](./grid.html#locate_warp) keeps every
+    other point's result. Test for it with `np.isnan(warp).any()`.
+
+    A fit that finishes is not always correct. IC-GN can converge on
+    the wrong speckles and return finite, wrong numbers. `fit` has no
+    check for that either. See [Kernel
+    Warping](../../prediction_improvement/kernel_warping.html#failed-fits).
+
+    See [Kernel Warping](../../prediction_improvement/kernel_warping.html) for why
     this beats phase correlation's upsampled peak, and
     [`locate`](#locate) for the tracked position alone.
 
@@ -275,11 +332,46 @@ def fit(
         displacement. `u_x`, `u_y`, `v_x`, `v_y` are the displacement
         gradients across the kernel.
 
+        A failed fit returns a matrix of all `nan` instead. See
+        "Failed fits" above.
+
     Raises:
         ValueError: If any margin fails `translation.locate`'s own
             checks, `max_iterations` is less than 1, or `tolerance` is
-            not positive.
+            not positive. A failed fit does not raise.
     """
+    fitted, _znssd = _fit(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_point=reference_point,
+        search_center=search_center,
+        kernel_margin_width=kernel_margin_width,
+        kernel_margin_height=kernel_margin_height,
+        search_margin_width=search_margin_width,
+        search_margin_height=search_margin_height,
+        windowing=windowing,
+        max_iterations=max_iterations,
+        tolerance=tolerance,
+    )
+    return fitted
+
+
+def _fit(
+    *,
+    reference_image: np.ndarray,
+    current_image: np.ndarray,
+    reference_point: PixelCoordinate,
+    search_center: PixelCoordinate,
+    kernel_margin_width: int,
+    kernel_margin_height: int,
+    search_margin_width: int,
+    search_margin_height: int,
+    windowing: WindowingMethod | None,
+    max_iterations: int,
+    tolerance: float,
+) -> tuple[np.ndarray, float]:
+    """`fit`'s two stages, returning the fitted warp and its ZNSSD.
+    `fit` keeps only the warp, and `locate` keeps both."""
     if max_iterations < 1:
         raise ValueError(f"max_iterations {max_iterations} must be >= 1")
     if tolerance <= 0:
@@ -296,7 +388,7 @@ def fit(
         search_margin_height=search_margin_height,
         windowing=windowing,
     )
-    fitted, _znssd, _iterations = _refine(
+    fitted, znssd, _iterations = _refine(
         reference_image=reference_image,
         reference_gradients=_gradients(reference_image),
         current_coefficients=_spline_coefficients(current_image),
@@ -307,7 +399,7 @@ def fit(
         max_iterations=max_iterations,
         tolerance=tolerance,
     )
-    return fitted
+    return fitted, znssd
 
 
 def locate(
@@ -323,23 +415,35 @@ def locate(
     windowing: WindowingMethod | None = None,
     max_iterations: int = 50,
     tolerance: float = 1e-6,
-) -> SubpixelCoordinate:
+) -> tuple[SubpixelCoordinate, float]:
     """Subpixel point tracking by warping an affine kernel, free of the
     pixel-locking bias of
     [`dictk.translation.locate_subpixel`](./translation.html#locate_subpixel).
 
-    Runs [`fit`](#fit) and returns only the fitted warp's translation,
-    as a position. Every argument passes straight through to `fit` --
-    see its own docstring for each one, and for the method.
+    Runs [`fit`](#fit) and returns the fitted warp's translation, as a
+    position, with the fit's ZNSSD. Every argument passes straight
+    through to `fit` -- see its own docstring for each one, and for the
+    method.
+
+    The ZNSSD compares the reference kernel with `current_image`
+    sampled through the fitted warp. It measures how well the fit
+    matches, so a large value flags a position not to trust. See
+    [Kernel Warping](../../prediction_improvement/kernel_warping.html#failed-fits).
 
     Returns:
-        The point's location, in `current_image`'s pixel reference
-        frame, generally fractional.
+        Two items:
+
+        - The point's location, in `current_image`'s pixel reference
+          frame, generally fractional. A failed fit, as `fit` defines
+          it, returns `nan` for both `x` and `y`.
+        - The fit's ZNSSD, from 0 for a perfect match to 4 for a
+          perfectly inverted pattern, or `inf` for a failed fit.
 
     Raises:
-        ValueError: Under the same conditions as `fit`.
+        ValueError: Under the same conditions as `fit`. A failed fit
+            does not raise.
     """
-    warp = fit(
+    warp, znssd = _fit(
         reference_image=reference_image,
         current_image=current_image,
         reference_point=reference_point,
@@ -352,6 +456,7 @@ def locate(
         max_iterations=max_iterations,
         tolerance=tolerance,
     )
-    return SubpixelCoordinate(
+    position = SubpixelCoordinate(
         x=reference_point.x + warp[0, 2], y=reference_point.y + warp[1, 2]
     )
+    return position, znssd

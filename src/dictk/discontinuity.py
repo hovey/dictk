@@ -16,9 +16,9 @@ def peak_ratio(
 
     A correlation surface computed from a window straddling a
     discontinuity shows two comparably-tall peaks, not one -- see
-    [Synthetic Dislocation](../getting_started/synthetic_dislocation.html)
+    [Synthetic Dislocation](../../discontinuity/synthetic_dislocation.html)
     and [Experimental
-    Dislocation](../getting_started/experimental_dislocation.html). This
+    Dislocation](../../discontinuity/experimental_dislocation.html). This
     turns that qualitative signature into a single number, generalizing
     `two_peak_separation` (Synthetic Dislocation's own sweep script,
     which reports the two peaks' separation, not their heights, and
@@ -137,7 +137,7 @@ def sweep(
     At each position, extracts a kernel from `reference_image` and a
     search area from `current_image`, both centered on that position
     (the same "center a window here" step [Synthetic
-    Dislocation](../getting_started/synthetic_dislocation.html#moving-the-window-off-the-crack)
+    Dislocation](../../discontinuity/synthetic_dislocation.html#moving-the-window-off-the-crack)
     does by hand at one fixed row), computes their ZNCC surface, and
     reads its `peak_ratio`. A discontinuity crossing the `start`-`end`
     line shows up as a rise in `peak_ratios` near the crossing, high on
@@ -228,7 +228,7 @@ def _parabolic_vertex(*, y0: float, y1: float, y2: float) -> float:
     Pure math, no DIC-specific meaning -- fits $y = a(n - n_0)^2 + c$
     through `(0, y0)`, `(1, y1)`, `(2, y2)` and returns $n_0 - 1$, the
     vertex's offset from the center sample. The same 3-point parabolic
-    refinement idea [Parallelism with PyTorch](../getting_started/parallelism_pytorch.html#subpixel-from-a-correlation-surface)
+    refinement idea [Parallelism with PyTorch](../../parallelization/parallelism_pytorch.html#subpixel-from-a-correlation-surface)
     already found measurably more accurate than upsampling-based
     subpixel refinement, applied here along a 1D `peak_ratio` sweep
     instead of a 2D correlation surface.
