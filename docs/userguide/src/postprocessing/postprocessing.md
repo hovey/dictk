@@ -1,8 +1,8 @@
 # Postprocessing
 
-[Prediction Improvement](./prediction_improvement.md) improved where
+[Prediction Improvement](../getting_started/prediction_improvement.md) improved where
 each tracked point lands. On the 2% stretch,
-[Kernel Warping](./kernel_warping.md)'s `locate_warp` cut the $E_{11}$
+[Kernel Warping](../getting_started/kernel_warping.md)'s `locate_warp` cut the $E_{11}$
 standard deviation from 16531 to 1161 microstrain, against VIC-2D's
 1385.
 

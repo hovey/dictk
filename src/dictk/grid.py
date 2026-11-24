@@ -37,7 +37,7 @@ class Executor(Enum):
       fixed cost once, spawning workers and importing dependencies in
       each -- which then amortizes as task count grows.
 
-    See [Parallelization](../../getting_started/parallelization.html) for
+    See [Parallelization](../../parallelization/parallelization.html) for
     measured trade-offs between the two.
     """
 
@@ -320,7 +320,7 @@ def locate(
             this many workers instead of one at a time. Default `None`
             stays sequential -- a plain loop, no pool, no overhead --
             matching this function's original behavior exactly. See
-            [Parallelization](../../getting_started/parallelization.html)
+            [Parallelization](../../parallelization/parallelization.html)
             before setting this: at this book's own teaching scale
             (small kernels and search areas), sequential outperforms
             both pool types at any point count up to 1,000,000, measured.

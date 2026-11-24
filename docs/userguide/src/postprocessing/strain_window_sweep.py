@@ -19,7 +19,7 @@ MARGINS = range(1, 10)
 PERIOD = 51.0
 Q4_STD = 1161.0
 
-reference_image = read(path="astronaut0.png")
+reference_image = read(path="../getting_started/astronaut0.png")
 current_image = stretch(arr=reference_image, factor_x=FACTOR_X)
 points = generate(
     origin=PixelCoordinate(x=18, y=16),

@@ -1,6 +1,6 @@
 # Strain Window
 
-[Kernel Warping](./kernel_warping.md) showed how `dictk`'s
+[Kernel Warping](../getting_started/kernel_warping.md) showed how `dictk`'s
 `locate_warp` reduced the $E_{11}$ standard deviation for the 2%
 stretch to 1161 microstrain. `locate_subpixel` gave 16531 microstrain
 on the same stretch, and VIC-2D gave 1385 microstrain. Neither the
@@ -68,7 +68,7 @@ The [Measured Result](#measured-result) runs
 | $\hat{u}_0$ | px | fitted $u$ at the window center |
 | $\partial u / \partial X,\ \partial u / \partial Y$ | dimensionless | fitted gradient of $u$ at the window center |
 | $w^X_{c,r},\ w^Y_{c,r}$ | 1/px | weight of $u_{c,r}$ in the fitted $\partial u / \partial X$ and $\partial u / \partial Y$ |
-| $\boldsymbol{\nabla}_0\,\boldsymbol{u}$ | dimensionless | the $2 \times 2$ displacement gradient, as in [Finite Element Method](./finite_element_method.md#displacement-gradient) |
+| $\boldsymbol{\nabla}_0\,\boldsymbol{u}$ | dimensionless | the $2 \times 2$ displacement gradient, as in [Finite Element Method](../getting_started/finite_element_method.md#displacement-gradient) |
 | $\sigma$ | px | standard deviation of each point's tracking error |
 
 In an image,
@@ -278,13 +278,13 @@ derives a Q4 element's noise for comparison in 2D.
 
 ## Q4 Baseline
 
-[Finite Element Method](./finite_element_method.md) computes strain
+[Finite Element Method](../getting_started/finite_element_method.md) computes strain
 from Q4 elements. Every strain on the earlier pages comes from them.
 This section derives a Q4 element's noise. The window sections below
 compare against it, for two reasons.
 
 * **Q4 is the method `dictk` uses now.** [Kernel
-  Warping](./kernel_warping.md) measured its 1161 microstrain spread
+  Warping](../getting_started/kernel_warping.md) measured its 1161 microstrain spread
   with
   [`gauss_point_log_strains`](../api/dictk/element.html#gauss_point_log_strains),
   which evaluates Q4 elements. A window must beat that to earn a place
@@ -681,7 +681,7 @@ source.
 
 [Measured Result](#measured-result) measures 39 microstrain at the
 interior points, 2.5 times more. The tracking error is not
-independent. [Kernel Warping](./kernel_warping.md) found a wave
+independent. [Kernel Warping](../getting_started/kernel_warping.md) found a wave
 with a 51 px period. Points 5 px apart sit 35° apart on that wave's
 cycle, so their errors correlate at $\cos 35° = 0.82$.
 [Frequency Response](#frequency-response) computes the fraction of a
@@ -805,7 +805,7 @@ $$
 
 The fit uses reference positions $ch$ and $rh$, so this is the
 Lagrangian gradient. The rest follows
-[Continuum Mechanics](./continuum_mechanics.md):
+[Continuum Mechanics](../getting_started/continuum_mechanics.md):
 
 $$
 \begin{aligned}
@@ -906,7 +906,7 @@ The discrete fit skips the continuum limit. It gives
 $T = \sum_c c \sin(kch) / (kh \sum_c c^2)$.
 
 [Figure](#fig-sw-frequency) plots $T$ against the wave period for
-$n = 15$ and $h = 5$ px. [Kernel Warping](./kernel_warping.md) found a
+$n = 15$ and $h = 5$ px. [Kernel Warping](../getting_started/kernel_warping.md) found a
 bias wave in `locate_subpixel` with a 51 px period:
 
 <!-- cmdrun python3 strain_window_frequency.py -->
@@ -1030,7 +1030,7 @@ measurements. Every field spread on this page names its step.
 ## Measured Result
 
 [`dictk.strain_window.log_strains`](../api/dictk/strain_window.html#log_strains)
-runs the window on [Kernel Warping](./kernel_warping.md)'s tracked
+runs the window on [Kernel Warping](../getting_started/kernel_warping.md)'s tracked
 positions. The grid has 53x54 points at 5 px spacing. The current image
 stretches the reference 2% in $X$, so the true $E_{11}$ is
 $\ln 1.02 = 19803$ microstrain. The window has $m = 7$, so $n = 15$. It
@@ -1058,7 +1058,7 @@ edges, so 91 microstrain is the spread a reader of that field sees.
 
 [Figure](#fig-sw-field) redraws Kernel Warping's Q4 field next to the
 15x15 window's field. Both panels use the VIC-2D colorbar from
-[Kernel Warping](./kernel_warping.md), from 17560 to 22360
+[Kernel Warping](../getting_started/kernel_warping.md), from 17560 to 22360
 microstrain in 16 bands:
 
 <!-- cmdrun python3 strain_window_field.py -->
@@ -1104,7 +1104,7 @@ predicted 3.54. The corners also sit at $d_X = 0$. Their 187
 microstrain sits within 29 microstrain of the $X$ edge's 158.
 
 The tracking error accounts for the gap. [Kernel
-Warping](./kernel_warping.md) found that the error follows a wave in
+Warping](../getting_started/kernel_warping.md) found that the error follows a wave in
 $X$ with a 51 px period. Panel (a) of [Figure](#fig-sw-edges-measured)
 shows the strain error as vertical stripes. It depends on $X$, not on
 $Y$. Panel (b) averages each column over the 40 rows with a full $Y$

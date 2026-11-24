@@ -18,7 +18,7 @@ COUNT_X, COUNT_Y = 53, 54
 MARGIN = 7
 VMIN, VMAX = 17560, 22360
 
-reference_image = read(path="astronaut0.png")
+reference_image = read(path="../getting_started/astronaut0.png")
 current_image = stretch(arr=reference_image, factor_x=FACTOR_X)
 points = generate(
     origin=PixelCoordinate(x=18, y=16),

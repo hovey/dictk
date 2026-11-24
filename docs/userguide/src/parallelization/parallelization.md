@@ -1,13 +1,13 @@
 # Parallelization
 
-[Multi-Point Motion](./multi_point_motion.md#tracking-the-grid) ran 12
+[Multi-Point Motion](../getting_started/multi_point_motion.md#tracking-the-grid) ran 12
 independent calls to
 [`dictk.translation.locate`](../api/dictk/translation.html#locate) — one
 per point, each doing its own FFT-based phase correlation — to verify
 every point's displacement. We anticipate the need to process a very
 large number of point-to-point correspondences to support large-scale
 DIC work — a real finite element mesh (see [Finite Element
-Method](./finite_element_method.md)) can easily have thousands-to-millions
+Method](../getting_started/finite_element_method.md)) can easily have thousands-to-millions
 of nodes, not the 12 points in the simple grid above. Each point
 correspondence is independent of every other: locating point $i$ never
 reads or writes anything locating point $j$ touches. That independence
@@ -160,7 +160,7 @@ Four findings, read directly off that data:
 
 `dictk.grid.locate` accepts `max_workers` and `executor` directly now,
 no sketch required. Run it against the same 12-point grid [Multi-Point
-Motion](./multi_point_motion.md#tracking-the-grid) already tracked,
+Motion](../getting_started/multi_point_motion.md#tracking-the-grid) already tracked,
 sequential and concurrent side by side:
 
 ```python
@@ -190,7 +190,7 @@ print(f"results match: {sequential == threaded}")
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate; from dictk.grid import generate, locate, Executor; reference_image = read(path='astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); dx, dy = -6, 8; current_image = translate(arr=reference_image, dx=dx, dy=dy); sequential = locate(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=20, kernel_margin_height=20, search_margin_width=48, search_margin_height=52); threaded = locate(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=20, kernel_margin_height=20, search_margin_width=48, search_margin_height=52, max_workers=4, executor=Executor.THREAD); print(f'results match: {sequential == threaded}')" -->
+<!-- cmdrun python3 -c "from dictk.image import read, translate, PixelCoordinate; from dictk.grid import generate, locate, Executor; reference_image = read(path='../getting_started/astronaut0.png'); points = generate(origin=PixelCoordinate(x=50, y=50), count_x=3, count_y=4, spacing_x=50, spacing_y=55); dx, dy = -6, 8; current_image = translate(arr=reference_image, dx=dx, dy=dy); sequential = locate(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=20, kernel_margin_height=20, search_margin_width=48, search_margin_height=52); threaded = locate(reference_image=reference_image, current_image=current_image, reference_points=points, kernel_margin_width=20, kernel_margin_height=20, search_margin_width=48, search_margin_height=52, max_workers=4, executor=Executor.THREAD); print(f'results match: {sequential == threaded}')" -->
 ```
 
 The results match, as they must — `max_workers` changes how the 12

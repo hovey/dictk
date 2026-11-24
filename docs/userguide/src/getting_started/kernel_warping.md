@@ -526,7 +526,7 @@ The `dictk` result is not smoothed. Commercial codes usually also apply a
 **strain window**, fitting displacement over a neighborhood of points
 before differentiating. The fit averages the tracking errors of every
 point in the window. It also blurs any real strain change inside the
-window into one value. [Strain Window](./strain_window.md) derives a
+window into one value. [Strain Window](../postprocessing/strain_window.md) derives a
 strain window and measures it on these tracked positions.
 Fixing the bias first matters. A window spanning a whole bias cycle
 would also flatten High Point Density's stripes. That averaging would

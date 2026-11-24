@@ -15,14 +15,14 @@ ceiling to design for, not a target to reach.
 **Four directions worth exploring**, in the order we'll likely take
 them:
 
-1. **GPU implementations.** [Parallelization](./parallelization.md)
+1. **GPU implementations.** [Parallelization](../parallelization/parallelization.md)
    only covers CPU-bound threads and processes so far. GPU work is
    still explicitly deferred until a documented CPU bottleneck exists
    (see the parallelism roadmap referenced there) — this note doesn't
    change that. It's on the list for when that bottleneck shows up.
 2. **Dynamic search-window sizing.** Every worked example so far uses a
    fixed, generously-sized search area per point.
-   [Parallelization](./parallelization.md#measuring-the-trade-space)'s
+   [Parallelization](../parallelization/parallelization.md#measuring-the-trade-space)'s
    own measurements found that per-correlation size, not point count
    alone, is the dominant cost lever. A search window only as large as
    it needs to be — sized from a prior displacement estimate rather
@@ -123,7 +123,7 @@ Noted, not being pursued right now:
 * **Strain-window bias on a strain gradient.** Every strain-window
   test so far uses a uniform 2% stretch. Its third derivative $u'''$ is
   zero, so a curved strain field never biases the fitted slope.
-  [Frequency Response](./strain_window.md#frequency-response) measures
+  [Frequency Response](../postprocessing/strain_window.md#frequency-response) measures
   the window's bias on a sine wave only. A synthetic field with a known
   $u'''$ would measure the bias from curvature. It would
   also locate the window size that minimizes the mean squared error,
@@ -216,7 +216,7 @@ started yet.
 
 **9.2 High Point Density, shipped.** New page, [High Point
 Density](./high_point_density.md), closes the 9.1/9.2 pair under
-[Parallelization](./parallelization.md). It pushes `grid.locate_subpixel`
+[Parallelization](../parallelization/parallelization.md). It pushes `grid.locate_subpixel`
 to VIC-2D's own point density: 2862 points, 5px spacing, 2756 elements.
 No new library code — it composes entirely from already-shipped
 functions, the same way [Simple Stretch
@@ -303,7 +303,7 @@ clutter without information at this density. 348 tests (343 + 5 new).
 closing gap — how `dictk`'s tracking time scales as point count grows,
 across sequential, threaded, and multi-process execution — is answered
 by a new page, [Timing at
-Scale](../getting_started/timing_at_scale.html) (Parallelization's new
+Scale](../parallelization/timing_at_scale.html) (Parallelization's new
 `9.3` child). It set out looking for this M1 Pro machine's genuine RAM
 ceiling: grow a pure-`rosta` reference image (no `astronaut`, avoiding
 any bicubic-upsampling artifact) along a geometric ladder, tracking the
@@ -336,8 +336,8 @@ same precedent as `parallelization_bench.py`).
 ## 2026-09-01
 
 **9.4 Parallelism with PyTorch, shipped.** New page,
-[Parallelism with PyTorch](./parallelism_pytorch.md), Parallelization's
-fourth child. It reruns [Timing at Scale](./timing_at_scale.md)'s own
+[Parallelism with PyTorch](../parallelization/parallelism_pytorch.md), Parallelization's
+fourth child. It reruns [Timing at Scale](../parallelization/timing_at_scale.md)'s own
 ladder — same image sizes, same point grids, same 26x26 kernel, same
 per-size search areas, same machine — on a batched PyTorch correlation
 instead of one `grid.locate_subpixel` call per point. Docs-only plus a
@@ -359,7 +359,7 @@ refines peaks to subpixel, which that implementation never did. The FFT
 gap stays open, and is now the named next step.
 
 **A real prerequisite fix to 9.3.** [Timing at
-Scale](./timing_at_scale.md#finding-the-ceiling) stated `kernel_margin=13`
+Scale](../parallelization/timing_at_scale.md#finding-the-ceiling) stated `kernel_margin=13`
 and said `search_margin` varies per tier, but never gave pixel
 dimensions. Adding them surfaced something that page never said: the
 kernel is fixed at 26x26 at every tier, but the search area grows from
@@ -599,7 +599,7 @@ current when they were written.
 **Strain window ships.** New module `dictk.strain_window`
 (`displacement_gradients`, `log_strains`, `std_factors`) fits $u$ and
 $v$ over each point's window and truncates the window at the grid
-boundary. [Strain Window](./strain_window.md) now measures it on Kernel
+boundary. [Strain Window](../postprocessing/strain_window.md) now measures it on Kernel
 Warping's 2862 tracked positions. A 15x15 window gives 39 microstrain
 at the 1560 interior points, against Q4's 1161. Across all 2862
 points, it gives 91 microstrain.
@@ -637,7 +637,7 @@ was 0.56 px. No Strain Window result came from a failed seed.
 10.1. Prediction Improvement improves where each tracked point lands.
 Strain Window keeps the tracked positions fixed and changes how strain
 is computed from them. A new intro page,
-[Postprocessing](./postprocessing.md), frames the chapter. Seed
+[Postprocessing](../postprocessing/postprocessing.md), frames the chapter. Seed
 Propagation takes 9.4. Discontinuities moves from 10 to 11,
 Parallelization from 11 to 12, Path Forward from 12 to 13, and
 Contributing from 13 to 14. Dated entries above keep the numbers that

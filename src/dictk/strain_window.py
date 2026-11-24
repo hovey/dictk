@@ -7,7 +7,7 @@ $\boldsymbol{\nabla}_0\,\boldsymbol{u}$ at that point. Near the grid
 boundary the window truncates to the points that exist, and the fit
 solves the full $3 \times 3$ normal equations.
 
-See [Strain Window](../../getting_started/strain_window.html) for the
+See [Strain Window](../../postprocessing/strain_window.html) for the
 derivation this module implements.
 """
 
@@ -55,8 +55,8 @@ def displacement_gradients(
     r"""The displacement gradient $\boldsymbol{\nabla}_0\,\boldsymbol{u}$ at every grid point.
 
     See [General
-    Window](../../getting_started/strain_window.html#general-window) and
-    [Window Edges](../../getting_started/strain_window.html#window-edges).
+    Window](../../postprocessing/strain_window.html#general-window) and
+    [Window Edges](../../postprocessing/strain_window.html#window-edges).
 
     Args:
         reference_points: The grid's reference positions, in
@@ -121,7 +121,7 @@ def log_strains(
     [`dictk.element.deformation_gradient`](./element.html#deformation_gradient)
     and [`dictk.element.log_strain`](./element.html#log_strain). See
     [From Gradient to
-    Strain](../../getting_started/strain_window.html#from-gradient-to-strain).
+    Strain](../../postprocessing/strain_window.html#from-gradient-to-strain).
 
     Args:
         reference_points: The grid's reference positions, in
@@ -163,7 +163,7 @@ def std_factors(*, count_x: int, count_y: int, margin: int) -> np.ndarray:
     more. On a uniformly spaced grid, an edge point at $m = 7$ gives
     2.58 for the gradient across the edge and a corner point gives
     3.54. See [Window
-    Edges](../../getting_started/strain_window.html#window-edges).
+    Edges](../../postprocessing/strain_window.html#window-edges).
 
     Correlated tracking error can exceed these factors. A full window
     cancels most of a periodic error, and a truncated window does not.
@@ -171,7 +171,7 @@ def std_factors(*, count_x: int, count_y: int, margin: int) -> np.ndarray:
     error follows a 51 px wave, the measured $E_{11}$ error at an edge
     point is 4.03 times the interior's, against a predicted 2.58. Three
     columns in, it is 6.04 times, against a predicted 1.60. See [Edges
-    and Corners](../../getting_started/strain_window.html#edges-and-corners).
+    and Corners](../../postprocessing/strain_window.html#edges-and-corners).
 
     Args:
         count_x: Number of grid points along x.

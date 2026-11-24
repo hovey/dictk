@@ -697,7 +697,7 @@ Point count was the free variable throughout this section — 250 here,
 chosen for exactness, not for speed. How `dictk`'s own tracking time
 scales as point count grows much larger, and how that scaling compares
 across sequential, threaded, and multi-process execution, is
-[Parallelization](./parallelization.md)'s own question, not this one.
+[Parallelization](../parallelization/parallelization.md)'s own question, not this one.
 
 Two things this section deliberately leaves open. Every point here
 still has to land on an exact integer pixel — real displacements
@@ -705,5 +705,5 @@ won't. Recovering those is [Subpixel
 Accuracy](./subpixel_accuracy.md)'s own job, not this section's — it
 picks up exactly this constraint, using this same scenario. And the
 timing question just raised — how tracking time actually scales once
-point count grows past 250 — is [Parallelization](./parallelization.md)'s
+point count grows past 250 — is [Parallelization](../parallelization/parallelization.md)'s
 to answer, not this page's.

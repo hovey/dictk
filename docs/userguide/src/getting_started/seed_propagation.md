@@ -299,7 +299,7 @@ neighbor's gradient terms match this point's exactly. A strain gradient
 would make the extrapolated seed less exact. The start search tries
 gradient terms only up to 0.3.
 
-Continue to [Postprocessing](./postprocessing.md).
+Continue to [Postprocessing](../postprocessing/postprocessing.md).
 
 ### `seed_propagation_occlusion.py`
 

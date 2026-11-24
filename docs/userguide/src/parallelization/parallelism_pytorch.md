@@ -2,7 +2,7 @@
 
 [Timing at Scale](./timing_at_scale.md) found a wall. Tracking a million
 points took 14.4 minutes on ten cores. A billion correlations, the scale
-[Path Forward](./path_forward.md) names as the real target, extrapolates
+[Path Forward](../getting_started/path_forward.md) names as the real target, extrapolates
 to roughly 1.4 weeks on the same machine. No amount of additional
 CPU-side tuning closes a gap that size.
 
@@ -91,7 +91,7 @@ it refines to subpixel. The FFT version stays open.
 Two vocabularies collide here, so it is worth harmonizing them.
 
 This book has used *kernel* and *search area* since [Cross
-Correlation](./cross_correlation.md). Commercial DIC software and the
+Correlation](../getting_started/cross_correlation.md). Commercial DIC software and the
 earlier work above use different words for the same two things:
 
 | This book | VIC-2D and the earlier work | What it is |
@@ -153,7 +153,7 @@ To be precise about what that geometry is: a 300 x 300 pixel `rosta`
 speckle image, with a square 53 x 53 grid of points at 5 pixel spacing,
 giving 2,809 points.
 
-[Simple Stretch](./simple_stretch.md#2682-point-sample) sets up something
+[Simple Stretch](../getting_started/simple_stretch.md#2682-point-sample) sets up something
 very similar, and illustrates it. It uses a 300 x 300 pixel `astronaut`
 image, with a 53 x 54 grid at the same 5 pixel spacing, giving 2,862
 points — one row more than this page uses. That page counts 2,682 in its
@@ -195,8 +195,8 @@ counts search-area pixels and $k$ the kernel's side. An FFT-based one
 costs roughly $O(n \log n)$. The earlier work's own estimate put the FFT
 about 300 times ahead for a `35 x 35` pixel kernel in a `120 x 120` pixel window.
 
-Every CPU measurement in [Subpixel Accuracy](./subpixel_accuracy.md),
-[High Point Density](./high_point_density.md) and [Timing at
+Every CPU measurement in [Subpixel Accuracy](../getting_started/subpixel_accuracy.md),
+[High Point Density](../getting_started/high_point_density.md) and [Timing at
 Scale](./timing_at_scale.md) came from the FFT side of that cusp. Every
 measurement on this page comes from the brute-force side. Comparing them
 changes two things at once: the execution engine, and the algorithm.
@@ -374,7 +374,7 @@ analytical truth, at the same 2,809 points:
 | Batched `conv2d`, parabolic refinement | 0.0369 px |
 
 The parabolic fit is 2.5 times more accurate than the upsampled-DFT
-refinement [Subpixel Accuracy](./subpixel_accuracy.md) introduced, and it
+refinement [Subpixel Accuracy](../getting_started/subpixel_accuracy.md) introduced, and it
 costs a small fraction of the correlation it rides on. That result was
 not expected. It is worth stating plainly that these are two different
 refinement mechanisms measured against the same truth, not a bug in
@@ -595,7 +595,7 @@ extrapolation, measured at the same 996,004-point size: threads managed
 same size. Same problem, same machine, about 3 days instead of 10.
 
 That is a real improvement and it is not enough. A billion correlations
-is [Path Forward](./path_forward.md)'s entry-level target, not its
+is [Path Forward](../getting_started/path_forward.md)'s entry-level target, not its
 ceiling. Three days of continuous computation for the smallest
 interesting problem still rules out the tens of billions that page names
 as realistic.
@@ -631,8 +631,8 @@ differently there.
 
 The FFT gap is still open, and it is now the obvious next step.
 
-Every correlation on this page is a sliding dot product. Every CPU correlation in [Subpixel Accuracy](./subpixel_accuracy.md),
-[High Point Density](./high_point_density.md) and [Timing at
+Every correlation on this page is a sliding dot product. Every CPU correlation in [Subpixel Accuracy](../getting_started/subpixel_accuracy.md),
+[High Point Density](../getting_started/high_point_density.md) and [Timing at
 Scale](./timing_at_scale.md) is an FFT. Those are the two sides of the cusp Polonsky's 2025 email named. This book
 has now measured each side on different hardware. That is exactly the
 comparison that cannot settle the question.

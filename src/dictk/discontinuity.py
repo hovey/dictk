@@ -228,7 +228,7 @@ def _parabolic_vertex(*, y0: float, y1: float, y2: float) -> float:
     Pure math, no DIC-specific meaning -- fits $y = a(n - n_0)^2 + c$
     through `(0, y0)`, `(1, y1)`, `(2, y2)` and returns $n_0 - 1$, the
     vertex's offset from the center sample. The same 3-point parabolic
-    refinement idea [Parallelism with PyTorch](../../getting_started/parallelism_pytorch.html#subpixel-from-a-correlation-surface)
+    refinement idea [Parallelism with PyTorch](../../parallelization/parallelism_pytorch.html#subpixel-from-a-correlation-surface)
     already found measurably more accurate than upsampling-based
     subpixel refinement, applied here along a 1D `peak_ratio` sweep
     instead of a 2D correlation surface.
