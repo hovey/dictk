@@ -16,10 +16,16 @@ exists:
 Links inside fenced code blocks and HTML comments are skipped, along
 with absolute URLs and same-page `#` anchors. Anchors are not checked.
 
+Most figures exist only after `mdbook build` runs the `cmdrun`
+scripts, and their names are often built at run time. So the full check
+belongs after a build. `--pages-only` checks just the page and API
+links, which need no build.
+
 Run from the repo root: `python docs/userguide/link_check.py`. Exits 1
 and lists each broken link if any target is missing.
 """
 
+import argparse
 import re
 import sys
 from pathlib import Path
@@ -32,6 +38,7 @@ LINK: Final = re.compile(r"\]\(([^)\s]+)\)|(?:src|href)=\"([^\"]+)\"")
 FENCE: Final = re.compile(r"^```.*?^```", re.MULTILINE | re.DOTALL)
 COMMENT: Final = re.compile(r"<!--.*?-->", re.DOTALL)
 CMDRUN: Final = re.compile(r"<!--\s*cmdrun.*?-->", re.DOTALL)
+FILE_NAME: Final = re.compile(r"[\w{}./-]+\.(?:png|tiff?|csv|zip|json|npz|npy|svg|jpg)")
 
 
 def targets(*, text: str) -> list[str]:
@@ -48,16 +55,28 @@ def targets(*, text: str) -> list[str]:
 
 def generated(*, path: Path, referrer: Path) -> bool:
     """Whether a script or `cmdrun` line in `path`'s directory names
-    `path`, other than in `referrer` itself."""
-    name = path.name
-    for script in path.parent.glob("*.py"):
-        if name in script.read_text():
+    `path`, other than in `referrer` itself. A name built by an
+    f-string, such as `f"{name}_preview.png"`, matches with each `{...}`
+    standing for any text."""
+    texts = [script.read_text() for script in path.parent.glob("*.py")]
+    texts += [
+        block
+        for page in path.parent.glob("*.md")
+        if page != referrer
+        for block in CMDRUN.findall(page.read_text())
+    ]
+    for text in texts:
+        if path.name in text:
             return True
-    for page in path.parent.glob("*.md"):
-        if page == referrer:
-            continue
-        if any(name in block for block in CMDRUN.findall(page.read_text())):
-            return True
+        for literal in FILE_NAME.findall(text):
+            name = literal.rsplit("/", 1)[-1]
+            parts = re.split(r"\{[^{}]*\}", name)
+            stem = "".join(parts).rsplit(".", 1)[0]
+            # `f"{name}.tif"` would match any .tif; require real text.
+            if len(re.sub(r"\W", "", stem)) >= 3 and re.fullmatch(
+                ".+".join(map(re.escape, parts)), path.name
+            ):
+                return True
     return False
 
 
@@ -74,8 +93,9 @@ def exists(*, site_path: Path, referrer: Path) -> bool:
     return site_path.exists() or generated(path=site_path, referrer=referrer)
 
 
-def broken_links() -> list[str]:
-    """Each broken link, as `file: target`."""
+def broken_links(*, pages_only: bool) -> list[str]:
+    """Each broken link, as `file: target`. With `pages_only`, only
+    links to `.md`, `.html`, and API pages are checked."""
     broken = []
     sources = [(page, page.parent) for page in sorted(SITE.rglob("*.md"))]
     # A docstring link resolves from the module's own API page.
@@ -92,13 +112,26 @@ def broken_links() -> list[str]:
             except ValueError:
                 broken.append(f"{source.relative_to(ROOT)}: {target} (leaves the site)")
                 continue
+            if pages_only and site_path.suffix not in (".md", ".html"):
+                continue
             if not exists(site_path=site_path, referrer=source):
                 broken.append(f"{source.relative_to(ROOT)}: {target}")
     return broken
 
 
 def main() -> None:
-    broken = broken_links()
+    parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    parser.add_argument(
+        "--pages-only",
+        action="store_true",
+        help=(
+            "Check only links to .md, .html, and API pages, skipping figures "
+            "and data files, which exist only after `mdbook build` runs every "
+            "cmdrun script (type: flag; default: off, checking every link)."
+        ),
+    )
+    args = parser.parse_args()
+    broken = broken_links(pages_only=args.pages_only)
     for line in broken:
         print(line)
     print(f"{len(broken)} broken link(s)")
