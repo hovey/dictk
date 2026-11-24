@@ -9,19 +9,21 @@ t0, t1, and t2. In t2, a horizontal band crosses the image near row 700.
 ## Data Download
 
 The three images below are real 1704x1500 8-bit grayscale micrographs.
-We include them unmodified.
 
 <!-- cmdrun python3 -c "import hashlib, os, pathlib; files = ['slip_example_t0.tiff', 'slip_example_t1.tiff', 'slip_example_t2.tiff']; print('| File | Description | Size | SHA-256 |'); print('|---|---|---|---|'); [print(f'| [{f}]({f}) | {d} | {os.path.getsize(f) / 1024:.0f} KB | {hashlib.sha256(pathlib.Path(f).read_bytes()).hexdigest()[:6]}... |') for f, d in zip(files, ['Reference configuration t0', 'Current configuration t1', 'Current configuration t2'])]" -->
 
 ```python
 from dictk.image import read, write
 
-for name in ["slip_example_t0", "slip_example_t1", "slip_example_t2"]:
-    write(arr=read(path=f"{name}.tiff"), path=f"{name}_preview.png")
+for t in ["t0", "t1", "t2"]:
+    write(
+        arr=read(path=f"slip_example_{t}.tiff"),
+        path=f"slip_example_{t}_preview.png",
+    )
 ```
 
 ```text
-<!-- cmdrun python3 -c "from dictk.image import read, write; names = ['slip_example_t0', 'slip_example_t1', 'slip_example_t2']; [write(arr=read(path=f'{n}.tiff'), path=f'{n}_preview.png') for n in names]; print('Saved: ' + ', '.join(f'{n}_preview.png' for n in names))" -->
+<!-- cmdrun python3 -c "from dictk.image import read, write; suffixes = ['t0', 't1', 't2']; [write(arr=read(path=f'slip_example_{t}.tiff'), path=f'slip_example_{t}_preview.png') for t in suffixes]; print('Saved: ' + ', '.join(f'slip_example_{t}_preview.png' for t in suffixes))" -->
 ```
 
 <figure id="fig-slip-example-sequence">

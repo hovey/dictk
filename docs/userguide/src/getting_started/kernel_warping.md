@@ -28,6 +28,15 @@ $x = 1.02\,X$ ($y = Y$ remains constant for all points). The
 call already tracked all 2862 of those points. Subtracting each point's known true
 position from its tracked one gives the tracking error:
 
+<details>
+<summary><code>kernel_warping_pixel_locking.py</code></summary>
+
+```python
+<!-- cmdrun cat kernel_warping_pixel_locking.py -->
+```
+
+</details>
+
 <!-- cmdrun python3 kernel_warping_pixel_locking.py -->
 
 <figure>
@@ -235,6 +244,15 @@ column or center row. A pixel 13 px from the center weighs 13 times
 more than a pixel 1 px from it. The kernel's edges carry the
 information about stretch and shear.
 
+<details>
+<summary><code>kernel_warping_steepest.py</code></summary>
+
+```python
+<!-- cmdrun cat kernel_warping_steepest.py -->
+```
+
+</details>
+
 <!-- cmdrun python3 kernel_warping_steepest.py -->
 
 <figure id="fig-steepest-descent">
@@ -287,6 +305,15 @@ set to $k$ returns the warp after $k$ iterations. Iteration 0 is
 residual after each iteration, and [Figure](#fig-ic-gn-convergence)
 the error:
 
+<details>
+<summary><code>kernel_warping_iterations.py</code></summary>
+
+```python
+<!-- cmdrun cat kernel_warping_iterations.py -->
+```
+
+</details>
+
 <!-- cmdrun python3 kernel_warping_iterations.py -->
 
 <figure id="fig-ic-gn-residuals">
@@ -336,6 +363,15 @@ shift whose three errors sit closest to the three median errors in
 that table. The second table tracks that shift. Then come the warp
 matrices, $\boldsymbol{W}$, from `locate_subpixel` and `locate_warp`,
 followed by the true one:
+
+<details>
+<summary><code>kernel_warping_panels.py</code></summary>
+
+```python
+<!-- cmdrun cat kernel_warping_panels.py -->
+```
+
+</details>
 
 <!-- cmdrun python3 kernel_warping_panels.py -->
 
@@ -387,6 +423,15 @@ found = locate_warp(
 
 The same fractional-position error curve, now for both trackers:
 
+<details>
+<summary><code>kernel_warping_bias.py</code></summary>
+
+```python
+<!-- cmdrun cat kernel_warping_bias.py -->
+```
+
+</details>
+
 <!-- cmdrun python3 kernel_warping_bias.py -->
 
 <figure>
@@ -404,6 +449,15 @@ traces it to the test image.
 behind that 0.008 px. They come from the same points as
 [Figure](./high_point_density.md#fig-hpd-x-error-histogram)'s
 `locate_subpixel` errors:
+
+<details>
+<summary><code>kernel_warping_x_error_histogram.py</code></summary>
+
+```python
+<!-- cmdrun cat kernel_warping_x_error_histogram.py -->
+```
+
+</details>
 
 <!-- cmdrun python3 kernel_warping_x_error_histogram.py -->
 
@@ -424,6 +478,15 @@ High Point Density's strain pipeline stays the same:
 connectivity, then
 [`gauss_point_log_strains`](../api/dictk/element.html#gauss_point_log_strains)
 at each Gauss point. Only the tracked positions change:
+
+<details>
+<summary><code>kernel_warping_strain.py</code></summary>
+
+```python
+<!-- cmdrun cat kernel_warping_strain.py -->
+```
+
+</details>
 
 <!-- cmdrun python3 kernel_warping_strain.py -->
 
@@ -492,6 +555,15 @@ interpolation's. It builds a second version of the same 2% stretch.
 Tracking both versions shows how much of each tracker's error came
 from the image:
 
+<details>
+<summary><code>kernel_warping_generator.py</code></summary>
+
+```python
+<!-- cmdrun cat kernel_warping_generator.py -->
+```
+
+</details>
+
 <!-- cmdrun python3 kernel_warping_generator.py -->
 
 With the quintic-spline image, `locate_warp`'s $x$ error falls from 0.008 px
@@ -517,6 +589,67 @@ a pixel, in the Fourier domain. There, `locate_warp` recovers every
 tested shift to within 0.005 px, and beats `locate_subpixel` every
 time.
 
+## Failed Fits
+
+Some fits cannot finish. Step 1 of [Deriving the
+Update](#deriving-the-update) scales the current kernel by
+$\lambda = \lVert \tilde{f} \rVert / \lVert \tilde{g} \rVert$. A flat
+current kernel has $\lVert \tilde{g} \rVert = 0$, so $\lambda$ is
+undefined. Step 4 inverts $\boldsymbol{H}$, which sums products of the
+reference gradients. A flat reference kernel has zero gradients, so
+$\boldsymbol{H}$ is singular and has no inverse.
+
+Both cases occur on real images. A reference kernel can sit on a
+featureless patch. IC-GN can also diverge. Each update then carries the
+kernel farther from the speckles it should match, until it samples a
+flat patch of the current image or leaves the image. Outside the image,
+every spline sample reads 0.
+
+`dictk.warp` ends such a fit without raising an exception.
+[`warp.fit`](../api/dictk/warp.html#fit) returns a $3 \times 3$ matrix
+of `nan`.
+[`warp.locate`](../api/dictk/warp.html#locate) and
+[`grid.locate_warp`](../api/dictk/grid.html#locate_warp) return `nan`
+for the failed point's $x$ and $y$. An exception would end the whole
+`locate_warp` call, and one failed point would cost every other point
+its result. A `nan` marks the one failed point and keeps the rest.
+
+The table tracks a $3 \times 3$ grid through a shift of $-6$ px in $x$
+and $+8$ px in $y$. We flatten a $41 \times 41$ patch of the reference
+image around the first point, $(40, 40)$, so its whole
+$31 \times 31$ kernel is flat:
+
+<details>
+<summary><code>kernel_warping_failed_fits.py</code></summary>
+
+```python
+<!-- cmdrun cat kernel_warping_failed_fits.py -->
+```
+
+</details>
+
+<!-- cmdrun python3 kernel_warping_failed_fits.py -->
+
+<figure id="fig-kw-failed-fits">
+    <a href="kernel_warping_failed_fits.png" target="_blank" rel="noopener">
+        <img src="kernel_warping_failed_fits.png" alt="two panels of a black-and-white speckle image, cropped to its upper left 110 by 110 pixels; left, the reference image with a flat black square near the upper left, a red dashed box around the first grid point's kernel inside that square, a red x at its center labeled flat kernel, blue dots at the other eight grid points, and a solid blue box around the kernel of the point at (80, 80); right, the current image, shifted down and to the left, with the same flat square, a red x labeled fit failed: nan at the first point, and eight blue arrows, each running from a grid point down and to the left to a blue dot at its tracked position" />
+    </a>
+    <figcaption>One failed fit in a 3x3 grid. Click for the full-size version. (a) The reference image. The dashed red box is the first point's 31x31 kernel, which lies wholly inside the flat patch. The solid blue box is the kernel at (80, 80), for comparison. Blue dots mark the other grid points. (b) The current image, shifted −6 px in x and +8 px in y. Each blue arrow runs from a point's reference position to its tracked position. The red x marks the failed point at its reference position, where <code>locate_warp</code> returns <code>nan</code>.</figcaption>
+</figure>
+
+The first point's fit fails and returns `nan`, as
+[Figure](#fig-kw-failed-fits) shows. The other eight points track the
+shift exactly, including the three whose kernels overlap the flat
+patch.
+
+A `nan` spreads through later arithmetic. A mean over positions that
+include one `nan` is itself `nan`, and so is any strain computed from a
+failed point. We test for failed points first, with `np.isnan`.
+
+A fit that finishes is not always correct. IC-GN can converge on the
+wrong speckles and return finite, wrong positions. A `nan` flags only
+the fits that cannot finish.
+
 ## Summary
 
 The table collects this page's results, one column per approach. Each
@@ -541,6 +674,15 @@ images that `image.stretch` builds. The shaded column shows what
 0.0015 px and 260 microstrain, down from 0.0080 px and 1161. VIC-2D was
 not run on the quintic image, so the table makes no comparison.
 
+<details>
+<summary><code>kernel_warping_summary.py</code></summary>
+
+```python
+<!-- cmdrun cat kernel_warping_summary.py -->
+```
+
+</details>
+
 <!-- cmdrun python3 kernel_warping_summary.py -->
 
 Each $x$ error is the tracked $x$ minus the true $x = 1.02\,X$. The
@@ -551,102 +693,3 @@ can be compared with that value. The `locate_subpixel` column uses
 0.01 px. High Point Density uses the same value. The VIC-2D column uses
 its 2682 valid points for every row. The `dictk` columns use all 2862
 points for $x$ and 11024 Gauss points for $E_{11}$.
-
-### `kernel_warping_pixel_locking.py`
-
-<details>
-<summary>Show the code</summary>
-
-```python
-<!-- cmdrun cat kernel_warping_pixel_locking.py -->
-```
-
-</details>
-
-### `kernel_warping_panels.py`
-
-<details>
-<summary>Show the code</summary>
-
-```python
-<!-- cmdrun cat kernel_warping_panels.py -->
-```
-
-</details>
-
-### `kernel_warping_steepest.py`
-
-<details>
-<summary>Show the code</summary>
-
-```python
-<!-- cmdrun cat kernel_warping_steepest.py -->
-```
-
-</details>
-
-### `kernel_warping_iterations.py`
-
-<details>
-<summary>Show the code</summary>
-
-```python
-<!-- cmdrun cat kernel_warping_iterations.py -->
-```
-
-</details>
-
-### `kernel_warping_bias.py`
-
-<details>
-<summary>Show the code</summary>
-
-```python
-<!-- cmdrun cat kernel_warping_bias.py -->
-```
-
-</details>
-
-### `kernel_warping_strain.py`
-
-<details>
-<summary>Show the code</summary>
-
-```python
-<!-- cmdrun cat kernel_warping_strain.py -->
-```
-
-</details>
-
-### `kernel_warping_generator.py`
-
-<details>
-<summary>Show the code</summary>
-
-```python
-<!-- cmdrun cat kernel_warping_generator.py -->
-```
-
-</details>
-
-### `kernel_warping_x_error_histogram.py`
-
-<details>
-<summary>Show the code</summary>
-
-```python
-<!-- cmdrun cat kernel_warping_x_error_histogram.py -->
-```
-
-</details>
-
-### `kernel_warping_summary.py`
-
-<details>
-<summary>Show the code</summary>
-
-```python
-<!-- cmdrun cat kernel_warping_summary.py -->
-```
-
-</details>

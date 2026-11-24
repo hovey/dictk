@@ -190,6 +190,56 @@ def test_refine_iterations_stop_at_max_iterations():
     assert iterations == 1
 
 
+def _assert_failed_fit(result, *, iterations):
+    warp, znssd, applied = result
+    assert np.isnan(warp).all()
+    assert znssd == np.inf
+    assert applied == iterations
+
+
+def test_refine_kernel_off_image_fails_without_raising():
+    # A start 940 px off a 120 px image: every spline sample reads 0, so
+    # the current kernel is flat and cannot be normalized.
+    result = _refine(**_refine_kwargs(start=PixelCoordinate(x=1000, y=1000)))
+    _assert_failed_fit(result, iterations=0)
+
+
+def test_refine_flat_current_image_fails_without_raising():
+    kwargs = _refine_kwargs(start=PixelCoordinate(x=62, y=63))
+    kwargs["current_coefficients"] = _spline_coefficients(np.zeros((120, 120)))
+    _assert_failed_fit(_refine(**kwargs), iterations=0)
+
+
+def test_refine_flat_reference_kernel_fails_without_raising():
+    flat = np.full((120, 120), 7.0)
+    kwargs = _refine_kwargs(start=PixelCoordinate(x=62, y=63))
+    kwargs["reference_image"] = flat
+    kwargs["reference_gradients"] = _gradients(flat)
+    _assert_failed_fit(_refine(**kwargs), iterations=0)
+
+
+def test_fit_failed_fit_returns_nan_matrix():
+    ref = rosta(width=120, height=120, density=0.4)
+    warp = fit(
+        reference_image=ref,
+        current_image=np.zeros_like(ref),
+        **_locate_kwargs(),
+    )
+    assert warp.shape == (3, 3)
+    assert np.isnan(warp).all()
+
+
+def test_locate_failed_fit_returns_nan_position():
+    ref = rosta(width=120, height=120, density=0.4)
+    found = locate(
+        reference_image=ref,
+        current_image=np.zeros_like(ref),
+        **_locate_kwargs(),
+    )
+    assert np.isnan(found.x)
+    assert np.isnan(found.y)
+
+
 def test_refine_converges_from_deformed_start_where_rigid_seed_fails():
     # 15% stretch with 0.15 shear defeats the rigid whole-pixel seed here.
     # Starting from the true stretch and shear, with the translation

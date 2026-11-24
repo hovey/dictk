@@ -517,6 +517,15 @@ def locate_warp(
     `reference_image`'s gradients and `current_image`'s spline
     coefficients are computed once per call, then shared by every point.
 
+    A point whose fit fails gets `nan` for `x` and `y`, and every
+    other point keeps its result. A fit fails when its reference kernel
+    is flat, or when IC-GN diverges onto a flat patch of
+    `current_image` or off the image. See
+    [`dictk.warp.fit`](./warp.html#fit). Count failed points with
+    `np.isnan([p.x for p in found]).sum()`. A fit that finishes on the
+    wrong speckles still returns finite, wrong numbers, and this
+    function does not flag it.
+
     Args:
         reference_image: The reference (undeformed) 2D grayscale image.
         current_image: The current (deformed) 2D grayscale image.
@@ -548,14 +557,14 @@ def locate_warp(
     Returns:
         Each point's location, in `current_image`'s pixel reference
         frame, generally fractional, in the same order as
-        `reference_points`.
+        `reference_points`. A failed point's `x` and `y` are `nan`.
 
     Raises:
         ValueError: If `search_centers` is given but its length doesn't
             match `reference_points`, `max_workers` is less than 1,
             `max_iterations` is less than 1, `tolerance` is not
             positive, or any margin fails `dictk.translation.locate`'s
-            own checks.
+            own checks. A failed fit does not raise.
     """
     if search_centers is None:
         search_centers = reference_points
@@ -686,10 +695,13 @@ def locate_warp_propagated(
         - Each point's location, in `current_image`'s pixel reference
           frame, generally fractional. It comes from the point's
           lowest-ZNSSD fit, even when that fit failed `znssd_limit`.
-          A point never fitted at all gets `nan` for `x` and `y`.
+          A point never fitted gets `nan` for `x` and `y`. So does a
+          point whose every fit failed, as
+          [`dictk.warp.fit`](./warp.html#fit) defines a failed fit.
         - Each point's ZNSSD for that fit, from 0 for a perfect match
-          to 4, or `inf` for a point never fitted. Values above
-          `znssd_limit` mark positions not to trust.
+          to 4, or `inf` for a point never fitted or whose every fit
+          failed. Values above `znssd_limit` mark positions not to
+          trust.
 
     Raises:
         ValueError: If `reference_points` is empty, any point's kernel

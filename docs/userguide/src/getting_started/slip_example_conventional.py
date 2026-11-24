@@ -1,6 +1,6 @@
 """Track a full grid from t0 to t1 with conventional DIC, `locate_warp`,
 at three kernel sizes: 15, 31, and 45 px. Maps u and v for each kernel,
-one row per kernel. A point whose fit fails gets no displacement and
+one row per kernel. A point whose fit fails comes back as `nan` and
 shows black. Prints the host that ran the tracking, then how many
 points each kernel tracked and lost and how long each kernel took, and
 saves the map.
@@ -11,17 +11,12 @@ import platform
 import subprocess
 import sys
 import time
-import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 from dictk.grid import generate, locate_warp
 from dictk.image import PixelCoordinate, read
-
-# A diverging fit samples only zeros and divides by zero before it
-# raises. `track` below catches the raise, so the warning is noise.
-warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
 
@@ -48,31 +43,6 @@ points = generate(
 )
 x = np.array([p.x for p in points], dtype=np.float64)
 y = np.array([p.y for p in points], dtype=np.float64)
-
-
-def track(*, batch, kernel_margin):
-    """Track `batch` with `locate_warp`. A fit that diverges raises and
-    aborts the whole batch, so a failed batch splits in half and each
-    half retries. A single point that still fails returns NaN."""
-    try:
-        found = locate_warp(
-            reference_image=reference_image,
-            current_image=current_image,
-            reference_points=batch,
-            kernel_margin_width=kernel_margin,
-            kernel_margin_height=kernel_margin,
-            search_margin_width=SEARCH_MARGIN,
-            search_margin_height=SEARCH_MARGIN,
-            max_workers=os.cpu_count(),
-        )
-        return [(f.x, f.y) for f in found]
-    except np.linalg.LinAlgError:
-        if len(batch) == 1:
-            return [(np.nan, np.nan)]
-        half = len(batch) // 2
-        return track(batch=batch[:half], kernel_margin=kernel_margin) + track(
-            batch=batch[half:], kernel_margin=kernel_margin
-        )
 
 
 def cpu_model():
@@ -115,7 +85,17 @@ print(
 print("|---|---|---|---|---|")
 for kernel_margin in KERNEL_MARGINS:
     start = time.perf_counter()
-    found = np.array(track(batch=points, kernel_margin=kernel_margin))
+    found = locate_warp(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_points=points,
+        kernel_margin_width=kernel_margin,
+        kernel_margin_height=kernel_margin,
+        search_margin_width=SEARCH_MARGIN,
+        search_margin_height=SEARCH_MARGIN,
+        max_workers=os.cpu_count(),
+    )
+    found = np.array([(f.x, f.y) for f in found])
     seconds = time.perf_counter() - start
     u = (found[:, 0] - x).reshape(count_y, count_x)
     v = (found[:, 1] - y).reshape(count_y, count_x)

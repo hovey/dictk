@@ -540,6 +540,31 @@ def test_locate_warp_matches_per_point_warp_locate():
     assert found == expected
 
 
+def _flat_patch_reference_and_current():
+    # The first grid point, (40, 40), gets a flat 31x31 reference kernel
+    # inside a flat 41x41 patch, so even its edge gradients are 0. Its
+    # Hessian is singular and its fit fails. Every other point's kernel
+    # keeps some texture.
+    ref = rosta(width=150, height=150, density=0.4).astype(np.float64)
+    ref[20:61, 20:61] = 0.0
+    return ref, translate(arr=ref, dx=-6, dy=8)
+
+
+@pytest.mark.parametrize("max_workers", [None, 2])
+def test_locate_warp_failed_fit_returns_nan_and_keeps_other_points(max_workers):
+    ref, cur = _flat_patch_reference_and_current()
+    kwargs = _warp_kwargs(ref, cur)
+    found = locate_warp(**kwargs, max_workers=max_workers)
+    assert np.isnan(found[0].x) and np.isnan(found[0].y)
+    assert all(np.isfinite([p.x for p in found[1:]]))
+    points = kwargs.pop("reference_points")
+    expected = [
+        warp_locate(**kwargs, reference_point=p, search_center=p) for p in points
+    ]
+    assert found[1:] == expected[1:]
+    assert np.isnan(expected[0].x)
+
+
 def test_locate_warp_empty_points_returns_empty_list():
     ref, cur = _reference_and_current(dx=0, dy=0)
     kwargs = _warp_kwargs(ref, cur) | dict(reference_points=[])
@@ -720,6 +745,16 @@ def test_locate_warp_propagated_empty_points_raise():
             reference_points=[],
             **_propagated_kwargs(),
         )
+
+
+def test_locate_warp_propagated_failed_fit_returns_nan_and_inf():
+    ref, cur = _flat_patch_reference_and_current()
+    kwargs = _warp_kwargs(ref, cur)
+    found, znssds = locate_warp_propagated(**kwargs)
+    assert np.isnan(found[0].x) and np.isnan(found[0].y)
+    assert znssds[0] == np.inf
+    assert all(np.isfinite([p.x for p in found[1:]]))
+    assert (znssds[1:] <= 0.3).all()
 
 
 def test_locate_warp_propagated_kernel_outside_reference_raises():
