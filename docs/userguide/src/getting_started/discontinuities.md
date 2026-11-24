@@ -48,7 +48,9 @@ signature shows up outside a synthetic setup.
 Neither section finds the crack on its own.
 [Detection](./discontinuity_detection.md) finds where a crack runs
 across the whole image. [Localization](./discontinuity_localization.md)
-then measures where it crosses one chosen line.
+then measures where it crosses one chosen line. [Slip
+Example](./slip_example.md) introduces a second real data set, a
+three-image sequence.
 
 ## Relation to Heaviside-DIC
 

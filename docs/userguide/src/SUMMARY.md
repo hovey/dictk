@@ -32,6 +32,7 @@
   - [Experimental Dislocation](./getting_started/experimental_dislocation.md)
   - [Detection](./getting_started/discontinuity_detection.md)
   - [Localization](./getting_started/discontinuity_localization.md)
+  - [Slip Example](./getting_started/slip_example.md)
 - [Parallelization](./getting_started/parallelization.md)
   - [Timing at Scale](./getting_started/timing_at_scale.md)
   - [Parallelism with PyTorch](./getting_started/parallelism_pytorch.md)

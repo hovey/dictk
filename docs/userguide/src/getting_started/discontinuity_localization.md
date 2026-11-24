@@ -199,7 +199,7 @@ Forward](./path_forward.md#postponed)'s Heaviside DIC/XFEM item asked
 for detection and localization, not a finite-element formulation that
 acts on the result. That half stays open.
 
-Continue to [Parallelization](./parallelization.md).
+Continue to [Slip Example](./slip_example.md).
 [Path Forward](./path_forward.md) records where this leaves the
 discontinuity work.
 
