@@ -153,7 +153,7 @@ The encoding holds reliably across a 32x range of offsets, for both
 criteria. One exception sits at the low end: once the two true
 displacements are only a pixel apart, resolving them as two distinct
 peaks runs into the same integer-pixel resolution limit [Subpixel
-Accuracy](../getting_started/subpixel_accuracy.md) already covers for a single peak.
+Accuracy](../prediction_improvement/subpixel_accuracy.md) already covers for a single peak.
 
 ## Moving the Window Off the Crack
 
@@ -299,7 +299,7 @@ table above shows. The full distribution, not just its extremes:
 
 <figure>
     <img src="synthetic_dislocation_displacement_field_dx_histogram.png" alt="histogram of dx across all 1849 points: a single narrow peak centered at zero, spanning roughly -0.07 to 0.07 pixels, with a shaded band marking one std on either side of the mean and a dashed black line at the mean itself" />
-    <figcaption>The <code>dx</code> distribution across all 1849 tracked points: a single peak centered on zero, no second mode. The shaded band marks one std on either side of the mean; the dashed line marks the mean itself. The 0.01-pixel steps are <code>upsample_factor=100</code>'s own subpixel quantization, the same effect <a href="../getting_started/high_point_density.html">High Point Density</a> found for <code>dy</code>.</figcaption>
+    <figcaption>The <code>dx</code> distribution across all 1849 tracked points: a single peak centered on zero, no second mode. The shaded band marks one std on either side of the mean; the dashed line marks the mean itself. The 0.01-pixel steps are <code>upsample_factor=100</code>'s own subpixel quantization, the same effect <a href="../prediction_improvement/high_point_density.html">High Point Density</a> found for <code>dy</code>.</figcaption>
 </figure>
 
 ### Displacement dy
@@ -342,7 +342,7 @@ pixels.
 
 ### VIC-2D-Style Point Density
 
-[High Point Density](../getting_started/high_point_density.md) verifies a denser grid --
+[High Point Density](../prediction_improvement/high_point_density.md) verifies a denser grid --
 `count_x=53, count_y=54, spacing_x=spacing_y=5`, with
 `kernel_margin_width=kernel_margin_height=13`,
 `search_margin_width=search_margin_height=25` -- against a real VIC-2D

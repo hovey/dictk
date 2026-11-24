@@ -1,6 +1,6 @@
 # Timing at Scale
 
-[High Point Density](../getting_started/high_point_density.md) closed with a question it
+[High Point Density](../prediction_improvement/high_point_density.md) closed with a question it
 didn't answer: how does `dictk`'s tracking time scale as point count
 grows? Does that scaling change across sequential, threaded, and
 multi-process execution?
@@ -34,7 +34,7 @@ Every point this page tracks feeds directly into
 [`dictk.grid.elements`](../api/dictk/grid.html#elements) and, from
 there, into per-element strain via 2×2 Gauss quadrature
 ([`dictk.element.gauss_points`](../api/dictk/element.html#gauss_points)),
-the same machinery [High Point Density](../getting_started/high_point_density.md) and
+the same machinery [High Point Density](../prediction_improvement/high_point_density.md) and
 [Finite Element Method](../getting_started/finite_element_method.md) already use.
 
 A regular grid of $x_{\text{count}} \times y_{\text{count}}$ points gives:
@@ -136,12 +136,12 @@ Generation cost then stays close to linear in image size.
 [`timing_at_scale_bench.py`](#timing_at_scale_benchpy) (full source
 below) runs a geometric ladder of image widths: 300, 540, 972, 1750,
 3149, 5669, 10204px — each step ×1.8 larger than the last, starting
-from [High Point Density](../getting_started/high_point_density.md)'s own 300px
+from [High Point Density](../prediction_improvement/high_point_density.md)'s own 300px
 baseline. At each size, it times sequential, threaded, and
 process-pool execution of `dictk.grid.locate_subpixel` across the
 resulting point grid.
 
-Tracking geometry matches [High Point Density](../getting_started/high_point_density.md)
+Tracking geometry matches [High Point Density](../prediction_improvement/high_point_density.md)
 directly: `kernel_margin=13`, `upsample_factor=100`. `search_margin`
 cannot stay fixed the way it did there, though. At a constant
 `factor_x=1.02`, maximum displacement grows with the image itself
@@ -250,7 +250,7 @@ it to exhaustion would only have proven a point already proven.
 
 This is a real, unfixed limitation in `dictk` itself. It's named here
 rather than patched, the same precedent [High Point
-Density](../getting_started/high_point_density.md#a-real-trade-off-not-a-bug) set for
+Density](../prediction_improvement/high_point_density.md#a-real-trade-off-not-a-bug) set for
 its own strain-window-averaging finding.
 
 **`sequential` and `threads` both died to this script's own

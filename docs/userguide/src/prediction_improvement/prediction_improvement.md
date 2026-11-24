@@ -1,18 +1,18 @@
 # Prediction Improvement
 
-[Search Center Predictions](./search_center_predictions.md) improved
+[Search Center Predictions](../getting_started/search_center_predictions.md) improved
 where each search starts. This chapter improves what each search
 returns: the point's predicted position in the current image.
 
 Chapter 8 never had to report a position between pixels. It avoided
-that in two ways. [Simple Stretch](./simple_stretch.md) stretched the
+that in two ways. [Simple Stretch](../getting_started/simple_stretch.md) stretched the
 image by $\text{factor}_x = 1.02$ and placed every point at an $x$ that is a
 multiple of 50. Only those $x$ values stretch onto whole pixels. That
 kept [`dictk.translation.locate`](../api/dictk/translation.html#locate)
 exact, because `locate` returns whole pixels only. It also capped the
 grid, at 12 points and then 250 in [Simple Stretch
-Revisited](./simple_stretch.html#simple-stretch-revisited). [Pure
-Rotation](./pure_rotation.md) took the other way. It rounded each
+Revisited](../getting_started/simple_stretch.html#simple-stretch-revisited). [Pure
+Rotation](../getting_started/pure_rotation.md) took the other way. It rounded each
 rotated point's true position to the nearest pixel before scoring
 `locate` against it.
 

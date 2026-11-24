@@ -14,7 +14,7 @@ connection to the **Finite Element Method (FEM)**.
 Commercial DIC software sets up a measurement in a specific order, and
 it runs opposite to order presented on this page.
 The reversal is a deliberate choice because we have not yet introduced
-[**subpixel accuracy**](./subpixel_accuracy.md).  After subpixel accuracy is
+[**subpixel accuracy**](../prediction_improvement/subpixel_accuracy.md).  After subpixel accuracy is
 discussed, `dictk` will follow the same order used by commerical DIC software,
 described next:
 
@@ -81,7 +81,7 @@ between them.
 For now, we choose a point spacing not based on kernel size, but on
 locations that, given a prescribed stretch factor, will land exactly on
 an integer location in the deformed configuration.  We need integer
-positions for now because we have not yet introduced [subpixel accuracy](./subpixel_accuracy.md).
+positions for now because we have not yet introduced [subpixel accuracy](../prediction_improvement/subpixel_accuracy.md).
 
 Let `spacing_x=50` px, `spacing_y=55` px be the point spacing for
 this page's example, keeping kernels non-overlapping (the second

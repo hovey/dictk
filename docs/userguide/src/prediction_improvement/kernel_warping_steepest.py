@@ -14,7 +14,7 @@ plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
 X0, Y0 = 150, 150
 MARGIN = 13
 
-reference_image = read(path="astronaut0.png").astype(np.float64)
+reference_image = read(path="../getting_started/astronaut0.png").astype(np.float64)
 gradient_y, gradient_x = np.gradient(reference_image)
 rows = slice(Y0 - MARGIN, Y0 + MARGIN + 1)
 columns = slice(X0 - MARGIN, X0 + MARGIN + 1)

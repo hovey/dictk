@@ -20,7 +20,7 @@ plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
 FACTOR_X = 1.02
 VMIN, VMAX = 17560, 22360
 
-reference_image = read(path="astronaut0.png")
+reference_image = read(path="../getting_started/astronaut0.png")
 current_image = stretch(arr=reference_image, factor_x=FACTOR_X)
 points = generate(
     origin=PixelCoordinate(x=18, y=16),

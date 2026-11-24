@@ -25,7 +25,7 @@ SEED_LIMIT = 1.0
 F = np.array([[1.15, 0.15], [0.0, 1.0]])
 ZOOM = 30
 
-reference_image = read(path="astronaut0.png")
+reference_image = read(path="../getting_started/astronaut0.png")
 rng = np.random.default_rng(0)
 pivots = rng.integers(EDGE, 261, size=(SAMPLE_COUNT, 2)).astype(np.float64)
 shifts = np.round(rng.uniform([4, 2], [8, 6], size=(SAMPLE_COUNT, 2)), 2)

@@ -18,7 +18,7 @@ PATCH = 40
 KERNEL_MARGIN = 13
 GATE = 0.3
 
-reference_image = read(path="astronaut0.png").astype(np.float64)
+reference_image = read(path="../getting_started/astronaut0.png").astype(np.float64)
 points = generate(
     origin=PixelCoordinate(x=110, y=110),
     count_x=17,

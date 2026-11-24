@@ -20,7 +20,7 @@ STRETCHES = np.round(np.arange(0.0, 0.31, 0.05), 2)
 SHEARS = np.round(np.arange(0.0, 0.31, 0.05), 2)
 MISS_LIMIT = 1.0
 
-reference_image = read(path="astronaut0.png")
+reference_image = read(path="../getting_started/astronaut0.png")
 reference_gradients = warp._gradients(reference_image)
 rng = np.random.default_rng(0)
 pivots = rng.integers(40, 261, size=(SAMPLE_COUNT, 2)).astype(np.float64)

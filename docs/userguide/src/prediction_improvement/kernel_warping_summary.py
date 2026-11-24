@@ -13,9 +13,17 @@ from dictk.element import gauss_point_log_strains
 from dictk.grid import elements, generate, locate_subpixel, locate_warp
 from dictk.image import PixelCoordinate, read, stretch
 
+
+def locate_warp_positions(**kwargs):
+    """`locate_warp`'s positions alone, without its ZNSSDs, so it
+    returns what `locate_subpixel` returns."""
+    positions, _znssds = locate_warp(**kwargs)
+    return positions
+
+
 FACTOR_X = 1.02
 
-reference_image = read(path="astronaut0.png")
+reference_image = read(path="../getting_started/astronaut0.png")
 height, width = reference_image.shape
 ys, xs = np.mgrid[0:height, 0:width].astype(np.float64)
 bilinear_image = stretch(arr=reference_image, factor_x=FACTOR_X)
@@ -97,10 +105,14 @@ columns = [
         ),
         "",
     ),
-    ("<code>locate_warp</code>", statistics(track(locate_warp, bilinear_image)), ""),
+    (
+        "<code>locate_warp</code>",
+        statistics(track(locate_warp_positions, bilinear_image)),
+        "",
+    ),
     (
         "<code>locate_warp</code>, quintic image",
-        statistics(track(locate_warp, quintic_image)),
+        statistics(track(locate_warp_positions, quintic_image)),
         ' class="unreachable"',
     ),
 ]

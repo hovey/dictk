@@ -8,7 +8,7 @@ on the crack first. This page finds the crack without that step.
 
 It tracks a full grid of points with
 [`grid.locate_warp_propagated`](../api/dictk/grid.html#locate_warp_propagated)
-from [Seed Propagation](../getting_started/seed_propagation.md), then maps each point's
+from [Seed Propagation](../prediction_improvement/seed_propagation.md), then maps each point's
 ZNSSD. An affine warp can't represent a jump in displacement. No single
 warp matches both sides of a straddling kernel, so its ZNSSD can rise
 above the `znssd_limit` gate of 0.3.
@@ -29,7 +29,7 @@ off-grid case uses a 4.3 px offset and shifts the grid 2 px right, so
 no column lines up with the crack. A subpixel offset forces
 interpolation, so ZNSSD away from the crack no longer comes out exactly
 zero. As a baseline, `locate_warp` from [Kernel
-Warping](../getting_started/kernel_warping.md) tracks the same grid without a gate:
+Warping](../prediction_improvement/kernel_warping.md) tracks the same grid without a gate:
 
 <!-- cmdrun python3 discontinuity_detection_synthetic.py -->
 

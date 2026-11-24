@@ -84,15 +84,18 @@ docs/userguide/book/
 docs/userguide/src/getting_started/*.tiff
 docs/userguide/src/getting_started/*.png
 docs/userguide/src/discontinuity/*.tiff
+docs/userguide/src/prediction_improvement/*.tiff
 docs/userguide/src/postprocessing/*.tiff
 docs/userguide/src/parallelization/*.tiff
 docs/userguide/src/discontinuity/*.png
+docs/userguide/src/prediction_improvement/*.png
 docs/userguide/src/postprocessing/*.png
 docs/userguide/src/parallelization/*.png
 
 # mdbook-cmdrun generated Data Download zip bundles (same as above)
 docs/userguide/src/getting_started/*.zip
 docs/userguide/src/discontinuity/*.zip
+docs/userguide/src/prediction_improvement/*.zip
 docs/userguide/src/postprocessing/*.zip
 docs/userguide/src/parallelization/*.zip
 

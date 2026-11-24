@@ -73,7 +73,7 @@ deviation, 16531 microstrain. The same wave explains the vertical stripes
 in that page's field figure, one stripe pair per cycle.
 
 It also explains why
-[Simple Stretch Revisited](./simple_stretch.html#simple-stretch-revisited)
+[Simple Stretch Revisited](../getting_started/simple_stretch.html#simple-stretch-revisited)
 never saw this. That page spaced its points 50 px apart, one full bias
 cycle. Every true position landed on a whole pixel, so every node sat
 at the same point on the wave. High Point Density's 5 px spacing spread
@@ -161,7 +161,7 @@ C(\boldsymbol{p}) = \underbrace{\sum a^2}_{1}
 $$
 
 So minimizing $C$ maximizes ZNCC, the criterion from [Correlation
-Criteria](./correlation_criteria.md). ZNCC runs from $-1$ to $+1$,
+Criteria](../getting_started/correlation_criteria.md). ZNCC runs from $-1$ to $+1$,
 because $\sum a\,b$ is the dot product of two unit-length vectors.
 So $C = 2\,[1 - \mathrm{ZNCC}]$ runs from 0 to 4. $C = 0$ is a perfect
 match, where $\mathrm{ZNCC} = 1$. $C = 4$ is a perfectly inverted

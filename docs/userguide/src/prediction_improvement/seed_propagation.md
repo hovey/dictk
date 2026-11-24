@@ -172,7 +172,7 @@ true position:
 ZNSSD separates the two groups with no overlap. Correct fits score at
 most 0.0995, and misses score at least 0.6952. Any threshold between
 those two values flags all 972 misses and none of the 498 correct fits.
-In [ZNCC](./correlation_criteria.md) terms, $\text{ZNCC} = 1 - C/2$, so
+In [ZNCC](../getting_started/correlation_criteria.md) terms, $\text{ZNCC} = 1 - C/2$, so
 every correct fit keeps a ZNCC of at least 0.950, and every miss stays
 at or below 0.652.
 

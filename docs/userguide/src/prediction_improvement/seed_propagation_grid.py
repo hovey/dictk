@@ -20,7 +20,7 @@ MISS_LIMIT = 1.0
 CENTER = np.array([149.5, 149.5])
 SHIFT = np.array([2.3, 1.6])
 
-reference_image = read(path="astronaut0.png").astype(np.float64)
+reference_image = read(path="../getting_started/astronaut0.png").astype(np.float64)
 points = generate(
     origin=PixelCoordinate(x=110, y=110),
     count_x=17,
@@ -67,8 +67,8 @@ for i, stretch in enumerate(STRETCHES):
                 **margins,
                 **extra,
             )
-            if locate is locate_warp_propagated:
-                found, _ = found
+            # Both return (positions, znssds).
+            found, _ = found
             errors = np.linalg.norm(
                 np.array([[f.x, f.y] for f in found]) - true, axis=1
             )

@@ -21,7 +21,7 @@ MARGIN = 13
 SEARCH_MARGIN = 25
 RESIDUAL_ITERATIONS = [0, 1, 2, 3]
 
-reference_image = read(path="astronaut0.png").astype(np.float64)
+reference_image = read(path="../getting_started/astronaut0.png").astype(np.float64)
 pivot = np.array([POINT.x, POINT.y], dtype=np.float64)
 inverse = np.linalg.inv(F)[::-1, ::-1]
 offset = pivot[::-1] - inverse @ (pivot[::-1] + SHIFT[::-1])

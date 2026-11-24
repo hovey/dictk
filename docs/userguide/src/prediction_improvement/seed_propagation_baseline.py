@@ -17,6 +17,14 @@ from scipy.ndimage import affine_transform
 from dictk import translation, warp
 from dictk.image import PixelCoordinate, read
 
+
+def warp_position(**kwargs):
+    """`warp.locate`'s position alone, without its ZNSSD, so it
+    returns what `translation.locate` returns."""
+    position, _znssd = warp.locate(**kwargs)
+    return position
+
+
 MARGIN = 13
 SEARCH_MARGIN = 25
 SAMPLE_COUNT = 30
@@ -27,7 +35,7 @@ SHEARS = np.round(np.arange(0.0, 0.31, 0.05), 2)
 SEED_LIMIT = 1.0
 MISS_LIMIT = 1.0
 
-reference_image = read(path="astronaut0.png")
+reference_image = read(path="../getting_started/astronaut0.png")
 rng = np.random.default_rng(0)
 # Points at least 40 px from every edge of the 300x300 image, so the
 # 25 px search area plus an 8 px shift stays inside it.
@@ -58,7 +66,7 @@ for i, stretch in enumerate(STRETCHES):
             true_position = pivot + shift
             for errors, locate in [
                 (seed_errors, translation.locate),
-                (warp_errors, warp.locate),
+                (warp_errors, warp_position),
             ]:
                 found = locate(
                     reference_image=reference_image,

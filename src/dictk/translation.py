@@ -229,7 +229,7 @@ def locate_subpixel(
     displacement genuinely isn't an integer (a stretch's own resampling
     can easily make this true even for an otherwise-integer-pixel
     target -- see [Subpixel
-    Accuracy](../../getting_started/subpixel_accuracy.html)), no amount of
+    Accuracy](../../prediction_improvement/subpixel_accuracy.html)), no amount of
     refinement makes `locate`'s truncated answer correct, because
     `locate`'s question ("which integer pixel?") isn't the right one to
     ask anymore. What subpixel refinement *does* reliably improve is how
@@ -261,7 +261,7 @@ def locate_subpixel(
             `upsample_factor` -- images are registered to within
             `1 / upsample_factor` of a pixel. Default `100`, matching
             the point past which [Subpixel
-            Accuracy](../../getting_started/subpixel_accuracy.html) found
+            Accuracy](../../prediction_improvement/subpixel_accuracy.html) found
             diminishing returns (`10` was already close to `100`'s own
             accuracy in that measurement). Must be >= 1.
 

@@ -31,7 +31,7 @@ SHIFT_COUNT = 30
 DOT_COUNT = 10
 ZOOM = 34
 
-reference_image = read(path="astronaut0.png")
+reference_image = read(path="../getting_started/astronaut0.png")
 pivot = np.array([POINT.x, POINT.y], dtype=np.float64)
 # affine_transform maps each output (row, column) back to its input
 # position, so it takes the inverse deformation, in (y, x) order.

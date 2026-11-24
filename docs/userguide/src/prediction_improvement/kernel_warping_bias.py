@@ -11,11 +11,19 @@ import numpy as np
 from dictk.grid import generate, locate_subpixel, locate_warp
 from dictk.image import PixelCoordinate, read, stretch
 
+
+def locate_warp_positions(**kwargs):
+    """`locate_warp`'s positions alone, without its ZNSSDs, so it
+    returns what `locate_subpixel` returns."""
+    positions, _znssds = locate_warp(**kwargs)
+    return positions
+
+
 plt.rcParams.update({"font.family": "serif", "mathtext.fontset": "cm"})
 
 FACTOR_X = 1.02
 
-reference_image = read(path="astronaut0.png")
+reference_image = read(path="../getting_started/astronaut0.png")
 current_image = stretch(arr=reference_image, factor_x=FACTOR_X)
 points = generate(
     origin=PixelCoordinate(x=18, y=16),
@@ -46,7 +54,7 @@ print(
 print("|---|---|---|---|---|")
 for name, locate, extra, marker in [
     ("`locate_subpixel`", locate_subpixel, dict(upsample_factor=100), "o"),
-    ("`locate_warp`", locate_warp, {}, "s"),
+    ("`locate_warp`", locate_warp_positions, {}, "s"),
 ]:
     start = time.perf_counter()
     found = locate(**kwargs, **extra)

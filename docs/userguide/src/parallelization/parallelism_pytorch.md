@@ -195,8 +195,8 @@ counts search-area pixels and $k$ the kernel's side. An FFT-based one
 costs roughly $O(n \log n)$. The earlier work's own estimate put the FFT
 about 300 times ahead for a `35 x 35` pixel kernel in a `120 x 120` pixel window.
 
-Every CPU measurement in [Subpixel Accuracy](../getting_started/subpixel_accuracy.md),
-[High Point Density](../getting_started/high_point_density.md) and [Timing at
+Every CPU measurement in [Subpixel Accuracy](../prediction_improvement/subpixel_accuracy.md),
+[High Point Density](../prediction_improvement/high_point_density.md) and [Timing at
 Scale](./timing_at_scale.md) came from the FFT side of that cusp. Every
 measurement on this page comes from the brute-force side. Comparing them
 changes two things at once: the execution engine, and the algorithm.
@@ -374,7 +374,7 @@ analytical truth, at the same 2,809 points:
 | Batched `conv2d`, parabolic refinement | 0.0369 px |
 
 The parabolic fit is 2.5 times more accurate than the upsampled-DFT
-refinement [Subpixel Accuracy](../getting_started/subpixel_accuracy.md) introduced, and it
+refinement [Subpixel Accuracy](../prediction_improvement/subpixel_accuracy.md) introduced, and it
 costs a small fraction of the correlation it rides on. That result was
 not expected. It is worth stating plainly that these are two different
 refinement mechanisms measured against the same truth, not a bug in
@@ -631,8 +631,8 @@ differently there.
 
 The FFT gap is still open, and it is now the obvious next step.
 
-Every correlation on this page is a sliding dot product. Every CPU correlation in [Subpixel Accuracy](../getting_started/subpixel_accuracy.md),
-[High Point Density](../getting_started/high_point_density.md) and [Timing at
+Every correlation on this page is a sliding dot product. Every CPU correlation in [Subpixel Accuracy](../prediction_improvement/subpixel_accuracy.md),
+[High Point Density](../prediction_improvement/high_point_density.md) and [Timing at
 Scale](./timing_at_scale.md) is an FFT. Those are the two sides of the cusp Polonsky's 2025 email named. This book
 has now measured each side on different hardware. That is exactly the
 comparison that cannot settle the question.

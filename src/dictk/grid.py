@@ -658,7 +658,7 @@ def locate_warp_propagated(
     translation extrapolated across the offset between the two points.
     A point that fails `znssd_limit` tries again when another accepted
     neighbor reaches it. See [Seed
-    Propagation](../../getting_started/seed_propagation.html).
+    Propagation](../../prediction_improvement/seed_propagation.html).
 
     If the first point's fit fails `znssd_limit`, the start search
     moves to the next untried point nearest the image center, skipping

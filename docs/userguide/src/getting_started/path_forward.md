@@ -107,7 +107,7 @@ Noted, not being pursued right now:
   `grid.locate_warp`. `grid.locate_warp_propagated` has no `windowing`
   parameter, and its seed search never windows. No page in this book
   passes `windowing` to any of them. On [Kernel
-  Warping](./kernel_warping.md)'s own setup, Hann windowing shifts the
+  Warping](../prediction_improvement/kernel_warping.md)'s own setup, Hann windowing shifts the
   results by at most 0.015 px. That setup tracks 2862 points on
   `astronaut0.png` under a 2% stretch, with `kernel_margin=13` and
   `search_margin=25`. With and without Hann, 0 points miss by more than
@@ -129,7 +129,7 @@ Noted, not being pursued right now:
   also locate the window size that minimizes the mean squared error,
   variance plus squared bias.
 * **Seed propagation under a strain gradient.** [Seed
-  Propagation](./seed_propagation.md) tested `locate_warp_propagated`
+  Propagation](../prediction_improvement/seed_propagation.md) tested `locate_warp_propagated`
   only under one uniform stretch and shear, where a neighbor's gradient
   terms match each point's exactly. A strain gradient would make each
   extrapolated seed less exact. A synthetic field with a known gradient
@@ -196,7 +196,7 @@ concrete trigger this Postponed item's own wording anticipated: at
 `factor_x = 1.02`, only points whose `x` is a multiple of 50 land on
 an integer pixel in the deformed configuration. A denser grid mostly
 doesn't. New [Subpixel
-Accuracy](./subpixel_accuracy.md) page: `dictk.translation.locate_subpixel`
+Accuracy](../prediction_improvement/subpixel_accuracy.md) page: `dictk.translation.locate_subpixel`
 and `dictk.grid.locate_subpixel`, exposing
 `phase_cross_correlation`'s own `upsample_factor` — separate functions
 from `locate`/`grid.locate`, not a parameter added to them, returning
@@ -215,7 +215,7 @@ started yet.
 ## 2026-08-24
 
 **9.2 High Point Density, shipped.** New page, [High Point
-Density](./high_point_density.md), closes the 9.1/9.2 pair under
+Density](../prediction_improvement/high_point_density.md), closes the 9.1/9.2 pair under
 [Parallelization](../parallelization/parallelization.md). It pushes `grid.locate_subpixel`
 to VIC-2D's own point density: 2862 points, 5px spacing, 2756 elements.
 No new library code — it composes entirely from already-shipped
@@ -237,7 +237,7 @@ it — that stays open.
 ## 2026-08-25
 
 **High Point Density retuned to VIC-2D's real geometry, plus a
-quantization finding.** [High Point Density](./high_point_density.md)'s
+quantization finding.** [High Point Density](../prediction_improvement/high_point_density.md)'s
 tracking call used a much larger kernel/search area than VIC-2D's own
 `25 x 25` px subset — leftover from earlier pages, never tuned to
 match. `kernel_margin = 12` (the closest whole-pixel match) was tried
@@ -299,7 +299,7 @@ clutter without information at this density. 348 tests (343 + 5 new).
 
 ## 2026-08-26
 
-[High Point Density](../getting_started/high_point_density.html)'s own
+[High Point Density](../prediction_improvement/high_point_density.html)'s own
 closing gap — how `dictk`'s tracking time scales as point count grows,
 across sequential, threaded, and multi-process execution — is answered
 by a new page, [Timing at
@@ -619,7 +619,7 @@ window's bias on a strain gradient. 441 tests (425 + 16).
 ## 2026-10-28
 
 **Seed Propagation starts with a baseline.** New page [Seed
-Propagation](./seed_propagation.md) (9.4) works on the Postponed
+Propagation](../prediction_improvement/seed_propagation.md) (9.4) works on the Postponed
 deformation-aware seed item above. Its first section sweeps stretch
 from 0% to 30% and shear from 0 to 0.30 at 30 random points on
 `astronaut0`. Both stay at zero failures up to a 5% stretch with a
@@ -646,7 +646,7 @@ were current when they were written.
 **ZNSSD flags every miss.** `warp._refine` now also returns its final
 ZNSSD and iteration count. `warp.fit` and `grid.locate_warp` are
 unchanged. Seed Propagation's new [Detecting a
-Miss](./seed_propagation.md#detecting-a-miss) section reruns the 1470
+Miss](../prediction_improvement/seed_propagation.md#detecting-a-miss) section reruns the 1470
 sweep fits. Correct fits reach a ZNSSD of at most 0.0995, and misses
 reach at least 0.6952. Any threshold between the two flags all 972
 misses and none of the 498 correct fits. The iteration count
@@ -655,7 +655,7 @@ result covers one image and one 27x27 kernel. 444 tests (441 + 3).
 
 **A seed with the right shape removes every miss.** `warp._refine` now
 starts from a full 3x3 warp, not a whole-pixel point. [Where the Seed
-Breaks](./seed_propagation.md#where-the-seed-breaks) now reruns the 1470 sweep fits from the true stretch and shear,
+Breaks](../prediction_improvement/seed_propagation.md#where-the-seed-breaks) now reruns the 1470 sweep fits from the true stretch and shear,
 with the translation rounded to whole pixels. The rigid seed gave 972
 misses. This seed gives 0, up to a 30% stretch with a 0.30 shear, with
 a largest error of 0.007 px. Neighbor seeding comes next. 445 tests

@@ -109,7 +109,7 @@ spreads its points over one worker thread per logical CPU core.
 The second table counts each kernel's fits. `locate_warp` returns each
 fit's ZNSSD with its position, and a failed fit scores `inf`. We accept
 a fit when its ZNSSD is at most 0.3, the gate of [Seed
-Propagation](../getting_started/seed_propagation.md), and reject the rest.
+Propagation](../prediction_improvement/seed_propagation.md), and reject the rest.
 
 The third table checks the gate. No ground truth exists for t0 to t1.
 The 45 px kernel's accepted field stands in for it, since that kernel
