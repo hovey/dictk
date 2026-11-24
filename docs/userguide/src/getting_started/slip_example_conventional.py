@@ -1,9 +1,9 @@
 """Track a full grid from t0 to t1 with conventional DIC, `locate_warp`,
-at three kernel sizes: 15, 31, and 45 px. Maps u and v for each kernel,
-one row per kernel. A point whose fit fails comes back as `nan` and
-shows black. Prints the host that ran the tracking, then how many
-points each kernel tracked and lost and how long each kernel took, and
-saves the map.
+at three kernel sizes: 15, 31, and 45 px. Gates each fit by its ZNSSD
+and checks the accepted points of the two smaller kernels against the
+45 px kernel's accepted field. Prints the host that ran the tracking, a
+table of fits per kernel, and the agreement check. Saves a map with one
+row per kernel: ZNSSD, then u and v at accepted points only.
 """
 
 import os
@@ -26,6 +26,10 @@ SPACING = 10
 # margin, 22 px.
 SEARCH_MARGIN = 40
 KERNEL_MARGINS = [7, 15, 22]
+# Seed Propagation's ZNSSD gate.
+GATE = 0.3
+# An accepted point disagrees with the 45 px field past this distance.
+AGREEMENT = 1.0
 
 reference_image = read(path="slip_example_t0.tiff")
 current_image = read(path="slip_example_t1.tiff")
@@ -77,15 +81,15 @@ print(f"| NumPy | {np.__version__} |")
 print(f"| Worker threads per kernel | {os.cpu_count()} |")
 print()
 
-fields = {}
+results = {}
 print(
-    "| Kernel width | `kernel_margin_width` | Points tracked | Points lost "
-    "| Wall time |"
+    "| Kernel width | `kernel_margin_width` | Points tracked | Failed fits "
+    "| ZNSSD above 0.3 | Accepted | Median ZNSSD | Wall time |"
 )
-print("|---|---|---|---|---|")
+print("|---|---|---|---|---|---|---|---|")
 for kernel_margin in KERNEL_MARGINS:
     start = time.perf_counter()
-    found, _znssds = locate_warp(
+    found, znssds = locate_warp(
         reference_image=reference_image,
         current_image=current_image,
         reference_points=points,
@@ -95,48 +99,90 @@ for kernel_margin in KERNEL_MARGINS:
         search_margin_height=SEARCH_MARGIN,
         max_workers=os.cpu_count(),
     )
-    found = np.array([(f.x, f.y) for f in found])
     seconds = time.perf_counter() - start
-    u = (found[:, 0] - x).reshape(count_y, count_x)
-    v = (found[:, 1] - y).reshape(count_y, count_x)
-    fields[kernel_margin] = (u, v)
-    lost = int(np.isnan(u).sum())
+    found = np.array([(f.x, f.y) for f in found])
+    failed = np.isinf(znssds)
+    accepted = znssds <= GATE
+    results[kernel_margin] = (found, znssds, accepted)
     print(
-        f"| {2 * kernel_margin + 1} px | {kernel_margin} | {len(points)} | {lost} "
-        f"| {seconds:.0f} s |"
+        f"| {2 * kernel_margin + 1} px | {kernel_margin} | {len(points)} "
+        f"| {failed.sum()} | {(~failed & ~accepted).sum()} | {accepted.sum()} "
+        f"| {np.median(znssds[~failed]):.3f} | {seconds:.0f} s |"
+    )
+
+# The 45 px kernel's accepted field is the comparison, not ground truth.
+reference_found, _, reference_accepted = results[KERNEL_MARGINS[-1]]
+print()
+print(
+    "| Kernel width | Accepted, more than 1 px from the 45 px field "
+    "| Rejected, within 1 px of the 45 px field | Median distance, accepted |"
+)
+print("|---|---|---|---|")
+for kernel_margin in KERNEL_MARGINS[:-1]:
+    found, znssds, accepted = results[kernel_margin]
+    both = reference_accepted & np.isfinite(znssds)
+    distance = np.hypot(*(found - reference_found).T)
+    kept = both & accepted
+    dropped = both & ~accepted
+    print(
+        f"| {2 * kernel_margin + 1} px | {(distance[kept] > AGREEMENT).sum()} "
+        f"of {kept.sum()} | {(distance[dropped] <= AGREEMENT).sum()} of "
+        f"{dropped.sum()} | {np.median(distance[kept]):.3f} px |"
     )
 
 
-# One color range per column, shared by all three kernels. The 1st and
-# 99th percentiles of the 45 px kernel's field keep a few wild fits
-# from the smaller kernels from washing out the scale.
-limits = [
-    np.nanpercentile(fields[KERNEL_MARGINS[-1]][column], [1, 99]) for column in (0, 1)
+def grid(values):
+    """`values`, one per point, as a `count_y` by `count_x` image."""
+    return values.reshape(count_y, count_x)
+
+
+# One color range per displacement column, shared by all three kernels,
+# from the 45 px kernel's accepted field.
+reference_displacements = [
+    reference_found[reference_accepted, column] - xy[reference_accepted]
+    for column, xy in ((0, x), (1, y))
 ]
+limits = [(values.min(), values.max()) for values in reference_displacements]
 extent = [
     origin - SPACING / 2,
     origin + (count_x - 0.5) * SPACING,
     origin + (count_y - 0.5) * SPACING,
     origin - SPACING / 2,
 ]
-colormap = plt.get_cmap("coolwarm").copy()
-colormap.set_bad("black")
+znssd_colormap = plt.get_cmap("viridis").copy()
+znssd_colormap.set_bad("tab:red")
+displacement_colormap = plt.get_cmap("coolwarm").copy()
+displacement_colormap.set_bad("black")
 
 fig, axes = plt.subplots(
-    len(KERNEL_MARGINS), 2, figsize=(10.5, 13.0), constrained_layout=True
+    len(KERNEL_MARGINS), 3, figsize=(15.0, 13.0), constrained_layout=True
 )
 for row, kernel_margin in zip(axes, KERNEL_MARGINS):
-    for column, (axis, name) in enumerate(zip(row, ("u", "v"))):
+    found, znssds, accepted = results[kernel_margin]
+    kernel = f"{2 * kernel_margin + 1} px kernel"
+    shown = row[0].imshow(
+        grid(np.where(np.isinf(znssds), np.nan, np.minimum(znssds, 1.0))),
+        extent=extent,
+        cmap=znssd_colormap,
+        vmin=0.0,
+        vmax=1.0,
+        interpolation="nearest",
+    )
+    fig.colorbar(shown, ax=row[0], label="ZNSSD (clipped at 1)")
+    row[0].set_title(f"ZNSSD, {kernel} (red: failed)")
+    for column, (axis, name, xy) in enumerate(zip(row[1:], ("u", "v"), (x, y))):
+        values = np.where(accepted, found[:, column] - xy, np.nan)
         shown = axis.imshow(
-            fields[kernel_margin][column],
+            grid(values),
             extent=extent,
-            cmap=colormap,
+            cmap=displacement_colormap,
             vmin=limits[column][0],
             vmax=limits[column][1],
             interpolation="nearest",
         )
         fig.colorbar(shown, ax=axis, label=f"{name} (pixels)")
-        axis.set_title(f"{name}, {2 * kernel_margin + 1} px kernel")
+        axis.set_title(f"{name}, {kernel}, ZNSSD ≤ {GATE}")
+    for axis in row:
         axis.set_xlabel("x (pixels)")
         axis.set_ylabel("y (pixels)")
         axis.set_xlim(0, width)

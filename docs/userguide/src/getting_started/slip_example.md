@@ -104,27 +104,46 @@ so the grid holds $161 \times 141 = 22701$ points.
 ### Results
 
 The first table lists the machine that ran the tracking. Each kernel
-spreads its points over one worker thread per logical CPU core. The
-second table gives each kernel's points, its lost points, and its wall
-time on that machine. A fit that diverges gets no displacement and
-counts as lost:
+spreads its points over one worker thread per logical CPU core.
+
+The second table counts each kernel's fits. `locate_warp` returns each
+fit's ZNSSD with its position, and a failed fit scores `inf`. We accept
+a fit when its ZNSSD is at most 0.3, the gate of [Seed
+Propagation](./seed_propagation.md), and reject the rest.
+
+The third table checks the gate. No ground truth exists for t0 to t1.
+The 45 px kernel's accepted field stands in for it, since that kernel
+rejects only 141 of its 22701 points. For each smaller kernel, we
+compare the points that both kernels accept. We count the accepted
+points more than 1 px from the 45 px field, and the rejected points
+within 1 px of it. A gate that works makes both counts 0:
 
 <!-- cmdrun python3 slip_example_conventional.py -->
 
+The gate works at 31 px. All 17442 compared points it accepts lie
+within 1 px of the 45 px field, at a median distance of 0.062 px. None
+of the 5118 points it rejects lies within 1 px.
+
+The gate fails at 15 px. It accepts 805 fits. Of the 801 that the 45 px
+kernel also accepts, 534 lie more than 1 px from the 45 px field. The
+median distance over all 801 is 34 px. A 15 px kernel holds too few speckles to
+match one position in the search area, so a wrong match can still
+score below 0.3. The median ZNSSD of 1.276 shows that most 15 px fits
+are wrong. The speckle pattern and the image resolution set the
+smallest kernel whose ZNSSD we can trust.
+
+[Figure](#fig-slip-example-conventional) maps each kernel's ZNSSD and
+its accepted displacements. In the 45 px ZNSSD map, the diagonal steps
+in u and v appear as lines of raised ZNSSD, all below the 0.3 gate. All
+three kernels reject points in a vertical strip near x = 1200. These
+images do not show its cause.
+
 <figure id="fig-slip-example-conventional">
     <a href="slip_example_conventional.png" target="_blank" rel="noopener">
-        <img src="slip_example_conventional.png" alt="six panels in three rows and two columns, u on the left and v on the right, one row per kernel width; top row, 15 px kernel, both fields a speckle of saturated red and blue squares with no visible pattern; middle row, 31 px kernel, a smooth gradient from blue at lower left to red at upper right under scattered saturated squares, densest in a vertical strip near x = 1200; bottom row, 45 px kernel, the same gradient almost free of scattered squares, crossed by sharp diagonal steps running from lower left to upper right" />
+        <img src="slip_example_conventional.png" alt="nine panels in three rows and three columns, one row per kernel width, with ZNSSD on the left, u in the middle, and v on the right; top row, 15 px kernel, the ZNSSD map mostly yellow above 1, and the u and v maps almost entirely black with scattered colored squares; middle row, 31 px kernel, the ZNSSD map dark purple below 0.3 with yellow clusters along the top and a dense yellow vertical strip near x = 1200, and the u and v maps a smooth gradient from blue at lower left to red at upper right, with black holes matching the yellow clusters; bottom row, 45 px kernel, the ZNSSD map dark purple crossed by faint lighter diagonal lines from lower left to upper right and a sparse vertical strip of yellow squares near x = 1200, and the u and v maps the same gradient nearly free of black holes, crossed by sharp diagonal steps from lower left to upper right" />
     </a>
-    <figcaption>Conventional DIC from t0 to t1. Click for the full-size version. Left column: u. Right column: v. Rows: 15, 31, and 45 px kernels. Each column shares one color range. Black squares mark diverged fits. The 45 px kernel shows diagonal steps from lower left to upper right.</figcaption>
+    <figcaption>Conventional DIC from t0 to t1, gated by ZNSSD. Click for the full-size version. Rows: 15, 31, and 45 px kernels. Left: each point's ZNSSD, clipped at 1. Red marks a failed fit. Middle: u. Right: v. Both show accepted points only, ZNSSD ≤ 0.3, and black marks every other point. Each displacement column shares one color range, from the 45 px kernel's accepted field.</figcaption>
 </figure>
-
-> **Note:** We judge the 15, 31, and 45 px kernels in
-> [Figure](#fig-slip-example-conventional) by eye. A visual check cannot
-> flag one wild fit inside a smooth field. A numerical criterion should
-> flag each garbage result instead, such as the ZNSSD gate of
-> [Seed Propagation](./seed_propagation.md). The speckle pattern and the
-> image resolution determine the kernel size. A kernel must hold enough
-> speckles to match one position in the search area.
 
 ### `slip_example_conventional.py`
 
