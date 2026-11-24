@@ -1188,4 +1188,4 @@ to land 1.4 px from that wave's zero crossing. A tracker or image with
 a different error period would move the dip. Choosing $n$ needs a sweep
 like this one, on data with a known answer.
 
-Continue to [Discontinuities](../discontinuities/discontinuities.md).
+Continue to [Discontinuities](../discontinuity/discontinuities.md).

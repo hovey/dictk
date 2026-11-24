@@ -16,9 +16,9 @@ def peak_ratio(
 
     A correlation surface computed from a window straddling a
     discontinuity shows two comparably-tall peaks, not one -- see
-    [Synthetic Dislocation](../../discontinuities/synthetic_dislocation.html)
+    [Synthetic Dislocation](../../discontinuity/synthetic_dislocation.html)
     and [Experimental
-    Dislocation](../../discontinuities/experimental_dislocation.html). This
+    Dislocation](../../discontinuity/experimental_dislocation.html). This
     turns that qualitative signature into a single number, generalizing
     `two_peak_separation` (Synthetic Dislocation's own sweep script,
     which reports the two peaks' separation, not their heights, and
@@ -137,7 +137,7 @@ def sweep(
     At each position, extracts a kernel from `reference_image` and a
     search area from `current_image`, both centered on that position
     (the same "center a window here" step [Synthetic
-    Dislocation](../../discontinuities/synthetic_dislocation.html#moving-the-window-off-the-crack)
+    Dislocation](../../discontinuity/synthetic_dislocation.html#moving-the-window-off-the-crack)
     does by hand at one fixed row), computes their ZNCC surface, and
     reads its `peak_ratio`. A discontinuity crossing the `start`-`end`
     line shows up as a rise in `peak_ratios` near the crossing, high on

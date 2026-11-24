@@ -94,7 +94,7 @@ Noted, not being pursued right now:
 
 * **Heaviside DIC and XFEM: DIC-detection half resolved, FEA/XFEM
   half still open.** [Discontinuity
-  Localization](../discontinuities/discontinuity_localization.md) closed the half this
+  Localization](../discontinuity/discontinuity_localization.md) closed the half this
   item originally asked for: `dictk.discontinuity.locate` finds a
   straddling window's two-peak signature on its own, on both synthetic
   and real data, no human-centered window required. What's still not
@@ -141,7 +141,7 @@ Noted, not being pursued right now:
   0.01 px. The cause is not known. A repeating speckle pattern would
   give phase correlation several equal peaks.
 * **A faint streak passes the ZNSSD gate.** On the real crack pair,
-  [Detection](../discontinuities/discontinuity_detection.md#a-real-crack) found a streak
+  [Detection](../discontinuity/discontinuity_detection.md#a-real-crack) found a streak
   parallel to the crack, 155 to 185 px to its lower left. Across it, u
   rises 2.06 px and v rises 1.62 px. Between neighboring bands on
   either side, u changes by at most 0.39 px and v by at most 0.36 px.
@@ -549,7 +549,7 @@ half of its bias on the quintic-spline image.
 Heaviside-DIC kernel (the paper's subset) as a rigid-body translation
 plus a first gradient, the same six-parameter affine warp `dictk.warp`
 solves for, plus a jump times a Heaviside function.
-[Discontinuities](../discontinuities/discontinuities.md#relation-to-heaviside-dic) now
+[Discontinuities](../discontinuity/discontinuities.md#relation-to-heaviside-dic) now
 lays out that relation. The Postponed Heaviside item above now has
 a foundation. Its remaining pieces are the jump vector and the line's
 distance and angle from the kernel center.
@@ -699,7 +699,7 @@ deviation. The Postponed item now records both runs and asks why the
 second one fails. No code changed. Tests are unchanged at 463.
 
 **Detection ships, and Discontinuities reorders.** New page
-[Detection](../discontinuities/discontinuity_detection.md) (11.3) maps the ZNSSD that
+[Detection](../discontinuity/discontinuity_detection.md) (11.3) maps the ZNSSD that
 `grid.locate_warp_propagated` returns for each point across a crack. On
 the synthetic crack with a 4 px offset, the gate rejects 162 of 215
 straddling points. No accepted point lands more than 1 px off, while
