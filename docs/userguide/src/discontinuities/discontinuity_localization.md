@@ -195,12 +195,12 @@ golden-section search needed 12 evaluations against the dense sweep's
 101.
 
 A located position still isn't consumed by anything. [Path
-Forward](./path_forward.md#postponed)'s Heaviside DIC/XFEM item asked
+Forward](../getting_started/path_forward.md#postponed)'s Heaviside DIC/XFEM item asked
 for detection and localization, not a finite-element formulation that
 acts on the result. That half stays open.
 
 Continue to [Slip Example](./slip_example.md).
-[Path Forward](./path_forward.md) records where this leaves the
+[Path Forward](../getting_started/path_forward.md) records where this leaves the
 discontinuity work.
 
 ### `discontinuity_localization_baseline.py`

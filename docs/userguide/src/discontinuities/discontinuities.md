@@ -1,8 +1,8 @@
 # Discontinuities
 
 Every correlation criterion since [Correlation
-Criteria](./correlation_criteria.md), and every worked example through
-[Kernel Warping](./kernel_warping.md), depends on one
+Criteria](../getting_started/correlation_criteria.md), and every worked example through
+[Kernel Warping](../getting_started/kernel_warping.md), depends on one
 tacit assumption: the true displacement field is smooth.
 A kernel window moves as a rigid or gently stretching patch. The search
 for its match assumes one answer exists.
@@ -10,21 +10,21 @@ for its match assumes one answer exists.
 Real specimens may not always have a continuous displacement field.
 A crack, a slip band, or a material
 interface can produce a genuine jump in displacement instead of a
-continuous displacement. [Image Transformation](./transformation.md#crack-dislocation)
+continuous displacement. [Image Transformation](../getting_started/transformation.md#crack-dislocation)
 already built exactly that jump:
 
 <figure id="fig-crack-dislocation-repeat">
     <div class="figure-row">
         <div>
-            <img src="astronaut_crack_plain_original.png" alt="original" />
+            <img src="../getting_started/astronaut_crack_plain_original.png" alt="original" />
             <span>(a)</span>
         </div>
         <div>
-            <img src="astronaut_crack_plain_dislocation.png" alt="crack dislocation" />
+            <img src="../getting_started/astronaut_crack_plain_dislocation.png" alt="crack dislocation" />
             <span>(b)</span>
         </div>
     </div>
-    <figcaption>Crack Dislocation, the same image pair as <a href="./transformation.html#fig-crack-dislocation">Figure</a>. (a) Original. (b) offset=4 pixels.</figcaption>
+    <figcaption>Crack Dislocation, the same image pair as <a href="../getting_started/transformation.html#fig-crack-dislocation">Figure</a>. (a) Original. (b) offset=4 pixels.</figcaption>
 </figure>
 
 A vertical crack splits the image at its vertical midline. The left half
@@ -57,7 +57,7 @@ three-image sequence.
 Heaviside-DIC (H-DIC)[^Bourdin_2018] can represent a displacement jump
 like the crack dislocation above. For the continuous part of its
 displacement, it uses the same affine kernel warp that [Kernel
-Warping](./kernel_warping.md) introduced. The paper calls each kernel
+Warping](../getting_started/kernel_warping.md) introduced. The paper calls each kernel
 a subset. Its Eq. (1) writes each kernel point's deformed position as
 the sum of three terms: the reference position, a rigid-body
 translation, and a first-gradient term. The paper labels those terms
@@ -66,7 +66,7 @@ $\boldsymbol{p}$ of Kernel Warping's warp, $\boldsymbol{W}$.
 $(u, v)$ is the translation, and
 $(u_x, u_y, v_x, v_y)$ is the first gradient. The paper's Fig. 2 draws
 the same two steps as Kernel Warping's [rigid versus warped kernel
-figure](./kernel_warping.md#inverse-compositional-gauss-newton): a
+figure](../getting_started/kernel_warping.md#inverse-compositional-gauss-newton): a
 rigid-body displacement, then a first-gradient warp.
 
 H-DIC then adds one term, a jump $\boldsymbol{u}'$ times a Heaviside

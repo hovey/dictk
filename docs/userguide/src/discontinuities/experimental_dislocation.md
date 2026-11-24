@@ -97,7 +97,7 @@ phase_correlation_quadrant_plot(
 
 <figure>
     <img src="experimental_dislocation_phase.png" alt="Phase correlation quadrant plot on the same real crack image pair: a speckled, noisy correlation surface with no clean isolated peak, values an order of magnitude smaller than ZNCC's, and its single reported maximum sitting at a different position than ZNCC's own tallest peak" />
-    <figcaption>Phase correlation's Correlation Surface panel on the same window: speckled with noise across its entire extent, not the "flat except one sharp peak" pattern <a href="./correlation_visualization.html#phase-correlation">Phase Correlation</a> and <a href="./synthetic_dislocation.html">Synthetic Dislocation</a> both showed. Its single reported maximum, 0.04, is an order of magnitude below ZNCC's 0.28, and lands at a different position than ZNCC's own tallest peak.</figcaption>
+    <figcaption>Phase correlation's Correlation Surface panel on the same window: speckled with noise across its entire extent, not the "flat except one sharp peak" pattern <a href="../getting_started/correlation_visualization.html#phase-correlation">Phase Correlation</a> and <a href="./synthetic_dislocation.html">Synthetic Dislocation</a> both showed. Its single reported maximum, 0.04, is an order of magnitude below ZNCC's 0.28, and lands at a different position than ZNCC's own tallest peak.</figcaption>
 </figure>
 
 Both criteria agreed exactly on synthetic data. They don't here. Real,

@@ -49,7 +49,7 @@ right. A window there doesn't sit cleanly on one side. It contains both
 true displacements at once: $\delta y =$ +4 pixels on its left half, $\delta y =$ -4 pixels on its
 right. $\delta x =$ 0 pixels for all pixels in the current image.
 
-> Recall that `dictk`'s own y-axis points down the page, not up (see [Multi-Point Motion](./multi_point_motion.md#verification-against-vic-2d) for this same sign convention). So +4 here means the left half shifts *down*. -4 means the right half shifts *up*.
+> Recall that `dictk`'s own y-axis points down the page, not up (see [Multi-Point Motion](../getting_started/multi_point_motion.md#verification-against-vic-2d) for this same sign convention). So +4 here means the left half shifts *down*. -4 means the right half shifts *up*.
 
 ```python
 from dictk.plot import subimage_comparison_plot
@@ -79,7 +79,7 @@ subimage_comparison_plot(
 
 <figure>
     <img src="synthetic_dislocation_kernel.png" alt="the kernel window as a green box centered at x=150, y=150 on reference_image, with the extracted kernel subimage shown alongside it" />
-    <figcaption>The kernel window (green box), a 50x50 pixel region of <code>reference_image</code> centered on the crack at $\boldsymbol{p}_0 = (150, 150)$, with origin $\boldsymbol{r}_{OK/\mathcal{F}} = (125, 125)$ pixels (green dot). Because the window straddles the crack instead of sitting on one side of it, it contains pixels from both displacements on the left and right halves of the current image. This follows the nomenclature and convention established in <a href="./cross_correlation.html#kernel">Cross Correlation (CC)</a>.</figcaption>
+    <figcaption>The kernel window (green box), a 50x50 pixel region of <code>reference_image</code> centered on the crack at $\boldsymbol{p}_0 = (150, 150)$, with origin $\boldsymbol{r}_{OK/\mathcal{F}} = (125, 125)$ pixels (green dot). Because the window straddles the crack instead of sitting on one side of it, it contains pixels from both displacements on the left and right halves of the current image. This follows the nomenclature and convention established in <a href="../getting_started/cross_correlation.html#kernel">Cross Correlation (CC)</a>.</figcaption>
 </figure>
 
 ```python
@@ -124,7 +124,7 @@ phase_correlation_quadrant_plot(
 
 <figure>
     <img src="synthetic_dislocation_phase.png" alt="Phase correlation quadrant plot: correlation surface is otherwise flat except for two isolated bright pixels at the same two locations the ZNCC surface found" />
-    <figcaption>Phase correlation's Correlation Surface panel shows the same pattern as <a href="./correlation_visualization.html#phase-correlation">Phase Correlation</a>: flat except for one sharp pixel. Here, though, there are two sharp pixels, at (x=20, y=16) and (x=20, y=24), with heights 0.206 and 0.173, respectively. These are the same two locations ZNCC found.</figcaption>
+    <figcaption>Phase correlation's Correlation Surface panel shows the same pattern as <a href="../getting_started/correlation_visualization.html#phase-correlation">Phase Correlation</a>: flat except for one sharp pixel. Here, though, there are two sharp pixels, at (x=20, y=16) and (x=20, y=24), with heights 0.206 and 0.173, respectively. These are the same two locations ZNCC found.</figcaption>
 </figure>
 
 Two comparably-tall peaks appear, not one, because a single-peak
@@ -153,7 +153,7 @@ The encoding holds reliably across a 32x range of offsets, for both
 criteria. One exception sits at the low end: once the two true
 displacements are only a pixel apart, resolving them as two distinct
 peaks runs into the same integer-pixel resolution limit [Subpixel
-Accuracy](./subpixel_accuracy.md) already covers for a single peak.
+Accuracy](../getting_started/subpixel_accuracy.md) already covers for a single peak.
 
 ## Moving the Window Off the Crack
 
@@ -299,7 +299,7 @@ table above shows. The full distribution, not just its extremes:
 
 <figure>
     <img src="synthetic_dislocation_displacement_field_dx_histogram.png" alt="histogram of dx across all 1849 points: a single narrow peak centered at zero, spanning roughly -0.07 to 0.07 pixels, with a shaded band marking one std on either side of the mean and a dashed black line at the mean itself" />
-    <figcaption>The <code>dx</code> distribution across all 1849 tracked points: a single peak centered on zero, no second mode. The shaded band marks one std on either side of the mean; the dashed line marks the mean itself. The 0.01-pixel steps are <code>upsample_factor=100</code>'s own subpixel quantization, the same effect <a href="./high_point_density.html">High Point Density</a> found for <code>dy</code>.</figcaption>
+    <figcaption>The <code>dx</code> distribution across all 1849 tracked points: a single peak centered on zero, no second mode. The shaded band marks one std on either side of the mean; the dashed line marks the mean itself. The 0.01-pixel steps are <code>upsample_factor=100</code>'s own subpixel quantization, the same effect <a href="../getting_started/high_point_density.html">High Point Density</a> found for <code>dy</code>.</figcaption>
 </figure>
 
 ### Displacement dy
@@ -342,7 +342,7 @@ pixels.
 
 ### VIC-2D-Style Point Density
 
-[High Point Density](./high_point_density.md) verifies a denser grid --
+[High Point Density](../getting_started/high_point_density.md) verifies a denser grid --
 `count_x=53, count_y=54, spacing_x=spacing_y=5`, with
 `kernel_margin_width=kernel_margin_height=13`,
 `search_margin_width=search_margin_height=25` -- against a real VIC-2D
