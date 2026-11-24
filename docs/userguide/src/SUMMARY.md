@@ -21,6 +21,7 @@
   - [Pure Rotation](./getting_started/pure_rotation.md)
   - [Search Center Predictions](./getting_started/search_center_predictions.md)
 - [Prediction Improvement](./prediction_improvement/prediction_improvement.md)
+  - [Kernel Size Selection](./prediction_improvement/kernel_size_selection.md)
   - [Subpixel Accuracy](./prediction_improvement/subpixel_accuracy.md)
   - [High Point Density](./prediction_improvement/high_point_density.md)
   - [Kernel Warping](./prediction_improvement/kernel_warping.md)

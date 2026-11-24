@@ -22,8 +22,11 @@ its 2862 true positions falls between pixels. `locate` can only report
 a whole pixel, so it misses every one of them. A real specimen poses the same problem.
 Its displacements don't land on whole pixels either.
 
-The four pages of this chapter take that on in order:
+The five pages of this chapter take that on in order:
 
+* [Kernel Size Selection](./kernel_size_selection.md) introduces two
+  real speckle images, `sem_steel_silver_speckle.tif` and
+  `msem_titanium_silver_speckle.tif`, for choosing a kernel size.
 * [Subpixel Accuracy](./subpixel_accuracy.md) adds `locate_subpixel`,
   which returns a fractional position. On the 2862-point grid, it cuts
   `locate`'s mean position error by about a third.
