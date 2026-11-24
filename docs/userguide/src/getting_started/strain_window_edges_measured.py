@@ -29,7 +29,7 @@ points = generate(
     spacing_x=SPACING,
     spacing_y=SPACING,
 )
-found = locate_warp(
+found, _znssds = locate_warp(
     reference_image=reference_image,
     current_image=current_image,
     reference_points=points,

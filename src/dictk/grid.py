@@ -121,11 +121,12 @@ def _locate_warp_worker(
     windowing: WindowingMethod | None,
     max_iterations: int,
     tolerance: float,
-) -> SubpixelCoordinate:
+) -> tuple[SubpixelCoordinate, float]:
     """One point's worth of `warp.locate`, reusing gradients and spline
     coefficients computed once per batch -- see `_locate_worker`'s own
     docstring for why this is a module-level function taking a single
-    positional argument, not a closure."""
+    positional argument, not a closure. Returns the point's position
+    and its fit's ZNSSD."""
     reference_point, search_center = args
     start = translation.locate(
         reference_image=reference_image,
@@ -138,7 +139,7 @@ def _locate_warp_worker(
         search_margin_height=search_margin_height,
         windowing=windowing,
     )
-    fitted, _znssd, _iterations = warp._refine(
+    fitted, znssd, _iterations = warp._refine(
         reference_image=reference_image,
         reference_gradients=reference_gradients,
         current_coefficients=current_coefficients,
@@ -151,9 +152,10 @@ def _locate_warp_worker(
         max_iterations=max_iterations,
         tolerance=tolerance,
     )
-    return SubpixelCoordinate(
+    position = SubpixelCoordinate(
         x=reference_point.x + fitted[0, 2], y=reference_point.y + fitted[1, 2]
     )
+    return position, znssd
 
 
 def generate(
@@ -507,7 +509,7 @@ def locate_warp(
     tolerance: float = 1e-6,
     max_workers: int | None = None,
     executor: Executor = Executor.THREAD,
-) -> list[SubpixelCoordinate]:
+) -> tuple[list[SubpixelCoordinate], np.ndarray]:
     """Batch version of `dictk.warp.locate`: track many points at once
     by warping an affine kernel.
 
@@ -522,9 +524,14 @@ def locate_warp(
     is flat, or when IC-GN diverges onto a flat patch of
     `current_image` or off the image. See
     [`dictk.warp.fit`](./warp.html#fit). Count failed points with
-    `np.isnan([p.x for p in found]).sum()`. A fit that finishes on the
-    wrong speckles still returns finite, wrong numbers, and this
-    function does not flag it.
+    `np.isinf(znssds).sum()`.
+
+    Each point also returns its fit's ZNSSD, the same measure
+    [`locate_warp_propagated`](#locate_warp_propagated) returns. A fit
+    that finishes on the wrong speckles still returns a finite, wrong
+    position, but its ZNSSD is large. This function returns every
+    position and applies no ZNSSD limit itself. The caller chooses
+    one, for example keeping only points with `znssds <= 0.3`.
 
     Args:
         reference_image: The reference (undeformed) 2D grayscale image.
@@ -555,9 +562,14 @@ def locate_warp(
             `max_workers` is `None`. Default `Executor.THREAD`.
 
     Returns:
-        Each point's location, in `current_image`'s pixel reference
-        frame, generally fractional, in the same order as
-        `reference_points`. A failed point's `x` and `y` are `nan`.
+        Two items, each in the same order as `reference_points`:
+
+        - Each point's location, in `current_image`'s pixel reference
+          frame, generally fractional. A failed point's `x` and `y`
+          are `nan`.
+        - Each point's ZNSSD, as a 1D array, from 0 for a perfect
+          match to 4 for a perfectly inverted pattern, or `inf` for a
+          failed point.
 
     Raises:
         ValueError: If `search_centers` is given but its length doesn't
@@ -595,13 +607,16 @@ def locate_warp(
         tolerance=tolerance,
     )
     if max_workers is None:
-        return [worker(pair) for pair in zip(reference_points, search_centers)]
-
-    executor_cls = (
-        ThreadPoolExecutor if executor is Executor.THREAD else ProcessPoolExecutor
-    )
-    with executor_cls(max_workers=max_workers) as pool:
-        return list(pool.map(worker, zip(reference_points, search_centers)))
+        results = [worker(pair) for pair in zip(reference_points, search_centers)]
+    else:
+        executor_cls = (
+            ThreadPoolExecutor if executor is Executor.THREAD else ProcessPoolExecutor
+        )
+        with executor_cls(max_workers=max_workers) as pool:
+            results = list(pool.map(worker, zip(reference_points, search_centers)))
+    positions = [position for position, _znssd in results]
+    znssds = np.array([znssd for _position, znssd in results], dtype=np.float64)
+    return positions, znssds
 
 
 def locate_warp_propagated(

@@ -57,7 +57,7 @@ def strains(found):
 
 
 phase, _ = strains(locate_subpixel(**kwargs, upsample_factor=100))
-found = locate_warp(**kwargs)
+found, _znssds = locate_warp(**kwargs)
 warp, coordinates = strains(found)
 
 with open("../verification/simple_stretch_vic_out.csv") as f:

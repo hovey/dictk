@@ -340,6 +340,38 @@ def fit(
             checks, `max_iterations` is less than 1, or `tolerance` is
             not positive. A failed fit does not raise.
     """
+    fitted, _znssd = _fit(
+        reference_image=reference_image,
+        current_image=current_image,
+        reference_point=reference_point,
+        search_center=search_center,
+        kernel_margin_width=kernel_margin_width,
+        kernel_margin_height=kernel_margin_height,
+        search_margin_width=search_margin_width,
+        search_margin_height=search_margin_height,
+        windowing=windowing,
+        max_iterations=max_iterations,
+        tolerance=tolerance,
+    )
+    return fitted
+
+
+def _fit(
+    *,
+    reference_image: np.ndarray,
+    current_image: np.ndarray,
+    reference_point: PixelCoordinate,
+    search_center: PixelCoordinate,
+    kernel_margin_width: int,
+    kernel_margin_height: int,
+    search_margin_width: int,
+    search_margin_height: int,
+    windowing: WindowingMethod | None,
+    max_iterations: int,
+    tolerance: float,
+) -> tuple[np.ndarray, float]:
+    """`fit`'s two stages, returning the fitted warp and its ZNSSD.
+    `fit` keeps only the warp, and `locate` keeps both."""
     if max_iterations < 1:
         raise ValueError(f"max_iterations {max_iterations} must be >= 1")
     if tolerance <= 0:
@@ -356,7 +388,7 @@ def fit(
         search_margin_height=search_margin_height,
         windowing=windowing,
     )
-    fitted, _znssd, _iterations = _refine(
+    fitted, znssd, _iterations = _refine(
         reference_image=reference_image,
         reference_gradients=_gradients(reference_image),
         current_coefficients=_spline_coefficients(current_image),
@@ -367,7 +399,7 @@ def fit(
         max_iterations=max_iterations,
         tolerance=tolerance,
     )
-    return fitted
+    return fitted, znssd
 
 
 def locate(
@@ -383,25 +415,35 @@ def locate(
     windowing: WindowingMethod | None = None,
     max_iterations: int = 50,
     tolerance: float = 1e-6,
-) -> SubpixelCoordinate:
+) -> tuple[SubpixelCoordinate, float]:
     """Subpixel point tracking by warping an affine kernel, free of the
     pixel-locking bias of
     [`dictk.translation.locate_subpixel`](./translation.html#locate_subpixel).
 
-    Runs [`fit`](#fit) and returns only the fitted warp's translation,
-    as a position. Every argument passes straight through to `fit` --
-    see its own docstring for each one, and for the method.
+    Runs [`fit`](#fit) and returns the fitted warp's translation, as a
+    position, with the fit's ZNSSD. Every argument passes straight
+    through to `fit` -- see its own docstring for each one, and for the
+    method.
+
+    The ZNSSD compares the reference kernel with `current_image`
+    sampled through the fitted warp. It measures how well the fit
+    matches, so a large value flags a position not to trust. See
+    [Kernel Warping](../getting_started/kernel_warping.html#failed-fits).
 
     Returns:
-        The point's location, in `current_image`'s pixel reference
-        frame, generally fractional. A failed fit, as `fit` defines
-        it, returns `nan` for both `x` and `y`.
+        Two items:
+
+        - The point's location, in `current_image`'s pixel reference
+          frame, generally fractional. A failed fit, as `fit` defines
+          it, returns `nan` for both `x` and `y`.
+        - The fit's ZNSSD, from 0 for a perfect match to 4 for a
+          perfectly inverted pattern, or `inf` for a failed fit.
 
     Raises:
         ValueError: Under the same conditions as `fit`. A failed fit
             does not raise.
     """
-    warp = fit(
+    warp, znssd = _fit(
         reference_image=reference_image,
         current_image=current_image,
         reference_point=reference_point,
@@ -414,6 +456,7 @@ def locate(
         max_iterations=max_iterations,
         tolerance=tolerance,
     )
-    return SubpixelCoordinate(
+    position = SubpixelCoordinate(
         x=reference_point.x + warp[0, 2], y=reference_point.y + warp[1, 2]
     )
+    return position, znssd

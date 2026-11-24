@@ -408,7 +408,7 @@ with the same grid and margins:
 ```python
 from dictk.grid import locate_warp
 
-found = locate_warp(
+found, znssds = locate_warp(
     reference_image=reference_image,
     current_image=current_image,
     reference_points=points,
@@ -610,9 +610,15 @@ every spline sample reads 0.
 of `nan`.
 [`warp.locate`](../api/dictk/warp.html#locate) and
 [`grid.locate_warp`](../api/dictk/grid.html#locate_warp) return `nan`
-for the failed point's $x$ and $y$. An exception would end the whole
-`locate_warp` call, and one failed point would cost every other point
-its result. A `nan` marks the one failed point and keeps the rest.
+for the failed point's $x$ and $y$, and a ZNSSD of `inf`. An exception
+would end the whole `locate_warp` call, and one failed point would cost
+every other point its result. A `nan` marks the one failed point and
+keeps the rest.
+
+Both functions return each point's final ZNSSD, $C(\boldsymbol{p})$
+from step 1, alongside its position. `warp.locate` returns one
+position and one ZNSSD. `locate_warp` returns a list of positions and
+an array of ZNSSDs, both in the order of the reference points.
 
 The table tracks a $3 \times 3$ grid through a shift of $-6$ px in $x$
 and $+8$ px in $y$. We flatten a $41 \times 41$ patch of the reference
@@ -637,18 +643,23 @@ $31 \times 31$ kernel is flat:
     <figcaption>One failed fit in a 3x3 grid. Click for the full-size version. (a) The reference image. The dashed red box is the first point's 31x31 kernel, which lies wholly inside the flat patch. The solid blue box is the kernel at (80, 80), for comparison. Blue dots mark the other grid points. (b) The current image, shifted −6 px in x and +8 px in y. Each blue arrow runs from a point's reference position to its tracked position. The red x marks the failed point at its reference position, where <code>locate_warp</code> returns <code>nan</code>.</figcaption>
 </figure>
 
-The first point's fit fails and returns `nan`, as
-[Figure](#fig-kw-failed-fits) shows. The other eight points track the
-shift exactly, including the three whose kernels overlap the flat
-patch.
+The first point's fit fails and returns `nan`, with a ZNSSD of `inf`,
+as [Figure](#fig-kw-failed-fits) shows. The other eight points track
+the shift exactly, including the three whose kernels overlap the flat
+patch. Each of the eight scores a ZNSSD below $10^{-30}$, a perfect
+match, because the shift is a whole number of pixels.
 
 A `nan` spreads through later arithmetic. A mean over positions that
 include one `nan` is itself `nan`, and so is any strain computed from a
-failed point. We test for failed points first, with `np.isnan`.
+failed point. We test for failed points first, with `np.isnan` on a
+position or `np.isinf` on a ZNSSD.
 
 A fit that finishes is not always correct. IC-GN can converge on the
 wrong speckles and return finite, wrong positions. A `nan` flags only
-the fits that cannot finish.
+the fits that cannot finish. The ZNSSD also flags a finished fit on the
+wrong speckles, because their kernel does not match the reference
+kernel. `locate_warp` returns every position and applies no ZNSSD
+limit. The caller chooses one.
 
 ## Summary
 

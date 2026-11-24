@@ -59,7 +59,7 @@ def tracked(current_image):
     return (
         translation.locate(**kwargs),
         translation.locate_subpixel(**kwargs),
-        warp.locate(**kwargs),
+        warp.locate(**kwargs)[0],
         warp.fit(**kwargs),
     )
 

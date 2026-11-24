@@ -51,7 +51,7 @@ for name, offset, origin_x in CASES:
         reference_points=points,
         **margins,
     )
-    rigid_seeded = locate_warp(
+    rigid_seeded, _rigid_znssds = locate_warp(
         reference_image=reference_image,
         current_image=current_image,
         reference_points=points,

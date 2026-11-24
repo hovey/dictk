@@ -33,7 +33,7 @@ seeds = [
     translation.locate(reference_point=point, search_center=point, **kwargs)
     for point in points
 ]
-found = locate_warp(reference_points=points, **kwargs)
+found, _znssds = locate_warp(reference_points=points, **kwargs)
 
 # `image.stretch` pivots on the image origin, so each true x is the
 # reference x times the stretch factor, and y is unchanged.

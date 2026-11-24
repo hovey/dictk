@@ -1,6 +1,6 @@
 """Track a 3x3 grid with `locate_warp` after flattening the reference
 image around the first point, so that point's fit fails. Prints each
-point's tracked position and error against the known motion, and
+point's tracked position, error against the known motion, and ZNSSD, and
 saves a two-panel figure of the kernels and the tracked motion.
 """
 
@@ -34,7 +34,7 @@ points = generate(
     spacing_x=20,
     spacing_y=20,
 )
-found = locate_warp(
+found, znssds = locate_warp(
     reference_image=reference_image,
     current_image=current_image,
     reference_points=points,
@@ -44,15 +44,15 @@ found = locate_warp(
     search_margin_height=30,
 )
 
-print("| Reference point | Tracked x | Tracked y | Error |")
-print("|---|---|---|---|")
-for point, position in zip(points, found):
+print("| Reference point | Tracked x | Tracked y | Error | ZNSSD |")
+print("|---|---|---|---|---|")
+for point, position, znssd in zip(points, found, znssds):
     error = np.hypot(position.x - (point.x + DX), position.y - (point.y + DY))
     print(
         f"| ({point.x}, {point.y}) | {position.x:.3f} | {position.y:.3f} "
-        f"| {error:.3f} px |"
+        f"| {error:.3f} px | {znssd:.1e} |"
     )
-lost = int(np.isnan([p.x for p in found]).sum())
+lost = int(np.isinf(znssds).sum())
 print()
 print(f"Failed fits: {lost} of {len(points)}")
 

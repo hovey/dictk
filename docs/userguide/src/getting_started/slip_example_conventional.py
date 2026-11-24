@@ -85,7 +85,7 @@ print(
 print("|---|---|---|---|---|")
 for kernel_margin in KERNEL_MARGINS:
     start = time.perf_counter()
-    found = locate_warp(
+    found, _znssds = locate_warp(
         reference_image=reference_image,
         current_image=current_image,
         reference_points=points,

@@ -532,12 +532,15 @@ def test_locate_warp_requires_keyword_arguments():
 def test_locate_warp_matches_per_point_warp_locate():
     ref, cur = _reference_and_current(dx=-6, dy=8)
     kwargs = _warp_kwargs(ref, cur)
-    found = locate_warp(**kwargs)
+    found, znssds = locate_warp(**kwargs)
     points = kwargs.pop("reference_points")
     expected = [
         warp_locate(**kwargs, reference_point=p, search_center=p) for p in points
     ]
-    assert found == expected
+    assert found == [position for position, _znssd in expected]
+    np.testing.assert_array_equal(znssds, [znssd for _position, znssd in expected])
+    assert znssds.shape == (len(points),)
+    assert (znssds < 1e-6).all()
 
 
 def _flat_patch_reference_and_current():
@@ -554,21 +557,26 @@ def _flat_patch_reference_and_current():
 def test_locate_warp_failed_fit_returns_nan_and_keeps_other_points(max_workers):
     ref, cur = _flat_patch_reference_and_current()
     kwargs = _warp_kwargs(ref, cur)
-    found = locate_warp(**kwargs, max_workers=max_workers)
+    found, znssds = locate_warp(**kwargs, max_workers=max_workers)
     assert np.isnan(found[0].x) and np.isnan(found[0].y)
+    assert znssds[0] == np.inf
     assert all(np.isfinite([p.x for p in found[1:]]))
+    assert np.isfinite(znssds[1:]).all()
     points = kwargs.pop("reference_points")
     expected = [
         warp_locate(**kwargs, reference_point=p, search_center=p) for p in points
     ]
-    assert found[1:] == expected[1:]
-    assert np.isnan(expected[0].x)
+    assert found[1:] == [position for position, _znssd in expected[1:]]
+    assert np.isnan(expected[0][0].x)
+    assert expected[0][1] == np.inf
 
 
-def test_locate_warp_empty_points_returns_empty_list():
+def test_locate_warp_empty_points_returns_empty_results():
     ref, cur = _reference_and_current(dx=0, dy=0)
     kwargs = _warp_kwargs(ref, cur) | dict(reference_points=[])
-    assert locate_warp(**kwargs) == []
+    found, znssds = locate_warp(**kwargs)
+    assert found == []
+    assert znssds.shape == (0,)
 
 
 def test_locate_warp_mismatched_search_centers_length_raises():
@@ -583,9 +591,12 @@ def test_locate_warp_mismatched_search_centers_length_raises():
 def test_locate_warp_max_workers_matches_sequential(max_workers, executor):
     ref, cur = _reference_and_current(dx=-6, dy=8)
     kwargs = _warp_kwargs(ref, cur)
-    sequential = locate_warp(**kwargs)
-    concurrent = locate_warp(**kwargs, max_workers=max_workers, executor=executor)
+    sequential, sequential_znssds = locate_warp(**kwargs)
+    concurrent, concurrent_znssds = locate_warp(
+        **kwargs, max_workers=max_workers, executor=executor
+    )
     assert concurrent == sequential
+    np.testing.assert_array_equal(concurrent_znssds, sequential_znssds)
 
 
 @pytest.mark.parametrize(
@@ -623,7 +634,8 @@ def test_locate_warp_recovers_stretch_more_closely_than_locate_subpixel():
         search_margin_height=25,
     )
     true_x = np.array([p.x * factor_x for p in points])
-    warp_error = np.array([f.x for f in locate_warp(**kwargs)]) - true_x
+    found, _znssds = locate_warp(**kwargs)
+    warp_error = np.array([f.x for f in found]) - true_x
     phase_error = np.array([f.x for f in locate_subpixel(**kwargs)]) - true_x
     assert np.std(warp_error) < 0.02
     assert np.std(warp_error) < np.std(phase_error)
@@ -680,7 +692,7 @@ def test_locate_warp_propagated_matches_locate_warp_on_small_stretch():
     kwargs = dict(reference_image=ref, current_image=cur, reference_points=points)
     propagated, znssds = locate_warp_propagated(**kwargs, **_propagated_kwargs())
     assert znssds.max() < 0.3
-    rigid = locate_warp(**kwargs, **_propagated_kwargs())
+    rigid, _rigid_znssds = locate_warp(**kwargs, **_propagated_kwargs())
     assert _errors(propagated, true).max() < 0.01
     np.testing.assert_allclose(
         [[f.x, f.y] for f in propagated], [[f.x, f.y] for f in rigid], atol=1e-3
@@ -693,7 +705,11 @@ def test_locate_warp_propagated_tracks_large_deformation_locate_warp_misses():
         deformation=np.array([[1.15, 0.15], [0.0, 1.0]])
     )
     kwargs = dict(reference_image=ref, current_image=cur, reference_points=points)
-    assert (_errors(locate_warp(**kwargs, **_propagated_kwargs()), true) > 1).sum() > 10
+    rigid, rigid_znssds = locate_warp(**kwargs, **_propagated_kwargs())
+    missed = _errors(rigid, true) > 1
+    assert missed.sum() > 10
+    # Every rigid-seeded miss scores a ZNSSD above the 0.3 gate.
+    assert (rigid_znssds[missed] > 0.3).all()
     found, znssds = locate_warp_propagated(**kwargs, **_propagated_kwargs())
     assert _errors(found, true).max() < 0.01
     assert znssds.max() < 0.3
