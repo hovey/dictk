@@ -37,7 +37,7 @@ class Executor(Enum):
       fixed cost once, spawning workers and importing dependencies in
       each -- which then amortizes as task count grows.
 
-    See [Parallelization](../getting_started/parallelization.html) for
+    See [Parallelization](../../getting_started/parallelization.html) for
     measured trade-offs between the two.
     """
 
@@ -219,14 +219,14 @@ def elements(*, count_x: int, count_y: int) -> list[tuple[int, int, int, int]]:
     corner nodes given as indices into that same points list -- so
     `[points[i] for i in elements(...)[0]]` are one element's 4 corner
     `PixelCoordinate`s, ready to hand to
-    [`dictk.element.gauss_point_green_lagrange_strains`](../api/dictk/element.html#gauss_point_green_lagrange_strains)
+    [`dictk.element.gauss_point_green_lagrange_strains`](./element.html#gauss_point_green_lagrange_strains)
     or
-    [`dictk.element.gauss_point_log_strains`](../api/dictk/element.html#gauss_point_log_strains).
+    [`dictk.element.gauss_point_log_strains`](./element.html#gauss_point_log_strains).
 
     Each 4-tuple is `(top_left, top_right, bottom_right, bottom_left)`
     point indices -- the same $N_1$..$N_4$ corner order those functions'
     `shape_functions` convention expects (see [Shape
-    Functions](../getting_started/finite_element_method.html#shape-functions)).
+    Functions](../../getting_started/finite_element_method.html#shape-functions)).
     "Top"/"bottom" here use `generate`'s own image-pixel convention (y
     increasing downward, origin at the top-left point) -- not the
     math-style y-up convention `finite_element_method.md`'s figures use,
@@ -320,7 +320,7 @@ def locate(
             this many workers instead of one at a time. Default `None`
             stays sequential -- a plain loop, no pool, no overhead --
             matching this function's original behavior exactly. See
-            [Parallelization](../getting_started/parallelization.html)
+            [Parallelization](../../getting_started/parallelization.html)
             before setting this: at this book's own teaching scale
             (small kernels and search areas), sequential outperforms
             both pool types at any point count up to 1,000,000, measured.
@@ -406,7 +406,7 @@ def locate_subpixel(
     the full explanation of `search_centers`, `windowing`,
     `max_workers`, and `executor`. The one behavioral difference beyond
     the added `upsample_factor` parameter: each point's found position
-    is a [`SubpixelCoordinate`](../image.html#SubpixelCoordinate)
+    is a [`SubpixelCoordinate`](./image.html#SubpixelCoordinate)
     (generally fractional), not a `PixelCoordinate`, matching
     `translation.locate_subpixel`'s own return type.
 
@@ -427,7 +427,7 @@ def locate_subpixel(
         search_margin_height: Half each search area's height, in pixels.
             Must be greater than `kernel_margin_height`.
         windowing: Passed straight through to each per-point
-            [`dictk.translation.locate_subpixel`](../translation.html#locate_subpixel)
+            [`dictk.translation.locate_subpixel`](./translation.html#locate_subpixel)
             call. Default `None` applies no windowing.
         upsample_factor: Passed straight through to each per-point
             `locate_subpixel` call. Default `100`, matching that
@@ -658,7 +658,7 @@ def locate_warp_propagated(
     translation extrapolated across the offset between the two points.
     A point that fails `znssd_limit` tries again when another accepted
     neighbor reaches it. See [Seed
-    Propagation](../getting_started/seed_propagation.html).
+    Propagation](../../getting_started/seed_propagation.html).
 
     If the first point's fit fails `znssd_limit`, the start search
     moves to the next untried point nearest the image center, skipping

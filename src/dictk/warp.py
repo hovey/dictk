@@ -284,9 +284,9 @@ def fit(
     A fit that finishes is not always correct. IC-GN can converge on
     the wrong speckles and return finite, wrong numbers. `fit` has no
     check for that either. See [Kernel
-    Warping](../getting_started/kernel_warping.html#failed-fits).
+    Warping](../../getting_started/kernel_warping.html#failed-fits).
 
-    See [Kernel Warping](../getting_started/kernel_warping.html) for why
+    See [Kernel Warping](../../getting_started/kernel_warping.html) for why
     this beats phase correlation's upsampled peak, and
     [`locate`](#locate) for the tracked position alone.
 
@@ -428,7 +428,7 @@ def locate(
     The ZNSSD compares the reference kernel with `current_image`
     sampled through the fitted warp. It measures how well the fit
     matches, so a large value flags a position not to trust. See
-    [Kernel Warping](../getting_started/kernel_warping.html#failed-fits).
+    [Kernel Warping](../../getting_started/kernel_warping.html#failed-fits).
 
     Returns:
         Two items:

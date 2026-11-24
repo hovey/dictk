@@ -303,7 +303,7 @@ def _window(
     """Optionally taper `kernel` and `search` toward zero at their own edges.
 
     Shared by `phase_correlation` and
-    [`dictk.translation.locate`](../translation.html#locate) -- the two
+    [`dictk.translation.locate`](./translation.html#locate) -- the two
     functions that compare `kernel` against `search` via an FFT-based
     technique, where windowing (if used at all) must happen before that
     comparison, not after.
@@ -358,7 +358,7 @@ def _kernel_pad(
             directions, not just up to `kernel_margin_width`/
             `kernel_margin_height` past `search_center` in the positive
             direction. See [Recoverable Displacement
-            Range](../getting_started/recoverable_displacement_range.html)
+            Range](../../getting_started/recoverable_displacement_range.html)
             for why.
 
     Returns:
@@ -420,7 +420,7 @@ def phase_correlation(
     normalizes once, globally, per frequency, over the whole padded
     extent -- it just lands in the same "robust to both" category.
 
-    This is exactly what [`dictk.translation.locate`](../translation.html#locate)
+    This is exactly what [`dictk.translation.locate`](./translation.html#locate)
     computes internally via `skimage.registration.phase_cross_correlation`
     (`normalization="phase"`), reproduced here to expose the full surface
     for visualization -- `phase_cross_correlation` itself only returns the
@@ -435,7 +435,7 @@ def phase_correlation(
     small, comfortably-within-bounds displacements this book's examples
     use, the two still agree once each is interpreted in its own
     convention -- see [Recoverable Displacement
-    Range](../getting_started/recoverable_displacement_range.html) for why the
+    Range](../../getting_started/recoverable_displacement_range.html) for why the
     conventions diverge once a displacement isn't small.
 
     See Kuglin CD, Hines DC. "The phase correlation image alignment
@@ -462,7 +462,7 @@ def phase_correlation(
             explicitly wants this function's surface to agree with
             `locate`'s answer past the range where the two conventions
             diverge (see [Recoverable Displacement
-            Range](../getting_started/recoverable_displacement_range.html)).
+            Range](../../getting_started/recoverable_displacement_range.html)).
             The raw `argmax` convention documented below only holds for
             the default; with `centered=True`, the true match position is
             the raw `argmax` plus `_kernel_pad`'s own returned

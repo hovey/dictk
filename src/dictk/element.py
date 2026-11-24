@@ -12,11 +12,11 @@ exactly), reproduced here as this module's own regression test.
 The logarithmic (Hencky) strain measure has no hdic counterpart --
 hdic never implemented it -- so it's dictk-original, following the
 [Seth-Hill Strain
-Family](../getting_started/continuum_mechanics.html#seth-hill-strain-family)'s
+Family](../../getting_started/continuum_mechanics.html#seth-hill-strain-family)'s
 $m=0$ case already documented in `continuum_mechanics.md`.
 
 See [Finite Element
-Method](../getting_started/finite_element_method.html) for the full
+Method](../../getting_started/finite_element_method.html) for the full
 derivation this module implements -- each function's docstring links to
 the specific subsection its math comes from.
 """
@@ -29,7 +29,7 @@ import numpy as np
 from dictk.image import PixelCoordinate, SubpixelCoordinate
 
 #: The 2x2 Gauss quadrature rule's local coordinate value -- see
-#: [Gauss Points](../getting_started/finite_element_method.html#gauss-points).
+#: [Gauss Points](../../getting_started/finite_element_method.html#gauss-points).
 GAUSS_POINT_COORDINATE: Final[float] = 1.0 / np.sqrt(3.0)
 
 
@@ -37,7 +37,7 @@ def gauss_points() -> list[tuple[float, float]]:
     r"""The four $(\xi, \eta)$ locations of the standard 2x2 Gauss rule.
 
     See [Gauss
-    Points](../getting_started/finite_element_method.html#gauss-points).
+    Points](../../getting_started/finite_element_method.html#gauss-points).
     In the standard FEA local coordinate system, the y-axis points up,
     different from the image coordinate system where the y-axis points down.
     For both coordinate systems, the x-axis points right.
@@ -91,7 +91,7 @@ def gauss_point_coordinates(
     Args:
         points: The element's 4 corner nodes' positions, in $N_1$..$N_4$
             order (see [Shape
-            Functions](../getting_started/finite_element_method.html#shape-functions)).
+            Functions](../../getting_started/finite_element_method.html#shape-functions)).
             Pass the *current* (deformed) positions to place each Gauss
             point at its current-configuration location -- e.g. for
             overlaying on a deformed image, matching the reference
@@ -120,7 +120,7 @@ def shape_functions(*, xi: float, eta: float) -> np.ndarray:
     r"""The 4 Q4 shape functions $N_1$..$N_4$ at local coordinate $(\xi, \eta)$.
 
     See [Shape
-    Functions](../getting_started/finite_element_method.html#shape-functions).
+    Functions](../../getting_started/finite_element_method.html#shape-functions).
 
     Args:
         xi: Local coordinate along $\xi$, in $[-1, 1]$.
@@ -143,7 +143,7 @@ def shape_function_derivatives(*, xi: float, eta: float) -> np.ndarray:
     r"""The shape functions' derivatives with respect to local coordinates $(\xi, \eta)$.
 
     See [Shape Function Derivatives in Local
-    Coordinates](../getting_started/finite_element_method.html#shape-function-derivatives-in-local-coordinates).
+    Coordinates](../../getting_started/finite_element_method.html#shape-function-derivatives-in-local-coordinates).
 
     Args:
         xi: Local coordinate along $\xi$, in $[-1, 1]$.
@@ -165,7 +165,7 @@ def jacobian(*, derivatives: np.ndarray, coordinates: np.ndarray) -> np.ndarray:
     r"""The Jacobian matrix $\boldsymbol{j}_0$ mapping local to global coordinate derivatives.
 
     See [Jacobian
-    Matrix](../getting_started/finite_element_method.html#jacobian-matrix).
+    Matrix](../../getting_started/finite_element_method.html#jacobian-matrix).
 
     Args:
         derivatives: `shape_function_derivatives`' own output, shape `(2, 4)`.
@@ -184,7 +184,7 @@ def shape_function_gradients(
     r"""The shape functions' derivatives with respect to global coordinates $(X, Y)$.
 
     See [Shape Function Derivatives in Global
-    Coordinates](../getting_started/finite_element_method.html#shape-function-derivatives-in-global-coordinates).
+    Coordinates](../../getting_started/finite_element_method.html#shape-function-derivatives-in-global-coordinates).
 
     Args:
         derivatives: `shape_function_derivatives`' own output, shape `(2, 4)`.
@@ -214,7 +214,7 @@ def displacement_gradient(
     r"""The displacement field's gradient $\boldsymbol{\nabla}_0\boldsymbol{u}$ at a Gauss point.
 
     See [Displacement
-    Gradient](../getting_started/finite_element_method.html#displacement-gradient).
+    Gradient](../../getting_started/finite_element_method.html#displacement-gradient).
 
     Args:
         gradients: `shape_function_gradients`' own output, shape `(2, 4)`.
@@ -233,7 +233,7 @@ def deformation_gradient(*, displacement_gradient: np.ndarray) -> np.ndarray:
     r"""The deformation gradient $\boldsymbol{F} = \boldsymbol{I} + \boldsymbol{\nabla}_0\boldsymbol{u}$.
 
     See [Deformation
-    Gradient](../getting_started/finite_element_method.html#deformation-gradient).
+    Gradient](../../getting_started/finite_element_method.html#deformation-gradient).
 
     Args:
         displacement_gradient: `displacement_gradient()`'s own output, shape `(2, 2)`.
@@ -248,7 +248,7 @@ def green_lagrange_strain(*, deformation_gradient: np.ndarray) -> np.ndarray:
     r"""The Green-Lagrange strain tensor $\boldsymbol{E} = \frac{1}{2}(\boldsymbol{F}^T\boldsymbol{F} - \boldsymbol{I})$.
 
     See [Green-Lagrange
-    Strain](../getting_started/continuum_mechanics.html#green-lagrange-strain).
+    Strain](../../getting_started/continuum_mechanics.html#green-lagrange-strain).
 
     Args:
         deformation_gradient: `deformation_gradient()`'s own output, shape `(2, 2)`.
@@ -266,12 +266,12 @@ def log_strain(*, deformation_gradient: np.ndarray) -> np.ndarray:
     Green-Lagrange strain, so there is no hdic source to port here.
     Added to compare against VIC-2D, which reports logarithmic (Euler)
     strain, not Green-Lagrange (see [Verification Against
-    VIC-2D](../getting_started/simple_stretch.html#verification-against-vic-2d)).
+    VIC-2D](../../getting_started/simple_stretch.html#verification-against-vic-2d)).
 
     Computed via the [Seth-Hill Strain
-    Family](../getting_started/continuum_mechanics.html#seth-hill-strain-family)'s
+    Family](../../getting_started/continuum_mechanics.html#seth-hill-strain-family)'s
     $m=0$ case, using its [spectral
-    representation](../getting_started/continuum_mechanics.html#spectral-representation):
+    representation](../../getting_started/continuum_mechanics.html#spectral-representation):
     eigendecompose the right Cauchy-Green tensor
     $\boldsymbol{C} = \boldsymbol{F}^T\boldsymbol{F}$ for principal
     stretches $\lambda_\alpha$ and principal directions
@@ -310,7 +310,7 @@ def _gauss_point_deformation_gradients(
     Args:
         reference_points: The element's 4 corner nodes' reference
             positions, in $N_1$..$N_4$ order (see [Shape
-            Functions](../getting_started/finite_element_method.html#shape-functions)).
+            Functions](../../getting_started/finite_element_method.html#shape-functions)).
         current_points: The same 4 nodes' current positions, same order
             and indexing as `reference_points`.
 
@@ -358,7 +358,7 @@ def gauss_point_green_lagrange_strains(
     Args:
         reference_points: The element's 4 corner nodes' reference
             positions, in $N_1$..$N_4$ order (see [Shape
-            Functions](../getting_started/finite_element_method.html#shape-functions)).
+            Functions](../../getting_started/finite_element_method.html#shape-functions)).
         current_points: The same 4 nodes' current positions, same order
             and indexing as `reference_points`.
 
@@ -392,7 +392,7 @@ def gauss_point_log_strains(
     Args:
         reference_points: The element's 4 corner nodes' reference
             positions, in $N_1$..$N_4$ order (see [Shape
-            Functions](../getting_started/finite_element_method.html#shape-functions)).
+            Functions](../../getting_started/finite_element_method.html#shape-functions)).
         current_points: The same 4 nodes' current positions, same order
             and indexing as `reference_points`.
 
